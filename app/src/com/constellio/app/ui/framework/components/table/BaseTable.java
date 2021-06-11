@@ -7,6 +7,7 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.contextmenu.BaseContextMenuTableListener;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.number.BaseIntegerField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent;
@@ -226,7 +227,7 @@ public class BaseTable extends Table implements SelectionComponent {
 				}
 				//				int adjustedFirstIndex = pagingCurrentPageFirstItemIndex - ((currentPage - 1) * getPageLength());
 				super.setCurrentPageFirstItemIndex(pagingCurrentPageFirstItemIndex);
-			} 
+			}
 		}
 	}
 
@@ -436,7 +437,9 @@ public class BaseTable extends Table implements SelectionComponent {
 		if (columnsManager == null) {
 			columnsManager = newColumnsManager();
 		}
-		columnsManager.manage(BaseTable.this, tableId);
+		if (columnsManager != null) {
+			columnsManager.manage(BaseTable.this, tableId, isSortPersisted());
+		}
 	}
 
 	protected TableColumnsManager newColumnsManager() {
@@ -788,6 +791,10 @@ public class BaseTable extends Table implements SelectionComponent {
 		super.sort(propertyId, ascending);
 		deselectAll();
 	}
+	
+	protected boolean isSortPersisted() {
+		return true;
+	}
 
 	private static class PagedBaseTableContainer extends ContainerAdapter implements ItemSetChangeNotifier {
 
@@ -1108,7 +1115,7 @@ public class BaseTable extends Table implements SelectionComponent {
 				pageSizeLayout.setComponentAlignment(itemsPerPageField, Alignment.MIDDLE_LEFT);
 
 				currentPageLabel = new Label($("SearchResultTable.page"));
-				currentPageField = new TextField();
+				currentPageField = new BaseTextField();
 				currentPageField.setConverter(Integer.class);
 				currentPageField.setConvertedValue(currentPageFieldInitialValue);
 				currentPageField.setWidth("45px");

@@ -251,6 +251,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	@Test
 	// Confirm @SlowTest
 	public void givenListToTransferWhenCreatePDFaOnTransferThenPDFaCreated() throws Exception {
+		assumeContentConversionAvailable();
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(records.getList31(), records.getChuckNorris());
@@ -266,6 +267,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	@Test
 	// Confirm @SlowTest
 	public void givenListToDepositWhenCreatePDFaOnTransferThenPDFaCreated() throws Exception {
+		assumeContentConversionAvailable();
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(records.getList34(), records.getChuckNorris());
@@ -281,6 +283,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	@Test
 	// Confirm @SlowTest
 	public void givenListToDepositWhenCreatePDFaOnDepositThenPDFaCreated() throws Exception {
+		assumeContentConversionAvailable();
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(records.getList33(), records.getChuckNorris());

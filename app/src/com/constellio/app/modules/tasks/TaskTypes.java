@@ -7,6 +7,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +42,18 @@ public class TaskTypes {
 
 		for (String code : schemaTypesCodes) {
 			if (types.hasType(code)) {
+				schemaTypes.add(types.getSchemaType(code));
+			}
+		}
+
+		return Collections.unmodifiableList(schemaTypes);
+	}
+
+	public static List<MetadataSchemaTypeBuilder> taskSchemaTypes(MetadataSchemaTypesBuilder types) {
+		List<MetadataSchemaTypeBuilder> schemaTypes = new ArrayList<>();
+
+		for (String code : schemaTypesCodes) {
+			if (types.hasSchemaType(code)) {
 				schemaTypes.add(types.getSchemaType(code));
 			}
 		}

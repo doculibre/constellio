@@ -7,6 +7,7 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -28,6 +29,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.records.GetRecordOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -175,14 +177,20 @@ public class HomePresenter extends BasePresenter<HomeView> {
 				if (taxonomyCode == null) {
 					taxonomyCode = RMTaxonomies.CLASSIFICATION_PLAN;
 				}
-				Record record = getRecord(id);
+				Record record = getSummaryRecord(id);
 				String schemaCode = record.getSchemaCode();
 				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 				if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
 					if (!recentItems) {
-						view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
-						view.navigate().to(RMViews.class).displayFolder(id);
-						navigating = true;
+						FolderRecordActionsServices util = new FolderRecordActionsServices(view.getCollection(), view.getConstellioFactories().getAppLayerFactory());
+						if (!util.isDisplayActionPossible(record, getCurrentUser())) {
+							view.showErrorMessage($("DisplayFolderView.access"));
+							navigating = false;
+						} else {
+							view.getUIContext().setAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE, taxonomyCode);
+							view.navigate().to(RMViews.class).displayFolder(id);
+							navigating = true;
+						}
 					} else {
 						navigating = false;
 					}
@@ -245,6 +253,11 @@ public class HomePresenter extends BasePresenter<HomeView> {
 	private Record getRecord(String id) {
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		return recordServices.getDocumentById(id);
+	}
+
+	private Record getSummaryRecord(String id) {
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		return recordServices.get(id, GetRecordOptions.RETURNING_SUMMARY);
 	}
 
 	public void recordChanged(String recordId) {

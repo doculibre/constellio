@@ -1,5 +1,10 @@
 package com.constellio.app.ui.framework.builders;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.extensions.records.params.AddSyntheticMetadataValuesParams;
+import com.constellio.app.extensions.records.params.AddSyntheticMetadataValuesParams.SyntheticMetadataVOBuilder;
+import com.constellio.app.extensions.records.params.AddSyntheticMetadataValuesParams.WhereToAddMetadata;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.IsMetadataSpecialCaseToNotBeShownParams;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -11,27 +16,33 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordAutomaticMetadataServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
+import org.h2.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -61,6 +72,7 @@ public class RecordToVOBuilder implements Serializable {
 		Set<String> metadataFormExcludedCodes = new HashSet<>();
 
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(collection).getSchema(schemaCode);
@@ -163,13 +175,20 @@ public class RecordToVOBuilder implements Serializable {
 			}
 		}
 
+		List<MetadataValueVO> extensionsAdditionnalMetadataVOs = appLayerFactory.getExtensions().forCollection(record.getCollection()).addSyntheticMetadataValues(new AddSyntheticMetadataValuesParams(
+				record, createSyntheticMetadataVOBuilder(appLayerFactory, sessionContext, schemaVO)));
+
+		if (extensionsAdditionnalMetadataVOs != null) {
+			metadataValueVOs.addAll(extensionsAdditionnalMetadataVOs);
+		}
+
 		RecordVO recordVO = newRecordVO(id, metadataValueVOs, viewMode, metadataCodeExcludedList);
 		recordVO.setExcludedFormMetadataCodes(metadataFormExcludedCodes);
 		recordVO.setSaved(saved);
 		recordVO.setRecord(record);
 		if (recordVO.getSchema() != null) {
 			BuildRecordVOParams buildRecordVOParams = new BuildRecordVOParams(record, recordVO);
-			constellioFactories.getAppLayerFactory().getExtensions()
+			appLayerFactory.getExtensions()
 					.forCollection(record.getCollection()).buildRecordVO(buildRecordVOParams);
 			recordVO.setRecord(record);
 		} else {
@@ -223,4 +242,73 @@ public class RecordToVOBuilder implements Serializable {
 		return recordAutomaticMetadataServices.isValueAutomaticallyFilled(metadata, record);
 	}
 
+	private SyntheticMetadataVOBuilder createSyntheticMetadataVOBuilder(AppLayerFactory appLayerFactory,
+																		SessionContext sessionContext,
+																		MetadataSchemaVO schema) {
+		return syntheticMetadataVOBuildingArgs -> {
+			String syntheticMetadataCode = syntheticMetadataVOBuildingArgs.getMetadataCode();
+			String referencedSchemaType = syntheticMetadataVOBuildingArgs.getReferencedSchemaType();
+
+			Map<Locale, String> labels = new HashMap<>();
+			labels.put(sessionContext.getCurrentLocale(), syntheticMetadataVOBuildingArgs.getLabel());
+
+			String[] taxoCodes = new String[0];
+
+			Set<String> references = new HashSet<>();
+			references.add(syntheticMetadataVOBuildingArgs.getReferencedSchema());
+
+			String typeCode = SchemaUtils.getSchemaTypeCode(schema.getCode());
+
+			Map<String, Map<Language, String>> groups = appLayerFactory.getMetadataSchemasDisplayManager().getType(schema.getCollection(), typeCode)
+					.getMetadataGroup();
+			Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
+			String groupLabel = groups.keySet().isEmpty() ? null : groups.entrySet().iterator().next().getValue().get(language);
+
+			EnumSet<WhereToAddMetadata> whereToAddMetadata = syntheticMetadataVOBuildingArgs.getWhereToAddMetadata();
+			if (whereToAddMetadata.contains(WhereToAddMetadata.DISPLAY)) {
+				List<String> displayMetadataCodes = schema.getDisplayMetadataCodes();
+
+				String insertBeforeThisMetadataInDisplay = syntheticMetadataVOBuildingArgs.getInsertBeforeThisMetadataInDisplay();
+				if (!StringUtils.isNullOrEmpty(insertBeforeThisMetadataInDisplay)) {
+					insertMetadataCodeBeforeIfNotExist(syntheticMetadataCode, insertBeforeThisMetadataInDisplay, displayMetadataCodes);
+				} else {
+					putMetadataAtTheEndIfNotExist(syntheticMetadataCode, displayMetadataCodes);
+				}
+			}
+
+			if (whereToAddMetadata.contains(WhereToAddMetadata.FORM)) {
+				List<String> formMetadataCodes = schema.getFormMetadataCodes();
+
+				String insertBeforeThisMetadataInForm = syntheticMetadataVOBuildingArgs.getInsertBeforeThisMetadataInForm();
+				if (!StringUtils.isNullOrEmpty(insertBeforeThisMetadataInForm)) {
+					insertMetadataCodeBeforeIfNotExist(syntheticMetadataCode, insertBeforeThisMetadataInForm, formMetadataCodes);
+				} else {
+					putMetadataAtTheEndIfNotExist(syntheticMetadataCode, formMetadataCodes);
+				}
+			}
+
+			return new MetadataVO((short) 0, syntheticMetadataCode, MetadataVO.getCodeWithoutPrefix(syntheticMetadataCode), MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, syntheticMetadataVOBuildingArgs.isReadOnly(),
+					labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP, MetadataDisplayType.VERTICAL, syntheticMetadataVOBuildingArgs.getMetadataSortingType(),
+					new AllowedReferences(referencedSchemaType, references), groupLabel, null, false, new HashSet<String>(), false, null,
+					new HashMap<String, Object>(), schema.getCollectionInfoVO(), false, true, false, null, null, null);
+		};
+	}
+
+	private void insertMetadataCodeBeforeIfNotExist(String codeToInsert, String codeToSearch, List<String> codes) {
+		if (codes.stream().noneMatch(code -> code.equals(codeToInsert))) {
+			int index = codes.indexOf(codeToSearch);
+
+			if (index >= 0) {
+				codes.add(index, codeToInsert);
+			} else {
+				putMetadataAtTheEndIfNotExist(codeToInsert, codes);
+			}
+		}
+	}
+
+	private void putMetadataAtTheEndIfNotExist(String codeToInsert, List<String> codes) {
+		if (codes.stream().noneMatch(code -> code.equals(codeToInsert))) {
+			codes.add(codeToInsert);
+		}
+	}
 }

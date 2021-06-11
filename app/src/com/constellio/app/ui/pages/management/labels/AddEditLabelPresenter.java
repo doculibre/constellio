@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.labels;
 
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.enums.TemplateVersionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
@@ -137,6 +138,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 		SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
 		Record record = utils.toRecord(rvo);
 		record.set(metadataSchemasManager.getSchemaTypes(collection).getMetadata(PrintableLabel.SCHEMA_NAME + "_" + PrintableLabel.ISDELETABLE), true);
+		record.set(metadataSchemasManager.getSchemaTypes(collection).getMetadata(PrintableLabel.SCHEMA_NAME + "_" + PrintableLabel.TEMPLATE_VERSION), TemplateVersionType.CONSTELLIO_10);
 		Transaction trans = new Transaction();
 		trans.update(record);
 		rs.execute(trans);

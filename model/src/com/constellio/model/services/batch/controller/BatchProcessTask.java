@@ -9,13 +9,13 @@ import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordModificationImpactHandler;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.OptimisticLocking;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.TransactionResponse;
 import com.constellio.model.services.search.SearchServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.RecursiveTask;
 
+import static com.constellio.model.entities.records.ImpactHandlingMode.DELEGATED;
 import static java.util.Arrays.asList;
 
 @SuppressWarnings("serial")
@@ -92,11 +93,13 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 		}
 
 		if (transaction != null) {
-			RecordModificationImpactHandler handler = createSubTaskImpactHandler();
+			CreateSubTaskModificationImpactHandler handler = createSubTaskImpactHandler();
 			transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 			transaction.setUser(user);
 			try {
-				recordServices.executeWithImpactHandler(transaction, handler);
+				transaction.getRecordUpdateOptions().setImpactHandlingMode(DELEGATED);
+				TransactionResponse transactionResponse = recordServices.execute(transaction);
+				handler.handle(transactionResponse.getImpactsToHandle());
 
 			} catch (OptimisticLocking e) {
 				//e.printStackTrace();
@@ -128,7 +131,7 @@ public class BatchProcessTask extends RecursiveTask<List<String>> {
 
 	}
 
-	RecordModificationImpactHandler createSubTaskImpactHandler() {
+	CreateSubTaskModificationImpactHandler createSubTaskImpactHandler() {
 		return new CreateSubTaskModificationImpactHandler(searchServices, recordServices, metadataSchemaTypes, taskList, user,
 				report, modelLayerFactory);
 	}

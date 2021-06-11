@@ -137,13 +137,12 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 			extraActionBeforeComparingOldAndNewRecord(recordVO);
 
 			Record record = recordVO.getRecord().getCopyOfOriginalRecord();
-			schemaPresenterUtils.fillRecordUsingRecordVO(record, recordVO, true);
-
+			fillRecordUsingRecordVO(record, recordVO, true);
 
 			ForceCancelSaveOfFormParams forceCancelSaveOfFormParams = new ForceCancelSaveOfFormParams(record);
 			forceCancelSaveOfForm(forceCancelSaveOfFormParams);
 
-			if (!forceCancelSaveOfFormParams.isForceCancelSave() && record.isDirty()) {
+			if (!forceCancelSaveOfFormParams.isForceCancelSave() && isDirty(record)) {
 				return SaveAction.save;
 			} else {
 				return SaveAction.cancelSave;
@@ -151,6 +150,12 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		}
 
 		return SaveAction.undefined;
+	}
+
+	protected boolean isDirty(Record record) {
+		return record.isDirty() ||
+			   getFields().stream()
+					   .anyMatch(field -> field instanceof Dirtyable && ((Dirtyable) field).isDirty());
 	}
 
 	public void forceCancelSaveOfForm(ForceCancelSaveOfFormParams forceCancelSaveOfFormParams) {
@@ -346,5 +351,9 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 		} else {
 			return false;
 		}
+	}
+
+	protected final void fillRecordUsingRecordVO(Record record, RecordVO recordVO, boolean newMinorEmpty) {
+		schemaPresenterUtils.fillRecordUsingRecordVO(record, recordVO, newMinorEmpty);
 	}
 }

@@ -4,6 +4,7 @@ import com.constellio.app.services.importExport.settings.SettingsExportServices;
 import com.constellio.app.services.importExport.settings.SettingsImportServicesTestUtils;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
 import com.constellio.app.services.importExport.settings.model.ImportedSequence;
@@ -38,10 +39,12 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 	private Document document;
 	private Document document2;
 	private Document document3;
+	private Document document4;
 	private SettingsXMLFileReader reader;
 	private SettingsXMLFileReader reader2;
 	private SettingsXMLFileReader reader3;
 	private SettingsXMLFileReader reader4;
+	private SettingsXMLFileReader reader5;
 	@Mock private CollectionsListManager collectionsListManager;
 
 	@Before
@@ -49,6 +52,7 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 		document = getDocument("settings-input.xml");
 		document2 = getDocument("settings-input2.xml");
 		document3 = getDocument("settings-input3.xml");
+		document4 = getDocument("settings-input4.xml");
 
 		ModelLayerFactory modelLayerFactory = Mockito.spy(getModelLayerFactory());
 
@@ -60,8 +64,8 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 		reader = new SettingsXMLFileReader(document, zeCollection, modelLayerFactory);
 		reader2 = new SettingsXMLFileReader(document2, zeCollection, modelLayerFactory);
 		reader3 = new SettingsXMLFileReader(document3, zeCollection, modelLayerFactory);
-
 		reader4 = new SettingsXMLFileReader(document3, null, getModelLayerFactory());
+		reader5 = new SettingsXMLFileReader(document4, zeCollection, modelLayerFactory);
 	}
 
 	@Test
@@ -149,6 +153,37 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 
 		assertThat(sequences.get(3).getKey()).isEqualTo("4");
 		assertThat(sequences.get(3).getValue()).isEqualTo("51");
+	}
+
+	@Test
+	public void givenAValidDocumentWhenReadingThenAdvancedSequenceIsOK() {
+		ImportedSettings importedSettings = reader5.read();
+		assertThat(importedSettings).isNotNull();
+
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
+		assertThat(collectionSettings).hasSize(2);
+
+		// anotherCollection
+		ImportedCollectionSettings anotherCollectionSettings = collectionSettings.get(1);
+
+		List<ImportedType> types = anotherCollectionSettings.getTypes();
+		assertThat(types.size()).isEqualTo(2);
+
+		ImportedType folderType = types.get(0);
+
+		// default-schema
+		ImportedMetadataSchema folderDefaultSchema = folderType.getDefaultSchema();
+		List<ImportedMetadata> folderDefaultMetadata = folderDefaultSchema.getAllMetadata();
+		ImportedMetadata m8 = folderDefaultMetadata.get(1);
+		assertThat(m8.getCode()).isEqualTo("m8");
+		assertThat(m8.getLabel()).isEqualTo("Titre m8");
+		assertThat(m8.getType()).isEqualTo("STRING");
+		assertThat(m8.getEnabledIn()).containsExactly("default", "custom1", "custom2");
+		assertThat(m8.getVisibleInFormIn()).containsExactly("default", "custom1");
+
+		ImportedDataEntry dataEntry = m8.getDataEntry();
+		assertThat(dataEntry.getType()).isEqualTo("advancedSequence");
+		assertThat(dataEntry.getAdvancedSequenceCalculatorClass()).isEqualTo("Fibonacci");
 	}
 
 	@Test

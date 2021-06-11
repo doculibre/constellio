@@ -14,6 +14,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ public class Document extends RMObject {
 	public static final String CONTENT_CHECKED_OUT_BY = "contentCheckedOutBy";
 	public static final String CONTENT_CHECKED_OUT_DATE = "contentCheckedOutDate";
 	public static final String CONTENT_CHECKED_OUT_FROM = "contentCheckedOutFrom";
+	public static final String CURRENT_CONTENT_SIZE = "currentContentSize";
 	public static final String IS_CHECKOUT_ALERT_SENT = "isCheckoutAlertSent";
 	public static final String TYPE = "type";
 	public static final String DOCUMENT_TYPE = "documentType";
@@ -76,6 +78,8 @@ public class Document extends RMObject {
 	public static final String CONTENT_HASHES = "contentHashes";
 	public static final String LINKED_TO = "linkedTo";
 	public static final String ENCRYPTION_KEY = "encryptionKey";
+	public static final String MARKED_FOR_OCR = "markedForOcr";
+	public static final String OCR_LANGUAGE = "ocrLanguage";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {
@@ -450,16 +454,19 @@ public class Document extends RMObject {
 	}
 
 	public boolean isActivePublishingAtDate(LocalDate date) {
-		LocalDate startDate = getPublishingStartDate();
-		LocalDate endDate = getPublishingEndDate();
+		LocalDateTime startDate = getPublishingStartDate() != null ?
+								  getPublishingStartDate().toLocalDateTime(new LocalTime().withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0)) : null;
+		LocalDateTime endDate = getPublishingEndDate() != null ?
+								getPublishingEndDate().toLocalDateTime(new LocalTime().withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59)) : null;
+		LocalDateTime now = date.toLocalDateTime(new LocalTime().withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(58));
 		if (startDate != null && endDate == null) {
-			return !startDate.isAfter(date);
+			return !startDate.isAfter(now);
 
 		} else if (startDate == null && endDate != null) {
-			return !endDate.isBefore(date);
+			return !endDate.isBefore(now);
 
 		} else if (startDate != null && endDate != null) {
-			return !startDate.isAfter(date) && !endDate.isBefore(date);
+			return !startDate.isAfter(now) && !endDate.isBefore(now);
 
 		} else {
 			return true;
@@ -487,4 +494,23 @@ public class Document extends RMObject {
 		set(ENCRYPTION_KEY, key);
 		return this;
 	}
+
+	public Boolean isMarkedForOcr() {
+		return get(MARKED_FOR_OCR);
+	}
+	
+	public Document setMarkedForOcr(Boolean markedForOcr) {
+		set(MARKED_FOR_OCR, markedForOcr);
+		return this;
+	}
+
+	public String getOcrLanguage() {
+		return get(OCR_LANGUAGE);
+	}
+
+	public Document setOcrLanguage(String ocrLanguage) {
+		set(OCR_LANGUAGE, ocrLanguage);
+		return this;
+	}
+	
 }

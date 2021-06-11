@@ -6,18 +6,21 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 
 import java.util.List;
@@ -89,12 +92,44 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 		return schemaPresenterUtils.addOrUpdate(record, getCurrentUser(), recordsFlushing);
 	}
 
+	protected List<BatchProcess> addOrUpdate(Record record, RecordsFlushing recordsFlushing,
+											 RecordUpdateOptions updateOptions) {
+		return schemaPresenterUtils.addOrUpdate(record, getCurrentUser(), recordsFlushing, updateOptions);
+	}
+
 	protected List<BatchProcess> addOrUpdate(Record record) {
 		return schemaPresenterUtils.addOrUpdate(record);
 	}
 
 	protected List<BatchProcess> addOrUpdate(Record record, RecordUpdateOptions updateOptions) {
 		return schemaPresenterUtils.addOrUpdate(record, updateOptions);
+	}
+
+	protected void addOrUpdate(Record record, List<Record> otherRecordsToSaveInSameTransaction)
+			throws RecordServicesException {
+
+		addOrUpdate(record, otherRecordsToSaveInSameTransaction, null);
+	}
+
+	protected void addOrUpdate(Record record, List<Record> otherRecordsToSaveInSameTransaction,
+							   RecordUpdateOptions updateOptions)
+			throws RecordServicesException {
+
+		Transaction tr = new Transaction();
+		tr.setUser(getCurrentUser());
+		tr.setToReindexAll();
+		tr.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
+		tr.addUpdate(record);
+
+		if (updateOptions != null) {
+			tr.setOptions(updateOptions);
+		}
+
+		if (otherRecordsToSaveInSameTransaction != null && !otherRecordsToSaveInSameTransaction.isEmpty()) {
+			tr.addUpdate(otherRecordsToSaveInSameTransaction);
+		}
+
+		recordServices().execute(tr);
 	}
 
 	protected List<BatchProcess> addOrUpdateWithoutUser(Record record) {

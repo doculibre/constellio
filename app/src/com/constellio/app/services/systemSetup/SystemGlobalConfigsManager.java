@@ -5,6 +5,9 @@ import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.utils.TimeProvider;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +24,7 @@ public class SystemGlobalConfigsManager implements StatefulService {
 	final static String MAIN_DATA_LANGUAGE = "mainLanguage";
 	final static String TOKEN_DURATION = "tokenDuration";
 	final static String NOTIFICATION_MINUTES = "notificationMinutes";
+	final static String CURRENTLY_REINDEXING_SIGNAL = "reindexingSignal";
 	final static int TOKEN_DURATION_VALUE = 30;
 	final static int NOTIFICATION_MINUTES_VALUE = 60;
 
@@ -106,4 +110,16 @@ public class SystemGlobalConfigsManager implements StatefulService {
 
 	}
 
+	public LocalDateTime getLastSystemReindexingSignal() {
+		String strValue = getGlobalProperties().get(CURRENTLY_REINDEXING_SIGNAL);
+		return StringUtils.isBlank(strValue) ? null : LocalDateTime.parse(strValue);
+	}
+
+	public void blockSystemDuringReindexing() {
+		setProperty(CURRENTLY_REINDEXING_SIGNAL, TimeProvider.getLocalDateTime().toString());
+	}
+
+	public void unblockSystemDuringReindexing() {
+		setProperty(CURRENTLY_REINDEXING_SIGNAL, "");
+	}
 }

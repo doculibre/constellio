@@ -4,9 +4,9 @@ import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
 import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
 import com.constellio.app.ui.pages.search.criteria.RelativeCriteria.RelativeSearchOperator;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -25,7 +25,7 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CriterionFactory implements StructureFactory {
+public class CriterionFactory implements CombinedStructureFactory {
 	final String DATE_TIME_ISO_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 	@Override

@@ -21,4 +21,6 @@ public interface ImportFileView extends BaseView, AdminViewGroup {
 	ImportFileMode getImportFileMode();
 
 	boolean isAllowingReferencesToNonExistingUsers();
+
+	boolean isMergeExistingRecordWithSameLegacyId();
 }

@@ -28,13 +28,13 @@ public abstract class SolrStatMetadataAggregationHandler implements MetadataAggr
 		Metadata inputMetadata = params.getTypes().getMetadata(params.getAggregatedDataEntry().getFirstInputMetadata());
 		LogicalSearchQuery query = params.getCombinedQuery();
 
-		if (inputMetadata.getType() == MetadataValueType.NUMBER) {
+		if (inputMetadata.getType() == MetadataValueType.NUMBER || inputMetadata.getType() == MetadataValueType.INTEGER) {
 			query.computeStatsOnField(inputMetadata);
 			query.setNumberOfRows(0);
 			SPEQueryResponse response = params.getSearchServices().query(query);
 
 			Map<String, Object> statsValues = response.getStatValues(inputMetadata);
-			return statsValues == null || statsValues.get(statName) == null ? 0.0 : (Double) statsValues.get(statName);
+			return statsValues == null || statsValues.get(statName) == null ? 0 : statsValues.get(statName);
 
 		} else {
 			query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(inputMetadata));
@@ -43,7 +43,7 @@ public abstract class SolrStatMetadataAggregationHandler implements MetadataAggr
 			Set<Object> values = new HashSet<>();
 			while (iterator.hasNext()) {
 				Record record = iterator.next();
-				values.addAll(record.<Object>getValues(inputMetadata));
+				values.addAll(record.getValues(inputMetadata));
 
 			}
 

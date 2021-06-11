@@ -156,6 +156,22 @@ public class ReportTestUtils {
 		reportServices.addUpdate(report);
 	}
 
+	public void addDefaultReportWithSeparatedStructure(String title, String separatedStructureCode) {
+		MetadataSchema reportSchema = types.getSchemaType(Report.SCHEMA_TYPE).getDefaultSchema();
+		Report report = new Report(recordServices.newRecordWithSchema(reportSchema), types);
+		report.setTitle(title);
+		report.setColumnsCount(2);
+		report.setLinesCount(1);
+		report.setSchemaTypeCode(folderSchemaType);
+		List<ReportedMetadata> reportedMetadataList = new ArrayList<>();
+
+		reportedMetadataList.add(new ReportedMetadata(folderTitleMetadataCode, 0));
+		reportedMetadataList.add(new ReportedMetadata(separatedStructureCode, 1));
+
+		report.setReportedMetadata(reportedMetadataList);
+		reportServices.addUpdate(report);
+	}
+
 	public void addDefaultReportWithRichText(String title) {
 		MetadataSchema reportSchema = types.getSchemaType(Report.SCHEMA_TYPE).getDefaultSchema();
 		Report report = new Report(recordServices.newRecordWithSchema(reportSchema), types);
@@ -253,6 +269,19 @@ public class ReportTestUtils {
 		assertThat(result2.get(0)).isEqualTo(expectedFolderTitle_A02);
 		assertThat(result2.get(1)).isEqualTo("Bob 'Elvis' Gratton");
 		assertThat(result2.get(2)).isEqualTo("Non");
+	}
+
+	public void validateDefaultReportWithSeparateStructure(SearchResultReportModel model,
+														   String separatedStructureCode) {
+		List<String> titles = model.getColumnsTitles();
+		assertThat(titles).containsOnly(types.getMetadata(folderTitleMetadataCode).getLabel(Language.French),
+				"separatedStructure");
+		List<List<Object>> content = model.getResults();
+		assertThat(content.size()).isEqualTo(1);
+		List<Object> result = content.get(0);
+		assertThat(result.size()).isEqualTo(2);
+		assertThat(result.get(0)).isEqualTo(expectedFolderTitle_A01);
+		assertThat(result.get(1)).isEqualTo("Analysis of title '" + expectedFolderTitle_A01 + "'");
 	}
 
 	public void validateUserReportTitles(SearchResultReportModel model) {

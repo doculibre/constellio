@@ -58,6 +58,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -728,6 +729,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		return getCurrentTestSession().getSeleniumTestFeatures().newWebTarget(path, mapper);
 	}
 
+	protected WebTarget newWebTarget(String path, ObjectMapper mapper, boolean isRest) {
+		ensureNotUnitTest();
+		getCurrentTestSession().getFactoriesTestFeatures().load();
+		return getCurrentTestSession().getSeleniumTestFeatures().newWebTarget(path, mapper, isRest);
+	}
+
 	protected SolrClient newSearchClient() {
 		ensureNotUnitTest();
 		getCurrentTestSession().getFactoriesTestFeatures().load();
@@ -920,7 +927,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected ModulesAndMigrationsTestFeatures givenCollection(String collection, List<String> languages) {
 		ensureNotUnitTest();
 		try {
-			getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(collection, languages);
+			getAppLayerFactory().getCollectionsManager().createCollection(collection, languages);
 		} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
 			throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
 
@@ -984,6 +991,18 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		long batchProcessEnd = new Date().getTime();
 		stats.add(this, getTestName(), "waitForBatchProcess", batchProcessEnd - batchProcessStart);
 		getDataLayerFactory().getDataLayerLogger().setQueryLoggingEnabled(true);
+	}
+
+	protected void waitForCacheLoading() {
+		RecordsCaches recordsCaches = getModelLayerFactory().getRecordsCaches();
+
+		while (!recordsCaches.areSummaryCachesInitialized()) {
+			try {
+				Thread.sleep(20);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	protected void waitForBatchProcessAndDoSomethingWhenTheFirstBatchProcessIsStarted(Runnable runtimeAction)
@@ -1715,6 +1734,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			}
 		});
 	}
+
+
+	protected void assumeContentConversionAvailable() {
+		assumeTrue(!"false".equals(sdkProperties.get("content.conversion.available")));
+	}
+
 
 	protected void assumeNotSolrCloud() {
 		assumeTrue("http".equals(sdkProperties.get("dao.records.type")));

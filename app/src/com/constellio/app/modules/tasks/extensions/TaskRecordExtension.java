@@ -15,7 +15,6 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -41,6 +40,8 @@ import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,9 +53,13 @@ import org.joda.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_ASSIGNEE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_STATUS;
@@ -69,6 +74,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_ON;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COLLABORATOR_ADDED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMMENTS;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMPLETED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DELETED;
@@ -76,6 +82,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPT
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE_TITLE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_END_DATE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_FOLLOWER_ADDED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_GROUPS_CANDIDATES;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_REASON;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
@@ -85,6 +92,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_M
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_USERS_CANDIDATES;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskRecordExtension extends RecordExtension {
 	private static final Logger LOGGER = LogManager.getLogger(TaskRecordExtension.class);
@@ -328,9 +336,30 @@ public class TaskRecordExtension extends RecordExtension {
 
 	public void taskInCreation(Task task, RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent event) {
 		delegateTask(task);
+
 		if (StringUtils.isBlank(task.getLegacyId())) {
 			sendEmailToAssignee(task);
 		}
+		String assignedUser = task.get(Task.ASSIGNEE);
+
+		List<String> ignoreUsers = new ArrayList<>();
+		ignoreUsers.add(assignedUser);
+
+		List taskCollaborators = task.get(Task.TASK_COLLABORATORS);
+		if (taskCollaborators != null && taskCollaborators.size() > 0) {
+			ignoreUsers.addAll(sendNewUserCollaboratorEmail(task, ignoreUsers));
+		}
+
+		List collaboratorsGroups = task.get(Task.TASK_COLLABORATORS_GROUPS);
+		if (collaboratorsGroups != null && collaboratorsGroups.size() > 0) {
+			ignoreUsers.addAll(sendNewGroupCollaboratorEmail(task, collaboratorsGroups, ignoreUsers));
+		}
+
+		List<TaskFollower> taskFollowers = task.get(Task.TASK_FOLLOWERS);
+		if (taskFollowers != null && taskFollowers.size() > 0) {
+			ignoreUsers.addAll(sendNewUserFollowerEmail(task, ignoreUsers));
+		}
+
 		TaskStatus currentStatus = (task.getStatus() == null) ? null : tasksSchema.getTaskStatus(task.getStatus());
 		updateEndDateAndStartDateIfNecessary(task, currentStatus);
 	}
@@ -444,22 +473,37 @@ public class TaskRecordExtension extends RecordExtension {
 		}
 
 		StringBuilder htmlComments = new StringBuilder();
-		htmlComments.append(formatToParameter(i18n.$("SystemConfigurationGroup.tasks.comments") + "<br/>"));
-
-		for (Comment comment : task.getComments()) {
-			htmlComments.append(StringEscapeUtils.escapeHtml4(comment.getUsername() + " : " +
+		htmlComments.append(formatToParameter($("TaskRecordExtension.comments") + " :" + "<br/>"));
+		for (Iterator<Comment> it = task.getComments().iterator(); it.hasNext(); ) {
+			Comment comment = it.next();
+			User user = tasksSchema.getUser(comment.getUserId());
+			htmlComments.append(StringEscapeUtils.escapeHtml4(user.getTitle() + " : " +
 															  comment.getCreationDateTime().toString()) + "<br/>");
 			htmlComments.append(StringEscapeUtils.escapeHtml4(comment.getMessage()).replace("\n", "<br/>") + "<br/>");
-			htmlComments.append("<br/>");
+
+			if (it.hasNext()) {
+				htmlComments.append("<br/>");
+			}
 		}
 
 		boolean showComments = modelLayerFactory.getSystemConfigurationsManager().getValue(TaskConfigs.SHOW_COMMENTS);
 
 		if (showComments) {
-			newParameters.add(TASK_COMMENTS + ":" + formatToParameter(htmlComments.toString()));
+			Optional<String> possibleComments = newParameters.stream()
+					.filter(param -> param.startsWith(TASK_COMMENTS + ":*"))
+					.findAny();
+			if (possibleComments.isPresent()) {
+				possibleComments.map(comments -> {
+					String[] commentsParts = comments.split(TASK_COMMENTS + ":");
+					return commentsParts[0] + formatToParameter(htmlComments.toString()) + "<br/>" + commentsParts[1];
+				});
+			} else {
+				newParameters.add(TASK_COMMENTS + ":" + formatToParameter(htmlComments.toString()));
+			}
 		} else {
 			newParameters.add(TASK_COMMENTS + ":");
 		}
+
 		emailToSend.setParameters(newParameters);
 	}
 
@@ -505,12 +549,41 @@ public class TaskRecordExtension extends RecordExtension {
 				sendSubTasksModification(tasksSchema.getTask(previousParent), task);
 			}
 		}
+
+		List<String> ignoreUsers = new ArrayList<>();
+
 		if (event.hasModifiedMetadata(Task.ASSIGNEE)) {
-			sendAssigneeModificationEvent(task, event);
+			ignoreUsers.addAll(sendAssigneeModificationEvent(task, event));
 		} else if (event.hasModifiedMetadata(Task.ASSIGNEE_GROUPS_CANDIDATES) || event
 				.hasModifiedMetadata(Task.ASSIGNEE_USERS_CANDIDATES)) {
-			sendEmailToAssignee(task);
+			ignoreUsers.addAll(sendEmailToAssignee(task));
 		}
+
+
+		List<String> taskCollaborators = getModifiableListOfPreviousValueOrCurrent(task, event, Task.TASK_COLLABORATORS);
+		ignoreUsers.addAll(taskCollaborators);
+
+		List<String> oldGroups = getModifiableListOfPreviousValueOrCurrent(task, event, Task.TASK_COLLABORATORS_GROUPS);
+		List<String> groupsToNotify = new ArrayList<>(task.get(Task.TASK_COLLABORATORS_GROUPS));
+		groupsToNotify.removeAll(oldGroups);
+		ignoreUsers.addAll(getGroupUsers(oldGroups));
+
+		if (event.hasModifiedMetadata(Task.TASK_COLLABORATORS_GROUPS)) {
+			ignoreUsers.addAll(sendNewGroupCollaboratorEmail(task, groupsToNotify, ignoreUsers));
+		}
+
+		if (event.hasModifiedMetadata(Task.TASK_COLLABORATORS)) {
+			ignoreUsers.addAll(sendNewUserCollaboratorEmail(task, ignoreUsers));
+		}
+
+		if (event.hasModifiedMetadata(Task.TASK_FOLLOWERS)) {
+			ignoreUsers.addAll(sendNewUserFollowerEmail(task, ignoreUsers));
+		}
+	}
+
+	private <T> List<T> getModifiableListOfPreviousValueOrCurrent(Task task, RecordModificationEvent event,
+																  String metadata) {
+		return new ArrayList(event.hasModifiedMetadata(metadata) ? event.getPreviousValue(metadata) : task.get(metadata));
 	}
 
 	void taskInModification(Task task, RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
@@ -590,11 +663,79 @@ public class TaskRecordExtension extends RecordExtension {
 		return reminders;
 	}
 
-	public void sendAssigneeModificationEvent(Task task, RecordModificationEvent event) {
+	public Set<String> sendNewUserFollowerEmail(Task task, List<String> exclude) {
+		Set<String> usersIds = new HashSet<>();
+
+		List<TaskFollower> taskFollowers = task.getTaskFollowers();
+		if (taskFollowers.isEmpty()) {
+			return Collections.emptySet();
+		}
+
+		List followers = taskFollowers.stream().map(TaskFollower::getFollowerId).collect(Collectors.toList());
+		usersIds.addAll(followers);
+		usersIds.removeAll(exclude);
+
+		if (!usersIds.isEmpty()) {
+			EmailToSend emailToSend = prepareEmailToSend(task, usersIds, TASK_FOLLOWER_ADDED);
+			saveEmailToSend(emailToSend, task);
+		}
+
+		return usersIds;
+	}
+
+	public Set<String> sendNewUserCollaboratorEmail(Task task, List<String> exclude) {
+		task.getTaskCollaboratorsGroups();
+
+		Set<String> usersIds = new HashSet<>();
+
+		usersIds.addAll(task.getTaskCollaborators());
+		usersIds.removeAll(exclude);
+
+		if (!usersIds.isEmpty()) {
+			EmailToSend emailToSend = prepareEmailToSend(task, usersIds, TASK_COLLABORATOR_ADDED);
+			saveEmailToSend(emailToSend, task);
+		}
+
+		return usersIds;
+	}
+
+	public Set<String> sendNewGroupCollaboratorEmail(Task task, List<String> groups, List<String> exclude) {
+		task.getTaskCollaboratorsGroups();
+
+
+		Set<String> usersIds = new HashSet<>();
+
+		usersIds.addAll(getGroupUsers(groups));
+		usersIds.removeAll(exclude);
+
+		if (!usersIds.isEmpty()) {
+			EmailToSend emailToSend = prepareEmailToSend(task, usersIds, TASK_COLLABORATOR_ADDED);
+			saveEmailToSend(emailToSend, task);
+		}
+
+		return usersIds;
+	}
+
+	private Set<String> getGroupUsers(List<String> groupIds) {
+		Set<String> usersIds = new HashSet<>();
+
+		UserServices userServices = modelLayerFactory.newUserServices();
+
+		for (String id : groupIds) {
+			Group group = tasksSchema.getGroup(id);
+			List<User> users = userServices.getAllUsersInGroup(group, true, true);
+
+			usersIds.addAll(users.stream().map(user -> user.getId()).collect(Collectors.toList()));
+		}
+
+		return usersIds;
+	}
+
+	public Set<String> sendAssigneeModificationEvent(Task task, RecordModificationEvent event) {
 		sendEmailToAssignee(task);
 		Set<String> followersIds = getTaskAssigneeModificationFollowers(task);
 		if (followersIds.isEmpty()) {
-			return;
+			return Collections.emptySet();
 		}
 		EmailToSend emailToSend = prepareEmailToSend(task, followersIds, TASK_ASSIGNEE_MODIFIED);
 		List<String> parameters = new ArrayList<>(emailToSend.getParameters());
@@ -602,13 +743,26 @@ public class TaskRecordExtension extends RecordExtension {
 		parameters.add(ACTUAL_ASSIGNEE + ":" + getUserNameById(task.getAssignee()));
 		emailToSend.setParameters(parameters);
 		saveEmailToSend(emailToSend, task);
+
+		return followersIds;
 	}
 
-	public void sendEmailToAssignee(Task task) {
-		Set<EmailAddress> assigneeEmails = getTaskAssigneesEmails(task);
+	private Set<EmailAddress> getEmailAddressSet(Set<IdAndEmailAddress> idAndEmailAddresses) {
+		Set<EmailAddress> emailAddressSet = new HashSet<>();
+
+		for (IdAndEmailAddress idAndEmailAddress : idAndEmailAddresses) {
+			emailAddressSet.addAll(idAndEmailAddress.getEmailAddress());
+		}
+
+		return emailAddressSet;
+	}
+
+	public Set<String> sendEmailToAssignee(Task task) {
+		Set<IdAndEmailAddress> assigneeEmails = getTaskAssigneesEmails(task);
+		Set<EmailAddress> emailSet = getEmailAddressSet(assigneeEmails);
 		if (!assigneeEmails.isEmpty()) {
 			EmailToSend emailToSend = tasksSchema.newEmailToSend().setTryingCount(0d);
-			emailToSend.setTo(new ArrayList<>(assigneeEmails));
+			emailToSend.setTo(new ArrayList<>(emailSet));
 			emailToSend.setSendOn(TimeProvider.getLocalDateTime());
 			emailToSend.setTemplate(TASK_ASSIGNED_TO_YOU);
 
@@ -616,15 +770,36 @@ public class TaskRecordExtension extends RecordExtension {
 			emailToSend.setParameters(parameters);
 			saveEmailToSend(emailToSend, task);
 		}
+
+		return assigneeEmails.stream().map(idAndEmailAddress -> idAndEmailAddress.getId()).collect(Collectors.toSet());
 	}
 
-	private Set<EmailAddress> getTaskAssigneesEmails(Task task) {
-		Set<EmailAddress> assigneeEmails = new HashSet<>();
+	@Getter
+	@AllArgsConstructor
+	static class IdAndEmailAddress {
+		String id;
+		List<EmailAddress> emailAddress;
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
+			IdAndEmailAddress that = (IdAndEmailAddress) o;
+			return Objects.equals(id, that.id);
+		}
+	}
+
+	private Set<IdAndEmailAddress> getTaskAssigneesEmails(Task task) {
+		Set<IdAndEmailAddress> assigneeIdEmails = new HashSet<>();
 
 		if (task.getAssignee() != null) {
 			User assignee = rm.getUser(task.getAssignee());
 			if (!assignee.isAssignationEmailReceptionDisabled()) {
-				assigneeEmails.addAll(emailAddress(task.getAssignee()));
+				assigneeIdEmails.add(new IdAndEmailAddress(task.getAssignee(), emailAddress(task.getAssignee())));
 			}
 		}
 
@@ -632,7 +807,7 @@ public class TaskRecordExtension extends RecordExtension {
 			for (String userId : task.getAssigneeUsersCandidates()) {
 				User assigneeCandidate = rm.getUser(userId);
 				if (!assigneeCandidate.isAssignationEmailReceptionDisabled()) {
-					assigneeEmails.addAll(emailAddress(userId));
+					assigneeIdEmails.add(new IdAndEmailAddress(task.getAssignee(), emailAddress(userId)));
 				}
 			}
 		}
@@ -646,7 +821,7 @@ public class TaskRecordExtension extends RecordExtension {
 					for (SystemWideUserInfos user : groupUsers) {
 						User assigneeCandidate = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(user.getUsername(), collection);
 						if (!assigneeCandidate.isAssignationEmailReceptionDisabled()) {
-							assigneeEmails.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
+							assigneeIdEmails.add(new IdAndEmailAddress(assigneeCandidate.getId(), buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails())));
 						}
 					}
 				} catch (UserServicesRuntimeException_NoSuchGroup e) {
@@ -655,7 +830,7 @@ public class TaskRecordExtension extends RecordExtension {
 			}
 		}
 
-		return assigneeEmails;
+		return assigneeIdEmails;
 	}
 
 	private List<EmailAddress> emailAddress(String userId) {
@@ -871,9 +1046,9 @@ public class TaskRecordExtension extends RecordExtension {
 		delegationComment.setUser(taskAssignee);
 		delegationComment.setCreationDateTime(LocalDateTime.now());
 		if (assigneeCandidateDelegation) {
-			delegationComment.setMessage(i18n.$("TaskManagementView.taskDelegationAssigneeCandidatComment", taskAssignee.getUsername(), delegatedAssignee.getUsername()));
+			delegationComment.setMessage($("TaskManagementView.taskDelegationAssigneeCandidatComment", taskAssignee.getUsername(), delegatedAssignee.getUsername()));
 		} else {
-			delegationComment.setMessage(i18n.$("TaskManagementView.taskDelegationAssigneeComment", taskAssignee.getUsername(), delegatedAssignee.getUsername()));
+			delegationComment.setMessage($("TaskManagementView.taskDelegationAssigneeComment", taskAssignee.getUsername(), delegatedAssignee.getUsername()));
 		}
 
 		List<Comment> comments = new ArrayList<>(task.getComments());

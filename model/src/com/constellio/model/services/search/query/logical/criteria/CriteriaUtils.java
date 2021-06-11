@@ -2,12 +2,14 @@ package com.constellio.model.services.search.query.logical.criteria;
 
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Record.GetMetadataOption;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.TestedQueryRecord;
 import org.apache.solr.client.solrj.util.ClientUtils;
@@ -77,6 +79,10 @@ public class CriteriaUtils {
 
 			//No conversion, since it is losing precision
 			return record.getVersion();
+
+		} else if (metadata.getType() == MetadataValueType.STRUCTURE && metadata.getStructureFactory() instanceof SeparatedStructureFactory) {
+			recordValue = record.get(metadata, GetMetadataOption.ONLY_MAIN_STRUCTURE_VALUE);
+			
 		} else {
 			recordValue = record.get(metadata, testedRecord.getLocale());
 			if ((recordValue == null || isEmptyList(recordValue)) && testedRecord.getMetadataRetrieval() == PREFERRING) {

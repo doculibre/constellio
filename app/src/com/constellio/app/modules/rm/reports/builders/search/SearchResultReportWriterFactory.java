@@ -32,7 +32,7 @@ public class SearchResultReportWriterFactory implements NewReportWriterFactory<S
 
 	@Override
 	public String getFilename(SearchResultReportParameters parameters) {
-		return parameters.getReportTitle() + "." + new SearchResultReportWriter(new SearchResultReportModel(), null, null)
+		return parameters.getReportTitle() + "." + new SearchResultReportWriter(new SearchResultReportModel(appLayerFactory.getModelLayerFactory()), null, null)
 				.getFileExtension();
 	}
 

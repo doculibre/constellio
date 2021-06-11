@@ -37,8 +37,8 @@ public class TaxonomyManagementViewAcceptTestSetup extends SchemasSetup {
 
 	@Override
 	public void setUp() {
-		MetadataSchemaTypeBuilder categoryType = typesBuilder.createNewSchemaType(CATEGORY);
-		MetadataSchemaTypeBuilder subCategoryType = typesBuilder.createNewSchemaType(SUB_CATEGORY);
+		MetadataSchemaTypeBuilder categoryType = typesBuilder.createNewSchemaTypeWithSecurity(CATEGORY);
+		MetadataSchemaTypeBuilder subCategoryType = typesBuilder.createNewSchemaTypeWithSecurity(SUB_CATEGORY);
 
 		setupClassificationTaxonomy(categoryType);
 		setupClassificationComplexTaxonomy(categoryType, subCategoryType);

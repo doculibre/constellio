@@ -31,18 +31,21 @@ public class MinMetadataAggregationHandler extends SolrStatMetadataAggregationHa
 
 			if (valueType == MetadataValueType.NUMBER) {
 				if (value instanceof Number
-					&& (min == null || ((Double) min).doubleValue() > ((Number) value).doubleValue())) {
+					&& (min == null || (Double) min > ((Number) value).doubleValue())) {
 					min = ((Number) value).doubleValue();
+				}
+			} else if (valueType == MetadataValueType.INTEGER) {
+				if (value instanceof Number
+					&& (min == null || (Integer) min > ((Number) value).intValue())) {
+					min = ((Number) value).intValue();
 				}
 			} else if (valueType == MetadataValueType.DATE) {
 				if (value instanceof LocalDate
 					&& (min == null || ((LocalDate) min).isAfter((LocalDate) value))) {
 					min = value;
-
 				} else if (value instanceof LocalDateTime
 						   && (min == null || ((LocalDate) min).isAfter(((LocalDateTime) value).toLocalDate()))) {
 					min = ((LocalDateTime) value).toLocalDate();
-
 				}
 
 			} else if (valueType == MetadataValueType.DATE_TIME) {

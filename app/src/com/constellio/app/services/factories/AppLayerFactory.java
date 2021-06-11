@@ -4,6 +4,7 @@ import com.constellio.app.api.cmis.binding.global.CmisCacheManager;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.extensions.AppLayerExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
+import com.constellio.app.services.actionDisplayManager.MenusDisplayManager;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.background.AppLayerBackgroundThreadsManager;
@@ -97,4 +98,9 @@ public interface AppLayerFactory extends LayerFactory {
 	boolean isInitializationFinished();
 
 	AppLayerBackgroundThreadsManager getAppLayerBackgroundThreadsManager();
+
+	boolean isReindexing();
+
+	MenusDisplayManager getMenusDisplayManager();
+
 }

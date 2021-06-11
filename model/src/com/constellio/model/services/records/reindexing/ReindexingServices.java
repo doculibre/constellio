@@ -2,6 +2,7 @@ package com.constellio.model.services.records.reindexing;
 
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
@@ -11,11 +12,9 @@ import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.sql.SqlRecordDaoType;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
 import com.constellio.data.services.tenant.TenantLocal;
+import com.constellio.data.utils.KeyIntMap;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.systemLogger.SystemLogger;
-import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.batchprocess.BatchProcessAction;
-import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
@@ -29,9 +28,6 @@ import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
-import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
-import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
-import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.BulkRecordTransactionHandler;
@@ -43,6 +39,7 @@ import com.constellio.model.services.records.aggregations.MetadataAggregationHan
 import com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory;
 import com.constellio.model.services.records.cache.CacheMemoryConsumptionReportBuilder;
 import com.constellio.model.services.records.reindexing.SystemReindexingConsumptionInfos.SystemReindexingConsumptionHeapInfo;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -51,9 +48,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import lombok.AllArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -70,19 +65,24 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 import static com.constellio.data.conf.FoldersLocatorMode.PROJECT;
 import static com.constellio.model.entities.enums.MemoryConsumptionLevel.LEAST_MEMORY_CONSUMPTION;
 import static com.constellio.model.entities.enums.MemoryConsumptionLevel.LESS_MEMORY_CONSUMPTION;
-import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.WRITE_ZZRECORDS_IN_TLOG;
 import static com.constellio.model.services.records.BulkRecordTransactionImpactHandling.NO_IMPACT_HANDLING;
+import static com.constellio.model.services.records.RecordUtils.migrateMetadataTypeAndMultivalueOn;
 import static com.constellio.model.services.records.RecordUtils.removeMetadataValuesOn;
+import static com.constellio.model.services.records.reindexing.ReindexingSchemaTypeRecordsProvider.RecordReindexingStatus.IN_CURRENT_BATCH;
+import static com.constellio.model.services.records.reindexing.ReindexingSchemaTypeRecordsProvider.RecordReindexingStatus.IN_PREVIOUS_BATCH;
+import static com.constellio.model.services.records.reindexing.ReindexingSchemaTypeRecordsProvider.RecordReindexingStatus.LATER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class ReindexingServices {
 
@@ -90,7 +90,8 @@ public class ReindexingServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ReindexingServices.class);
 
-	private static final String REINDEX_TYPES = "reindexTypes";
+	private static final String REINDEX_TYPES_SINGLE = "reindexTypes-single";
+	private static final String REINDEX_TYPES_MULTI = "reindexTypes-multi";
 
 	private RecordServices recordServices;
 	private ModelLayerFactory modelLayerFactory;
@@ -120,6 +121,10 @@ public class ReindexingServices {
 		}
 	}
 
+	public static boolean isReindexing() {
+		return getReindexingInfos() != null;
+	}
+
 	public static SystemReindexingInfos getReindexingInfos() {
 		return reindexingInfos.get();
 	}
@@ -135,112 +140,104 @@ public class ReindexingServices {
 	public void reindexCollections(ReindexationParams params) {
 
 
-		if (params.isBackground()) {
-			try {
-				BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-				for (MetadataSchemaType schemaType : params.getReindexedSchemaTypes()) {
-					BatchProcessAction action = ReindexMetadatasBatchProcessAction.allMetadatas();
-					batchProcessesManager.addPendingBatchProcess(from(schemaType).returnAll(), action, "reindexing");
-				}
+		try {
+			modelLayerFactory.getDataLayerFactory().getRecordsVaultServer().setResilienceModeToHigh();
+			modelLayerFactory.getDataLayerFactory().getEventBusManager().pause();
+			modelLayerFactory.getRecordsCaches().disableVolatileCache();
+			dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
+			//				if (dataLayerFactory.getTransactionLogReplicationFactorManager() != null) {
+			//					dataLayerFactory.getTransactionLogReplicationFactorManager().setEnabled(false);
+			//				}
 
-			} finally {
-				reindexingInfos.set(null);
+			waitForCacheLoading();
+
+			RecordDao recordDao = dataLayerFactory.newRecordDao();
+			SystemLogger.info("Reindexing started");
+			if (logManager != null && params.getReindexationMode().isFullRewrite()) {
+				startNewTransactionalLog(recordDao, params);
 			}
 
-		} else {
-			try {
-				modelLayerFactory.getDataLayerFactory().getRecordsVaultServer().setResilienceModeToHigh();
-				modelLayerFactory.getDataLayerFactory().getEventBusManager().pause();
-				modelLayerFactory.getRecordsCaches().disableVolatileCache();
-				dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(false);
-				int waitedCounter = 0;
-				while (!modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
-					   && modelLayerFactory.getConfiguration().isSummaryCacheEnabled()) {
-					if (waitedCounter++ % 6 == 0) {
-						LOGGER.info("Waiting end of cache loading to start reindexing");
-					}
-					try {
-						Thread.sleep(10000);
-					} catch (InterruptedException e) {
-						throw new RuntimeException(e);
-					}
-				}
+			//Expunge before
+			recordDao.expungeDeletes();
 
-				SystemLogger.info("Reindexing started");
-				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
-					logManager.regroupAndMove();
-					logManager.transactionLOGReindexationStartStrategy();
-					RecordDao recordDao = dataLayerFactory.newRecordDao();
-					try {
-
-						List<RecordDTO> records = new ArrayList<>();
-
-						if (!FoldersLocator.usingAppWrapper()) {
-							records.add(recordDao.get("the_private_key"));
-						}
-
-						for (Map.Entry<String, Long> entry : dataLayerFactory.getSequencesManager().getSequences().entrySet()) {
-							try {
-								RecordDTO sequence = recordDao.realGet("seq_" + entry.getKey());
-								records.add(sequence);
-							} catch(Throwable t) {
-								t.printStackTrace();
-							}
-						}
-
-						try {
-							recordDao.execute(
-									new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(records).withFullRewrite(true));
-						} catch (OptimisticLocking optimisticLocking) {
-							throw new RuntimeException(optimisticLocking);
-						}
-					} catch (NoSuchRecordWithId noSuchRecordWithId) {
-						//OK
-					}
-					recordDao.expungeDeletes();
-				}
-
-				for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
-					reindexCollection(collection, params);
-					modelLayerFactory.getSecurityModelCache().invalidate(collection);
-				}
-
-				if (logManager != null && params.getReindexationMode().isFullRewrite()) {
-					logManager.regroupAndMove();
-					logManager.transactionLOGReindexationCleanupStrategy();
-				}
-
-				RecordDao recordDao = modelLayerFactory.getDataLayerFactory().newRecordDao();
-				recordDao.expungeDeletes();
-
-				deleteMetadatasMarkedForDeletion();
-
-				BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-				for (BatchProcess batchProcess : new ArrayList<>(batchProcessesManager.getAllNonFinishedBatchProcesses())) {
-					if (batchProcess instanceof RecordBatchProcess) {
-						if (((RecordBatchProcess) batchProcess).getAction() instanceof RecordsReindexingBackgroundAction) {
-							try {
-								batchProcessesManager.cancelBatchProcessNoMatterItStatus(batchProcess);
-							} catch (Exception e) {
-								LOGGER.info("Failed to cancel reindexing batch process");
-							}
-						}
-					}
-				}
-				SystemLogger.info("Reindexing finished");
-
-			} finally {
-
-				reindexingInfos.set(null);
-
-				dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
-				modelLayerFactory.getRecordsCaches().enableVolatileCache();
-				modelLayerFactory.getDataLayerFactory().getEventBusManager().resume();
-				modelLayerFactory.getDataLayerFactory().getRecordsVaultServer().setResilienceModeToNormal();
+			for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+				reindexCollection(collection, params);
+				modelLayerFactory.getSecurityModelCache().invalidate(collection);
 			}
+
+			if (logManager != null && params.getReindexationMode().isFullRewrite()) {
+				logManager.regroupAndMove();
+				logManager.transactionLOGReindexationCleanupStrategy();
+			}
+
+			//Expunge after
+			recordDao.expungeDeletes();
+
+			deleteMetadatasMarkedForDeletion();
+
+			modelLayerFactory.getBatchProcessesManager().cancelReindexingBatchProcesses();
+			SystemLogger.info("Reindexing finished");
+
+		} finally {
+
+			reindexingInfos.set(null);
+			//				if (dataLayerFactory.getTransactionLogReplicationFactorManager() != null) {
+			//					dataLayerFactory.getTransactionLogReplicationFactorManager().setEnabled(true);
+			//				}
+			dataLayerFactory.getDataLayerLogger().setQueryLoggingEnabled(true);
+			modelLayerFactory.getRecordsCaches().enableVolatileCache();
+			modelLayerFactory.getDataLayerFactory().getEventBusManager().resume();
+			modelLayerFactory.getDataLayerFactory().getRecordsVaultServer().setResilienceModeToNormal();
 		}
 
 
+	}
+
+	private void waitForCacheLoading() {
+		int waitedCounter = 0;
+		while (!modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
+			   && modelLayerFactory.getConfiguration().isSummaryCacheEnabled()) {
+			if (waitedCounter++ % 6 == 0) {
+				LOGGER.info("Waiting end of cache loading to start reindexing");
+			}
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	private void startNewTransactionalLog(RecordDao recordDao, ReindexationParams params) {
+		logManager.regroupAndMove();
+		logManager.transactionLOGReindexationStartStrategy();
+
+		try {
+
+			List<RecordDTO> records = new ArrayList<>();
+
+			if (params.isIncludeSolrPrivateKey() || !FoldersLocator.usingAppWrapper()) {
+				records.add(recordDao.get("the_private_key"));
+			}
+
+			for (Map.Entry<String, Long> entry : dataLayerFactory.getSequencesManager().getSequences().entrySet()) {
+				try {
+					RecordDTO sequence = recordDao.realGet("seq_" + entry.getKey());
+					records.add(sequence);
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
+			}
+
+			try {
+				recordDao.execute(
+						new TransactionDTO(RecordsFlushing.LATER()).withNewRecords(records).withFullRewrite(true));
+			} catch (OptimisticLocking optimisticLocking) {
+				throw new RuntimeException(optimisticLocking);
+			}
+		} catch (NoSuchRecordWithId noSuchRecordWithId) {
+			//OK
+		}
 	}
 
 	private void deleteMetadatasMarkedForDeletion() {
@@ -291,12 +288,6 @@ public class ReindexingServices {
 	public void reindexCollection(String collection, ReindexationParams params) {
 
 		try {
-			if (!params.getReindexedSchemaTypes().isEmpty()) {
-				long count = getRecordCountOfType(collection, params.getReindexedSchemaTypes());
-				if (count == 0) {
-					return;
-				}
-			}
 
 			RecordUpdateOptions transactionOptions = new RecordUpdateOptions().setUpdateModificationInfos(false);
 			transactionOptions.setValidationsEnabled(false).setCatchExtensionsValidationsErrors(true)
@@ -316,23 +307,10 @@ public class ReindexingServices {
 
 	}
 
-	private long getRecordCountOfType(String collection, List<MetadataSchemaType> reindexedSchemaTypes) {
-		List<LogicalSearchValueCondition> conditions = new ArrayList<>();
-
-		for (MetadataSchemaType reindexedSchemaType : reindexedSchemaTypes) {
-			conditions.add(LogicalSearchQueryOperators.startingWithText(reindexedSchemaType.getCode()));
-		}
-
-		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(SCHEMA).isAny(conditions);
-		return modelLayerFactory.newSearchServices().getResultsCount(new LogicalSearchQuery(condition)
-				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL));
-	}
-
 	private void reindexCollection(String collection, ReindexationParams params,
 								   RecordUpdateOptions transactionOptions) {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
-		ReindexingRecordsProvider recordsProvider = new ReindexingRecordsProvider(modelLayerFactory, mainThreadQueryRows);
 		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage = newReindexingAggregatedValuesTempStorage();
 
 		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
@@ -364,10 +342,16 @@ public class ReindexingServices {
 			int level = 0;
 			while (isReindexingLevel(level, types)) {
 
-				BulkRecordTransactionHandler bulkTransactionHandler = new BulkRecordTransactionHandler(
-						modelLayerFactory.newRecordServices(), REINDEX_TYPES, options);
+				BulkRecordTransactionHandler singleThreadBulkTransactionHandler = new BulkRecordTransactionHandler(
+						modelLayerFactory.newRecordServices(), REINDEX_TYPES_SINGLE, options.withNumberOfThreads(1));
+
+				BulkRecordTransactionHandler multiThreadBulkTransactionHandler = new BulkRecordTransactionHandler(
+						modelLayerFactory.newRecordServices(), REINDEX_TYPES_MULTI, options);
 
 				ReindexingLogger logger = new ReindexingLogger(collection, LOGGER);
+				LevelReindexingContext context = new LevelReindexingContext(singleThreadBulkTransactionHandler,
+						multiThreadBulkTransactionHandler, logger, level, aggregatedValuesTempStorage, params);
+
 				try {
 
 					List<String> typesSortedByDependency = types.getSchemaTypesCodesSortedByDependency();
@@ -377,6 +361,7 @@ public class ReindexingServices {
 						Collections.reverse(reversedTypesSortedByDependency);
 						typesSortedByDependency = reversedTypesSortedByDependency;
 					}
+
 
 					for (String typeCode : typesSortedByDependency) {
 						if (isReindexingOfTypeRequired(level, types, typeCode)) {
@@ -394,15 +379,20 @@ public class ReindexingServices {
 							}
 
 							if (typeReindexed) {
-								reindexCollectionType(bulkTransactionHandler, type, logger,
-										level, recordsProvider, aggregatedValuesTempStorage, params);
+								reindexCollectionType(context, type);
 							}
 						}
 					}
 
 				} finally {
 					try {
-						bulkTransactionHandler.closeAndJoin();
+						singleThreadBulkTransactionHandler.closeAndJoin();
+					} catch (Throwable t) {
+						SystemLogger.error("An error occured during the reindexing : ", t);
+					}
+
+					try {
+						multiThreadBulkTransactionHandler.closeAndJoin();
 					} catch (Throwable t) {
 						SystemLogger.error("An error occured during the reindexing : ", t);
 					}
@@ -454,80 +444,27 @@ public class ReindexingServices {
 		return false;
 	}
 
-	private void reindexCollectionType(BulkRecordTransactionHandler bulkTransactionHandler, MetadataSchemaType type,
-									   ReindexingLogger logger, int level,
-									   ReindexingRecordsProvider collectionRecordsProvider,
-									   ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage,
-									   ReindexationParams params) {
+	private void reindexCollectionType(LevelReindexingContext levelContext, MetadataSchemaType type) {
 
-		MetadataSchemaTypes types = type.getSchemaTypes();
-		long counter = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll())
-				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL));
+		SchemaTypeReindexingContext context = newSchemaTypeReindexingContext(levelContext, type);
 
-		//If 2% or less are skipped, they are retrieved using getById
-		int threshold = Math.max(1_000, 2 * (int) counter / 100);
-
-		ReindexingSchemaTypeRecordsProvider recordsProvider = collectionRecordsProvider.newSchemaTypeProvider(type, level, threshold);
-		List<Metadata> metadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(type.getCode());
-		List<Metadata> metadatasMarkedForDeletion = type.getAllMetadatas().onlyMarkedForDeletion();
-
-		Map<String, List<MetadataNetworkLink>> allAggregationLinksToCurrentSchemaType =
-				types.getMetadataNetwork().getAggregationMetadataNetworkLinkRegroupedByReference(type.getCode());
-
-		List<MetadataNetworkLink> allAggregationLinksFromCurrentSchemaType =
-				types.getMetadataNetwork().getAggregationMetadataNetworkLinksFromSchemaType(type.getCode());
-
-		long lastCacheLogging = counter < 1_000_000 ? new Date().getTime() : 0;
-
-		long current = 0;
-
-		long maxRecordSize = searchServices.getMaxRecordSize(type);
-		long sizePerBatch = maxRecordSize * bulkTransactionHandler.getRecordsPerBatch();
-		long sizeOfThreads = sizePerBatch * bulkTransactionHandler.getNumberOfThreads();
-		long sizeOfQueue = sizePerBatch * bulkTransactionHandler.getMaxQueueSize();
-		long sizeOfIterator = maxRecordSize * recordsProvider.getMainThreadQueryRows();
-
-		Supplier<SystemReindexingConsumptionInfos> consumptionSupplier = () -> {
-			SystemReindexingConsumptionInfos infos = new SystemReindexingConsumptionInfos();
-
-			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Max record size ", maxRecordSize, false));
-			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Records per batch", bulkTransactionHandler.getRecordsPerBatch(), false));
-			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Number of threads", bulkTransactionHandler.getNumberOfThreads(), false));
-			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Size of queue", bulkTransactionHandler.getMaxQueueSize(), false));
-
-			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Queue (Estimation based on configs and max record size)", sizeOfQueue, true));
-			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("WriteThreads (Estimation based on configs and max record size)", sizeOfThreads, true));
-			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("ReadIterator (Estimation based on configs and max record size)", sizeOfIterator, true));
-			aggregatedValuesTempStorage.populateCacheConsumptionInfos(infos);
-			return infos;
-		};
+		long lastCacheLogging = context.resultsCount < 1_000_000 ? new Date().getTime() : 0;
+		Supplier<SystemReindexingConsumptionInfos> consumptionSupplier = newSystemReindexingConsumptionInfosSupplier(context);
 
 		Integer nextBreakPoint = readBreakPoint(type);
 
-		REINDEXING_TYPE:
 		while (true) {
-			//LOGGER.info("starting a new iteration");
-			Iterator<Record> recordsIterator = recordsProvider.startNewSchemaTypeIteration();
+			Iterator<Record> recordsIterator = context.recordsProvider.startNewSchemaTypeIteration();
+
+
 			while (recordsIterator.hasNext()) {
-				reindexingInfos.set(new SystemReindexingInfos(type.getCollection(), type.getCode(), current, counter, consumptionSupplier));
+				reindexingInfos.set(new SystemReindexingInfos(type.getCollection(), type.getCode(), context.current.get(), context.resultsCount, consumptionSupplier));
 
 				if (new Date().getTime() - lastCacheLogging > 30 * 60 * 1000) {
-					String cacheReport = new CacheMemoryConsumptionReportBuilder(modelLayerFactory).build();
-					LOGGER.info(cacheReport);
-
-					String date = new LocalDateTime().toString();
-					File reportFile = new File(new FoldersLocator().getWorkFolder(), "cacheReport-" + date + ".txt");
-
-					try {
-						FileUtils.write(reportFile, cacheReport);
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-
-					lastCacheLogging = new Date().getTime();
+					lastCacheLogging = writeCacheReport();
 				}
 
-				while (nextBreakPoint != null && current >= nextBreakPoint) {
+				while (nextBreakPoint != null && context.current.get() >= nextBreakPoint) {
 					LOGGER.info("Reindexing is currently paused, waiting removal or modification of breakpoint file '/opt/constellio/work/reindexing-breakpoint.txt'");
 					try {
 						Thread.sleep(300_000);
@@ -537,111 +474,355 @@ public class ReindexingServices {
 					nextBreakPoint = readBreakPoint(type);
 				}
 
-				Record record = recordsIterator.next();
-				if (params.getReindexationMode().isFullRecalculation()) {
-					record.set(Schemas.MARKED_FOR_REINDEXING, null);
+				for (Record record : context.recordsProvider.getPostponedRecordsReadyForReindexing()) {
+					reindexRecord(context, record);
 				}
-				removeMetadataValuesOn(metadatasMarkedForDeletion, record);
 
-				if (recordsProvider.dependencyLevel % 2 == 0) {
-					if (metadatas.isEmpty()) {
-						current++;
-						logger.updateProgression(current, counter);
-						bulkTransactionHandler.append(record);
-
-					} else {
-						String parentId = getParentIdOfSameType(metadatas, record);
-						if (parentId == null || recordsProvider.isAlreadyHandledInPreviousBatch(parentId) || parentId
-								.equals(record.getId())) {
-							current++;
-							logger.updateProgression(current, counter);
-							bulkTransactionHandler.append(record);
-							recordsProvider.markRecordAsHandled(record);
-
-						} else {
-							int skippedRecordsSize = recordsProvider.markRecordAsSkipped(record.getId());
-							logger.updateSkipsCount(skippedRecordsSize);
-
-						}
-					}
-
-					for (String refMetadataLocalCode : allAggregationLinksToCurrentSchemaType.keySet()) {
-						List<MetadataNetworkLink> links = allAggregationLinksToCurrentSchemaType.get(refMetadataLocalCode);
-						Metadata refMetadata = types.getMetadata(refMetadataLocalCode);
-						List<String> referencedRecordIds = record.getValues(refMetadata);
-
-						for (String referencedRecordId : referencedRecordIds) {
-							for (MetadataNetworkLink link : links) {
-								DataEntry dataEntry = link.getFromMetadata().getDataEntry();
-								if (dataEntry.getType() == AGGREGATED &&
-									((AggregatedDataEntry) dataEntry).getAgregationType().equals(REFERENCE_COUNT)) {
-									String aggregatedMetadataLocalCode = link.getFromMetadata().getLocalCode();
-									aggregatedValuesTempStorage.incrementReferenceCount(referencedRecordId, aggregatedMetadataLocalCode);
-								}
-								aggregatedValuesTempStorage.addOrReplace(referencedRecordId, record.getId(),
-										link.getToMetadata().getLocalCode(), record.getValues(link.getToMetadata()));
-							}
-						}
-					}
-				} else {
-					current++;
-
-					boolean aggregatedMetadataModified = false;
-					for (MetadataNetworkLink linkOfAggregatedMetadataToUpdate : allAggregationLinksFromCurrentSchemaType) {
-						aggregatedMetadataModified = updateAggregatedMetadata(record,
-								linkOfAggregatedMetadataToUpdate.getFromMetadata(), aggregatedValuesTempStorage);
-					}
-
-					if (aggregatedMetadataModified) {
-						recordServices.recalculate(record);
-					}
-
-					for (String refMetadataLocalCode : allAggregationLinksToCurrentSchemaType.keySet()) {
-						List<MetadataNetworkLink> links = allAggregationLinksToCurrentSchemaType.get(refMetadataLocalCode);
-						Metadata refMetadata = types.getMetadata(refMetadataLocalCode);
-						List<String> referencedRecordIds = record.getValues(refMetadata);
-
-						for (String referencedRecordId : referencedRecordIds) {
-
-							if (hasLinkWithinSameSchemaType(links)
-								&& recordsProvider.isAlreadyHandledInCurrentOrPreviousBatch(referencedRecordId)
-								&& !referencedRecordId.equals(record.getId())) {
-
-								LOGGER.info("Record " + referencedRecordId + " will be recalculated");
-								int skippedRecordsSize = recordsProvider.markRecordAsSkipped(referencedRecordId);
-								current--;
-								logger.updateSkipsCount(skippedRecordsSize);
-							}
-							for (MetadataNetworkLink link : links) {
-								aggregatedValuesTempStorage.addOrReplace(referencedRecordId, record.getId(),
-										link.getToMetadata().getLocalCode(), record.getValues(link.getToMetadata()));
-							}
-
-						}
-					}
-
-					logger.updateProgression(current, counter);
-					bulkTransactionHandler.append(record);
-					recordsProvider.markRecordAsHandled(record);
-
-				}
+				reindexRecord(context, recordsIterator.next());
 
 			}
 
+			while (context.recordsProvider.hasPostponedRecords()) {
+				for (Record record : context.recordsProvider.getPostponedRecordsReadyForReindexing()) {
+					reindexRecord(context, record);
+				}
+				try {
+					context.getBulkTransactionHandler().barrier();
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
+
 			try {
-				bulkTransactionHandler.barrier();
+				context.getBulkTransactionHandler().barrier();
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);
 			}
 			modelLayerFactory.newRecordServices().flush();
-			recordsProvider.markIterationAsFinished();
-			logger.onEndOfIteration(recordsProvider.getSkippedRecordsCount(), recordsProvider.getCurrentIteration());
-			if (!recordsProvider.isRequiringAnotherIteration()) {
-				break REINDEXING_TYPE;
+			context.recordsProvider.markIterationAsFinished();
+			levelContext.logger.onEndOfIteration(context.recordsProvider.getSkippedRecordsCount(), context.recordsProvider.getCurrentIteration());
+			if (!context.recordsProvider.isRequiringAnotherIteration()) {
+				markTypeOrMultivalueMigrationHasDoneAndUpdateSchema(type, context.metadatasMarkedForTypeOrMutlivalueMigration);
+				return;
 			}
 
 		}
 
+	}
+
+	private long writeCacheReport() {
+
+		if (!FoldersLocator.usingAppWrapper()) {
+			return new Date().getTime();
+		}
+
+		long lastCacheLogging;
+		String cacheReport = new CacheMemoryConsumptionReportBuilder(modelLayerFactory).build();
+		LOGGER.info(cacheReport);
+
+		String date = new LocalDateTime().toString();
+		File reportFile = new File(new FoldersLocator().getWorkFolder(), "cacheReport-" + date + ".txt");
+
+		try {
+			FileUtils.write(reportFile, cacheReport);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		lastCacheLogging = new Date().getTime();
+		return lastCacheLogging;
+	}
+
+	@NotNull
+	private SchemaTypeReindexingContext newSchemaTypeReindexingContext(LevelReindexingContext levelContext,
+																	   MetadataSchemaType type) {
+		MetadataSchemaTypes types = type.getSchemaTypes();
+		long resultsCount = searchServices.getResultsCount(new LogicalSearchQuery(from(type).returnAll())
+				.filteredByVisibilityStatus(VisibilityStatusFilter.ALL));
+
+		//If 2% or less are skipped, they are retrieved using getById
+		int threshold = Math.max(1_000, 2 * (int) resultsCount / 100);
+
+		ReindexingSchemaTypeRecordsProvider recordsProvider = new ReindexingSchemaTypeRecordsProvider(
+				modelLayerFactory, mainThreadQueryRows, levelContext, type, threshold);
+
+
+		List<Metadata> selfReferenceParentMetadatas = type.getAllMetadatas().onlyParentReferences().onlyReferencesToType(type.getCode());
+		List<Metadata> metadatasMarkedForDeletion = type.getAllMetadatas().onlyMarkedForDeletion();
+		MetadataList metadatasMarkedForTypeOrMutlivalueMigration = type.getAllMetadatas()
+				.only(metadata -> metadata.getMarkedForMigrationToType() != null || metadata.isMarkedForMigrationToMultivalue() != null);
+
+		Map<String, List<MetadataNetworkLink>> allAggregationLinksToCurrentSchemaType =
+				types.getMetadataNetwork().getAggregationMetadataNetworkLinkRegroupedByReference(type.getCode());
+
+		List<MetadataNetworkLink> allAggregationLinksFromCurrentSchemaType =
+				types.getMetadataNetwork().getAggregationMetadataNetworkLinksFromSchemaType(type.getCode());
+
+		AtomicLong current = new AtomicLong();
+
+		levelContext.multiThreadBulkTransactionHandler.unregisterCompletedTransactionCallBacks();
+		if (!selfReferenceParentMetadatas.isEmpty()) {
+			levelContext.multiThreadBulkTransactionHandler.registerCompletedTransactionCallBack(recordsProvider::markTransactionRecordAsHandled);
+		}
+		return new SchemaTypeReindexingContext(levelContext.logger,
+				levelContext.aggregatedValuesTempStorage, levelContext.params, type, recordsProvider, selfReferenceParentMetadatas,
+				metadatasMarkedForDeletion, metadatasMarkedForTypeOrMutlivalueMigration,
+				allAggregationLinksToCurrentSchemaType, allAggregationLinksFromCurrentSchemaType, resultsCount, current, levelContext, new KeyIntMap<>());
+	}
+
+	@AllArgsConstructor
+	static class SchemaTypeReindexingContext {
+
+		ReindexingLogger logger;
+		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage;
+		ReindexationParams params;
+		MetadataSchemaType type;
+		ReindexingSchemaTypeRecordsProvider recordsProvider;
+		List<Metadata> selfReferenceParentMetadatas;
+		List<Metadata> metadatasMarkedForDeletion;
+		MetadataList metadatasMarkedForTypeOrMutlivalueMigration;
+		Map<String, List<MetadataNetworkLink>> allAggregationLinksToCurrentSchemaType;
+		List<MetadataNetworkLink> allAggregationLinksFromCurrentSchemaType;
+		long resultsCount;
+		AtomicLong current;
+		LevelReindexingContext levelContext;
+		KeyIntMap<String> postponingCounter;
+
+		public void appendRecordForReindexing(Record record) {
+			getBulkTransactionHandler().append(record);
+		}
+
+
+		public BulkRecordTransactionHandler getBulkTransactionHandler() {
+			if (recordsProvider.isUseSingleThread()) {
+				return levelContext.singleThreadBulkTransactionHandler;
+			} else {
+				return levelContext.multiThreadBulkTransactionHandler;
+			}
+		}
+
+		public void postpone(Record record, RecordId parentId) {
+
+			if (!recordsProvider.tryToPostpone(record, parentId)) {
+				LOGGER.info("Could not postpone record, limit achieved. Waiting...");
+				getBulkTransactionHandler().pushCurrent();
+				while (!recordsProvider.tryToPostpone(record, parentId)) {
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+				}
+
+			}
+		}
+	}
+
+	@AllArgsConstructor
+	static class LevelReindexingContext {
+		BulkRecordTransactionHandler singleThreadBulkTransactionHandler;
+		BulkRecordTransactionHandler multiThreadBulkTransactionHandler;
+		ReindexingLogger logger;
+		int level;
+		ReindexingAggregatedValuesTempStorage aggregatedValuesTempStorage;
+		ReindexationParams params;
+
+	}
+
+	private void reindexRecord(SchemaTypeReindexingContext context, Record record) {
+		if (dataLayerFactory.getTransactionLogReplicationFactorManager() != null && dataLayerFactory.getTransactionLogReplicationFactorManager().isDegraded()) {
+			LOGGER.warn("Degradation detected, pausing reindexation for 30 seconds...");
+			try {
+				TimeUnit.SECONDS.sleep(30);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		if (context.params.getReindexationMode().isFullRecalculation()) {
+			record.set(Schemas.MARKED_FOR_REINDEXING, null);
+		}
+		removeMetadataValuesOn(context.metadatasMarkedForDeletion, record);
+		migrateMetadataTypeAndMultivalueOn(context.metadatasMarkedForTypeOrMutlivalueMigration, record);
+
+		if (context.levelContext.level % 2 == 0) {
+			reindexRecordInDependencyDirection(context, record);
+		} else {
+			reindexRecordInReverseDependencyDirection(context, record);
+
+		}
+	}
+
+	private void reindexRecordInReverseDependencyDirection(SchemaTypeReindexingContext context, Record record) {
+		context.current.incrementAndGet();
+
+		boolean aggregatedMetadataModified = false;
+		for (MetadataNetworkLink linkOfAggregatedMetadataToUpdate : context.allAggregationLinksFromCurrentSchemaType) {
+			aggregatedMetadataModified = updateAggregatedMetadata(record,
+					linkOfAggregatedMetadataToUpdate.getFromMetadata(), context.aggregatedValuesTempStorage);
+		}
+
+		if (aggregatedMetadataModified) {
+			recordServices.recalculate(record);
+		}
+
+		for (String refMetadataLocalCode : context.allAggregationLinksToCurrentSchemaType.keySet()) {
+			List<MetadataNetworkLink> links = context.allAggregationLinksToCurrentSchemaType.get(refMetadataLocalCode);
+			Metadata refMetadata = context.type.getSchemaTypes().getMetadata(refMetadataLocalCode);
+			List<String> referencedRecordIds = record.getValues(refMetadata);
+			boolean sameTypeReference = refMetadata.getReferencedSchemaTypeCode().equals(refMetadata.getSchemaTypeCode());
+
+			for (String referencedRecordId : referencedRecordIds) {
+
+				if (sameTypeReference
+
+					//&& context.recordsProvider.isAlreadyHandledInCurrentOrPreviousBatch(referencedRecordId)
+					//Francis : I removed current batch, since this could create invalid agregated values
+					&& context.recordsProvider.getRecordStatus(RecordId.id(referencedRecordId)) != LATER
+					&& !referencedRecordId.equals(record.getId())) {
+
+					LOGGER.info("Record " + referencedRecordId + " will be recalculated");
+					int skippedRecordsSize = context.recordsProvider.markRecordAsSkipped(referencedRecordId);
+					context.current.decrementAndGet();
+					context.logger.updateSkipsCount(skippedRecordsSize);
+				}
+				for (MetadataNetworkLink link : links) {
+					context.aggregatedValuesTempStorage.addOrReplace(referencedRecordId, record.getId(),
+							link.getToMetadata().getLocalCode(), record.getValues(link.getToMetadata()));
+				}
+
+			}
+		}
+
+		context.logger.updateProgression(context.current.get(), context.resultsCount);
+		context.appendRecordForReindexing(record);
+		context.recordsProvider.markRecordAsHandledSoon(record);
+	}
+
+	private void reindexRecordInDependencyDirection(SchemaTypeReindexingContext context, Record record) {
+
+		boolean postponed = false;
+		if (context.selfReferenceParentMetadatas.isEmpty()) {
+			context.logger.updateProgression(context.current.incrementAndGet(), context.resultsCount);
+			context.appendRecordForReindexing(record);
+
+		} else {
+			String parentStrId = getParentIdOfSameType(context.selfReferenceParentMetadatas, record);
+			RecordId parentId = parentStrId == null ? null : RecordId.id(parentStrId);
+			if (parentId == null
+				|| context.recordsProvider.getRecordStatus(parentId) == IN_PREVIOUS_BATCH
+				|| parentId.equals(record.getId())) {
+				context.logger.updateProgression(context.current.incrementAndGet(), context.resultsCount);
+				context.appendRecordForReindexing(record);
+				context.recordsProvider.markRecordAsHandledSoon(record);
+
+			} else if (context.recordsProvider.getRecordStatus(parentId) == IN_CURRENT_BATCH) {
+				//Since reindexing is executed in parallel, the dependent record may be handled by another thread.
+				// Joining this thread is not a good idea since the thread could also join this one, causing a deadlock
+				if (context.recordsProvider.isUseSingleThread()) {
+					//Only thread is used, the barrier will flush
+					try {
+						context.getBulkTransactionHandler().barrier();
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
+					context.logger.updateProgression(context.current.incrementAndGet(), context.resultsCount);
+					context.appendRecordForReindexing(record);
+					context.recordsProvider.markRecordAsHandledSoon(record);
+				} else {
+
+					context.postpone(record, parentId);
+
+					postponed = true;
+				}
+
+			} else {
+				if (RecordId.isIntId(record.getId()) && parentId.isInteger()) {
+					context.postpone(record, parentId);
+					postponed = true;
+				} else {
+					int skippedRecordsSize = context.recordsProvider.markRecordAsSkipped(record.getId());
+					context.logger.updateSkipsCount(skippedRecordsSize);
+				}
+
+
+			}
+		}
+
+		if (postponed) {
+			if (context.recordsProvider.postponedBlocked + context.recordsProvider.postponedReady > 1000) {
+				context.getBulkTransactionHandler().pushCurrent();
+			}
+		} else {
+			for (String refMetadataLocalCode : context.allAggregationLinksToCurrentSchemaType.keySet()) {
+				List<MetadataNetworkLink> links = context.allAggregationLinksToCurrentSchemaType.get(refMetadataLocalCode);
+				Metadata refMetadata = context.type.getSchemaTypes().getMetadata(refMetadataLocalCode);
+				List<String> referencedRecordIds = record.getValues(refMetadata);
+
+				for (String referencedRecordId : referencedRecordIds) {
+					for (MetadataNetworkLink link : links) {
+						DataEntry dataEntry = link.getFromMetadata().getDataEntry();
+						if (dataEntry.getType() == AGGREGATED &&
+							((AggregatedDataEntry) dataEntry).getAgregationType().equals(REFERENCE_COUNT)) {
+							String aggregatedMetadataLocalCode = link.getFromMetadata().getLocalCode();
+							context.aggregatedValuesTempStorage.incrementReferenceCount(referencedRecordId, aggregatedMetadataLocalCode);
+						}
+						context.aggregatedValuesTempStorage.addOrReplace(referencedRecordId, record.getId(),
+								link.getToMetadata().getLocalCode(), record.getValues(link.getToMetadata()));
+					}
+				}
+			}
+		}
+	}
+
+	@NotNull
+	private Supplier<SystemReindexingConsumptionInfos> newSystemReindexingConsumptionInfosSupplier(
+			SchemaTypeReindexingContext context) {
+		long maxRecordSize = searchServices.getMaxRecordSize(context.type);
+		long sizePerBatch = maxRecordSize * context.getBulkTransactionHandler().getRecordsPerBatch();
+		long sizeOfThreads = sizePerBatch * context.getBulkTransactionHandler().getNumberOfThreads();
+		long sizeOfQueue = sizePerBatch * context.getBulkTransactionHandler().getMaxQueueSize();
+		long sizeOfIterator = maxRecordSize * context.recordsProvider.getMainThreadQueryRows();
+
+		Supplier<SystemReindexingConsumptionInfos> consumptionSupplier = () -> {
+			SystemReindexingConsumptionInfos infos = new SystemReindexingConsumptionInfos();
+
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Max record size ", maxRecordSize, false));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Records per batch", context.getBulkTransactionHandler().getRecordsPerBatch(), false));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Number of threads", context.getBulkTransactionHandler().getNumberOfThreads(), false));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Size of queue", context.getBulkTransactionHandler().getMaxQueueSize(), false));
+
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("Queue (Estimation based on configs and max record size)", sizeOfQueue, true));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("WriteThreads (Estimation based on configs and max record size)", sizeOfThreads, true));
+			infos.getHeapInfos().add(new SystemReindexingConsumptionHeapInfo("ReadIterator (Estimation based on configs and max record size)", sizeOfIterator, true));
+			context.aggregatedValuesTempStorage.populateCacheConsumptionInfos(infos);
+			return infos;
+		};
+		return consumptionSupplier;
+	}
+
+	private void markTypeOrMultivalueMigrationHasDoneAndUpdateSchema(MetadataSchemaType type,
+																	 MetadataList metadatasMarkedForTypeAndMutlivalueMigration) {
+
+		if (!metadatasMarkedForTypeAndMutlivalueMigration.isEmpty()) {
+			modelLayerFactory.getMetadataSchemasManager().modify(type.getCollection(), (MetadataSchemaTypesAlteration) types -> {
+
+				Set<MetadataBuilder> allMetadatas = types.getSchemaType(type.getCode()).getAllMetadatas();
+				metadatasMarkedForTypeAndMutlivalueMigration.stream().forEach(mm -> {
+					allMetadatas.stream().filter(mb -> mm.isSame(mb.getOriginalMetadata()))
+							.findFirst().ifPresent(m -> {
+						if (mm.getMarkedForMigrationToType() != null) {
+							m.setTypeWithoutValidation(mm.getMarkedForMigrationToType());
+						}
+						if (mm.isMarkedForMigrationToMultivalue() != null) {
+							m.setMultivalue(Boolean.TRUE.equals(mm.isMarkedForMigrationToMultivalue()));
+						}
+
+						m.setMarkedForMigrationToType(null).setMarkedForMigrationToMultivalue(null);
+					});
+				});
+			});
+		}
 	}
 
 	private Integer readBreakPoint(MetadataSchemaType type) {
@@ -705,15 +886,6 @@ public class ReindexingServices {
 			return false;
 		}
 
-	}
-
-	private boolean hasLinkWithinSameSchemaType(List<MetadataNetworkLink> links) {
-		for (MetadataNetworkLink link : links) {
-			if (link.isWithingSameSchemaType()) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private String getParentIdOfSameType(List<Metadata> metadatas, Record record) {

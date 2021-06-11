@@ -1,5 +1,6 @@
 package com.constellio.model.entities.schemas;
 
+import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -7,6 +8,7 @@ import com.constellio.model.entities.schemas.sort.DefaultStringSortFieldNormaliz
 import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.encrypt.EncryptionServices;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -20,8 +22,10 @@ import java.util.Set;
 
 import static com.constellio.model.entities.Language.French;
 import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -101,6 +105,11 @@ public class Metadata implements DataStoreField {
 
 	Metadata(int id, String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue,
 			 boolean multiLingual) {
+		this(id, schemaCode, datastoreCode, type, multivalue, multiLingual, null);
+	}
+
+	Metadata(int id, String schemaCode, String datastoreCode, MetadataValueType type, boolean multivalue,
+			 boolean multiLingual, StructureFactory structureFactory) {
 		this.id = (short) id;
 		this.inheritance = null;
 
@@ -113,8 +122,9 @@ public class Metadata implements DataStoreField {
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false,
 				multivalue, false, false, false, false, false,
 				false, false, false, false, false, false,
-				false, multiLingual, false, new HashSet<String>(), false,
-				false, PERSISTED, false, false, null, null);
+				false, multiLingual, false, null, null,
+				new HashSet<String>(), false, false, PERSISTED, false,
+				false, null, null);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -141,7 +151,7 @@ public class Metadata implements DataStoreField {
 		}
 		this.labels = Collections.emptyMap();
 		this.recordMetadataValidators = null;
-		this.structureFactory = null;
+		this.structureFactory = structureFactory;
 		this.enumClass = null;
 		this.defaultValue = multivalue ? Collections.emptyList() : null;
 		this.populateConfigs = new MetadataPopulateConfigs();
@@ -355,6 +365,10 @@ public class Metadata implements DataStoreField {
 		return type;
 	}
 
+	public MetadataValueType getMarkedForMigrationToType() {
+		return inheritedMetadataBehaviors.markedForMigrationToType;
+	}
+
 	public String getReferencedSchemaTypeCode() {
 		return getAllowedReferences().getTypeWithAllowedSchemas();
 	}
@@ -392,6 +406,10 @@ public class Metadata implements DataStoreField {
 
 	public boolean isMultivalue() {
 		return getInheritedMetadataBehaviors().isMultivalue();
+	}
+
+	public Boolean isMarkedForMigrationToMultivalue() {
+		return inheritedMetadataBehaviors.markedForMigrationToMultivalue;
 	}
 
 	public boolean isMultiLingual() {
@@ -496,6 +514,29 @@ public class Metadata implements DataStoreField {
 					this.isMultiLingual());
 		}
 		return cachedSortMetadata;
+	}
+
+	public Metadata getTypeAndMultivalueMigrationMetadata() {
+		if (isTypeAndMultivalueMigrationPossible()) {
+			MetadataValueType correctedMigrateToType = this.getMarkedForMigrationToType() != null ?
+													   this.getMarkedForMigrationToType() : this.getType();
+			boolean correctedMigrateToMutlivalue = this.isMarkedForMigrationToMultivalue() != null ?
+												   Boolean.TRUE.equals(this.isMarkedForMigrationToMultivalue()) : this.isMultivalue();
+
+			String newDataStoreCodeExtension = SolrDataStoreTypesUtils.getTypeOrMutlivalueExtension(correctedMigrateToType.name(), correctedMigrateToMutlivalue);
+
+			return new Metadata(id, localCode, getCode(), getCollectionId(), collection, typeId, getLabels(), enabled,
+					inheritedMetadataBehaviors, type, allowedReferences, defaultRequirement, dataEntry, recordMetadataValidators,
+					newDataStoreCodeExtension, accessRestriction, structureFactory, enumClass, defaultValue, inputMask, populateConfigs,
+					encryptionServicesFactory, duplicable, customParameter);
+		}
+
+		return null;
+	}
+
+	private boolean isTypeAndMultivalueMigrationPossible() {
+		return RecordUtils.isMetadataValueTypeMigrationSupported(this.getType(), this.getMarkedForMigrationToType())
+			   && RecordUtils.isMetadataMultivalueMigrationSupported(this.isMultivalue(), this.isMarkedForMigrationToMultivalue());
 	}
 
 	public Object getDefaultValue() {
@@ -616,7 +657,7 @@ public class Metadata implements DataStoreField {
 		boolean globalMetadataWithNormalizedSortField =
 				CODE.getLocalCode().equals(getLocalCode()) || TITLE.getLocalCode().equals(getLocalCode());
 		boolean isIdentifier = IDENTIFIER.getDataStoreCode().equals(getDataStoreCode());
-		return (isSortable() || globalMetadataWithNormalizedSortField) && (type == STRING || type == REFERENCE) && !isMultivalue()
+		return (isSortable() || globalMetadataWithNormalizedSortField) && (type == STRING || type == REFERENCE || isSeparatedStructure()) && !isMultivalue()
 			   && !isIdentifier;
 	}
 
@@ -699,5 +740,13 @@ public class Metadata implements DataStoreField {
 		} else {
 			return id == otherMetadata.id;
 		}
+	}
+
+	public boolean isCombinedStructure() {
+		return (type == STRUCTURE && structureFactory instanceof CombinedStructureFactory) || type == CONTENT;
+	}
+
+	public boolean isSeparatedStructure() {
+		return (type == STRUCTURE && structureFactory instanceof SeparatedStructureFactory);
 	}
 }

@@ -78,6 +78,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	private transient VaultBehaviorsList<BatchProcessingExtension> batchProcessingExtensions;
 	private transient RMModuleExtensions rmModuleExtensions;
 	private transient RMSchemasRecordsServices rm;
+	
+	private boolean usingCustomSort = false;
 
 	public AdvancedSearchPresenter(AdvancedSearchView view) {
 		super(view);
@@ -93,14 +95,21 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	@Override
+	public void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
+		usingCustomSort = sortCriterion != null && sortOrder != null;
+		super.sortCriterionSelected(sortCriterion, sortOrder);
+	}
+
+	@Override
 	protected LogicalSearchQuery getSearchQuery() {
 		LogicalSearchQuery query = super.getSearchQuery();
-		query.clearSort();
-		query.sortAsc(Schemas.TITLE);
-		if (modelLayerFactory.getSystemConfigs().isAddingSecondarySortWhenSortingByScoreOrTitle()) {
-			query.sortAsc(Schemas.IDENTIFIER);
+		if (!usingCustomSort) {
+			query.clearSort();
+			query.sortAsc(Schemas.TITLE);
+			if (modelLayerFactory.getSystemConfigs().isAddingSecondarySortWhenSortingByScoreOrTitle()) {
+				query.sortAsc(Schemas.IDENTIFIER);
+			}
 		}
-
 		return query;
 	}
 
@@ -404,7 +413,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	public LogicalSearchQuery buildReportLogicalSearchQuery() {
-		return buildLogicalSearchQuery().filteredWithUser(getUser());
+		return buildLogicalSearchQuery().filteredWithUserRead(getUser());
 	}
 
 	private LogicalSearchQuery buildLogicalSearchQuery() {
@@ -448,7 +457,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.filteredWithUserRead(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		return query;
 	}
@@ -457,7 +466,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.filteredWithUserRead(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		return query;
 	}
@@ -465,7 +474,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public LogicalSearchQuery buildLogicalSearchQueryWithAllRecords() {
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
+				.filteredWithUserRead(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		return query;
 	}

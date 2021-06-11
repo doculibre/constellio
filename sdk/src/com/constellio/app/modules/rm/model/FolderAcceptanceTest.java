@@ -28,6 +28,7 @@ import com.constellio.model.entities.calculators.AbstractMetadataValueCalculator
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.records.Record.GetMetadataOption;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.schemas.Metadata;
@@ -76,6 +77,9 @@ import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE
 import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
 import static com.constellio.app.modules.rm.model.validators.FolderValidator.RULE_CODE;
 import static com.constellio.data.dao.dto.records.RecordId.toStringIds;
+import static com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAccessType.R;
+import static com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAccessType.RW;
+import static com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAuthorization.builder;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -3550,6 +3554,65 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		//CHANGE validateTransaction to reflect prepareTransaction
 		recordServices.validateTransaction(transaction);
+	}
+
+
+	@Test
+	public void givenNonCascadingNestedAuthorizatonOnRecordThenAppliedOnRecordAndNotHisChildren()
+			throws Exception {
+
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
+		folder.setDescription("Ze description");
+		folder.setCategoryEntered(records.categoryId_X110);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setMediumTypes(Arrays.asList(PA, MV));
+		folder.setUniformSubdivisionEntered(records.subdivId_2);
+		folder.setOpenDate(november4_2009);
+		folder.setCloseDateEntered(december12_2009);
+
+		Transaction transaction = new Transaction();
+		transaction.addAll(folder);
+
+		folder.getNestedAuthorizations().addAll(asList(
+				builder().accessType(RW).cascading(false).principals(asList(users.sasquatchIn(zeCollection).getWrappedRecordId())).build(),
+				builder().accessType(R).cascading(false).principals(asList(users.robinIn(zeCollection).getWrappedRecordId())).build())
+		);
+
+		recordServices.update(folder);
+
+		folder = rm.getFolder(folder.getId());
+		assertThat(folder.getNestedAuthorizations().getAuthorizations()).extracting("principals", "accessType").containsOnly(
+				tuple(asList(users.sasquatchIn(zeCollection).getId()), RW),
+				tuple(asList(users.robinIn(zeCollection).getId()), R)
+		);
+
+		assertThat(users.sasquatchIn(zeCollection).hasReadAccess().on(folder)).isTrue();
+		assertThat(users.sasquatchIn(zeCollection).hasWriteAccess().on(folder)).isTrue();
+		assertThat(users.sasquatchIn(zeCollection).hasDeleteAccess().on(folder)).isFalse();
+
+		assertThat(users.robinIn(zeCollection).hasReadAccess().on(folder)).isTrue();
+		assertThat(users.robinIn(zeCollection).hasWriteAccess().on(folder)).isFalse();
+		assertThat(users.robinIn(zeCollection).hasDeleteAccess().on(folder)).isFalse();
+
+		folder = rm.getFolderSummary(folder.getId());
+		assertThat(folder.getNestedAuthorizations()).isNull();
+
+		//Nested authorizations are not available on summary records
+		Metadata nestedAuthorizationsMetadata = rm.folder.schema().getMetadata(Schemas.NESTED_AUTHORIZATIONS.getLocalCode());
+		assertThat(folder.<List<Integer>>get(nestedAuthorizationsMetadata, GetMetadataOption.ONLY_MAIN_STRUCTURE_VALUE, GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION)).isNull();
+
+		//But auths are still working
+		assertThat(users.sasquatchIn(zeCollection).hasReadAccess().on(folder)).isTrue();
+		assertThat(users.sasquatchIn(zeCollection).hasWriteAccess().on(folder)).isTrue();
+		assertThat(users.sasquatchIn(zeCollection).hasDeleteAccess().on(folder)).isFalse();
+
+		assertThat(users.robinIn(zeCollection).hasReadAccess().on(folder)).isTrue();
+		assertThat(users.robinIn(zeCollection).hasWriteAccess().on(folder)).isFalse();
+		assertThat(users.robinIn(zeCollection).hasDeleteAccess().on(folder)).isFalse();
 	}
 
 	// -------------------------------------------------------------------------

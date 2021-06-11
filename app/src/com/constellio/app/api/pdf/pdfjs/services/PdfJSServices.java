@@ -1,25 +1,5 @@
 package com.constellio.app.api.pdf.pdfjs.services;
 
-import static com.constellio.data.utils.dev.Toggle.ENABLE_SIGNATURE;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
-import org.json.JSONObject;
-
 import com.constellio.app.api.pdf.pdfjs.servlets.CertifyPdfJSSignaturesServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsConfigServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSAnnotationsServlet;
@@ -27,6 +7,7 @@ import com.constellio.app.api.pdf.pdfjs.servlets.GetPdfJSSignatureServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.RemovePdfJSSignatureServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSAnnotationsServlet;
 import com.constellio.app.api.pdf.pdfjs.servlets.SavePdfJSSignatureServlet;
+import com.constellio.app.api.pdf.signature.config.ESignatureConfigs;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotSignDocumentException;
 import com.constellio.app.api.pdf.signature.services.PdfSignatureServices;
@@ -58,8 +39,26 @@ import com.constellio.model.services.pdf.pdfjs.PdfJSAnnotations;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
-
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.data.utils.dev.Toggle.ENABLE_SIGNATURE;
 
 @Slf4j
 public class PdfJSServices {
@@ -80,26 +79,27 @@ public class PdfJSServices {
 
 	public String getExternalViewerUrl(Record record, Metadata metadata, User user, Locale locale, String serviceKey,
 									   String token, boolean includeConstellioUrl) {
-		return getViewerUrl(record, metadata, user, locale, null, null, serviceKey, token, includeConstellioUrl);
+		return getViewerUrl(record, metadata, user, locale, null, null, serviceKey, token, includeConstellioUrl, true);
 	}
 
 	public String getInternalViewerUrl(Record record, Metadata metadata, User user, Locale locale,
 									   String contentPathPrefix,
 									   String contentPreviewPath, String serviceKey, String token) {
-		return getViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPreviewPath, serviceKey, token, false);
+		return getViewerUrl(record, metadata, user, locale, contentPathPrefix, contentPreviewPath, serviceKey, token, false, false);
 	}
 
 	private String getViewerUrl(Record record, Metadata metadata, User user, Locale locale, String urlPrefix,
 								String contentPreviewPath, String serviceKey, String token,
-								boolean includeConstellioUrl) {
+								boolean includeConstellioUrl, boolean external) {
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
 		String constellioUrl = systemConfigurationsManager.getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
 		if (StringUtils.endsWith(constellioUrl, "/")) {
 			constellioUrl = StringUtils.substringBeforeLast(constellioUrl, "/");
 		}
+		
 		boolean disableSignature = !isSignaturePossible(record, metadata, user);
-
+		boolean disableDownload = !external || !disableSignature;
 
 		if (urlPrefix == null) {
 			urlPrefix = "../../../../../";
@@ -137,20 +137,22 @@ public class PdfJSServices {
 		StringBuilder viewerParams = new StringBuilder();
 		viewerParams.append("locale=" + getPdfJSLocaleCode(locale.getLanguage()));
 		viewerParams.append("&disableSignature=" + disableSignature);
-		if (!disableSignature) {
-			String configParams = getCallbackParams(record, metadata, user, locale.getLanguage(), serviceKey, token, urlPrefix);
-			String configPath;
-			if (includeConstellioUrl) {
-				configPath = constellioUrl;
-			} else {
-				configPath = urlPrefix;
-			}
-			configPath += GetPdfJSAnnotationsConfigServlet.PATH + "?" + configParams;
-			try {
-				configPath = URLEncoder.encode(configPath, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				throw new RuntimeException(e);
-			}
+		viewerParams.append("&disableDownload=" + disableDownload);
+
+		String configParams = getCallbackParams(record, metadata, user, locale.getLanguage(), serviceKey, token, urlPrefix);
+		String configPath;
+		if (includeConstellioUrl) {
+			configPath = constellioUrl;
+		} else {
+			configPath = urlPrefix;
+		}
+		configPath += GetPdfJSAnnotationsConfigServlet.PATH + "?" + configParams;
+		try {
+			configPath = URLEncoder.encode(configPath, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+		if (record != null) {
 			viewerParams.append("&annotationsConfig=" + configPath);
 		}
 		//		viewerParams.append("&serviceKey=" + serviceKey);
@@ -211,6 +213,17 @@ public class PdfJSServices {
 	public boolean isSignaturePossible(Record record, Metadata metadata, User user) {
 		boolean signaturePossible;
 		if (ENABLE_SIGNATURE.isEnabled() && record != null) {
+			ESignatureConfigs eSignatureConfigs = new ESignatureConfigs(modelLayerFactory.getSystemConfigurationsManager());
+
+			if (eSignatureConfigs.isDisableExternalSignatures()) {
+				if (user instanceof ExternalAccessUser) {
+					ExternalAccessUrl externalAccess = ((ExternalAccessUser) user).getExternalAccessUrl();
+					if (externalAccess != null && externalAccess.getUser() == null) {
+						return false;
+					}
+				}
+			}
+
 			String collection = record.getCollection();
 			boolean editPossible;
 			if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
@@ -224,8 +237,7 @@ public class PdfJSServices {
 				if (content == null || content.isCheckedOut()) {
 					signaturePossible = false;
 				} else {
-					StreamFactory keystore = appLayerFactory.getModelLayerFactory()
-							.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
+					StreamFactory keystore = eSignatureConfigs.getKeystore();
 					if (keystore != null) {
 						signaturePossible = true;
 					} else {
@@ -391,7 +403,8 @@ public class PdfJSServices {
 		}
 	}
 
-	public void signAndCertifyPdf(Record record, Metadata metadata, User user, PdfJSAnnotations annotations)
+	public void signAndCertifyPdf(Record record, Metadata metadata, User user, PdfJSAnnotations annotations,
+								  String localeCode)
 			throws PdfSignatureException, InvalidPasswordException, IOException {
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
@@ -422,7 +435,7 @@ public class PdfJSServices {
 						signatureAnnotation.setUsername(bakeUserInfo);
 					}
 				}
-				pdfSignatureServices.signAndCertify(record, metadata, user, signatureAnnotations);
+				pdfSignatureServices.signAndCertify(record, metadata, user, signatureAnnotations, localeCode);
 
 				String annotationsVersion = annotations.getVersion();
 				String newAnnotationsVersion = getNextVersionNumber(annotationsVersion, true);

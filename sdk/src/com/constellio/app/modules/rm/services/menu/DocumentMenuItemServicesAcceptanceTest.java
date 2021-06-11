@@ -88,7 +88,7 @@ public class DocumentMenuItemServicesAcceptanceTest extends ConstellioTest {
 		menuItemActionBehaviorParams = getMenuItemActionBehaviorParams(null);
 	}
 
-	@Test
+	//@Test
 	public void givenDocumentWithContentWhenCreatePDFAThenOk() {
 
 		Content initialContent = rmRecords.getDocumentWithContent_A19().getContent();

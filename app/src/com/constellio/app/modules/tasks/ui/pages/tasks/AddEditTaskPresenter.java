@@ -339,7 +339,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 			// No transaction because the extention return record to be save
 			if (taskModuleExtensions != null) {
-				TaskFormRetValue taskFormRetValue = taskModuleExtensions.taskFormExtentions(new TaskFormParams(this, task));
+				TaskFormRetValue taskFormRetValue = taskModuleExtensions.taskFormExtensions(new TaskFormParams(this, task));
 				for (Record currentRecord : taskFormRetValue.getRecords()) {
 					RecordUpdateOptions taskUpdateOptions = getTaskUpdateOptions(task, taskFormRetValue.isSaveWithValidation(currentRecord));
 					saveRecord(currentRecord, taskUpdateOptions);
@@ -801,7 +801,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		boolean prioriteValue = priorite != null && CollectionUtils.isNotEmpty(priorite.getValue());
 
 		if (assignee != null) {
-			assignee.setReadOnly(prioriteValue);
+			boolean isAssignationNotModifiable = prioriteValue && originalAssignedTo != null &&
+												 !(getCurrentUser().getId().equals(originalAssignedTo)
+												   || getCurrentUser().getId().equals(originalAssigner)
+												   || getCurrentUser().isSystemAdmin());
+			assignee.setReadOnly(isAssignationNotModifiable);
 		}
 
 		if (priorite != null) {
@@ -944,8 +948,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		List<String> assigneeGroupsCandidatesIds = taskVO.get(Task.ASSIGNEE_GROUPS_CANDIDATES);
 		List<String> assigneeCandidates = taskVO.get(Task.ASSIGNEE_USERS_CANDIDATES);
 		List<String> userGroups = getCurrentUser().getUserGroups();
+		boolean userHasCollectionWriteAccess = getCurrentUser().hasCollectionWriteAccess();
 		boolean userIsCandidate = !ListUtils.intersection(assigneeGroupsCandidatesIds, userGroups).isEmpty() || assigneeCandidates.contains(currentUserId);
-		return userIsCandidate || isModel || !isEditMode() || currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER)) || currentUserId.equals(taskVO.get(Schemas.CREATED_BY));
+		return userHasCollectionWriteAccess || userIsCandidate || isModel || !isEditMode() || currentUserId.equals(taskVO.get(Task.ASSIGNEE)) || currentUserId.equals(taskVO.get(Task.ASSIGNER)) || currentUserId.equals(taskVO.get(Schemas.CREATED_BY));
 	}
 
 	private boolean currentUserHasWriteAuthorisation() {

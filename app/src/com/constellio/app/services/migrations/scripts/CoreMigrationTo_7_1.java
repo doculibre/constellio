@@ -79,7 +79,7 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaBuilder builder = typesBuilder.createNewSchemaType(Printable.SCHEMA_TYPE).getDefaultSchema();
+			MetadataSchemaBuilder builder = typesBuilder.createNewSchemaTypeWithSecurity(Printable.SCHEMA_TYPE).getDefaultSchema();
 			builder.create(Printable.JASPERFILE).setType(MetadataValueType.CONTENT).setUndeletable(true).setEssential(true)
 					.defineDataEntry().asManual()
 					.addValidator(JasperFilePrintableValidator.class);

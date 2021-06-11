@@ -1,7 +1,7 @@
 package com.constellio.model.entities.structures;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class MapStringListStringStructureFactory implements StructureFactory {
+public class MapStringListStringStructureFactory implements CombinedStructureFactory {
 
 	private transient GsonBuilder gsonBuilder;
 	private transient Gson gson;

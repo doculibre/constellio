@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class SecurityTokenManager implements StatefulService {
 	List<TokenProvider> providers = new ArrayList<>();
@@ -71,13 +72,28 @@ public class SecurityTokenManager implements StatefulService {
 	}
 
 	public Set<String> getGlobalPermissionSecurableSchemaTypesVisibleBy(User user, String access) {
-		Set<String> types = new HashSet<>();
-		for (PublicTypeWithCondition publicTypeWithCondition : globalPermissionSecurableSchemaTypes) {
-			if (publicTypeWithCondition.condition.hasGlobalAccess(user, access)) {
-				types.add(publicTypeWithCondition.schemaType);
-			}
+
+		if (user == null) {
+			return Collections.emptySet();
 		}
-		return types;
+
+		Supplier<Set<String>> globalSecurableTypesSupplier = () -> {
+			Set<String> types = new HashSet<>();
+			for (PublicTypeWithCondition publicTypeWithCondition : globalPermissionSecurableSchemaTypes) {
+				if (publicTypeWithCondition.condition.hasGlobalAccess(user, access)) {
+					types.add(publicTypeWithCondition.schemaType);
+				}
+			}
+			return types;
+		};
+
+		if (modelLayerFactory.getSecurityModelCache() == null
+			|| modelLayerFactory.getSecurityModelCache().getCached(user.getCollection()) == null) {
+			return globalSecurableTypesSupplier.get();
+		} else {
+			return modelLayerFactory.getSecurityModelCache().getCached(user.getCollection())
+					.getCachedValue(user, "globalSecurableTypes:" + access, globalSecurableTypesSupplier);
+		}
 	}
 
 	public boolean hasGlobalTypeAccess(User user, String typeCode, String access) {

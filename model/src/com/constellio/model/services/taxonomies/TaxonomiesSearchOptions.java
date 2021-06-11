@@ -22,6 +22,8 @@ public class TaxonomiesSearchOptions {
 
 	private String requiredAccess = Role.READ;
 
+	private boolean forceLinkableCalculation = false;
+
 	/**
 	 * New service :
 	 * HasChildrenFlagCalculated
@@ -34,7 +36,7 @@ public class TaxonomiesSearchOptions {
 	/**
 	 * If concepts that are not linkable and who does not contain any linkable concept should be returned
 	 */
-	private boolean showInvisibleRecordsInLinkingMode = true;
+	private Boolean showInvisibleRecords;
 
 	/**
 	 * Should linkable flag be calculated
@@ -46,6 +48,7 @@ public class TaxonomiesSearchOptions {
 	 * Only with old services
 	 */
 	private FastContinueInfos fastContinueInfos;
+
 
 	/**
 	 * Only with old services, summary metadatas are used with newer implementation
@@ -75,14 +78,23 @@ public class TaxonomiesSearchOptions {
 		this.includeStatus = cloned.includeStatus;
 		this.requiredAccess = cloned.requiredAccess;
 		this.returnedMetadatasFilter = cloned.returnedMetadatasFilter;
-		this.showInvisibleRecordsInLinkingMode = cloned.showInvisibleRecordsInLinkingMode;
+		this.showInvisibleRecords = cloned.showInvisibleRecords;
 		this.fastContinueInfos = cloned.fastContinueInfos;
 		this.filter = cloned.filter;
+		this.forceLinkableCalculation = cloned.forceLinkableCalculation;
 	}
 
 	public TaxonomiesSearchOptions(StatusFilter includeLogicallyDeleted) {
 		super();
 		this.includeStatus = includeLogicallyDeleted;
+	}
+
+	public boolean isForceLinkableCalculation() {
+		return forceLinkableCalculation;
+	}
+
+	public void setForceLinkableCalculation(boolean forceLinkableCalculation) {
+		this.forceLinkableCalculation = forceLinkableCalculation;
 	}
 
 	public boolean isLinkableFlagCalculated() {
@@ -104,12 +116,16 @@ public class TaxonomiesSearchOptions {
 		return this;
 	}
 
-	public boolean isShowInvisibleRecordsInLinkingMode() {
-		return showInvisibleRecordsInLinkingMode;
+	public boolean isShowInvisibleRecords(boolean isLinkingMode) {
+		if (showInvisibleRecords == null) {
+			return isLinkingMode;
+		} else {
+			return showInvisibleRecords;
+		}
 	}
 
-	public TaxonomiesSearchOptions setShowInvisibleRecordsInLinkingMode(boolean showInvisibleRecordsInLinkingMode) {
-		this.showInvisibleRecordsInLinkingMode = showInvisibleRecordsInLinkingMode;
+	public TaxonomiesSearchOptions setShowInvisibleRecords(boolean showInvisibleRecords) {
+		this.showInvisibleRecords = showInvisibleRecords;
 		return this;
 	}
 

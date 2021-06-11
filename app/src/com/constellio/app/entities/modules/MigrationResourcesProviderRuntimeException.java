@@ -1,5 +1,7 @@
 package com.constellio.app.entities.modules;
 
+import java.io.File;
+
 public class MigrationResourcesProviderRuntimeException extends RuntimeException {
 	public MigrationResourcesProviderRuntimeException(String message) {
 		super(message);
@@ -15,8 +17,8 @@ public class MigrationResourcesProviderRuntimeException extends RuntimeException
 
 	public static class MigrationResourcesProviderRuntimeException_NoBundle extends MigrationResourcesProviderRuntimeException {
 
-		public MigrationResourcesProviderRuntimeException_NoBundle(String version, String module) {
-			super("No such properties bundle for migration " + version + " of module " + module);
+		public MigrationResourcesProviderRuntimeException_NoBundle(File file) {
+			super("No such properties bundle for migration. Expected location would be '" + file.getAbsolutePath() + "'");
 		}
 	}
 }

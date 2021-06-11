@@ -51,6 +51,8 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String FIRST_DEPOSIT_REPORT_DATE = "firstDepositReportDate";
 	public static final String DOCUMENT_RESPONSIBLE = "documentResponsible";
 	public static final String FAVORITES = "favorites";
+	public static final String FOLDERS_COUNT = "foldersCount";
+	public static final String NUMBER_OF_FOLDERS = "numberOfFolders";
 
 	public ContainerRecord(Record record,
 						   MetadataSchemaTypes types) {
@@ -441,4 +443,9 @@ public class ContainerRecord extends RecordWrapper {
 		favorites.removeAll(favoritesToDelete);
 		setFavorites(favorites);
 	}
+
+	public Double getNumberOfFolders() {
+		return get(FOLDERS_COUNT);
+	}
+
 }

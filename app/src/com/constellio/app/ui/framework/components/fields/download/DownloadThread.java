@@ -11,13 +11,13 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DownloadThread extends Thread {
+public class DownloadThread extends Thread implements CallbackRunnable<TempFileDownload> {
 
 	final private ProgressBar fileDownloadHandler;
 	final private URLConnection con;
 	final private TempFileDownload tempFileDownload;
 	final private BaseDownloadField baseDownloadField;
-	final private UI baseDownloadFieldUi;
+	final private UI ui;
 	final private AtomicBoolean pageEnded = new AtomicBoolean(false);
 
 	final static long TRANSFER_BYTES_AT_ONCE = 1024 * 1024;
@@ -29,8 +29,16 @@ public class DownloadThread extends Thread {
 		this.fileDownloadHandler = fileDownloadHandler;
 		this.con = con;
 		this.tempFileDownload = tempFileDownload;
-		this.baseDownloadFieldUi = baseDownloadField.getUI();
+		this.ui = baseDownloadField.getUI();
 		this.baseDownloadField = baseDownloadField;
+	}
+
+	public DownloadThread(ProgressBar progressBar, URLConnection con, TempFileDownload tempFileDownload, UI ui) {
+		this.fileDownloadHandler = progressBar;
+		this.con = con;
+		this.tempFileDownload = tempFileDownload;
+		this.ui = ui;
+		this.baseDownloadField = null;
 	}
 
 	public void setPageEnded(boolean flag) {
@@ -40,8 +48,8 @@ public class DownloadThread extends Thread {
 	private boolean checkValidityAndAccess(Runnable run) {
 		boolean result = false;
 
-		if (baseDownloadFieldUi.isAttached() && baseDownloadFieldUi.isAttached()) {
-			baseDownloadFieldUi.access(run);
+		if (ui.isAttached() && ui.isAttached()) {
+			ui.access(run);
 			result = true;
 		}
 		return result;
@@ -50,11 +58,10 @@ public class DownloadThread extends Thread {
 	@Override
 	public void run() {
 
-		try {
-			BufferedInputStream in = new BufferedInputStream(con.getInputStream());
+		try (BufferedInputStream in = new BufferedInputStream(con.getInputStream());
+			 FileOutputStream fos = new FileOutputStream(tempFileDownload.getTempFile());) {
 
 			long fileSize = tempFileDownload.getLength();
-			FileOutputStream fos = new FileOutputStream(tempFileDownload.getTempFile());
 			ReadableByteChannel rbc = Channels.newChannel(in);
 
 			for (long offset = 0; offset < fileSize && pageEnded.get() == false; offset += TRANSFER_BYTES_AT_ONCE) {
@@ -72,9 +79,13 @@ public class DownloadThread extends Thread {
 			}
 
 			if (pageEnded.get() == false) {
-				baseDownloadFieldUi.access(() -> {
+				ui.access(() -> {
 					fileDownloadHandler.setValue(1.0f);
-					baseDownloadField.setValue(tempFileDownload);
+					if (baseDownloadField != null) {
+						baseDownloadField.setValue(tempFileDownload);
+					} else {
+						callback(tempFileDownload);
+					}
 				});
 			} else {
 				checkValidityAndAccess(() -> {

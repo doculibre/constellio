@@ -10,7 +10,6 @@ import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.SecurityTokenManager;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -213,7 +212,7 @@ public class UserAuthorizationsUtils {
 		}
 	};
 
-	private static List<String> getPrincipalsIdsGivingAuthsTo(User user) {
+	public static List<String> getPrincipalsIdsGivingAuthsTo(User user) {
 		SchemasRecordsServices schemas = user.getRolesDetails().getSchemasRecordsServices();
 
 		GroupAuthorizationsInheritance inheritance = schemas.getModelLayerFactory().getSystemConfigs()
@@ -241,7 +240,7 @@ public class UserAuthorizationsUtils {
 		return principalsIdsToInclude;
 	}
 
-	private static List<String> getPrincipalsIdsGivingAuthsTo(Group group, SchemasRecordsServices schemas) {
+	public static List<String> getPrincipalsIdsGivingAuthsTo(Group group, SchemasRecordsServices schemas) {
 
 		GroupAuthorizationsInheritance inheritance = schemas.getModelLayerFactory().getSystemConfigs()
 				.getGroupAuthorizationsInheritance();
@@ -277,20 +276,6 @@ public class UserAuthorizationsUtils {
 		}
 
 		return ids;
-	}
-
-	public static Set<String> getAuthsReceivedBy(Group group, SchemasRecordsServices schemas) {
-		List<String> principalsIdsToInclude = getPrincipalsIdsGivingAuthsTo(group, schemas);
-		Set<String> authsId = new HashSet<>();
-
-		//TODO Security model improvement
-		for (Authorization auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
-			if (CollectionUtils.containsAny(auth.getPrincipals(), principalsIdsToInclude)) {
-				authsId.add(auth.getId());
-			}
-		}
-
-		return authsId;
 	}
 
 	public static KeySetMap<String, String> retrieveUserTokens(User user,

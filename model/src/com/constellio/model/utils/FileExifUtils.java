@@ -12,10 +12,12 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLConnection;
 
 public class FileExifUtils implements java.io.Serializable {
@@ -33,9 +35,11 @@ public class FileExifUtils implements java.io.Serializable {
 		try {
 			if (type != null && type.contains("jpeg")) {
 				ImageInformation imageInformation = readImageInformation(file);
-				BufferedImage bufferedImage = ImageIO.read(new FileInputStream(file));
-				BufferedImage image = transformImage(bufferedImage, getExifTransformation(imageInformation));
-				ImageIO.write(image, "jpeg", new File(file.getPath()));
+				try (InputStream fis = new BufferedInputStream(new FileInputStream(file))) {
+					BufferedImage bufferedImage = ImageIO.read(fis);
+					BufferedImage image = transformImage(bufferedImage, getExifTransformation(imageInformation));
+					ImageIO.write(image, "jpeg", new File(file.getPath()));
+				}
 			}
 		} catch (MetadataException e) {
 			LOGGER.warn("Image metadata could not be read");

@@ -14,6 +14,7 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -123,9 +124,54 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 	}
 
 	@Test
-	public void whenReindexingThenReindexChildRecordsAfterTheParent2()
+	public void givenNotCachedWhenReindexingThenReindexChildRecordsAfterTheParent2()
 			throws Exception {
 		defineSchemasManager().using(schemas.with(childOfReferenceToSelfAndCopiedMetadataFromParent()));
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, (types)-> {
+			types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(RecordCacheType.NOT_CACHED);
+		});
+		givenTimeIs(shishOClock);
+		Transaction transaction = new Transaction();
+		transaction.setUser(users.dakotaLIndienIn(zeCollection));
+
+		transaction.add(new TestRecord(zeSchema, "003001").set(zeSchema.metadata(childOfReference), "003002"));
+		transaction.add(new TestRecord(zeSchema, "003002").set(zeSchema.metadata(childOfReference), "003003"));
+		transaction.add(new TestRecord(zeSchema, "003003").set(zeSchema.metadata(childOfReference), "003004"));
+		transaction.add(new TestRecord(zeSchema, "003004").set(zeSchema.metadata(childOfReference), "003005"));
+		transaction.add(new TestRecord(zeSchema, "003005").set(zeSchema.metadata(childOfReference), "003006"));
+		transaction.add(new TestRecord(zeSchema, "003006").set(zeSchema.metadata(childOfReference), "003007"));
+		transaction.add(new TestRecord(zeSchema, "003007").set(zeSchema.metadata(childOfReference), "003008"));
+		transaction.add(new TestRecord(zeSchema, "003008").set(zeSchema.metadata(childOfReference), "003009"));
+		transaction.add(new TestRecord(zeSchema, "003009").set(zeSchema.metadata(childOfReference), "003010"));
+		transaction.add(new TestRecord(zeSchema, "003010").set(zeSchema.metadata(textMetadata), "Shish O Clock!"));
+		recordServices.execute(transaction);
+
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
+		for (int i = 3001; i < 3010; i++) {
+			System.out.println(i);
+			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
+		}
+
+		List<String> ids = new ArrayList<>();
+		for (int i = 3001; i < 3010; i++) {
+			ids.add("00" + i);
+		}
+		alterCalculedFieldIn(ids);
+
+		reindexingServices.reindexCollections(new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE).setBatchSize(1));
+		for (int i = 3001; i < 3010; i++) {
+			System.out.println(i);
+			assertThat(record("00" + i).<String>get(zeSchema.metadata(calculatedMetadata))).isEqualTo("Shish O Clock!");
+		}
+	}
+
+	@Test
+	public void givenCachedWhenReindexingThenReindexChildRecordsAfterTheParent2()
+			throws Exception {
+		defineSchemasManager().using(schemas.with(childOfReferenceToSelfAndCopiedMetadataFromParent()));
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, (types)-> {
+			types.getSchemaType(zeSchema.typeCode()).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+		});
 		givenTimeIs(shishOClock);
 		Transaction transaction = new Transaction();
 		transaction.setUser(users.dakotaLIndienIn(zeCollection));
@@ -178,6 +224,7 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 
 		getDataLayerFactory().newRecordDao().execute(new TransactionDTO(RecordsFlushing.NOW()).withModifiedRecords(deltas));
 
+		getModelLayerFactory().getRecordsCaches().invalidateVolatile();
 		getModelLayerFactory().getRecordsCaches().reloadAllSchemaTypes(zeCollection);
 	}
 

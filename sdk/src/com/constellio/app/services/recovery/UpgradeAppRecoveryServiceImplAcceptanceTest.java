@@ -142,7 +142,7 @@ public class UpgradeAppRecoveryServiceImplAcceptanceTest extends ConstellioTest 
 		MetadataSchemasManager schemaManager = getAppLayerFactory()
 				.getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypesBuilder types = schemaManager.modify(collection);
-		types.createNewSchemaType(schemaCode);
+		types.createNewSchemaTypeWithSecurity(schemaCode);
 		try {
 			schemaManager.saveUpdateSchemaTypes(types);
 		} catch (OptimisticLocking optimistickLocking) {

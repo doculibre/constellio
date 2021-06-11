@@ -21,6 +21,7 @@ public class GetPdfJSAnnotationsServlet extends BasePdfJSServlet {
 		PdfJSServices pdfJSServices = newPdfJSServices();
 
 		PdfJSAnnotations annotations = pdfJSServices.getAnnotations(record, metadata, user);
+		preventCache(request, response);
 		if (annotations != null) {
 			writeJSONResponse(annotations.getJSONObject(), request, response);
 		}

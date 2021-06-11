@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.schemas.display.report;
 
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
@@ -11,7 +12,6 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +52,7 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
 		presenter.setParameters(params);
 
-		newReportTitle = new TextField($("ReportConfigurationView.newReportTitle"));
+		newReportTitle = new BaseTextField($("ReportConfigurationView.newReportTitle"));
 		if (presenter.isEditMode()) {
 			newReportTitle.setValue(presenter.getReport().getTitle());
 		}

@@ -252,7 +252,14 @@ PDFAnnotationsManager.prototype.certifyPDFSignatures = function() {
             },
             function(textStatus, errorThrown) {
                 if (errorThrown) {
-                    var errorMessage = self.i10n("pdf-annotations-manager.documentCertificationError", "The document was not signed and was not certified. Check your connection and try again.");
+                    var errorMessage;
+                    if (errorThrown == "cannotAddAnnotation") {
+                    	errorMessage = self.i10n("pdf-annotations-manager.documentCertificationError.cannotAddAnnotation", "Cannot add annotation.");
+                    } else if (errorThrown == "cannotAddSignature") {
+                    	errorMessage = self.i10n("pdf-annotations-manager.documentCertificationError.cannotAddSignature", "Cannot add signature.");
+                    } else {
+                    	errorMessage = self.i10n("pdf-annotations-manager.documentCertificationError", "The document was not signed and was not certified. Check your connection and try again.");
+                    }
                     certifyFailed(errorMessage);
                     console.error("Unable to save PDF annotations (status: " + textStatus + ")");
                     console.error(errorThrown);

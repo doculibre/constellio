@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -303,7 +304,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		idsLayout.setSizeFull();
 		idsLayout.setSpacing(true);
 
-		final TextField typeCodeField = new TextField("type");
+		final TextField typeCodeField = new BaseTextField("type");
 		typeCodeField.setImmediate(true);
 		typeCodeField.setCaption($("ExportView.schemaType"));
 		typeCodeField.setSizeFull();

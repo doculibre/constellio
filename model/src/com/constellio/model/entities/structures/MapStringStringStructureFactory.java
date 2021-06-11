@@ -1,7 +1,7 @@
 package com.constellio.model.entities.structures;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -12,10 +12,10 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-public class MapStringStringStructureFactory implements StructureFactory {
+public class MapStringStringStructureFactory implements CombinedStructureFactory {
 
-	private transient GsonBuilder gsonBuilder;
-	private transient Gson gson;
+	protected transient GsonBuilder gsonBuilder;
+	protected transient Gson gson;
 
 	public MapStringStringStructureFactory() {
 		initTransient();
@@ -37,6 +37,16 @@ public class MapStringStringStructureFactory implements StructureFactory {
 	}
 
 	@Override
+	public int hashCode() {
+		return HashCodeBuilder.reflectionHashCode(this);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		return EqualsBuilder.reflectionEquals(this, obj);
+	}
+
+	@Override
 	public ModifiableStructure build(String structure) {
 		MapStringStringStructure mapStringStringStructure = new MapStringStringStructure();
 		if (StringUtils.isNotBlank(structure)) {
@@ -47,16 +57,6 @@ public class MapStringStringStructureFactory implements StructureFactory {
 			mapStringStringStructure.dirty = false;
 		}
 		return mapStringStringStructure;
-	}
-
-	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
 }

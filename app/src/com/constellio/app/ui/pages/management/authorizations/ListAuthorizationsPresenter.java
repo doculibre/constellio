@@ -213,6 +213,13 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		view.refresh();
 	}
 
+	public void attachRequested() {
+		Record record = recordServices().getDocumentById(recordId);
+		authorizationsServices().reset(record);
+		authorizations = null;
+		view.refresh();
+	}
+
 	protected abstract boolean isOwnAuthorization(Authorization authorization);
 
 	protected abstract void removeAuthorization(Authorization authorization);
@@ -374,6 +381,10 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 
 	public abstract boolean seeSharedBy();
 
+	public boolean seeSourceField() {
+		return getAllAuthorizations().stream().filter(auth -> auth.getSource() != null).findAny().isPresent();
+	}
+
 	public Boolean hasUserAccess(String accessCode) {
 		return getCurrentUser().hasCollectionAccess(accessCode);
 	}
@@ -385,5 +396,9 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 
 	public String getCurrentUserId() {
 		return getCurrentUser().getId();
+	}
+
+	public User getUser() {
+		return getCurrentUser();
 	}
 }

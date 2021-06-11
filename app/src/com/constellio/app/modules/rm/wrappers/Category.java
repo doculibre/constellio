@@ -8,6 +8,8 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -34,6 +36,7 @@ public class Category extends RecordWrapper {
 	public static final String LEVEL = "level";
 	public static final String COPY_RETENTION_RULES_ON_DOCUMENT_TYPES = "copyRetentionRulesOnDocumentTypes";
 	public static final String ABBREVIATION = "abbreviation";
+	public static final String LEGAL_REQUIREMENTS = "legalRequirements";
 
 	@Deprecated
 	public Category(Record record, MetadataSchemaTypes types) {
@@ -185,5 +188,40 @@ public class Category extends RecordWrapper {
 
 	public String getAbbreviation() {
 		return get(ABBREVIATION);
+	}
+
+	public List<String> getRequirements() {
+		return getList(LEGAL_REQUIREMENTS);
+	}
+
+	public Category setRequirements(List<String> requirements) {
+		set(LEGAL_REQUIREMENTS, requirements);
+		return this;
+	}
+
+	public void removeRequirement(String requirement) {
+		removeRequirements(Arrays.asList(requirement));
+	}
+
+	public void removeRequirements(List<String> requirementsToRemove) {
+		List<String> requirements = new ArrayList<>();
+		requirements.addAll(getRequirements());
+		requirements.removeAll(requirementsToRemove);
+		setRequirements(requirements);
+	}
+
+	public void addRequirement(String requirement) {
+		addRequirements(Arrays.asList(requirement));
+	}
+
+	public void addRequirements(List<String> requirementsToAdd) {
+		List<String> requirements = new ArrayList<>();
+		requirements.addAll(getRequirements());
+		for (String requirement : requirementsToAdd) {
+			if (!requirements.contains(requirement)) {
+				requirements.add(requirement);
+			}
+		}
+		setRequirements(requirements);
 	}
 }

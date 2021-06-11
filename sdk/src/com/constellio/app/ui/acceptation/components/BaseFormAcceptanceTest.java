@@ -4,6 +4,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -119,7 +120,7 @@ public class BaseFormAcceptanceTest extends ConstellioTest {
 		protected Component buildMainComponent(ViewChangeEvent event) {
 			System.out.println("session id > " + ConstellioUI.getCurrent().getSession().getSession().getId());
 
-			aField = new TextField("Name");
+			aField = new BaseTextField("Name");
 
 			VerticalLayout verticalLayout = new VerticalLayout();
 

@@ -73,11 +73,11 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 	@Override
 	public void setUp() {
 
-		MetadataSchemaTypeBuilder taxo1Type1 = typesBuilder.createNewSchemaType("taxo1Type1");
-		MetadataSchemaTypeBuilder taxo1Type2 = typesBuilder.createNewSchemaType("taxo1Type2");
-		MetadataSchemaTypeBuilder taxo2Type = typesBuilder.createNewSchemaType("taxo2Type");
-		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("zefolder");
-		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("zedocument");
+		MetadataSchemaTypeBuilder taxo1Type1 = typesBuilder.createNewSchemaTypeWithSecurity("taxo1Type1");
+		MetadataSchemaTypeBuilder taxo1Type2 = typesBuilder.createNewSchemaTypeWithSecurity("taxo1Type2");
+		MetadataSchemaTypeBuilder taxo2Type = typesBuilder.createNewSchemaTypeWithSecurity("taxo2Type");
+		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaTypeWithSecurity("zefolder");
+		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaTypeWithSecurity("zedocument");
 
 		setupTaxonomy1(taxo1Type1, taxo1Type2);
 		setupTaxonomy2(taxo2Type);

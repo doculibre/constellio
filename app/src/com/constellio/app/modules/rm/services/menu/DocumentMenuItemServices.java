@@ -36,7 +36,6 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_EXTRACT_ATTACHEMENTS;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_FINALIZE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GENERATE_REPORT;
-import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GENERATE_SIGNATURE_URL;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_GET_PUBLIC_LINK;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_MOVE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_OPEN;
@@ -46,6 +45,7 @@ import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServic
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RENAME_CONTENT;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_RETURN_REMAINDER;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_SHARE_DOCUMENT;
+import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_SIGNATURE_REQUEST;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNPUBLISH;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UNSHARE;
 import static com.constellio.app.modules.rm.services.menu.DocumentMenuItemServices.DocumentMenuItemActionType.DOCUMENT_UPLOAD;
@@ -77,7 +77,7 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_DISPLAY.name())) {
 			menuItemActions.add(buildMenuItemAction(DOCUMENT_DISPLAY.name(),
 					isMenuItemActionPossible(DOCUMENT_DISPLAY.name(), document, user, params),
-					$("DisplayDocumentView.displayDocument"), FontAwesome.FILE_O, -1, 1,
+					$("DisplayDocumentView.displayDocument"), FontAwesome.SEARCH, -1, 1,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).display(document, params)));
 		}
 
@@ -253,9 +253,9 @@ public class DocumentMenuItemServices {
 		if (!filteredActionTypes.contains(DOCUMENT_CREATE_PDF.name())) {
 			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_CREATE_PDF.name(),
 					isMenuItemActionPossible(DOCUMENT_CREATE_PDF.name(), document, user, params),
-					$("DocumentContextMenu.createPDFA"), FontAwesome.FILE_PDF_O, -1, 1300,
+					$("DocumentContextMenu.createPDF"), FontAwesome.FILE_PDF_O, -1, 1300,
 					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).createPdf(document, params));
-			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmCreatePDFA"));
+			menuItemAction.setConfirmMessage($("ConfirmDialog.confirmCreatePDF"));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -315,11 +315,11 @@ public class DocumentMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
-		if (!filteredActionTypes.contains(DOCUMENT_GENERATE_SIGNATURE_URL.name())) {
-			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_GENERATE_SIGNATURE_URL.name(),
-					isMenuItemActionPossible(DOCUMENT_GENERATE_SIGNATURE_URL.name(), document, user, params),
-					$("DocumentContextMenu.generateExternalSignatureUrl"), FontAwesome.PENCIL_SQUARE, -1, 1800,
-					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).generateExternalSignatureUrl(document, params));
+		if (!filteredActionTypes.contains(DOCUMENT_SIGNATURE_REQUEST.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(DOCUMENT_SIGNATURE_REQUEST.name(),
+					isMenuItemActionPossible(DOCUMENT_SIGNATURE_REQUEST.name(), document, user, params),
+					$("DocumentContextMenu.signatureRequest"), FontAwesome.PENCIL_SQUARE, -1, 1800,
+					(ids) -> new DocumentMenuItemActionBehaviors(collection, appLayerFactory).sendSignatureRequest(document, params));
 
 			menuItemActions.add(menuItemAction);
 		}
@@ -418,8 +418,8 @@ public class DocumentMenuItemServices {
 				return documentRecordActionsServices.isCreateTaskActionPossible(record, user);
 			case DOCUMENT_EXTRACT_ATTACHEMENTS:
 				return documentRecordActionsServices.isExtractingÀttachementsActionPossible(record);
-			case DOCUMENT_GENERATE_SIGNATURE_URL:
-				return documentRecordActionsServices.isGenerateExternalSignatureUrlActionPossible(record, user);
+			case DOCUMENT_SIGNATURE_REQUEST:
+				return documentRecordActionsServices.isSendSignatureRequestActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -470,6 +470,6 @@ public class DocumentMenuItemServices {
 		DOCUMENT_RETURN_REMAINDER,
 		DOCUMENT_ADD_TASK,
 		DOCUMENT_EXTRACT_ATTACHEMENTS,
-		DOCUMENT_GENERATE_SIGNATURE_URL
+		DOCUMENT_SIGNATURE_REQUEST
 	}
 }

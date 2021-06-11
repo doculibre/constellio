@@ -12,8 +12,18 @@ public class SystemStateExportParams {
 	@Getter
 	private boolean useWeeklyExport;
 
+	@Getter
+	private boolean includePrivateKey;
+
 	public SystemStateExportParams setUseWeeklyExport(boolean useWeeklyExport) {
 		this.useWeeklyExport = useWeeklyExport;
+		return this;
+	}
+
+	public SystemStateExportParams setUseWeeklyExportAndIncludePrivateKey(boolean useWeeklyExport,
+																		  boolean includePrivateKey) {
+		this.useWeeklyExport = useWeeklyExport;
+		this.includePrivateKey = includePrivateKey;
 		return this;
 	}
 

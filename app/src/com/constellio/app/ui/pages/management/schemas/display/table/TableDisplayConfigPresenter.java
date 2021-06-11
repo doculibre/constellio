@@ -12,7 +12,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -26,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 
 public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<TableDisplayConfigView> {
 
@@ -99,11 +100,12 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 				Schemas.DETACHED_PRINCIPAL_ANCESTORS_INT_IDS, Schemas.PRINCIPAL_CONCEPTS_INT_IDS, Schemas.SECONDARY_CONCEPTS_INT_IDS,
 				Schemas.PRINCIPALS_ANCESTORS_INT_IDS);
 
-		List<MetadataValueType> restrictedType = Arrays.asList(MetadataValueType.STRUCTURE, MetadataValueType.CONTENT);
 
 		List<String> localCodes = new SchemaUtils().toMetadataLocalCodes(restrictedMetadata);
 
-		result = !restrictedType.contains(metadataVO.getValueType()) && !localCodes.contains(metadataVO.getLocalcode());
+		result = CONTENT != metadataVO.getValueType()
+				 && (STRUCTURE != metadataVO.getValueType() || metadataVO.isSeparatedStructure())
+				 && !localCodes.contains(metadataVO.getLocalcode());
 
 		if (appLayerFactory.getModelLayerFactory().getSystemConfigs().isOnlySummaryMetadatasDisplayedInTables()) {
 			result &= !schemaType.getCacheType().isSummaryCache() || metadata.isStoredInSummaryCache();

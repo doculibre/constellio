@@ -36,7 +36,7 @@ public class CoreMigrationTo_7_7_1_6 implements MigrationScript {
 			if(typesBuilder.hasSchemaType(ThesaurusConfig.SCHEMA_TYPE)) {
 				thesaurusConfig = typesBuilder.getDefaultSchema(ThesaurusConfig.SCHEMA_TYPE);
 			} else {
-				thesaurusConfig = typesBuilder.createNewSchemaType(ThesaurusConfig.SCHEMA_TYPE).getDefaultSchema();
+				thesaurusConfig = typesBuilder.createNewSchemaTypeWithSecurity(ThesaurusConfig.SCHEMA_TYPE).getDefaultSchema();
 			}
 
 			if(!thesaurusConfig.hasMetadata(ThesaurusConfig.CONTENT)) {

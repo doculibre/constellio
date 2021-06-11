@@ -22,6 +22,8 @@ import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
 import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -122,26 +124,33 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 	}
 
 	public void adjustButtons(BaseViewImpl view, Folder folder, ContainerRecord containerRecord, User currentUser) {
-		List<Button> actionMenuButtons = view.getActionMenuButtons();
-		String collection = getCurrentCollection(view);
-		for (Button button : actionMenuButtons) {
-			if (button.getId() != null) {
-				switch (button.getId()) {
-					case BorrowRequest.SCHEMA_NAME:
-						button.setVisible(isPrincipalRecordBorrowable(folder, containerRecord, currentUser, collection));
-						break;
-					case ReturnRequest.SCHEMA_NAME:
-						button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
-						break;
-					case ReactivationRequest.SCHEMA_NAME:
-						button.setVisible(isPrincipalRecordReativable(folder, containerRecord, currentUser));
-						break;
-					case ExtensionRequest.SCHEMA_NAME:
-						button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
-						break;
-				}
+		final String collection = getCurrentCollection(view);
+
+		view.getAllActionTypes().stream().map(view::getMenuItemActionByType).forEach(menuItemAction -> {
+			MenuItemActionStateStatus lastVisibilityStatus = menuItemAction.getState().getStatus();
+			MenuItemActionStateStatus currentVisibilityStatus;
+			switch (menuItemAction.getType()) {
+				case BorrowRequest.SCHEMA_NAME:
+					currentVisibilityStatus = isPrincipalRecordBorrowable(folder, containerRecord, currentUser, collection) ? MenuItemActionStateStatus.VISIBLE : MenuItemActionStateStatus.HIDDEN;
+					break;
+				case ReturnRequest.SCHEMA_NAME:
+					currentVisibilityStatus = isPrincipalRecordReturnable(folder, containerRecord, currentUser) ? MenuItemActionStateStatus.VISIBLE : MenuItemActionStateStatus.HIDDEN;
+					break;
+				case ReactivationRequest.SCHEMA_NAME:
+					currentVisibilityStatus = isPrincipalRecordReativable(folder, containerRecord, currentUser) ? MenuItemActionStateStatus.VISIBLE : MenuItemActionStateStatus.HIDDEN;
+					break;
+				case ExtensionRequest.SCHEMA_NAME:
+					currentVisibilityStatus = isPrincipalRecordReturnable(folder, containerRecord, currentUser) ? MenuItemActionStateStatus.VISIBLE : MenuItemActionStateStatus.HIDDEN;
+					break;
+				default:
+					currentVisibilityStatus = lastVisibilityStatus;
+					break;
 			}
-		}
+
+			if (lastVisibilityStatus != currentVisibilityStatus) {
+				view.updateMenuAction(menuItemAction.getType(), builder -> builder.state(new MenuItemActionState(currentVisibilityStatus)).build());
+			}
+		});
 	}
 
 	private boolean isPrincipalRecordReativable(Folder folder, ContainerRecord containerRecord, User currentUser) {

@@ -6,6 +6,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Record.GetMetadataOption;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.MetadataSchemaTypesMustBeNotNull;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.RecordWrapperRuntimeException_CannotUseDisconnectedRecordWrapper;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.WrappedRecordMustBeNotNull;
@@ -462,5 +463,10 @@ public class RecordWrapper implements Serializable, CollectionObject, Supplier<R
 	@Override
 	public Record get() {
 		return wrappedRecord;
+	}
+
+
+	public NestedRecordAuthorizations getNestedAuthorizations() {
+		return wrappedRecord.getNestedAuthorizations();
 	}
 }

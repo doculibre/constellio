@@ -118,6 +118,7 @@ public abstract class RecordVOWithDistinctSchemasDataProvider implements DataPro
 
 	public void sort(MetadataVO[] propertyId, boolean[] ascending) {
 		query.clearSort();
+		cache.clear();
 
 		for (int i = 0; i < propertyId.length; i++) {
 			MetadataVO metadataVO = propertyId[i];

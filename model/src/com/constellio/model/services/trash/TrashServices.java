@@ -188,16 +188,18 @@ public class TrashServices {
 	}
 
 	public Set<String> getTypesWithLogicallyDeletedRecords(String collection, User currentUser) {
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		LogicalSearchQuery query = getTrashRecordsQueryForCollection(collection, currentUser);
-		query = query.addFieldFacet("schema_s").setNumberOfRows(0);
-
-		SPEQueryResponse response = searchServices.query(query);
-		List<String> schemasCodes = response.getFieldFacetValuesWithResults("schema_s");
 		Set<String> returnSet = new HashSet<>();
-		for (String schemaCode : schemasCodes) {
-			String schemaType = StringUtils.substringBefore(schemaCode, "_");
-			returnSet.add(schemaType);
+		if (!getTrashSchemaTypes(collection, currentUser).isEmpty()) {
+			SearchServices searchServices = modelLayerFactory.newSearchServices();
+			LogicalSearchQuery query = getTrashRecordsQueryForCollection(collection, currentUser);
+			query = query.addFieldFacet("schema_s").setNumberOfRows(0);
+
+			SPEQueryResponse response = searchServices.query(query);
+			List<String> schemasCodes = response.getFieldFacetValuesWithResults("schema_s");
+			for (String schemaCode : schemasCodes) {
+				String schemaType = StringUtils.substringBefore(schemaCode, "_");
+				returnSet.add(schemaType);
+			}
 		}
 		return returnSet;
 	}
@@ -246,7 +248,8 @@ public class TrashServices {
 	}
 
 	public long getLogicallyDeletedRecordsCount(String collection, User currentUser) {
-		return searchServices.getResultsCount(getTrashRecordsQueryForCollection(collection, currentUser));
+		return !getTrashSchemaTypes(collection, currentUser).isEmpty() ?
+			   searchServices.getResultsCount(getTrashRecordsQueryForCollection(collection, currentUser)) : 0l;
 	}
 
 	public static class RecordsIdsAndTitles {

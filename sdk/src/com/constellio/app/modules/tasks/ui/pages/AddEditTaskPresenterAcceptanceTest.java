@@ -223,7 +223,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenEditModeAndCurrentUserIsNotAssignedToTaskWhenCallCurrentUserHasWriteAuthorizationWithoutBeingCollaboratorThenReturnFalse()
+	public void givenEditModeAndCurrentUserIsNotAssignedToTaskWhenCallCurrentUserHasWriteAuthorizationWithoutBeingCollaboratorThenReturnTrue()
 			throws RecordServicesException {
 		Task zeTask = tasksSchemas.newTask().setTitle("zeTask");
 		recordServices.add(zeTask);
@@ -233,7 +233,7 @@ public class AddEditTaskPresenterAcceptanceTest extends ConstellioTest {
 		String viewPath = ParamUtils.addParams(TasksNavigationConfiguration.EDIT_TASK, params);
 		presenter.initTaskVO(viewPath);
 
-		assertThat(presenter.currentUserHasWriteAuthorizationWithoutBeingCollaborator(taskVO)).isFalse();
+		assertThat(presenter.currentUserHasWriteAuthorizationWithoutBeingCollaborator(taskVO)).isTrue();
 	}
 
 	@Test

@@ -12,8 +12,9 @@ import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.Cont
 import com.constellio.data.dao.services.contents.ContentDaoRuntimeException.ContentDaoRuntimeException_NoSuchFolder;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
-import com.constellio.data.extensions.contentDao.ContentDaoInputStreamOpenedParams;
-import com.constellio.data.extensions.contentDao.ContentDaoUploadParams;
+import com.constellio.data.extensions.contentDao.ContentDaoReadEvent;
+import com.constellio.data.extensions.contentDao.ContentDaoReadEvent.ContentOperation;
+import com.constellio.data.extensions.contentDao.ContentDaoWriteEvent;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
@@ -271,7 +272,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 			} else if (!isFileReplicated && isExecutedReplication) {
 				addFileNotReplicated(relativePath);
 			}
-			extensions.onVaultUpload(new ContentDaoUploadParams(relativePath, file.length(), true));
+			extensions.onVaultUpload(new ContentDaoWriteEvent().setHash(relativePath).setLength(file.length()).setMovedFromLocalFile(true));
 		}
 	}
 
@@ -367,26 +368,27 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		File[] fileList = vaultRecoveryFolder.listFiles();
 		boolean didCopySucced;
 
-		for (int i = 0; i < fileList.length; i++) {
-			File recoveryFile = fileList[i];
-			File file = getFileOf(recoveryFile.getName());
+		if (fileList != null) {
+			for (int i = 0; i < fileList.length; i++) {
+				File recoveryFile = fileList[i];
+				File file = getFileOf(recoveryFile.getName());
 
-			if (!file.exists()) {
-				// file got deleted.
-				vaultRecoveryFileDelete(recoveryFile);
-				continue;
-			}
+				if (!file.exists()) {
+					// file got deleted.
+					vaultRecoveryFileDelete(recoveryFile);
+					continue;
+				}
 
-			didCopySucced = fileCopy(file, getReplicatedVaultFile(file).getAbsolutePath());
+				didCopySucced = fileCopy(file, getReplicatedVaultFile(file).getAbsolutePath());
 
-			if (!didCopySucced) {
-				throw new FileSystemContentDaoRuntimeException
-						.FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheReplicationVault(file.getAbsoluteFile());
-			} else {
-				vaultRecoveryFileDelete(recoveryFile);
+				if (!didCopySucced) {
+					throw new FileSystemContentDaoRuntimeException
+							.FileSystemContentDaoRuntimeException_ErrorWhileCopingFileToTheReplicationVault(file.getAbsoluteFile());
+				} else {
+					vaultRecoveryFileDelete(recoveryFile);
+				}
 			}
 		}
-
 	}
 
 	private void vaultRecoveryFileDelete(File recoveryFile) {
@@ -449,7 +451,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 		} else if (!replicaCopySucessfull && isReplicationExecuted) {
 			addFileNotReplicated(newContentId);
 		}
-		extensions.onVaultUpload(new ContentDaoUploadParams(newContentId, length, false));
+		extensions.onVaultUpload(new ContentDaoWriteEvent().setHash(newContentId).setLength(length).setMovedFromLocalFile(false));
 	}
 
 
@@ -494,7 +496,7 @@ public class FileSystemContentDao implements StatefulService, ContentDao {
 	public InputStream getContentInputStream(String contentId, String streamName)
 			throws ContentDaoException_NoSuchContent {
 
-		extensions.onVaultInputStreamOpened(new ContentDaoInputStreamOpenedParams(contentId));
+		extensions.onVaultInputStreamOpened(new ContentDaoReadEvent().setHash(contentId).setContentOperation(ContentOperation.STREAM_OPENED));
 
 		if (contentId.startsWith("#")) {
 			for (FileSystemContentDaoExternalResourcesExtension extension : externalResourcesExtensions) {

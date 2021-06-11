@@ -4,12 +4,13 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SystemWideGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -94,12 +95,14 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 			authenticationService.changePassword("admin", password);
 		}
 
-		if (modelLayerFactory.getCollectionsListManager().getCollections().size() == 1) {
-			dataLayerFactory.getDataLayerConfiguration().setHashingEncoding(BASE64_URL_ENCODED);
-			dataLayerFactory.getDataLayerConfiguration().setContentDaoFileSystemDigitsSeparatorMode(THREE_LEVELS_OF_ONE_DIGITS);
-		} else {
-			dataLayerFactory.getDataLayerConfiguration().setHashingEncoding(BASE64);
-			dataLayerFactory.getDataLayerConfiguration().setContentDaoFileSystemDigitsSeparatorMode(TWO_DIGITS);
+		if (FoldersLocator.usingAppWrapper()) {
+			if (modelLayerFactory.getCollectionsListManager().getCollections().size() == 1) {
+				dataLayerFactory.getDataLayerConfiguration().setHashingEncoding(BASE64_URL_ENCODED);
+				dataLayerFactory.getDataLayerConfiguration().setContentDaoFileSystemDigitsSeparatorMode(THREE_LEVELS_OF_ONE_DIGITS);
+			} else {
+				dataLayerFactory.getDataLayerConfiguration().setHashingEncoding(BASE64);
+				dataLayerFactory.getDataLayerConfiguration().setContentDaoFileSystemDigitsSeparatorMode(TWO_DIGITS);
+			}
 		}
 	}
 
@@ -117,7 +120,7 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 		}
 
 		private void createUserCredentialSchema(MetadataSchemaTypesBuilder builder) {
-			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(UserCredential.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaTypeWithSecurity(UserCredential.SCHEMA_TYPE);
 			credentialsTypeBuilder.setSecurity(false);
 			MetadataSchemaBuilder credentials = credentialsTypeBuilder.getDefaultSchema();
 
@@ -149,7 +152,7 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 		}
 
 		private void createGlobalGroupSchema(MetadataSchemaTypesBuilder builder) {
-			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(SystemWideGroup.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaTypeWithSecurity(SystemWideGroup.SCHEMA_TYPE);
 			credentialsTypeBuilder.setSecurity(false);
 			MetadataSchemaBuilder groups = credentialsTypeBuilder.getDefaultSchema();
 

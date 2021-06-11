@@ -36,6 +36,17 @@ public class ClickableNotification extends Window {
 		return notification;
 	}
 
+	public static void show(UI ui, String windowCaption, VerticalLayout verticalLayout) {
+		ClickableNotification notification = new ClickableNotification();
+		notification.setCaptionAsHtml(true);
+		notification.setCaption(windowCaption);
+		verticalLayout.setMargin(true);
+		verticalLayout.setSpacing(true);
+		notification.setContent(verticalLayout);
+
+		notification.show(ui, true);
+	}
+
 	private static void appendOtherClickableWindows(StringBuilder stringBuilder, UI ui) {
 		Collection<Window> windows = ui.getWindows();
 		for (Window window : windows) {

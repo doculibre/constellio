@@ -2,6 +2,9 @@ package com.constellio.app.modules.rm.ui.components.contextmenu;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.actionDisplayManager.MenuDisplayList;
+import com.constellio.app.services.actionDisplayManager.MenusDisplayManager;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemFactory;
@@ -15,6 +18,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl.ValidateFileName;
 import com.constellio.app.ui.framework.components.contextmenu.RecordContextMenu;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -37,11 +41,12 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.modules.rm.services.menu.behaviors.util.DocumentUtil.getEmailDocumentFileNameValidator;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentContextMenuImpl extends RecordContextMenu implements DocumentContextMenu {
@@ -100,10 +105,15 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		}
 
 		// FIXME quick test only
-		RecordServices recordServices = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newRecordServices();
+		final AppLayerFactory appLayerFactory = getConstellioFactories().getAppLayerFactory();
+		final MenusDisplayManager menusDisplayManager = appLayerFactory.getMenusDisplayManager();
+		final MenuDisplayList menuDisplayList = menusDisplayManager.getMenuDisplayList(presenter.getCollection()).getActionDisplayList(recordVO.getSchema().getTypeCode());
+
+
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		Record record = recordServices.getDocumentById(recordVO.getId());
 
-		List<MenuItemAction> menuItemActions = new MenuItemServices(record.getCollection(), getConstellioFactories().getAppLayerFactory())
+		List<MenuItemAction> menuItemActions = new MenuItemServices(record.getCollection(), appLayerFactory)
 				.getActionsForRecord(record, new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
@@ -139,14 +149,14 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		new MenuItemFactory().buildContextMenu(this, menuItemActions, new MenuItemRecordProvider() {
 			@Override
 			public List<Record> getRecords() {
-				return Arrays.asList(recordVO.getRecord());
+				return Collections.singletonList(recordVO.getRecord());
 			}
 
 			@Override
 			public LogicalSearchQuery getQuery() {
 				return null;
 			}
-		});
+		}, menuDisplayList);
 	}
 
 	@Override
@@ -162,7 +172,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	@Override
 	public Navigation navigate() {
 		Navigation navigation = ConstellioUI.getCurrent().navigate();
-		for (Window window : new ArrayList<Window>(ConstellioUI.getCurrent().getWindows())) {
+		for (Window window : new ArrayList<>(ConstellioUI.getCurrent().getWindows())) {
 			window.close();
 		}
 		return navigation;
@@ -196,7 +206,10 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private void initUploadWindow() {
 		Map<RecordVO, MetadataVO> record = new HashMap<>();
 		record.put(recordVO, recordVO.getMetadata(Document.CONTENT));
-		updateWindow = new UpdateContentVersionWindowImpl(record) {
+
+		ValidateFileName validateFileName = getEmailDocumentFileNameValidator(recordVO.getSchemaCode());
+
+		updateWindow = new UpdateContentVersionWindowImpl(record, false, validateFileName) {
 			@Override
 			public void close() {
 				super.close();

@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.externallink;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ExternalLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -9,8 +10,13 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.schemas.validators.MetadataUniqueValidator;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ExternalLinkSourcePresenter extends BasePresenter<ExternalLinkSourceView> {
 
@@ -36,6 +42,7 @@ public class ExternalLinkSourcePresenter extends BasePresenter<ExternalLinkSourc
 
 	public void addExternalLinks(List<ExternalLink> links) {
 		for (ExternalLink link : links) {
+			link.setLinkedto(folder);
 			folder.addExternalLink(link.getId());
 		}
 
@@ -48,8 +55,20 @@ public class ExternalLinkSourcePresenter extends BasePresenter<ExternalLinkSourc
 		try {
 			rm.executeTransaction(tr);
 			view.closeWindow();
+			view.navigate().to(RMViews.class).displayFolder(folder.getId());
 		} catch (RecordServicesException e) {
-			view.showErrorMessage(MessageUtils.toMessage(e));
+			List<String> titles = new ArrayList<>();
+			for (ExternalLink link : links) {
+				folder.removeExternalLink(link.getId());
+				titles.add(link.getTitle());
+			}
+			if (e instanceof RecordServicesException.ValidationException
+				&& ((ValidationException) e).getErrors().getValidationErrors().stream().anyMatch(f -> MetadataUniqueValidator.NON_UNIQUE_METADATA.equals(f.getValidatorErrorCode()))
+				&& ((ValidationException) e).getErrors().getValidationErrors().stream().anyMatch(f -> ((String) f.getParameters().get(MetadataUniqueValidator.METADATA_CODE)).startsWith("externalLink_"))) {
+				view.showErrorMessage($("ExternalLinkSourcePresenter.addExternalLinkError", String.join(",", titles)));
+			} else {
+				view.showErrorMessage(MessageUtils.toMessage(e));
+			}
 		}
 	}
 

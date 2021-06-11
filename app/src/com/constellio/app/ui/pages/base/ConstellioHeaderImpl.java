@@ -2,7 +2,12 @@ package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType;
+import com.constellio.app.services.background.UpdateServerPingBackgroundAction;
+import com.constellio.app.services.background.UpdateServerPingBackgroundAction.Notification;
+import com.constellio.app.services.background.UpdateServerPingBackgroundAction.NotificationsChangeListener;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.icons.DefaultIconService;
+import com.constellio.app.services.icons.IconService;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -23,6 +28,8 @@ import com.constellio.app.ui.framework.components.fields.autocomplete.StringAuto
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
+import com.constellio.app.ui.framework.components.notifications.NotificationsButton;
+import com.constellio.app.ui.framework.components.notifications.NotificationsPanel;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.SessionContext.SelectedRecordIdsChangeListener;
@@ -86,13 +93,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 @SuppressWarnings("serial")
-public class ConstellioHeaderImpl extends I18NHorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener, BrowserWindowResizeListener {
+public class ConstellioHeaderImpl extends I18NHorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener, NotificationsChangeListener, BrowserWindowResizeListener {
 
 	private static final String POPUP_ID = "header-popup";
 	private static final String SHOW_ADVANCED_SEARCH_POPUP_HIDDEN_STYLE_NAME = "header-show-advanced-search-button-popup-hidden";
@@ -106,6 +114,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private StringAutocompleteField<String> searchField;
 	private WindowButton selectionButton;
+	private WindowButton notificationsButton;
 
 	private BasePopupView popupView;
 
@@ -116,26 +125,37 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private Component advancedSearchForm;
 	private Button clearAdvancedSearchButton;
 	private AdvancedSearchCriteriaComponent criteria;
-
 	private Component selectionPanel;
 	private RecordListMenuBar selectionActionMenuBar;
 	private BaseTable selectionTable;
 	private int selectionCount;
 
 	private Boolean delayedSelectionButtonEnabled;
-	private BaseView currentView;
 
 	private MenuItem collectionSubMenu;
 	private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
 	private HashMap<String, MenuItem> collectionButtons = new HashMap<>();
 	private Locale locale;
 
-	private List<NavigationItem> actionMenuItems;
+	private List<NavigationItem> actionMenuItems = new ArrayList<>();
+	private Map<NavigationItem, MenuItem> menuItems = new HashMap<>();
 
 	private Boolean lastPhoneMode;
 
+	private Supplier<UI> uiSupplier;
+
+	private final IconService iconService;
+
 	public ConstellioHeaderImpl() {
 		presenter = new ConstellioHeaderPresenter(this);
+		iconService = new DefaultIconService(ConstellioFactories.getInstance().getAppLayerFactory(), ConstellioUI.getCurrentSessionContext());
+
+		UI ui = ConstellioUI.getCurrent();
+		if (ui != null) {
+			uiSupplier = () -> ui;
+		} else {
+			uiSupplier = ConstellioUI::getCurrent;
+		}
 
 		Resource logoResource = presenter.getUserLogoResource();
 		Image logo = new Image("", logoResource != null ? logoResource : new ThemeResource("images/logo_eim_406x60.png"));
@@ -215,6 +235,10 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		MenuBar collectionMenu = buildCollectionMenu();
 		MenuBar actionMenu = buildActionMenu();
 
+		notificationsButton = buildNotificationsButton();
+		Map<String, Notification> notifications = presenter.getNotifications();
+		setNotificationsNumber(notifications.size());
+
 		selectionButton = buildSelectionButton();
 		setSelectionButtonIcon();
 		selectionPanel = buildSelectionPanel();
@@ -224,7 +248,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		searchFieldLayout.setWidth("100%");
 		searchFieldLayout.setExpandRatio(searchField, 1);
 
-		addComponents(logo, searchFieldLayout, collectionMenu, actionMenu, selectionButton,
+		addComponents(logo, searchFieldLayout, collectionMenu, actionMenu, notificationsButton, selectionButton,
 				popupView);
 		//		setComponentAlignment(headerMenu, Alignment.MIDDLE_RIGHT);
 		setExpandRatio(searchFieldLayout, 1);
@@ -235,13 +259,15 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		getNavigator().addViewChangeListener(new ViewChangeListener() {
 			@Override
 			public boolean beforeViewChange(ViewChangeEvent event) {
-				currentView = (BaseView) event.getNewView();
 				return true;
 			}
 
 			@Override
 			public void afterViewChange(ViewChangeEvent event) {
-				if (!(event.getNewView() instanceof AdvancedSearchView || event.getNewView() instanceof SimpleSearchView)) {
+				View oldView = event.getOldView();
+				View newView = event.getNewView();
+
+				if (!(newView instanceof AdvancedSearchView || newView instanceof SimpleSearchView)) {
 					searchField.setValue(null);
 					advancedSearchSchemaTypeField.setValue(null);
 					advancedSearchSchemaField.setValue(null);
@@ -250,6 +276,14 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 					criteria.addEmptyCriterion().addEmptyCriterion();
 					clearAdvancedSearchButton.setEnabled(false);
 					adjustSearchFieldContent();
+				}
+
+				if (oldView instanceof BaseView && newView instanceof BaseView) {
+					for (NavigationItem navigationItem : actionMenuItems) {
+						MenuItem menuItem = menuItems.get(navigationItem);
+						navigationItem.viewChanged((BaseView) oldView, (BaseView) newView);
+						updateMenuItem(navigationItem, menuItem);
+					}
 				}
 			}
 		});
@@ -504,6 +538,13 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		WindowConfiguration config = new WindowConfiguration(true, true, "80%", null);
 		WindowButton selectionButton = new WindowButton($("ConstellioHeader.selection"),
 				$("ConstellioHeader.selectionPanelTitle"), config) {
+
+			@Override
+			public void buttonClick(ClickEvent event) {
+				super.buttonClick(event);
+				presenter.selectAllClicked();
+			}
+
 			@Override
 			protected Component buildWindowContent() {
 				return selectionPanel;
@@ -537,11 +578,37 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		return selectionButton;
 	}
 
+	private WindowButton buildNotificationsButton() {
+		WindowButton notificationsButton = new NotificationsButton() {
+			@Override
+			public NotificationsPanel newNotificationPanel() {
+				return new NotificationsPanel(presenter.getNotifications(), (notificationKeys) -> {
+					presenter.notificationsViewed(notificationKeys);
+
+					setNotificationsNumber(presenter.getNotifications().size());
+				}) {
+					@Override
+					public IconService getIconService() {
+						return iconService;
+					}
+				};
+			}
+		};
+
+		return notificationsButton;
+	}
+
+	private void setNotificationsNumber(int numberOfAlerts) {
+		notificationsButton.setBadgeCount(numberOfAlerts);
+		notificationsButton.setEnabled(numberOfAlerts != 0);
+	}
+
 	@Override
 	public void attach() {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		sessionContext.addSelectedRecordIdsChangeListener(this);
 		Page.getCurrent().addBrowserWindowResizeListener(this);
+		UpdateServerPingBackgroundAction.subscribeToNotifications(this);
 		computeResponsive();
 		super.attach();
 	}
@@ -551,6 +618,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		sessionContext.removeSelectedRecordIdsChangeListener(this);
 		Page.getCurrent().removeBrowserWindowResizeListener(this);
+		UpdateServerPingBackgroundAction.unsubscribeFromNotifications(this);
 		super.detach();
 	}
 
@@ -896,27 +964,43 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	}
 
 	private MenuBar buildActionMenu() {
+		actionMenuItems.addAll(presenter.getActionMenuItems());
+
 		MenuBar headerMenu = new BaseMenuBar();
 		headerMenu.setAutoOpen(true);
 		headerMenu.addStyleName("header-action-menu");
 		MenuItem headerMenuRoot = headerMenu.addItem($("ConstellioHeader.actions"), FontAwesome.BARS, null);
-		for (final NavigationItem item : presenter.getActionMenuItems()) {
-			ComponentState state = presenter.getStateFor(item);
-
-			MenuItem menuItem = headerMenuRoot.addItem($("ConstellioHeader." + item.getCode()), new MenuBar.Command() {
+		boolean atLeastOneItemVisible = false;
+		for (final NavigationItem navigationItem : actionMenuItems) {
+			MenuItem menuItem = headerMenuRoot.addItem($("ConstellioHeader." + navigationItem.getCode()), new MenuBar.Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
-					item.activate(navigate());
+					navigationItem.activate(navigate());
 				}
 			});
-			if (item.getFontAwesome() != null) {
-				menuItem.setIcon(item.getFontAwesome());
-			}
-			menuItem.setVisible(state.isVisible());
-			menuItem.setEnabled(state.isEnabled());
-			menuItem.setStyleName(item.getCode());
+			atLeastOneItemVisible |= updateMenuItem(navigationItem, menuItem);
+			menuItems.put(navigationItem, menuItem);
+		}
+		if (!atLeastOneItemVisible) {
+			MenuItem placeholder = headerMenuRoot.addItem("placeholder", null);
+			placeholder.setEnabled(false);
+			placeholder.setIcon(FontAwesome.BEER);
+			headerMenu.setEnabled(false);
 		}
 		return headerMenu;
+	}
+
+	protected boolean updateMenuItem(NavigationItem navigationItem, MenuItem menuItem) {
+		menuItem.setText($("ConstellioHeader." + navigationItem.getCode()));
+		ComponentState state = presenter.getStateFor(navigationItem);
+		if (navigationItem.getFontAwesome() != null) {
+			menuItem.setIcon(navigationItem.getFontAwesome());
+		}
+		menuItem.setVisible(state.isVisible());
+		menuItem.setEnabled(state.isEnabled());
+		menuItem.setStyleName(navigationItem.getCode());
+
+		return state.isVisible();
 	}
 
 	public Navigation navigate() {
@@ -1043,5 +1127,27 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	@Override
 	public void removeItems(List<String> ids) {
 		this.removeRecordsFromPanel(ids);
+	}
+
+	@Override
+	public void notificationsAdded() {
+		if (isAttached()) {
+			UI ui = uiSupplier.get();
+			if (ui != null) {
+				ui.access(() -> {
+					setNotificationsNumber(presenter.getNotifications().size());
+				});
+			}
+		}
+	}
+
+	@Override
+	public void notificationsRemoved() {
+
+	}
+
+	@Override
+	public void clearNotifications() {
+
 	}
 }

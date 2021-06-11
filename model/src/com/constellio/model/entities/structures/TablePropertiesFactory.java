@@ -1,7 +1,7 @@
 package com.constellio.model.entities.structures;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 
-public class TablePropertiesFactory implements StructureFactory {
+public class TablePropertiesFactory implements CombinedStructureFactory {
 
 	protected static final String NULL = "~null~";
 	protected static final String DELIMITER = ":";

@@ -4,6 +4,9 @@ import com.constellio.model.entities.calculators.InitializedMetadataValueCalcula
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.MultiMetadatasValueCalculator;
+import com.constellio.model.entities.records.SequenceValueStructureFactory;
+import com.constellio.model.entities.schemas.entries.AdvancedSequenceCalculator;
+import com.constellio.model.entities.schemas.entries.AdvancedSequenceDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
@@ -26,9 +29,11 @@ import java.util.Map;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.entries.AggregationType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.AggregationType.LOGICAL_AND;
 import static com.constellio.model.entities.schemas.entries.AggregationType.LOGICAL_OR;
@@ -130,9 +135,10 @@ public class DataEntryBuilder {
 					referenceToAgregatingSchemaType.getCode());
 		}
 
-		if (inputMetadata.getType() != NUMBER && inputMetadata.getType() != DATE && inputMetadata.getType() != DATE_TIME) {
+		if (inputMetadata.getType() != NUMBER && inputMetadata.getType() != INTEGER &&
+			inputMetadata.getType() != DATE && inputMetadata.getType() != DATE_TIME) {
 			throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("inputMetadata", inputMetadata.getCode(),
-					NUMBER, DATE, DATE_TIME);
+					NUMBER, INTEGER, DATE, DATE_TIME);
 		}
 
 		if (metadata.getType() == null) {
@@ -218,6 +224,21 @@ public class DataEntryBuilder {
 		metadata.dataEntry = new SequenceDataEntry(fixedSequenceCode, null);
 		if (metadata.getType() == null) {
 			metadata.setType(STRING);
+		}
+		return metadata;
+	}
+
+	public MetadataBuilder asAdvancedSequence(Class<? extends AdvancedSequenceCalculator> advancedSequenceClass) {
+		AdvancedSequenceCalculator calculator;
+		try {
+			calculator = advancedSequenceClass.newInstance();
+
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
+		metadata.dataEntry = new AdvancedSequenceDataEntry(calculator);
+		if (metadata.getType() == null) {
+			metadata.setType(STRUCTURE).defineStructureFactory(SequenceValueStructureFactory.class);
 		}
 		return metadata;
 	}

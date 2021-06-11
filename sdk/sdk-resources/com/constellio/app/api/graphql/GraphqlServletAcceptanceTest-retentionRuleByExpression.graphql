@@ -1,0 +1,6 @@
+query searchRetentionRule {
+    searchRetentionRule(expression: "rule") {
+        id
+        code
+    }
+}

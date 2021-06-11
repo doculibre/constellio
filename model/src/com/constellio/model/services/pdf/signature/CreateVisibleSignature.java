@@ -157,8 +157,8 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 	 * @param tsaClient  optional TSA client
 	 * @throws IOException
 	 */
-	public void signPDF(File inputFile, File signedFile, TSAClient tsaClient) throws IOException {
-		this.signPDF(inputFile, signedFile, tsaClient, null);
+	public void signPDF(File inputFile, File signedFile, int pageNumber, TSAClient tsaClient) throws IOException {
+		this.signPDF(inputFile, signedFile, pageNumber, tsaClient, null);
 	}
 
 	/**
@@ -170,7 +170,7 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 	 * @param signatureFieldName optional name of an existing (unsigned) signature field
 	 * @throws IOException
 	 */
-	public void signPDF(File inputFile, File signedFile, TSAClient tsaClient, String signatureFieldName)
+	public void signPDF(File inputFile, File signedFile, int pageNumber, TSAClient tsaClient, String signatureFieldName)
 			throws IOException {
 		setTsaClient(tsaClient);
 
@@ -190,11 +190,8 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 			// doesn't work properly, see PDFBOX-3699. As long as this issue is open, you may want to
 			// be careful with such files.
 
-			PDPage page = doc.getPage(0);
-			float pageHeight = 792; // 792 is the default PDFTron value in case we aren't able to recover it in the PDPage.
-			if (page != null) {
-				pageHeight = page.getMediaBox().getHeight();
-			}
+			PDPage page = doc.getPage(pageNumber - 1);
+			float pageHeight = page.getMediaBox().getHeight();
 
 			// Offset the signature because PDFTron has the zero value at the bottom instead of the top
 			visibleSignDesigner.yAxis(pageHeight - visibleSignDesigner.getyAxis());
@@ -214,7 +211,7 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 			// doing this on a PDF/A-1b file fails validation by Adobe preflight (PDFBOX-3821)
 			// PDF/A-1b requires PDF version 1.4 max, so don't increase the version on such files.
 			if (doc.getVersion() >= 1.5f && accessPermissions == 0) {
-				setMDPPermission(doc, signature, 2);
+				setMDPPermission(doc, signature, 3);
 			}
 
 			PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
@@ -373,7 +370,7 @@ public class CreateVisibleSignature extends CreateSignatureBase {
 		}
 		signing.setVisibleSignatureProperties(signature.getUsername(), location, reason, 0, page, true);
 //		signing.setExternalSigning(externalSignature);
-		signing.signPDF(documentFile, signedDocumentFile, null);
+		signing.signPDF(documentFile, signedDocumentFile, page, null);
 
 		return signedDocumentFile;
 	}

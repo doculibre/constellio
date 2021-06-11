@@ -1,0 +1,8 @@
+query retentionRuleByCode {
+    retentionRuleByCode(code: "1") {
+        administrativeUnits {
+            id
+            code
+        }
+    }
+}

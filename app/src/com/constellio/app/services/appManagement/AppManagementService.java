@@ -1,11 +1,14 @@
 package com.constellio.app.services.appManagement;
 
 import com.constellio.app.entities.modules.ProgressInfo;
+import com.constellio.app.entities.support.SupportPlan;
 import com.constellio.app.services.appManagement.AppManagementServiceException.CannotSaveOldPlugins;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.AppManagementServiceRuntimeException_SameVersionsInDifferentFolders;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.CannotConnectToServer;
+import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.InvalidLicenseInstalled;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFoundException;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileVersionMustBeHigher;
+import com.constellio.app.services.background.UpdateServerPingBackgroundAction.UpdateServerPingUpdates;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.extensions.plugins.InvalidPluginJarException;
 import com.constellio.app.services.extensions.plugins.JSPFPluginServices;
@@ -33,30 +36,41 @@ import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.data.utils.systemLogger.SystemLogger;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.CountingInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jdom2.Document;
+import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.UriBuilder;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,7 +78,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -82,9 +98,6 @@ public class AppManagementService {
 	public static final String UPDATE_COMMAND = "UPDATE";
 	public static final String RESTART_COMMAND = "RESTART";
 	public static final String DUMP_COMMAND = "DUMP";
-	//public static final String URL_CHANGELOG = "http://update.constellio.com/changelog5_1";
-	//public static final String URL_WAR = "http://update.constellio.com/constellio5_1.war";
-	private static String SERVER_URL = "http://updatecenter.constellio.com:8080";
 	private static final int MAX_VERSION_TO_KEEP = 4;
 
 	private final PluginServices pluginServices;
@@ -97,6 +110,7 @@ public class AppManagementService {
 	private final FoldersLocator foldersLocator;
 	protected final ConstellioEIMConfigs eimConfigs;
 	private final UpgradeAppRecoveryService upgradeAppRecoveryService;
+	private final AppLayerFactory appLayerFactory;
 
 	public AppManagementService(AppLayerFactory appLayerFactory, FoldersLocator foldersLocator) {
 
@@ -110,6 +124,7 @@ public class AppManagementService {
 		this.eimConfigs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
 		this.upgradeAppRecoveryService = appLayerFactory.newUpgradeAppRecoveryService();
 		this.pluginServices = new JSPFPluginServices(ioServices);
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	public void restart()
@@ -144,6 +159,11 @@ public class AppManagementService {
 	}
 
 	public void update(ProgressInfo progressInfo)
+			throws AppManagementServiceException {
+		update(progressInfo, true);
+	}
+
+	public void update(ProgressInfo progressInfo, boolean enableRollback)
 			throws AppManagementServiceException {
 		ConstellioVersionInfo currentInstalledVersionInfo = getCurrentInstalledVersionInfo();
 
@@ -221,8 +241,10 @@ public class AppManagementService {
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
 			updateWrapperConf(deployFolder);
-			upgradeAppRecoveryService.afterWarUpload(currentInstalledVersionInfo,
-					new ConstellioVersionInfo(warVersion, deployFolder.getAbsolutePath()));
+			if (enableRollback) {
+				upgradeAppRecoveryService.afterWarUpload(currentInstalledVersionInfo,
+						new ConstellioVersionInfo(warVersion, deployFolder.getAbsolutePath()));
+			}
 		} catch (AppManagementServiceException e) {
 			//FIXME delete deployFolder if created and revert to previous wrapper conf then throw exception
 			throw e;
@@ -518,206 +540,235 @@ public class AppManagementService {
 		return GetWarVersionUtils.getWarVersion(null);
 	}
 
-	public String getChangelogURLFromServer()
-			throws AppManagementServiceRuntimeException.CannotConnectToServer {
-		String serverUrl = SERVER_URL + "/changelog/";
-		String changelogURL;
+	public File getLastAlertFromServer() throws CannotConnectToServer {
+		String serverUrl = null;
 		try {
-			changelogURL = sendPost(serverUrl, getInfosToSend());
-		} catch (IOException ioe) {
-			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
-		}
+			serverUrl = getInternalServerUrl("alert");
 
-		return changelogURL;
-	}
+			InputStream lastAlertFileInput = null;
+			OutputStream lastAlertFileOutput = null;
+			try {
+				LicenseInfo licenseInfo = getLicenseInfo();
+				if (licenseInfo != null) {
+					Map<String, String> params = new HashMap<>();
+					params.put("client", licenseInfo.getClientName());
+					params.put("signature", licenseInfo.getSignature());
+					lastAlertFileInput = getInputForGet(serverUrl, params);
 
-	public String getWarURLFromServer()
-			throws AppManagementServiceRuntimeException.CannotConnectToServer {
-		String serverUrl = SERVER_URL + "/url/";
-		String warURL;
-		try {
-			warURL = sendPost(serverUrl, getInfosToSend());
-		} catch (IOException ioe) {
-			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
-		}
+					if (lastAlertFileInput == null) {
+						throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
+					}
 
-		return warURL;
-	}
-
-	public String getLastAlertURLFromServer() throws CannotConnectToServer {
-		String serverUrl = SERVER_URL + "/alert/";
-		String lastAlertURL;
-		try {
-			lastAlertURL = sendPost(serverUrl, getInfosToSend());
-		} catch (IOException e) {
-			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
-		}
-
-		return lastAlertURL;
-	}
-
-	String getInfosToSend() {
-		String delimiter = "*";
-		StringBuilder sb = new StringBuilder();
-		LicenseInfo licenseInfo = getLicenseInfo();
-		if (licenseInfo != null) {
-			sb.append(licenseInfo.getSignature());
-		} else {
-			sb.append("No license");
-		}
-
-		sb.append(delimiter);
-
-		ConstellioVersionInfo versionInfo = getCurrentInstalledVersionInfo();
-		if (versionInfo != null) {
-			sb.append(versionInfo.getVersion());
-		} else {
-			sb.append("Unknown version");
-		}
-		return sb.toString();
-	}
-
-	String sendPost(String url, String infoSent)
-			throws IOException {
-		StringBuilder response = new StringBuilder();
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(getInputForPost(url, infoSent)))) {
-			String inputLine;
-			while ((inputLine = in.readLine()) != null) {
-				response.append(inputLine);
+					lastAlertFileOutput = getLastAlertFileDestination().create("alert download");
+					IOUtils.copy(lastAlertFileInput, lastAlertFileOutput);
+				}
+			} catch (IOException | RuntimeException e) {
+				throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl, e);
+			} finally {
+				IOUtils.closeQuietly(lastAlertFileInput);
+				IOUtils.closeQuietly(lastAlertFileOutput);
 			}
+		} catch (IllegalArgumentException iae) {
+			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl, iae);
 		}
-		return response.toString();
+
+		return foldersLocator.getLastAlertFile();
 	}
 
-	InputStream getInputForPost(String url, String infoSent)
+	public File getNewLicenseFromServer() throws CannotConnectToServer {
+		String serverUrl = null;
+		try {
+			serverUrl = getInternalServerUrl("license");
+
+			InputStream newLicenceFileInput = null;
+			File newTempLicence = null;
+			try {
+				newTempLicence = ioServices.newTemporaryFile("temp-licence", "xml");
+				LicenseInfo licenseInfo = getLicenseInfo();
+				if (licenseInfo != null) {
+					Map<String, String> params = new HashMap<>();
+					params.put("client", licenseInfo.getClientName());
+					params.put("signature", licenseInfo.getSignature());
+					newLicenceFileInput = getInputForGet(serverUrl, params);
+
+					if (newLicenceFileInput == null) {
+						throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
+					}
+
+					FileUtils.copyInputStreamToFile(newLicenceFileInput, newTempLicence);
+				}
+			} catch (IOException | RuntimeException e) {
+				throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl, e);
+			} finally {
+				IOUtils.closeQuietly(newLicenceFileInput);
+			}
+
+			return newTempLicence;
+
+		} catch (IllegalArgumentException iae) {
+			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl, iae);
+		}
+	}
+
+	private String getInternalServerUrl(String servletPath) {
+		return UriBuilder.fromUri(eimConfigs.getInternalServerUrl()).path(servletPath).toString();
+	}
+
+	public UpdateServerPingUpdates getUpdateServerPingUpdates() throws CannotConnectToServer {
+		String serverUrl = null;
+		UpdateServerPingUpdates updates = null;
+		try {
+			serverUrl = getInternalServerUrl("updateServerPing");
+			LicenseInfo licenseInfo = getLicenseInfo();
+			if (licenseInfo != null) {
+				Map<String, String> params = new HashMap<>();
+				params.put("client", licenseInfo.getClientName());
+				params.put("signature", licenseInfo.getSignature());
+				params.put("version", getWarVersion());
+				String dailyPingUpdates = sendGet(serverUrl, params);
+				ObjectMapper mapper = new ObjectMapper();
+				updates = mapper.readValue(dailyPingUpdates, UpdateServerPingUpdates.class);
+			}
+		} catch (IllegalArgumentException | IOException e) {
+			/* JsonParseException could mean the sever was reached but the servlet was not
+			 (ex: the servlet was not running on the server). */
+			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl, e);
+		}
+
+		return updates != null ? updates : new UpdateServerPingUpdates();
+	}
+
+	public String getReleaseNoteFromServer(String version, Locale currentLocale) throws CannotConnectToServer {
+		String serverUrl = null;
+		String releaseNote = null;
+
+		try {
+			serverUrl = getInternalServerUrl("releaseNotes");
+
+			InputStream releaseNoteInputStream = null;
+			try {
+				LicenseInfo licenseInfo = getLicenseInfo();
+				if (licenseInfo != null) {
+					Map<String, String> params = new HashMap<>();
+					params.put("client", licenseInfo.getClientName());
+					params.put("signature", licenseInfo.getSignature());
+					params.put("version", getWarVersion());
+					params.put("release-version", version);
+					params.put("language", currentLocale.toLanguageTag());
+					releaseNoteInputStream = getInputForPost(serverUrl, params);
+
+					if (releaseNoteInputStream == null) {
+						throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
+					}
+
+					releaseNote = IOUtils.toString(releaseNoteInputStream, StandardCharsets.UTF_8);
+				}
+			} catch (IOException | RuntimeException e) {
+				throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl, e);
+			} finally {
+				IOUtils.closeQuietly(releaseNoteInputStream);
+			}
+		} catch (IllegalArgumentException iae) {
+			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl, iae);
+		}
+
+		return releaseNote;
+	}
+
+	public String getWarDownloadLinkFromServer(String version) throws CannotConnectToServer {
+		String serverUrl = null;
+		String warDownloadLink = null;
+
+		try {
+			serverUrl = getInternalServerUrl("createCustomWar");
+
+			try {
+				LicenseInfo licenseInfo = getLicenseInfo();
+				if (licenseInfo != null) {
+					Map<String, String> params = new HashMap<>();
+					params.put("client", licenseInfo.getClientName());
+					params.put("signature", licenseInfo.getSignature());
+					params.put("version", version);
+					warDownloadLink = sendPost(serverUrl, params);
+				}
+			} catch (IOException | RuntimeException e) {
+				throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl, e);
+			}
+		} catch (IllegalArgumentException iae) {
+			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl, iae);
+		}
+
+		return warDownloadLink;
+	}
+
+	String sendPost(String url, Map<String, String> params)
+			throws IOException {
+		try (InputStream is = getInputForPost(url, params)) {
+			return IOUtils.toString(is, StandardCharsets.UTF_8);
+		}
+	}
+
+	InputStream getInputForPost(String url, Map<String, String> params)
 			throws IOException {
 		URL obj = new URL(url);
 
 		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 		con.setRequestMethod("POST");
 		con.setDoOutput(true);
+		con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 		con.setConnectTimeout(10000);
 
-		if (infoSent != null) {
-			try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
-				wr.writeBytes(infoSent);
-				wr.flush();
+		StringBuilder fromParams = new StringBuilder("");
+		params.forEach((key, value) -> {
+			if (fromParams.length() != 0) {
+				fromParams.append("&");
 			}
+			fromParams.append(key + "=" + value);
+		});
+		byte[] postData = fromParams.toString().getBytes(StandardCharsets.UTF_8);
+		con.setRequestProperty("Content-Length", Integer.toString(postData.length));
+
+		try (OutputStream os = con.getOutputStream()) {
+			IOUtils.write(postData, os);
+		}
+
+		int responseCode = con.getResponseCode();
+		if (responseCode == HttpServletResponse.SC_NOT_FOUND ||
+			responseCode == HttpServletResponse.SC_BAD_REQUEST ||
+			responseCode == HttpServletResponse.SC_INTERNAL_SERVER_ERROR) {
+			throw new AppManagementServiceRuntimeException.ErrorResponseCodeException(responseCode);
 		}
 
 		return con.getInputStream();
 	}
 
-	public String getChangelogFromServer()
-			throws AppManagementServiceRuntimeException.CannotConnectToServer {
-		String URL_CHANGELOG = getChangelogURLFromServer();
-
-		String changelog = "";
-		try (InputStream stream = getInputForPost(URL_CHANGELOG, getLicenseInfo().getSignature())) {
-			if (stream == null) {
-				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_CHANGELOG);
-			}
-
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(stream))) {
-				String inputLine;
-				while ((inputLine = in.readLine()) != null) {
-					changelog += inputLine;
-				}
-
-				if (this.isProxyPage(changelog)) {
-					throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_CHANGELOG);
-				}
-			}
-
-		} catch (IOException | RuntimeException io) {
-			throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_CHANGELOG, io);
+	String sendGet(String url, Map<String, String> params)
+			throws IOException {
+		try (InputStream is = getInputForGet(url, params)) {
+			return IOUtils.toString(is, StandardCharsets.UTF_8);
 		}
-
-		return changelog;
 	}
 
-	public String getVersionFromServer()
-			throws AppManagementServiceRuntimeException.CannotConnectToServer {
-		String serverUrl = SERVER_URL + "/version/";
+	InputStream getInputForGet(String url, Map<String, String> params)
+			throws IOException {
+		URL obj = new URL(url);
 
-		try {
-			serverUrl = sendPost(serverUrl, getInfosToSend());
-		} catch (IOException ioe) {
-			throw new AppManagementServiceRuntimeException.CannotConnectToServer(serverUrl);
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		con.setRequestMethod("GET");
+		con.setConnectTimeout(10000);
+		params.forEach((key, value) -> con.setRequestProperty(key, value));
+
+		int responseCode = con.getResponseCode();
+		if (responseCode == HttpServletResponse.SC_NOT_FOUND ||
+			responseCode == HttpServletResponse.SC_BAD_REQUEST) {
+			throw new AppManagementServiceRuntimeException.ErrorResponseCodeException(responseCode);
 		}
 
-		return serverUrl;
+		return con.getInputStream();
 	}
 
 	boolean isProxyPage(String changelog) {
 		return !changelog.contains("<version>");
-	}
-
-	public void getWarFromServer(ProgressInfo progressInfo)
-			throws AppManagementServiceRuntimeException.CannotConnectToServer {
-		String URL_WAR = getWarURLFromServer();
-
-		System.out.println("URL FOR WAR => " + URL_WAR);
-
-		try {
-			progressInfo.reset();
-			progressInfo.setTask("Getting WAR from server");
-			progressInfo.setEnd(1);
-
-			progressInfo.setProgressMessage("Downloading WAR");
-			InputStream input = getInputForPost(URL_WAR, getLicenseInfo().getSignature());
-			if (input == null) {
-				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_WAR);
-			}
-
-			progressInfo.setProgressMessage("Creating WAR file");
-
-			try (
-					CountingInputStream countingInputStream = new CountingInputStream(input);
-					OutputStream warFileOutput = getWarFileDestination().create("war upload");
-			) {
-				progressInfo.setProgressMessage("Copying downloaded WAR");
-
-				byte[] buffer = new byte[8 * 1024];
-				int bytesRead;
-				while ((bytesRead = countingInputStream.read(buffer)) != -1) {
-					warFileOutput.write(buffer, 0, bytesRead);
-					long totalBytesRead = countingInputStream.getByteCount();
-					String progressMessage = FileUtils.byteCountToDisplaySize(totalBytesRead);
-					progressInfo.setProgressMessage(progressMessage);
-				}
-			}
-			progressInfo.setCurrentState(1);
-
-		} catch (IOException ioe) {
-			throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_WAR, ioe);
-		}
-	}
-
-	@SuppressWarnings("deprecation")
-	public File getLastAlertFromServer() throws CannotConnectToServer {
-		String URL_LAST_ALERT = getLastAlertURLFromServer();
-
-		InputStream lastAlertFileInput = null;
-		OutputStream lastAlertFileOutput = null;
-		try {
-			String infoSent = getLicenseInfo() != null ? getLicenseInfo().getSignature() : null;
-			lastAlertFileInput = getInputForPost(URL_LAST_ALERT, infoSent);
-
-			if (lastAlertFileInput == null) {
-				throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_LAST_ALERT);
-			}
-
-			lastAlertFileOutput = getLastAlertFileDestination().create("alert download");
-			IOUtils.copy(lastAlertFileInput, lastAlertFileOutput);
-		} catch (IOException | RuntimeException io) {
-			throw new AppManagementServiceRuntimeException.CannotConnectToServer(URL_LAST_ALERT, io);
-		} finally {
-			IOUtils.closeQuietly(lastAlertFileInput);
-			IOUtils.closeQuietly(lastAlertFileOutput);
-		}
-
-		return foldersLocator.getLastAlertFile();
 	}
 
 	public String getWebappFolderName() {
@@ -753,17 +804,43 @@ public class AppManagementService {
 			String licenseString = ioServices.readFileToString(foldersLocator.getLicenseFile());
 			SAXBuilder builder = new SAXBuilder();
 			Document document = builder.build(new StringReader(licenseString));
+			validateLicense(document);
 
-			String name = document.getRootElement().getChild("name").getContent().get(0).getValue();
-			LocalDate date = new LocalDate(document.getRootElement().getChild("date").getContent().get(0).getValue());
-			String signature = document.getRootElement().getChild("signature").getContent().get(0).getValue();
+			Element rootElement = document.getRootElement();
+			String name = rootElement.getChildText("name");
+			LocalDate date = DateTimeFormat.forPattern("yyyy-MM-dd")
+					.parseLocalDate(rootElement.getChildText("date"));
+			String signature = rootElement.getChildText("signature");
+			String supportPlanCode = rootElement.getChildText("plan");
+			SupportPlan supportPlan = (SupportPlan) EnumWithSmallCodeUtils.toEnumWithSmallCode(SupportPlan.class, supportPlanCode);
+			Map<String, Entry<String, String>> plugins = rootElement.getChild("plugins").getChildren("plugin").stream()
+					.collect(Collectors.toMap(element -> element.getAttributeValue("number"),
+							element -> new SimpleEntry(element.getAttributeValue("id"), element.getText())));
+			Map<String, String> additionalInfo = rootElement.getChild("additionalInfo").getChildren("info").stream()
+					.collect(Collectors.toMap(element -> element.getAttributeValue("name"), Element::getText));
+			long vaultQuota = Long.valueOf(rootElement.getChildText("vault"));
+			long users = Long.valueOf(rootElement.getChildText("users"));
+			byte servers = Byte.valueOf(rootElement.getChildText("servers"));
 
-			license = new LicenseInfo(name, date, signature);
-		} catch (IOException ioe) {
-		} catch (JDOMException joe) {
+			license = new LicenseInfo(name, date, signature, supportPlan, plugins, additionalInfo, vaultQuota, users, servers);
+		} catch (IOException | JDOMException | InvalidLicenseInstalled e) {
+			SystemLogger.error("Error encountered when loading the license", e);
 		}
 
 		return license;
+	}
+
+	private void validateLicense(Document document) {
+		Document clone = document.clone();
+		Element rootElement = clone.getRootElement();
+		String expectedSignature = rootElement.getChildText("signature");
+		rootElement.getChild("signature").detach();
+
+		EncryptionServices encryptionServices = appLayerFactory.getModelLayerFactory().newEncryptionServices();
+		PublicKey publicKey = encryptionServices.createPublicKeyFromFile(foldersLocator.getVerificationKey());
+		if (!encryptionServices.verify(new XMLOutputter(Format.getCompactFormat()).outputString(clone), expectedSignature, publicKey)) {
+			throw new InvalidLicenseInstalled();
+		}
 	}
 
 	private ConstellioVersionInfo getCurrentInstalledVersionInfo() {
@@ -830,28 +907,24 @@ public class AppManagementService {
 		}
 	}
 
+	@Getter
+	@AllArgsConstructor
 	public static class LicenseInfo implements Serializable {
 		private final String clientName;
 		private final LocalDate expirationDate;
 		private final String signature;
-
-		public LicenseInfo(String clientName, LocalDate expirationDate, String signature) {
-			this.clientName = clientName;
-			this.expirationDate = expirationDate;
-			this.signature = signature;
-		}
-
-		public String getClientName() {
-			return clientName;
-		}
-
-		public LocalDate getExpirationDate() {
-			return expirationDate;
-		}
-
-		public String getSignature() {
-			return signature;
-		}
+		private final SupportPlan supportPlan;
+		/**
+		 * [number, [id, title/name]]
+		 */
+		private final Map<String, Entry<String, String>> plugins;
+		/**
+		 * [localcode, value]
+		 */
+		private final Map<String, String> additionalInfo;
+		private final long vaultQuota;
+		private final long maxUsersAllowed;
+		private final byte maxServersAllowed;
 	}
 
 }

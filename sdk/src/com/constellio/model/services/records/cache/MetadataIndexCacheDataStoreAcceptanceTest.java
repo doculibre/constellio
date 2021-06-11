@@ -29,6 +29,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 	Metadata notCacheIndex;
 	Metadata unique;
 	Metadata cacheIndexMultiValue;
+	Metadata cacheIndexUniqueMultiValue;
 
 	MetadataSchema testsSchemaDefault;
 	MetadataSchemaType testsSchemaTypeDefault;
@@ -66,7 +67,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		metadataSchemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
-			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaType("testschema");
+			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaTypeWithSecurity("testschema");
 
 			MetadataSchemaBuilder defaultTestSchemaBuilder = testSchemaBuilder.getDefaultSchema();
 
@@ -75,6 +76,8 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 			defaultTestSchemaBuilder.create("notCacheIndex").setType(MetadataValueType.STRING);
 			defaultTestSchemaBuilder.create("cacheIndexMultiValue").setType(MetadataValueType.STRING).setCacheIndex(true)
 					.setMultivalue(true);
+			defaultTestSchemaBuilder.create("cacheIndexUniqueMultiValue").setType(MetadataValueType.STRING).setCacheIndex(true)
+					.setMultivalue(true).setUniqueValue(true);
 			defaultTestSchemaBuilder.create("unique").setType(MetadataValueType.STRING).setUniqueValue(true);
 		});
 
@@ -88,6 +91,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		notCacheIndex = testsSchemaDefault.getMetadata("notCacheIndex");
 		unique = testsSchemaDefault.getMetadata("unique");
 		cacheIndexMultiValue = testsSchemaDefault.getMetadata("cacheIndexMultiValue");
+		cacheIndexUniqueMultiValue = testsSchemaDefault.getMetadata("cacheIndexUniqueMultiValue");
 
 		record1 = recordServices.newRecordWithSchema(testsSchemaDefault);
 		record1.set(cacheIndex, "toBeFound1");
@@ -182,6 +186,24 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		record4.set(cacheIndexMultiValue, Arrays.asList("multi5", "multi6"));
 	}
 
+	private void setInitialRecordsWithUniqueMultiValueValues() {
+		record1 = recordServices.newRecordWithSchema(testsSchemaDefault);
+		record1.set(cacheIndex, null);
+		record1.set(cacheIndexUniqueMultiValue, Arrays.asList("multi1", "multi2"));
+
+		record2 = recordServices.newRecordWithSchema(testsSchemaDefault);
+		record2.set(cacheIndex, null);
+		record2.set(cacheIndexUniqueMultiValue, Arrays.asList("multi3"));
+
+		record3 = recordServices.newRecordWithSchema(testsSchemaDefault);
+		record3.set(notCacheIndex, null);
+		record3.set(cacheIndexUniqueMultiValue, Arrays.asList("multi3", "multi4", "multi5"));
+
+		record4 = recordServices.newRecordWithSchema(testsSchemaDefault);
+		record4.set(notCacheIndex, null);
+		record4.set(cacheIndexUniqueMultiValue, Arrays.asList("multi5", "multi6"));
+	}
+
 	@Test
 	public void addRecordsWithMultiValueToCacheIndexServiceThenValidateWhatIsInCache() {
 		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
@@ -196,6 +218,31 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndexMultiValue, "multi5")).containsAll(Arrays.asList(record3.getId(), record4.getId()));
 
 		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(8);
+	}
+
+	@Test
+	public void addRecordsWithUniqueMultiValueToCacheIndexServiceThenValidateWhatIsInCache() {
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
+
+		setInitialRecordsWithUniqueMultiValueValues();
+
+		addRecordsToData(metadataIndexCacheDataStore);
+
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndexUniqueMultiValue, "multi1")).containsAll(Arrays.asList(record1.getId()));
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndexUniqueMultiValue, "multi2")).containsAll(Arrays.asList(record1.getId()));
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndexUniqueMultiValue, "multi3")).containsAll(Arrays.asList(record2.getId(), record3.getId()));
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndexUniqueMultiValue, "multi5")).containsAll(Arrays.asList(record3.getId(), record4.getId()));
+
+		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(8);
+
+		Record record1Update = recordServices.newRecordWithSchema(testsSchemaDefault, record1.getId());
+		record1Update.set(cacheIndexUniqueMultiValue, Arrays.asList("multi5"));
+		metadataIndexCacheDataStore.addUpdate(record1, record1Update, testsSchemaTypeDefault, testsSchemaDefault);
+
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndexUniqueMultiValue, "multi1")).doesNotContain(record1.getId());
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndexUniqueMultiValue, "multi2")).doesNotContain(record1.getId());
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndexUniqueMultiValue, "multi3")).containsAll(Arrays.asList(record2.getId(), record3.getId()));
+		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndexUniqueMultiValue, "multi5")).containsAll(Arrays.asList(record1.getId(), record3.getId(), record4.getId()));
 	}
 
 	@Test
@@ -236,6 +283,17 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 		assertThat(metadataIndexCacheDataStore.countByIterating()).isEqualTo(6);
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void searchIdsWithValueInstanceOfListThrowsIllegalArgumentException() {
+		MetadataIndexCacheDataStore metadataIndexCacheDataStore = new MetadataIndexCacheDataStore(getModelLayerFactory());
+
+		setInitialRecordsWithMultiValueValues();
+
+		addRecordsToData(metadataIndexCacheDataStore);
+
+		metadataIndexCacheDataStore.searchIds(testsSchemaTypeDefault, cacheIndexUniqueMultiValue, record1.get(cacheIndexUniqueMultiValue));
+	}
+
 	private void areAllZeCollectionInitialTestRecordThere(MetadataIndexCacheDataStore metadataIndexCacheDataStore) {
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "toBeFound1")).containsAll(Arrays.asList(record1.getId()));
 		assertThat(metadataIndexCacheDataStore.search(testsSchemaTypeDefault, cacheIndex, "toBeFound2")).containsAll(Arrays.asList(record2.getId()));
@@ -254,7 +312,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 	@Test
 	public void noEmptyMapAfterRemovalOfAllDataOfOneSchemaTypeAndOtherShcemaTypeDataStillThereThenOk() {
 		metadataSchemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
-			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaType("testSecondSchema");
+			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaTypeWithSecurity("testSecondSchema");
 
 
 			MetadataSchemaBuilder defaultTestSchemaBuilder = testSchemaBuilder.getDefaultSchema();
@@ -337,7 +395,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 	public void givenRecordsIn2CollectionsThenClearOneCollection() throws Exception {
 
 		metadataSchemasManager.modify("secondCollection", (MetadataSchemaTypesAlteration) types -> {
-			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaType("testschema");
+			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaTypeWithSecurity("testschema");
 
 			MetadataSchemaBuilder defaultTestSchemaBuilder = testSchemaBuilder.getDefaultSchema();
 
@@ -383,7 +441,7 @@ public class MetadataIndexCacheDataStoreAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenRecordsInTwoSchemaTypeThenClearOneShemaType() throws Exception {
 		metadataSchemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
-			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaType("testSecondSchema");
+			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaTypeWithSecurity("testSecondSchema");
 
 
 			MetadataSchemaBuilder defaultTestSchemaBuilder = testSchemaBuilder.getDefaultSchema();

@@ -1,0 +1,5 @@
+query retentionRuleById {
+    retentionRuleById(id: "ruleId_1") {
+        code
+    }
+}

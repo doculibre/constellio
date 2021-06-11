@@ -6,8 +6,10 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.container.PreMatching;
 import java.util.regex.Pattern;
 
+@PreMatching
 @Slf4j
 public class RestApiLoggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
 

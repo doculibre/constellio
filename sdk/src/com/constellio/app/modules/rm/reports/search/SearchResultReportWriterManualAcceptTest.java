@@ -21,7 +21,7 @@ public class SearchResultReportWriterManualAcceptTest extends ReportBuilderTestF
 
 	@Test
 	public void whenBuildEmptyReportThenOk() {
-		model = new SearchResultReportModel();
+		model = new SearchResultReportModel(getAppLayerFactory().getModelLayerFactory());
 		write(new SearchResultReportWriter(model,
 				getModelLayerFactory().getFoldersLocator(), new Locale("fr")));
 	}
@@ -35,7 +35,7 @@ public class SearchResultReportWriterManualAcceptTest extends ReportBuilderTestF
 
 	private SearchResultReportModel configModel() {
 
-		SearchResultReportModel model = new SearchResultReportModel();
+		SearchResultReportModel model = new SearchResultReportModel(getAppLayerFactory().getModelLayerFactory());
 		model.addTitle("title1");
 		model.addTitle("title2");
 		model.addTitle("number");

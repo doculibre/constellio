@@ -9,9 +9,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAccessType;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.constellio.model.entities.records.wrappers.User;
@@ -40,6 +42,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddAuhtorizationInNonPrincipalTaxonomy;
@@ -67,14 +70,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
-import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.getAuthsReceivedBy;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION;
+import static com.constellio.model.entities.records.structures.NestedRecordAuthorizations.nonCascadingAuthToPrincipals;
+import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.getPrincipalsIdsGivingAuthsTo;
 import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
 import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
-import static com.constellio.model.entities.schemas.Schemas.ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
@@ -140,7 +145,7 @@ public class AuthorizationsServices {
 	}
 
 	public MetadataSchema getAuthorizationSchema(String collection) {
-		return getTypes(collection).getSchema(Authorization.DEFAULT_SCHEMA);
+		return getTypes(collection).getSchema(RecordAuthorization.DEFAULT_SCHEMA);
 	}
 
 	public MetadataSchemaTypes getTypes(String collection) {
@@ -336,16 +341,45 @@ public class AuthorizationsServices {
 			throw new InvalidTargetRecordId(request.getTarget());
 		}
 
-		Authorization details = newAuthorizationDetails(request.getCollection(), request.getId(), request.getRoles(),
-				request.getStart(), request.getEnd(), request.isOverridingInheritedAuths(), request.isNegative())
-				.setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
+		RecordAuthorization details = (RecordAuthorization) newAuthorizationDetails(request.getCollection(),
+				request.getId(), request.getRoles(), request.getStart(), request.getEnd(),
+				request.isOverridingInheritedAuths(), request.isNegative());
+		details.setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
 		details.setPrincipals(principalToRecordIds(schemas(record.getCollection()), request.getPrincipals()));
 		details.setSharedBy(request.getSharedBy());
 		return add(details, request.getCollection(), request.getExecutedBy());
 	}
 
 	public String add(AuthorizationAddRequest request, User userAddingTheAuth) {
-		return add(request.setExecutedBy(userAddingTheAuth));
+		if (request.isNested()) {
+			Record record = recordServices.get(request.getTarget());
+			NestedRecordAccessType accessType;
+			if (request.getRoles().contains(Role.WRITE) && request.getRoles().contains(Role.DELETE)) {
+				accessType = NestedRecordAccessType.RWD;
+
+			} else if (request.getRoles().contains(Role.WRITE)) {
+				accessType = NestedRecordAccessType.RW;
+
+			} else if (request.getRoles().contains(Role.DELETE)) {
+				accessType = NestedRecordAccessType.RD;
+
+			} else {
+				accessType = NestedRecordAccessType.R;
+			}
+
+
+			record.getNestedAuthorizations().add(nonCascadingAuthToPrincipals(request.getPrincipals())
+					.accessType(accessType).build());
+			try {
+				recordServices.update(record);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+			return record.getId();
+
+		} else {
+			return add(request.setExecutedBy(userAddingTheAuth));
+		}
 	}
 
 	/**
@@ -359,7 +393,7 @@ public class AuthorizationsServices {
 
 		AuthTransaction transaction = new AuthTransaction();
 
-		Authorization authorizationDetail = (Authorization) authorization;
+		RecordAuthorization authorizationDetail = (RecordAuthorization) authorization;
 		authorizationDetail.setTarget(authorization.getTarget());
 		Record record = recordServices.getDocumentById(authorization.getTarget());
 		authorizationDetail.setTargetSchemaType(record.getTypeCode());
@@ -439,8 +473,6 @@ public class AuthorizationsServices {
 
 	private static class AuthTransaction extends Transaction {
 
-		Set<String> recordsToResetIfNoAuths = new HashSet<>();
-
 		List<Authorization> authsDetailsToDelete = new ArrayList<>();
 
 		@Override
@@ -498,18 +530,9 @@ public class AuthorizationsServices {
 			removedAuthorization = getDetails(request.getCollection(), request.getAuthId());
 			if (removedAuthorization != null) {
 				transaction.authsDetailsToDelete.add((Authorization) removedAuthorization);
-				transaction.add(((Authorization) removedAuthorization).getWrappedRecord()
+				transaction.add(((RecordAuthorization) removedAuthorization).getWrappedRecord()
 						.set(Schemas.LOGICALLY_DELETED_STATUS, true));
 
-			}
-
-			try {
-				Record target = recordServices.getDocumentById(removedAuthorization.getTarget());
-				if (request.isReattachIfLastAuthDeleted() && Boolean.TRUE.equals(target.get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
-					transaction.recordsToResetIfNoAuths.add(target.getId());
-				}
-			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-				//Record does not exist. So nothing to do
 			}
 		} catch (NoSuchAuthorizationWithId e) {
 			//No problemo
@@ -533,9 +556,9 @@ public class AuthorizationsServices {
 
 			SchemasRecordsServices schemas = schemas(user.getCollection());
 
-			Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
-			Metadata principalMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.PRINCIPALS);
-			Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+			Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.SHARED_BY);
+			Metadata principalMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.PRINCIPALS);
+			Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.TARGET);
 
 			LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
 					.whereAllConditions(anyConditions(where(sharedByMeta).isEqualTo(user.getId()),
@@ -545,7 +568,7 @@ public class AuthorizationsServices {
 			List<Record> records = searchServices.search(new LogicalSearchQuery(condition));
 
 			if (records.size() > 0) {
-				return schemas(user.getCollection()).wrapSolrAuthorizationDetails(records.get(0));
+				return schemas(user.getCollection()).wrapAuthorization(records.get(0));
 			} else {
 				return null;
 			}
@@ -555,7 +578,7 @@ public class AuthorizationsServices {
 	}
 
 	private void remove(Authorization details) {
-		Record record = ((Authorization) details).getWrappedRecord();
+		Record record = ((RecordAuthorization) details).getWrappedRecord();
 		recordServices.logicallyDelete(record, User.GOD);
 		recordServices.physicallyDelete(record, User.GOD);
 	}
@@ -597,37 +620,6 @@ public class AuthorizationsServices {
 		return response;
 	}
 
-	private List<Authorization> getInheritedAuths(Record record) {
-		SchemasRecordsServices schemas = schemas(record.getCollection());
-
-		List<Authorization> authorizationDetails = new ArrayList<>();
-
-		Set<String> recordsIdsWithPosibleAuths = new HashSet<>();
-		recordsIdsWithPosibleAuths.addAll(record.<String>getList(ATTACHED_ANCESTORS));
-		recordsIdsWithPosibleAuths.remove(record.getId());
-
-		for (String ancestorId : record.<String>getList(ATTACHED_ANCESTORS)) {
-			if (!ancestorId.equals(record.getId()) && !ancestorId.startsWith("-")) {
-
-				Record ancestor = recordServices.getDocumentById(ancestorId);
-				MetadataSchema schema = schemasManager.getSchemaOf(ancestor);
-				for (Metadata metadata : schema.getMetadatas()) {
-					if (metadata.isRelationshipProvidingSecurity()) {
-						recordsIdsWithPosibleAuths.addAll(ancestor.<String>getValues(metadata));
-					}
-				}
-			}
-		}
-
-		for (Authorization authorizationDetail : schemas.getAllAuthorizationsInUnmodifiableState()) {
-			if (recordsIdsWithPosibleAuths.contains(authorizationDetail.getTarget())) {
-				authorizationDetails.add(authorizationDetail.getCopyOfOriginalRecord());
-			}
-		}
-
-
-		return authorizationDetails;
-	}
 
 	private AuthorizationModificationResponse executeWithoutLogging(AuthorizationModificationRequest request,
 																	Authorization authorization,
@@ -640,7 +632,7 @@ public class AuthorizationsServices {
 		String authId = authorization.getId();
 		boolean directlyTargetted = authTarget.equals(record.getId());
 		boolean inherited = !directlyTargetted && record.getList(ATTACHED_ANCESTORS).contains(authTarget);
-		if (!directlyTargetted && !inherited && Authorization.isSecurableSchemaType(authorization.getTargetSchemaType())) {
+		if (!directlyTargetted && !inherited && RecordAuthorization.isSecurableSchemaType(authorization.getTargetSchemaType())) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord(authId, record);
 		}
 
@@ -659,7 +651,7 @@ public class AuthorizationsServices {
 		} else {
 
 			if (directlyTargetted) {
-				transaction.add((Authorization) authorization);
+				transaction.add((RecordAuthorization) authorization);
 				executeOnAuthorization(transaction, request, authorization, record,
 						authorization.getPrincipals());
 				response = new AuthorizationModificationResponse(false, null, Collections.<String, String>emptyMap());
@@ -680,31 +672,38 @@ public class AuthorizationsServices {
 		return response;
 	}
 
+	public Map<String, String> detach(Supplier<Record> record) {
+		return detach(record, true);
+	}
+
+	public void detachWithoutCopy(Supplier<Record> record) {
+		detach(record, false);
+	}
+
 	/**
-	 * Detach a record from its parent, creating specific authorizations that are equal to those before the detach.
+	 * Detach a record from its parent
+	 * - If copyInherited is true, specific authorizations, equal to those inherited before the detach, are created
 	 * - Future modifications on a parent record won't affect the detached record.
 	 * - If the detached record is reassigned to a new parent, there will be no effects on authorizations
 	 *
 	 * @param record A securable record to detach
-	 * @return A mapping of previous authorization ids to the new authorizations created by this service
+	 * @return A mapping of previous authorization ids to the new authorizations created by this service, if any
 	 */
-	public Map<String, String> detach(Supplier<Record> record) {
+	private Map<String, String> detach(Supplier<Record> record, boolean copyInherited) {
 		recordServices.refresh(record.get());
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.get().getCollection());
 		if (principalTaxonomy.getSchemaTypes().contains(record.get().getTypeCode())) {
 			throw new CannotDetachConcept(record.get().getId());
 		}
-
 		if (Boolean.TRUE.equals(record.get().get(Schemas.IS_DETACHED_AUTHORIZATIONS))) {
 			return Collections.emptyMap();
-
-		} else {
-			AuthTransaction transaction = new AuthTransaction();
-			Map<String, String> originalToCopyMap = setupAuthorizationsForDetachedRecord(transaction, record.get());
-			transaction.add(record.get());
-			executeTransaction(transaction);
-			return originalToCopyMap;
 		}
+
+		AuthTransaction transaction = new AuthTransaction();
+		Map<String, String> originalToCopyMap = setupAuthorizationsForDetachedRecord(transaction, record.get(), copyInherited);
+		transaction.add(record.get());
+		executeTransaction(transaction);
+		return originalToCopyMap;
 	}
 
 	public List<Authorization> getRecordsAuthorizations(List<Record> records) {
@@ -719,8 +718,8 @@ public class AuthorizationsServices {
 	public LogicalSearchQuery getRecordSharedAuthorizationsQuery(String collection, String recordId) {
 
 		SchemasRecordsServices schemas = schemas(collection);
-		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
-		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.SHARED_BY);
+		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.TARGET);
 		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
 				.where(sharedByMeta).isNotNull().andWhere(targetMeta).isEqualTo(recordId);
 
@@ -775,26 +774,7 @@ public class AuthorizationsServices {
 			}
 
 		} else {
-			List<String> authIds = new ArrayList<>();
-			for (Authorization auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
-
-				boolean authTargettingAnAttachedAncestor =
-						record.getList(ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS).contains(auth.getTargetRecordIntId()) ||
-						record.getId().equals(auth.getTarget());
-
-				if (authTargettingAnAttachedAncestor && !record.getList(ALL_REMOVED_AUTHS).contains(auth.getId())) {
-					authIds.add(auth.getId());
-				}
-			}
-
-			for (String authId : authIds) {
-				Authorization authDetails = getDetails(record.getCollection(), authId);
-				if (authDetails != null) {
-					authorizations.add(authDetails);
-				} else {
-					LOGGER.error("Missing authorization '" + authId + "'");
-				}
-			}
+			forEachAuthOn(record, true, true, false, true, authorizations::add);
 
 		}
 
@@ -802,12 +782,84 @@ public class AuthorizationsServices {
 		return authorizations;
 	}
 
+
+	private Set<String> getAuthsReceivedBy(Group group, SchemasRecordsServices schemas) {
+		List<String> principalsIdsToInclude = getPrincipalsIdsGivingAuthsTo(group, schemas);
+		Set<String> authsId = new HashSet<>();
+
+		for (String principalsIdToInclude : principalsIdsToInclude) {
+			LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.authorizationDetails.schemaType())
+					.where(schemas.authorizationDetails.principals()).isEqualTo(principalsIdToInclude));
+			query.setQueryExecutionMethod(QueryExecutionMethod.ENSURE_INDEXED_METADATA_USED);
+
+			for (Authorization auth : schemas.searchAuthorizations(query)) {
+				authsId.add(auth.getId());
+			}
+		}
+
+		return authsId;
+	}
+
+	private void forEachAuthOn(Record record, boolean includeAuthsDirectlyOnTarget, boolean includeInheritedFromParent,
+							   boolean includeInheritedRemoved, boolean includeInheritedFromMetadataWithSecurity,
+							   Consumer<Authorization> consumer) {
+		SchemasRecordsServices schemas = schemas(record.getCollection());
+
+		Set<String> recordsIdsWithPosibleAuths = new HashSet<>();
+
+
+		if (includeInheritedFromParent) {
+			recordsIdsWithPosibleAuths.addAll(record.<String>getList(ATTACHED_ANCESTORS, NO_SUMMARY_METADATA_VALIDATION));
+		}
+
+		if (includeAuthsDirectlyOnTarget) {
+			recordsIdsWithPosibleAuths.add(record.getId());
+		} else {
+			recordsIdsWithPosibleAuths.remove(record.getId());
+		}
+
+		if (includeInheritedFromMetadataWithSecurity) {
+			for (String ancestorId : record.<String>getList(ATTACHED_ANCESTORS, NO_SUMMARY_METADATA_VALIDATION)) {
+				if (!ancestorId.equals(record.getId()) && !ancestorId.startsWith("-")) {
+
+					Record ancestor = recordServices.getDocumentById(ancestorId);
+					MetadataSchema schema = schemasManager.getSchemaOf(ancestor);
+					for (Metadata metadata : schema.getMetadatas()) {
+						if (metadata.isRelationshipProvidingSecurity()) {
+							recordsIdsWithPosibleAuths.addAll(ancestor.<String>getValues(metadata));
+						}
+					}
+				}
+			}
+		}
+
+		for (String recordsIdWithPosibleAuths : recordsIdsWithPosibleAuths) {
+
+			LogicalSearchQuery query = new LogicalSearchQuery(from(schemas.authorizationDetails.schemaType())
+					.where(schemas.authorizationDetails.target()).isEqualTo(recordsIdWithPosibleAuths));
+			query.setQueryExecutionMethod(QueryExecutionMethod.ENSURE_INDEXED_METADATA_USED);
+
+			for (Authorization auth : schemas.searchAuthorizations(query)) {
+				if (includeInheritedRemoved || !record.getList(ALL_REMOVED_AUTHS).contains(auth.getId())) {
+					consumer.accept(auth);
+				}
+			}
+
+
+		}
+
+		if (includeAuthsDirectlyOnTarget && record.get(Schemas.NESTED_AUTHORIZATIONS, NO_SUMMARY_METADATA_VALIDATION) != null) {
+			record.getNestedAuthorizations().getAuthorizations().forEach(consumer);
+		}
+
+	}
+
 	public boolean itemIsSharedByUser(Record record, User user) {
 		String userId = user.getId();
 
 		SchemasRecordsServices schemas = schemas(user.getCollection());
-		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
-		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.SHARED_BY);
+		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.TARGET);
 		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
 				.where(sharedByMeta).isEqualTo(userId).andWhere(targetMeta).isEqualTo(record.getId());
 
@@ -823,13 +875,13 @@ public class AuthorizationsServices {
 
 	public List<Authorization> getAllSharedAuthorizationsOnRecord(Record record) {
 		SchemasRecordsServices schemas = schemas(record.getCollection());
-		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
-		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.SHARED_BY);
+		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.TARGET);
 		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
 				.where(sharedByMeta).isNotNull().andWhere(targetMeta).isEqualTo(record.getId());
 
 		List<Record> sharedAutorizations = searchServices.search(new LogicalSearchQuery(condition));
-		return sharedAutorizations == null ? ListUtils.EMPTY_LIST : schemas.wrapSolrAuthorizationDetailss(sharedAutorizations);
+		return sharedAutorizations == null ? ListUtils.EMPTY_LIST : schemas.wrapAuthorizations(sharedAutorizations);
 	}
 
 	public List<AuthorizationDeleteRequest> buildDeleteRequestsForAllSharedAutorizationsOnRecord(Record record,
@@ -842,15 +894,15 @@ public class AuthorizationsServices {
 		String userId = user.getId();
 
 		SchemasRecordsServices schemas = schemas(user.getCollection());
-		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
-		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.TARGET);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.SHARED_BY);
+		Metadata targetMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.TARGET);
 		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
 				.where(sharedByMeta).isEqualTo(userId).andWhere(targetMeta).isEqualTo(record.getId());
 
 		List<Record> records = searchServices.search(new LogicalSearchQuery(condition));
 
 		if (records.size() > 0) {
-			Authorization authorization = schemas.wrapSolrAuthorizationDetails(records.get(0));
+			Authorization authorization = schemas.wrapAuthorization(records.get(0));
 			return authorization;
 		} else {
 			return null;
@@ -868,12 +920,12 @@ public class AuthorizationsServices {
 		String userId = user.getId();
 
 		SchemasRecordsServices schemas = schemas(user.getCollection());
-		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.SHARED_BY);
 		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
 				.where(sharedByMeta).isEqualTo(userId);
 
 		List<Record> recordsSharedByUser = searchServices.search(new LogicalSearchQuery(condition));
-		List<Authorization> authorizations = schemas.wrapSolrAuthorizationDetailss(recordsSharedByUser);
+		List<Authorization> authorizations = schemas.wrapAuthorizations(recordsSharedByUser);
 
 		return authorizations;
 	}
@@ -891,8 +943,8 @@ public class AuthorizationsServices {
 
 		SchemasRecordsServices schemas = schemas(user.getCollection());
 
-		Metadata principalsMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.PRINCIPALS);
-		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		Metadata principalsMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.PRINCIPALS);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.SHARED_BY);
 		LogicalSearchCondition condition;
 		if (groupIds != null && !groupIds.isEmpty()) {
 			condition = from(schemas.authorizationDetails.schemaType())
@@ -909,7 +961,7 @@ public class AuthorizationsServices {
 		List<Record> recordsSharedToUser = searchServices.search(new LogicalSearchQuery(condition));
 
 
-		List<Authorization> authorizations = schemas.wrapSolrAuthorizationDetailss(recordsSharedToUser);
+		List<Authorization> authorizations = schemas.wrapAuthorizations(recordsSharedToUser);
 
 		return authorizations;
 	}
@@ -917,8 +969,8 @@ public class AuthorizationsServices {
 	public List<Authorization> getAllSharedRecords(String collection) {
 		SchemasRecordsServices schemas = schemas(collection);
 
-		Metadata principalsMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.PRINCIPALS);
-		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY);
+		Metadata principalsMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.PRINCIPALS);
+		Metadata sharedByMeta = schemas.authorizationDetails.schema().getMetadata(RecordAuthorization.SHARED_BY);
 		LogicalSearchCondition condition = from(schemas.authorizationDetails.schemaType())
 				.where(sharedByMeta).isNotNull();
 
@@ -926,7 +978,7 @@ public class AuthorizationsServices {
 		List<Record> recordsSharedToUser = searchServices.search(new LogicalSearchQuery(condition));
 
 
-		List<Authorization> authorizations = schemas.wrapSolrAuthorizationDetailss(recordsSharedToUser);
+		List<Authorization> authorizations = schemas.wrapAuthorizations(recordsSharedToUser);
 
 		return authorizations;
 	}
@@ -969,28 +1021,15 @@ public class AuthorizationsServices {
 		for (Authorization details : transaction.authsDetailsToDelete) {
 			remove(details);
 		}
-		AuthTransaction transaction2 = new AuthTransaction();
-		transaction2.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
-		for (String recordIdToResetIfNoAuth : transaction.recordsToResetIfNoAuths) {
-			Record recordToResetIfNoAuth = recordServices.getDocumentById(recordIdToResetIfNoAuth);
-			if (getRecordAuthorizations(recordToResetIfNoAuth).isEmpty()) {
-				reset(recordToResetIfNoAuth, transaction2);
-			}
-		}
-		try {
-			recordServices.executeHandlingImpactsAsync(transaction2);
-		} catch (com.constellio.model.services.records.RecordServicesException e) {
-			throw new AuthServices_RecordServicesException(e);
-		}
 	}
 
-	public void reset(Record record, AuthTransaction transaction) {
+	private void reset(Record record, AuthTransaction transaction) {
 		SchemasRecordsServices schemas = schemas(record.getCollection());
 		record.set(REMOVED_AUTHORIZATIONS, null);
 		record.set(IS_DETACHED_AUTHORIZATIONS, false);
 		transaction.add(record);
 
-		for (Authorization authorizationDetails : schemas.searchSolrAuthorizationDetailss(
+		for (Authorization authorizationDetails : schemas.searchAuthorizations(
 				where(schemas.authorizationDetails.target()).isEqualTo(record.getId()))) {
 			execute(authorizationDeleteRequest(authorizationDetails), transaction);
 		}
@@ -1061,7 +1100,7 @@ public class AuthorizationsServices {
 			}
 
 			List<String> newPrincipalIds = principalToRecordIds(schemas, request.getNewPrincipalIds());
-			((Authorization) authorizationDetails).setPrincipals(newPrincipalIds);
+			((RecordAuthorization) authorizationDetails).setPrincipals(newPrincipalIds);
 
 		}
 		if (request.getNewAccessAndRoles() != null) {
@@ -1073,7 +1112,7 @@ public class AuthorizationsServices {
 				accessAndRoles.add(0, Role.READ);
 			}
 
-			transaction.add((Authorization) authorizationDetails).setRoles(accessAndRoles);
+			transaction.add((RecordAuthorization) authorizationDetails).setRoles(accessAndRoles);
 		}
 
 		if (request.getNewStartDate() != null || request.getNewEndDate() != null) {
@@ -1081,11 +1120,11 @@ public class AuthorizationsServices {
 								  authorizationDetails.getStartDate() : request.getNewStartDate();
 			LocalDate endDate = request.getNewEndDate() == null ? authorizationDetails.getEndDate() : request.getNewEndDate();
 			validateDates(startDate, endDate);
-			transaction.add((Authorization) authorizationDetails).setStartDate(startDate).setEndDate(endDate);
+			transaction.add((RecordAuthorization) authorizationDetails).setStartDate(startDate).setEndDate(endDate);
 		}
 
 		if (request.getNewOverridingInheritedAuths() != null) {
-			transaction.add(((Authorization) authorizationDetails))
+			transaction.add(((RecordAuthorization) authorizationDetails))
 					.setOverrideInherited(request.getNewOverridingInheritedAuths());
 		}
 	}
@@ -1211,7 +1250,7 @@ public class AuthorizationsServices {
 		for (String collection : collections) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 
-			for (Authorization authToDelete : schemas.searchSolrAuthorizationDetailss(
+			for (Authorization authToDelete : schemas.searchAuthorizations(
 					where(schemas.authorizationDetails.endDate()).isLessThan(TimeProvider.getLocalDate()))) {
 
 				execute(authorizationDeleteRequest(authToDelete));
@@ -1220,21 +1259,20 @@ public class AuthorizationsServices {
 		}
 	}
 
-	private Map<String, String> setupAuthorizationsForDetachedRecord(AuthTransaction transaction, Record record) {
+	private Map<String, String> setupAuthorizationsForDetachedRecord(AuthTransaction transaction, Record record,
+																	 boolean copyInherited) {
 		Map<String, String> originalToCopyMap = new HashMap<>();
-		List<Authorization> inheritedAuthorizations = getInheritedAuths(record);
-		List<String> removedAuthorizations = record.getList(REMOVED_AUTHORIZATIONS);
+		if (copyInherited) {
+			List<String> removedAuthorizations = record.getList(REMOVED_AUTHORIZATIONS);
 
-		for (Authorization inheritedAuthorization : inheritedAuthorizations) {
-			if (!removedAuthorizations.contains(inheritedAuthorization.getId())) {
-				Authorization copy = inheritedToSpecific(transaction, record, record.getCollection(),
-						inheritedAuthorization.getId());
-				if (copy != null) {
+			forEachAuthOn(record, false, true, true, true, inheritedAuthorization -> {
+				if (!removedAuthorizations.contains(inheritedAuthorization.getId())) {
+					Authorization copy = inheritedToSpecific(transaction, record, record.getCollection(),
+							inheritedAuthorization.getId());
 					originalToCopyMap.put(inheritedAuthorization.getId(), copy.getId());
 				}
-			}
+			});
 		}
-
 		record.set(REMOVED_AUTHORIZATIONS, new ArrayList<>());
 		record.set(IS_DETACHED_AUTHORIZATIONS, true);
 		return originalToCopyMap;
@@ -1243,7 +1281,7 @@ public class AuthorizationsServices {
 	private Authorization inheritedToSpecific(AuthTransaction transaction, Record record, String collection,
 											  String oldAuthId) {
 		Authorization inherited = getDetails(collection, oldAuthId);
-		Authorization detail = newAuthorizationDetails(collection, null, inherited.getRoles(),
+		RecordAuthorization detail = (RecordAuthorization) newAuthorizationDetails(collection, null, inherited.getRoles(),
 				inherited.getStartDate(), inherited.getEndDate(), false, inherited.isNegative());
 		detail.setTarget(record.getId());
 		detail.setTargetSchemaType(record.getTypeCode());
@@ -1284,10 +1322,11 @@ public class AuthorizationsServices {
 	private Authorization newAuthorizationDetails(String collection, String id, List<String> roles,
 												  LocalDate startDate, LocalDate endDate,
 												  boolean overrideInherited, boolean negative) {
-		Authorization details = id == null ? schemas(collection).newSolrAuthorizationDetails()
-										   : schemas(collection).newSolrAuthorizationDetailsWithId(id);
+		Authorization details = id == null ? schemas(collection).newAuthorization()
+										   : schemas(collection).newAuthorizationWithId(id);
 
-		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate).setOverrideInherited(overrideInherited).setNegative(negative);
+		return ((RecordAuthorization) details).setRoles(roles).setStartDate(startDate).setEndDate(endDate)
+				.setOverrideInherited(overrideInherited).setNegative(negative);
 	}
 
 	private void alertUsers(String collection, String schemaType, Record record, LocalDate sharedDate,

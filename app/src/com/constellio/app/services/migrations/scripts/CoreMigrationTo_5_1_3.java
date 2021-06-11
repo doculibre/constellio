@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ModelLayerConfiguration;
@@ -16,12 +17,17 @@ import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
 public class CoreMigrationTo_5_1_3 implements MigrationScript {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_5_1_3.class);
+
 	@Override
 	public String getVersion() {
 		return "5.1.3";
@@ -108,6 +114,9 @@ public class CoreMigrationTo_5_1_3 implements MigrationScript {
 
 			return false;
 		} catch (Exception e) {
+			if (FoldersLocator.usingAppWrapper()) {
+				LOGGER.warn("No application key, trying to create one...", e);
+			}
 			return true;
 		}
 	}

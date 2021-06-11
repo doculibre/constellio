@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.login;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
@@ -114,7 +115,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		fieldsLayout.setSpacing(true);
 		fieldsLayout.addStyleName("fields");
 
-		usernameField = new TextField($("LoginView.username"));
+		usernameField = new BaseTextField($("LoginView.username"));
 		usernameField.setIcon(FontAwesome.USER);
 		usernameField.setMaxLength(100);
 		usernameField.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);
@@ -183,6 +184,11 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 	}
 
 	@Override
+	public void showSystemCurrentlyReindexing() {
+		Notification.show($("LoginView.systemCurrentlyReindexing"));
+	}
+
+	@Override
 	public void showBadLoginMessage() {
 		Notification.show($("LoginView.badLoginMessage"));
 	}
@@ -227,8 +233,9 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		VaadinService.getCurrentResponse().addCookie(usernameCookie);
 	}
 
+	@Override
 	public void popPrivacyPolicyWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
-									   final String lastCollection) {
+									   final String lastCollection, Runnable signInStepFinishedCallback) {
 		final Window window = new Window();
 		window.setWidth("90%");
 		window.setHeight("90%");
@@ -237,9 +244,8 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 
 		VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setSpacing(true);
+		mainLayout.setHeight("100%");
 
-		VerticalLayout textLayout = new VerticalLayout();
-		textLayout.setSizeFull();
 		HorizontalLayout buttonLayout = new HorizontalLayout();
 		buttonLayout.setSpacing(true);
 		buttonLayout.setHeight("50px");
@@ -256,28 +262,35 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 				UserServices userServices = modelLayerFactory.newUserServices();
 				userServices.execute(userServices.addUpdate(userInLastCollection.getUsername())
 						.setHasAgreedToPrivacyPolicy(true));
-				presenter.signInValidated(userInLastCollection, lastCollection);
+
+				if (signInStepFinishedCallback != null) {
+					signInStepFinishedCallback.run();
+				} else {
+					presenter.signInValidated(userInLastCollection, lastCollection);
+				}
+
 				window.close();
 			}
 		};
 		acceptButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-		DocumentViewer documentViewer = new DocumentViewer(presenter.getPrivacyPolicyFile());
 
-		textLayout.addComponent(documentViewer);
+		DocumentViewer documentViewer = new DocumentViewer(presenter.getPrivacyPolicyFile());
+		documentViewer.setHeight("100%");
+
 		buttonLayout.addComponents(acceptButton, cancelButton);
 
-		mainLayout.addComponents(textLayout, buttonLayout);
+		mainLayout.addComponents(documentViewer, buttonLayout);
 		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
+		mainLayout.setExpandRatio(documentViewer, 1.0f);
 
 		window.setContent(mainLayout);
-		window.setSizeUndefined();
 		window.center();
 		ConstellioUI.getCurrent().addWindow(window);
 	}
 
 	@Override
 	public void popLastAlertWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
-								   final String lastCollection) {
+								   final String lastCollection, Runnable signInStepFinishedCallback) {
 		final Window window = new Window();
 		window.setWidth("90%");
 		window.setHeight("90%");
@@ -301,7 +314,13 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 				UserServices userServices = modelLayerFactory.newUserServices();
 				userServices.execute(userServices.addUpdate(userInLastCollection.getUsername())
 						.setHasReadLastAlert(true));
-				presenter.signInValidated(userInLastCollection, lastCollection);
+
+				if (signInStepFinishedCallback != null) {
+					signInStepFinishedCallback.run();
+				} else {
+					presenter.signInValidated(userInLastCollection, lastCollection);
+				}
+
 				window.close();
 			}
 		};
@@ -312,6 +331,57 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		mainLayout.setExpandRatio(documentViewer, 9);
 		mainLayout.setExpandRatio(buttonLayout, 1);
 		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
+
+		window.setContent(mainLayout);
+		window.center();
+		ConstellioUI.getCurrent().addWindow(window);
+	}
+
+	@Override
+	public void popShowMessageToUserWindow(ModelLayerFactory modelLayerFactory, User userInLastCollection,
+										   String lastCollection, Runnable signInStepFinishedCallback) {
+		final Window window = new Window();
+		window.setWidth("90%");
+		window.setHeight("90%");
+		window.setModal(true);
+		window.setCaption($("LoginView.messageToUserWindow"));
+
+		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setSpacing(true);
+		mainLayout.setWidth("100%");
+		mainLayout.setHeight("100%");
+
+		window.addCloseListener(event -> {
+			UserServices userServices = modelLayerFactory.newUserServices();
+			userServices.execute(userServices.addUpdate(userInLastCollection.getUsername())
+					.setHasSeenLatestMessageAtLogin(true));
+
+			if (signInStepFinishedCallback != null) {
+				signInStepFinishedCallback.run();
+			} else {
+				presenter.signInValidated(userInLastCollection, lastCollection);
+			}
+		});
+
+
+		HorizontalLayout buttonLayout = new HorizontalLayout();
+		buttonLayout.setHeight("50px");
+
+		BaseButton acceptButton = new BaseButton($("Ok")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				window.close();
+			}
+		};
+		acceptButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		buttonLayout.addComponent(acceptButton);
+
+		DocumentViewer documentViewer = new DocumentViewer(presenter.getMessageToShowAtLoginFile());
+		documentViewer.setHeight("100%");
+
+		mainLayout.addComponents(documentViewer, buttonLayout);
+		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
+		mainLayout.setExpandRatio(documentViewer, 1.0f);
 
 		window.setContent(mainLayout);
 		window.center();

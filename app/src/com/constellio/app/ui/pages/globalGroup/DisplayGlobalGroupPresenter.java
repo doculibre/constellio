@@ -105,8 +105,8 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 
 	public void deleteUserCredentialButtonClicked(UserCredentialVO userCredentialVO, String globalGroupCode) {
 		UserAddUpdateRequest userAddUpdateRequest = userServices.addUpdate(userCredentialVO.getUsername());
-
 		userAddUpdateRequest.removeFromGroupOfCollection(globalGroupCode, collection);
+		userServices.execute(userAddUpdateRequest);
 		view.refreshTable();
 	}
 

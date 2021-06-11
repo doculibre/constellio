@@ -83,7 +83,7 @@ public class CoreMigrationTo_7_6 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaBuilder builder = typesBuilder.createNewSchemaType(Capsule.SCHEMA_TYPE).getDefaultSchema();
+			MetadataSchemaBuilder builder = typesBuilder.createNewSchemaTypeWithSecurity(Capsule.SCHEMA_TYPE).getDefaultSchema();
 			builder.create(Capsule.CODE).setType(MetadataValueType.STRING);
 			builder.create(Capsule.HTML).setType(MetadataValueType.TEXT);
 			builder.create(Capsule.KEYWORDS).setType(STRING).setMultivalue(true);

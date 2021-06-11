@@ -201,7 +201,7 @@ public class SystemWithDataAndRMModuleScript implements DemoInitScript {
 
 		//CREATE COLLECTION
 		Record collectionRecord = appLayerFactory.getCollectionsManager()
-				.createCollectionInCurrentVersion(collection, asList("fr"));
+				.createCollection(collection, asList("fr"));
 		modelLayerFactory.newRecordServices().update(collectionRecord.set(Schemas.TITLE, title));
 
 		//SETUP MODULES

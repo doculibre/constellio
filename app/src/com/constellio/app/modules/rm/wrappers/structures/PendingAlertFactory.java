@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -9,7 +9,7 @@ import java.util.StringTokenizer;
 
 import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnumWithSmallCode;
 
-public class PendingAlertFactory implements StructureFactory {
+public class PendingAlertFactory implements CombinedStructureFactory {
 
 	private static final String NULL = "~null~";
 

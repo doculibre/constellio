@@ -6,6 +6,7 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 import org.joda.time.Duration;
 
 import javax.servlet.ServletException;
@@ -56,16 +57,19 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 		}
 
 		if (StringUtils.isBlank(username)) {
+			resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 			resp.getWriter().write(PARAM_USERNAME_REQUIRED);
 			return;
 		}
 
 		if (StringUtils.isBlank(duration)) {
+			resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 			resp.getWriter().write(PARAM_DURATION_REQUIRED);
 			return;
 		}
 
 		if (StringUtils.isBlank(password)) {
+			resp.setStatus(HttpStatus.SC_UNAUTHORIZED);
 			resp.getWriter().write(PARAM_PASSWORD_REQUIRED);
 			return;
 		}
@@ -76,6 +80,7 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 
 		int tokenDurationInHours = getTokenDurationInHours(duration);
 		if (tokenDurationInHours <= 0) {
+			resp.setStatus(HttpStatus.SC_BAD_REQUEST);
 			resp.getWriter().write(BAD_DURATION);
 			return;
 		}
@@ -83,16 +88,15 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 		UserServices userServices = ConstellioFactories.getInstance().getModelLayerFactory().newUserServices();
 		AuthenticationService authService = ConstellioFactories.getInstance().getModelLayerFactory().newAuthenticationService();
 		if (!authService.authenticate(username, password)) {
+			resp.setStatus(HttpStatus.SC_UNAUTHORIZED);
 			resp.getWriter().write(BAD_USERNAME_PASSWORD);
 			return;
 		}
 
 		String token;
 		UserCredential userCredential;
-		UserCredential serviceUserCredential;
 		synchronized (username.intern()) {
 			userCredential = userServices.getUserCredential(username);
-			serviceUserCredential = userCredential;
 			if (asUser != null) {
 				if (userCredential.isSystemAdmin()) {
 					try {
@@ -101,22 +105,22 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 							throw new UserServicesRuntimeException_NoSuchUser(asUser);
 						}
 					} catch (UserServicesRuntimeException_NoSuchUser e) {
+						resp.setStatus(HttpStatus.SC_UNAUTHORIZED);
 						resp.getWriter().write(BAD_ASUSER);
 						return;
 					}
 				} else {
+					resp.setStatus(HttpStatus.SC_UNAUTHORIZED);
 					resp.getWriter().write(REQUIRE_ADMIN_RIGHTS);
 					return;
 				}
 			}
 
 			if (userCredential.getServiceKey() == null) {
-
 				userServices.execute(userServices.addUpdate(userCredential.getUsername()).setServiceKey("agent_" + userCredential.getUsername()));
 				userCredential = userServices.getUserConfigs(userCredential.getUsername());
 
 			}
-
 			token = userServices.generateToken(userCredential.getUsername(), Duration.standardHours(tokenDurationInHours));
 		}
 
@@ -128,6 +132,7 @@ public class ConstellioGenerateTokenWebServlet extends HttpServlet {
 		sb.append(token);
 		sb.append("</token></response>");
 
+		resp.setStatus(HttpStatus.SC_OK);
 		resp.setContentType(TEXT_XML_CHARSET_UTF_8);
 		resp.setHeader("Access-Control-Allow-Origin", "*");
 		resp.getWriter().write(sb.toString());

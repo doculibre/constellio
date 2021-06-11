@@ -20,11 +20,11 @@ public interface SearchQuery {
 
 	SearchQuery filteredWith(UserFilter userFilter);
 
-	SearchQuery filteredWithUser(User user);
+	SearchQuery filteredWithUserRead(User user);
 
-	SearchQuery filteredWithUser(User user, String access);
+	SearchQuery filteredWithUserRead(User user, String access);
 
-	SearchQuery filteredWithUser(User user, List<String> accessOrPermissions);
+	SearchQuery filteredWithUserRead(User user, List<String> accessOrPermissions);
 
 	SearchQuery computeStatsOnField(DataStoreField metadata);
 

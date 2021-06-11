@@ -121,6 +121,41 @@ public class Excel2007FileImportDataIteratorAcceptanceTest extends ImportDataIte
 	}
 
 	@Test
+	public void whenIteratingWithFormulaThen()
+			throws Exception {
+
+		LocalDateTime localDateTime = new LocalDateTime(2010, 04, 29, 9, 31, 46, 235);
+		LocalDate localDate = new LocalDate(2010, 05, 16);
+		LocalDate anOtherLocalDate = new LocalDate(2010, 05, 15);
+
+		importDataIterator = excelImportDataProvider.newDataIterator("formula");
+
+		assertThat(excelImportDataProvider.size("formula")).isEqualTo(3);
+
+		assertThat(importDataIterator.next()).has(id("1")).has(index(2)).has(schema("default"))
+				.has(noField("id")).has(noField("schema"))
+				.has(field("title", "Ze title"))
+				.has(field("createdOn", localDateTime))
+				.has(field("referenceToAnotherSchema", "42"))
+				.has(field("zeEmptyField", null));
+
+		assertThat(importDataIterator.next()).has(id("666")).has(index(4)).has(schema("customSchema"))
+				.has(noField("id")).has(noField("schema"))
+				.has(field("createdOn", localDateTime))
+				.has(field("modifyOn", asList(anOtherLocalDate, localDate)))
+				.has(field("keywords", asList("keyword1", "keyword2")))
+				.has(field("zeNullField", null))
+				.has(field("title", "A third title"));
+
+		assertThat(importDataIterator.next()).has(id("35")).has(index(7)).has(schema("default"))
+				.has(noField("id")).has(noField("schema"))
+				.has(field("createdOn", null))
+				.has(field("modifyOn", emptyList()))
+				.has(field("title", "There is also a title here"))
+				.has(field("referenceToAThirdSchema", "42"));
+	}
+
+	@Test
 	public void whenIteratingWithDateAndDateTimeCells()
 			throws Exception {
 

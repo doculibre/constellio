@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.EnumWithSmallCode;
@@ -14,6 +15,7 @@ import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
@@ -27,7 +29,6 @@ import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeExce
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.InvalidAttribute;
-import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.MetadataCannotBeUniqueAndMultivalue;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
@@ -75,6 +76,8 @@ public class MetadataBuilder {
 	private boolean availableInSummary = false;
 	private boolean multiLingual;
 	private boolean markedForDeletion = false;
+	private MetadataValueType markedForMigrationToType = null;
+	private Boolean markedForMigrationToMutlivalue = null;
 	private boolean increasedDependencyLevel = false;
 	private Boolean defaultRequirement;
 	private Boolean essential = false;
@@ -244,6 +247,8 @@ public class MetadataBuilder {
 		builder.defaultValue = metadata.getDefaultValue();
 		builder.inputMask = metadata.getInputMask();
 		builder.markedForDeletion = metadata.isMarkedForDeletion();
+		builder.markedForMigrationToType = metadata.getMarkedForMigrationToType();
+		builder.markedForMigrationToMutlivalue = metadata.isMarkedForMigrationToMultivalue();
 		builder.dataEntry = metadata.getDataEntry();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(builder.classProvider,
 				RecordMetadataValidator.class, metadata.getValidators());
@@ -298,6 +303,7 @@ public class MetadataBuilder {
 		builder.measurementUnit = metadata.getMeasurementUnit();
 		builder.relationshipProvidingSecurity = metadata.isRelationshipProvidingSecurity();
 		builder.markedForDeletion = metadata.isMarkedForDeletion();
+		builder.markedForMigrationToType = metadata.getMarkedForMigrationToType();
 		builder.recordMetadataValidators = new ClassListBuilder<RecordMetadataValidator<?>>(
 				builder.classProvider, RecordMetadataValidator.class, metadata.getValidators());
 		builder.accessRestrictionBuilder = null;
@@ -430,9 +436,7 @@ public class MetadataBuilder {
 
 	public MetadataBuilder setMultivalue(boolean multivalue) {
 		ensureCanModify("multivalue");
-		if (multivalue && isUniqueValue()) {
-			throw new MetadataCannotBeUniqueAndMultivalue(localCode);
-		}
+
 		this.multivalue = multivalue;
 		return this;
 	}
@@ -523,9 +527,7 @@ public class MetadataBuilder {
 
 	public MetadataBuilder setUniqueValue(boolean uniqueValue) {
 		ensureCanModify("uniqueValue");
-		if (uniqueValue && isMultivalue()) {
-			throw new MetadataCannotBeUniqueAndMultivalue(localCode);
-		}
+
 		this.uniqueValue = uniqueValue;
 		return this;
 	}
@@ -611,6 +613,28 @@ public class MetadataBuilder {
 			setEnabled(false);
 		}
 		this.markedForDeletion = markedForDeletion;
+		return this;
+	}
+
+	public MetadataValueType getMarkedForMigrationToType() {
+		return inheritance == null ? markedForMigrationToType : inheritance.markedForMigrationToType;
+	}
+
+	public MetadataBuilder setMarkedForMigrationToType(MetadataValueType type) {
+		ensureCanModify("markedForMigrationToType");
+		this.markedForMigrationToType = type;
+
+		return this;
+	}
+
+	public Boolean isMarkedForMigrationToMultivalue() {
+		return inheritance == null ? markedForMigrationToMutlivalue : inheritance.markedForMigrationToMutlivalue;
+	}
+
+	public MetadataBuilder setMarkedForMigrationToMultivalue(Boolean migrateToMultivalue) {
+		ensureCanModify("markedForMigrationToMutlivalue");
+		this.markedForMigrationToMutlivalue = migrateToMultivalue;
+
 		return this;
 	}
 
@@ -848,8 +872,9 @@ public class MetadataBuilder {
 				.instanciateWithoutExpectableExceptions(structureFactoryClass);
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
 				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
-				essential, encrypted, essentialInSummary, availableInSummary, multiLingual, markedForDeletion, customAttributes,
-				increasedDependencyLevel, relationshipProvidingSecurity, transiency, dependencyOfAutomaticMetadata, cacheIndex, maxLength, measurementUnit);
+				essential, encrypted, essentialInSummary, availableInSummary, multiLingual, markedForDeletion, markedForMigrationToType,
+				markedForMigrationToMutlivalue, customAttributes, increasedDependencyLevel, relationshipProvidingSecurity,
+				transiency, dependencyOfAutomaticMetadata, cacheIndex, maxLength, measurementUnit);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
@@ -905,7 +930,18 @@ public class MetadataBuilder {
 				dataStoreType = typesFactory.forString(multivalue);
 				break;
 			case STRUCTURE:
-				dataStoreType = typesFactory.forString(multivalue);
+				try {
+					StructureFactory structureFactory = getStructureFactory().newInstance();
+					if (structureFactory instanceof SeparatedStructureFactory) {
+						MetadataValueType mainValueFieldType = ((SeparatedStructureFactory) structureFactory).getMainValueFieldType();
+						boolean multivalued = ((SeparatedStructureFactory) structureFactory).isMainValueMultivalued();
+						dataStoreType = SolrDataStoreTypesUtils.getTypeOrMutlivalueExtension(mainValueFieldType.name(), multivalued);
+					} else {
+						dataStoreType = typesFactory.forString(multivalue);
+					}
+				} catch (InstantiationException | IllegalAccessException e) {
+					throw new MetadataBuilderRuntimeException.CannotInstanciateClass(getStructureFactory().getName(), e);
+				}
 				break;
 			case DATE:
 				dataStoreType = typesFactory.forDate(multivalue);

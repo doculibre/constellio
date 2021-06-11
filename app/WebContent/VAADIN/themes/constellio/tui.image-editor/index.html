@@ -1,0 +1,278 @@
+<html>
+    <head>
+		<meta name="viewport" content="width=device-width, user-scalable=no" />
+        <meta charset="UTF-8">
+        <title>Image editor</title>
+<!--		
+        <link type="text/css" href="https://uicdn.toast.com/tui-color-picker/v2.2.6/tui-color-picker.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://uicdn.toast.com/tui-image-editor/latest/tui-image-editor.css">
+-->		
+        <link type="text/css" href="libs/tui-color-picker.css" rel="stylesheet">
+        <link rel="stylesheet" href="dist/tui-image-editor.css">
+        <style>
+<!--
+            @import url(http://fonts.googleapis.com/css?family=Noto+Sans);
+-->
+            @import url(libs/noto-sans.css);
+            html, body {
+                height: 100%;
+                margin: 0;
+            }
+			
+			.tui-image-editor-header-logo, 
+			.tui-image-editor-controls-logo, 
+			.tui-image-editor-header-buttons, 
+			.tui-image-editor-controls-buttons,
+			.tie-btn-delete, .tie-btn-deleteAll {
+				display: none !important;
+			}
+			
+			.tui-image-editor-help-menu.left, .tui-image-editor-help-menu.right {
+				top: 0 !important;
+				transform: translateY(0%) !important;
+			}
+			
+			.tui-image-editor-menu, div[class^='tui-image-editor-menu'], div[class*='tui-image-editor-menu'] {
+				vertical-align: top !important;
+			}
+			
+			div[class^='tui-image-editor-menu'] .tui-image-editor-wrap, 
+			div[class*='tui-image-editor-menu'] .tui-image-editor-wrap {
+				width: calc(100% - 250px) !important;
+			}
+			
+			div[class^='tui-image-editor-menu'] .tui-image-editor-wrap .tui-image-editor, 
+			div[class*='tui-image-editor-menu'] .tui-image-editor-wrap .tui-image-editor {
+				width: 100% !important;
+				left: 0px !important;
+			}
+			
+			.tie-btn-mask {
+				display: none !important;
+			}
+			
+			.tie-btn-save svg {
+				width: 24px;
+				fill: #8a8a8a;
+			}
+			
+			.tie-btn-save svg:hover {
+				fill: white;
+			}
+        </style>
+    </head>
+    <body>
+		<li style="visibility:hidden;" class="tie-btn-save tui-image-editor-item normal" tooltip-content="Save"><svg class="svg_ic-menu" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+		<g>
+			<g>
+				<path d="M440.125,0H0v512h512V71.875L440.125,0z M281.6,31.347h31.347v94.041H281.6V31.347z M136.359,31.347h113.894v125.388
+					h94.041V31.347h32.392v156.735H136.359V31.347z M417.959,480.653H94.041V344.816h323.918V480.653z M417.959,313.469H94.041
+					v-31.347h323.918V313.469z M480.653,480.653h-31.347V250.775H62.694v229.878H31.347V31.347h73.665v188.082h303.02V31.347h19.108
+					l53.512,53.512V480.653z"></path>
+			</g>
+		</g>
+		</svg></li>
+
+        <div id="tui-image-editor-container"></div>
+<!---		
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/3.6.0/fabric.js"></script>
+        <script type="text/javascript" src="https://uicdn.toast.com/tui.code-snippet/v1.5.0/tui-code-snippet.min.js"></script>
+        <script type="text/javascript" src="https://uicdn.toast.com/tui-color-picker/v2.2.6/tui-color-picker.js"></script>
+-->
+        <script type="text/javascript" src="libs/fabric.min.js"></script>
+        <script type="text/javascript" src="libs/tui-code-snippet.min.js"></script>
+        <script type="text/javascript" src="libs/tui-color-picker.min.js"></script>
+		<script type="text/javascript" src="libs/jquery.min.js"></script>
+		<script type="text/javascript" src="libs/jquery.ajaxQueue.min.js"></script>
+<!--		
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.3/FileSaver.min.js"></script>
+-->		
+<!--		
+        <script src="https://uicdn.toast.com/tui-image-editor/latest/tui-image-editor.js"></script>
+-->
+        <script src="dist/tui-image-editor-constellio.js"></script>
+        <!-- <script type="text/javascript" src="./js/theme/white-theme.js"></script>
+        <script type="text/javascript" src="./js/theme/black-theme.js"></script> -->
+        <script>
+		
+		function parseQueryString(query) {
+		  var parts = query.split('&');
+		  var params = {};
+		  for (var i = 0, ii = parts.length; i < ii; ++i) {
+			var param = parts[i].split('=');
+			var key = param[0].toLowerCase();
+			var value = param.length > 1 ? param[1] : null;
+			params[decodeURIComponent(key)] = decodeURIComponent(value);
+		  }
+		  return params;
+		}
+		
+		var queryString = document.location.search.substring(1);
+		var params = parseQueryString(queryString);
+		
+		var imagePath = params.path;
+		var imageName = params.name;
+		if (!imagePath) {
+			imagePath = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+		}
+		if (!imageName) {
+			imageName = 'Image';
+		}
+		//console.log(imagePath);
+		var saveButtonCallbackURL = params.savebuttoncallbackurl;
+		var imageEditorResourceKey = params.imageeditorresourcekey;
+        
+		// Image editor
+		var whiteTheme = {
+			//'common.bi.image': 'https://uicdn.toast.com/toastui/img/tui-image-editor-bi.png',
+			//'common.backgroundImage': './img/bg.png',
+			//'common.bisize.width': '251px',
+			//'common.bisize.height': '21px',
+			'common.backgroundColor': '#fff',
+			'common.border': '1px solid #c1c1c1',
+		};
+		var locale_fr = {
+		  // override default English locale to your custom
+		  'Reset': 'Réinitialiser',
+		  'Apply': 'Appliquer',
+		  'Cancel': 'Annuler',
+		  'Save': 'Enregistrer',
+		  
+		  'ZoomIn': 'Zoom avant',
+		  'ZoomOut': 'Zoom arrière',
+		  'Hand': 'Main',
+		  'History': 'Historique',
+		  'Undo': 'Annuler',
+		  'Redo': 'Refaire',
+		  'Load': 'Charger',
+		  'Delete': 'Supprimer',
+		  'DeleteAll': 'Supprimer tout',
+		  
+		  'Crop': 'Recadrer', 
+		  'Custom': 'Personnalisé',
+		  'Square': 'Carré', 
+		  
+		  'Flip': 'Retourner', 
+		  'Flip X': 'Retourner X', 
+		  'Flip Y': 'Retourner Y', 
+		  
+		  'Rotate': 'Pivoter', 
+		  'Range': 'Intervalle', 
+		  
+		  'Draw': 'Dessiner', 
+		  'Free': 'Libre', 
+		  'Straight': 'Droit',
+		  'Color': 'Couleur',  
+		  
+		  'Shape': 'Forme', 
+		  'Rectangle': 'Rectangle', 
+		  'Circle': 'Cercle', 
+		  'Triangle': 'Triangle', 
+		  'Fill': 'Remplissage',  
+		  'Stroke': 'Trait', 
+		  
+		  'Icon': 'Icône', 
+		  'Arrow': 'Flèche', 
+		  'Arrow-2': 'Flèche-2', 
+		  'Arrow-3': 'Flèche-3',
+		  'Star-1': 'Étoile-1', 
+		  'Star-2': 'Étoile-2', 
+		  'Polygon': 'Polygone', 
+		  'Location': 'Localisation', 
+		  'Heart': 'Coeur',
+		  'Bubble': 'Bulle', 
+		  'Custom icon': 'Icône personnalisée', 
+		  
+		  'Text': 'Texte', 
+		  'Bold': 'Gras', 
+		  'Italic': 'Italique',
+		  'Underline': 'Souligné', 
+		  'Left': 'Gauche', 
+		  'Center': 'Centre', 
+		  'Right': 'Droite', 
+		  'Text size': 'Taille du texte',
+		  
+		  'Mask': 'Masque', 
+		  'Load Mask Image': 'Charger image masque',  
+		  
+		  'Filter': 'Filtre', 
+		  'Grayscale': 'Niv. de gris',  
+		  'Sepia': 'Sépia',  
+		  'Blur': 'Brouiller',  
+		  'Emboss': 'Relief',  
+		  'Invert': 'Inverser',
+		  'Sepia2': 'Sépia 2',  
+		  'Sharpen': 'Affiner',  
+		  'Remove White': 'Enlever blanc',
+		  'Distance': 'Distance',  
+		  'Brightness': 'Luminosité',  
+		  'Noise': 'Bruit', 
+		  'Pixelate': 'Pixeliser', 
+		  'Color Filter': 'Filtre de couleur',
+		  'Threshold': 'Seuil', 
+		  'Tint': 'Teint', 
+		  'Multiply': 'Multiplier', 
+		  'Blend': 'Mélanger',
+		};
+		
+		var appliedLocale;
+		if (params.locale == 'fr') {
+			appliedLocale = locale_fr;
+		} else {
+			appliedLocale = {};
+		}
+		
+        var imageEditor = new tui.ImageEditor('#tui-image-editor-container', {
+             includeUI: {
+                loadImage: {
+                    path: imagePath,
+                    name: imageName
+                },
+                //initMenu: 'filter',
+                menuBarPosition: 'right',
+				locale: appliedLocale, // key-value object with localization
+				theme: whiteTheme, // or blackTheme
+             },
+             usageStatistics: false,
+			 
+             //cssMaxWidth: 700,
+             //cssMaxHeight: 500,
+			 cssMaxWidth: document.documentElement.clientWidth,
+			 cssMaxHeight: document.documentElement.clientHeight,
+			 selectionStyle: {
+				cornerSize: 50,
+				rotatingPointOffset: 100,
+			 },
+         });
+		 
+         window.onresize = function() {
+             imageEditor.ui.resizeEditor();
+         }
+		 
+		if (appliedLocale) {
+			$(".tie-btn-save").attr("tooltip-content", appliedLocale[$(".tie-btn-save").attr("tooltip-content")]);
+		}
+		 setTimeout(function() {
+			$(".tie-btn-save").detach().appendTo($(".tui-image-editor-menu")).css({"visibility" : "visible"});
+		 
+			 $(".tie-btn-save").on("click", function(e) {
+				var imageDataURL = imageEditor.toDataURL();
+				$.ajaxQueue({
+					url: saveButtonCallbackURL,
+					data: JSON.stringify({
+						"imageDataURL": imageDataURL,
+						"imageEditorResourceKey": imageEditorResourceKey, 
+					}),
+					method: "POST",
+				    dataType : "text",
+				    contentType: "application/json",
+					timeout: 30000
+				})
+				.fail(function(jqXHR, textStatus, errorThrown) {
+					alert("Error:" + errorThrown);
+				}); 
+			 });
+		 }, 100);
+        </script>
+    </body>
+</html>

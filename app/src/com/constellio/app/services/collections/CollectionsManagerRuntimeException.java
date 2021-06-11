@@ -68,9 +68,9 @@ public class CollectionsManagerRuntimeException extends RuntimeException {
 	}
 
 	public static class CollectionsManagerRuntimeException_CannotMigrateCollection extends CollectionsManagerRuntimeException {
-		public CollectionsManagerRuntimeException_CannotMigrateCollection(String collection, String version,
+		public CollectionsManagerRuntimeException_CannotMigrateCollection(String collection,
 																		  Throwable cause) {
-			super("Cannot migrate collection '" + collection + "' to version " + version, cause);
+			super("Cannot migrate collection '" + collection + "'", cause);
 		}
 	}
 }

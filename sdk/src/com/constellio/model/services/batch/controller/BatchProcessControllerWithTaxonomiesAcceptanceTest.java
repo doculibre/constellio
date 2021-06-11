@@ -327,7 +327,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 	private long countRecordsVisibleByDakota() {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(zeCollection).returnAll());
-		query.filteredWithUser(users.dakotaLIndienIn(zeCollection));
+		query.filteredWithUserRead(users.dakotaLIndienIn(zeCollection));
 		return searchServices.getResultsCount(query);
 	}
 }

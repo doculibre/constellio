@@ -312,7 +312,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			List<Comment> comments = new ArrayList<>(task.getComments());
 
 			StringBuilder sb = new StringBuilder();
-			sb.append($("DisplayTaskView.decisionCommentPrefix", decisionCode, task.getTitle()));
+			sb.append($("DisplayTaskView.decisionCommentPrefix", StringUtils.isEmpty(decisionCode) ? task.getTitle() : decisionCode + " " + task.getTitle()));
 			sb.append("\n");
 			sb.append(comment.getMessage());
 			comment.setMessage(sb.toString());
@@ -452,6 +452,7 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 			descriptionField = taskFieldFactory.build(recordVO.getMetadata(RequestTask.DESCRIPTION), recordVO.getId());
 			descriptionField.setCaption(recordVO.getMetadata(Task.DESCRIPTION).getLabel());
 			descriptionField.setValue(description);
+			descriptionField.setReadOnly(true);
 			fieldLayout.addComponent(descriptionField);
 		} else {
 			descriptionField = null;
@@ -463,14 +464,9 @@ public abstract class TaskCompleteWindowButton extends WindowButton {
 									  final TaskFieldFactory fieldFactory,
 									  final VerticalLayout fieldLayout) {
 		Field commentField;
-		MapStringStringStructure decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
-		if (task.getModelTask() != null && decisions != null) {
-			commentField = new CommentField();
-			commentField.setCaption(recordVO.getMetadata(Task.COMMENTS).getLabel());
-			addCommentField(recordVO, commentField, fieldLayout);
-		} else {
-			commentField = null;
-		}
+		commentField = new CommentField();
+		commentField.setCaption(recordVO.getMetadata(Task.COMMENTS).getLabel());
+		addCommentField(recordVO, commentField, fieldLayout);
 		return commentField;
 	}
 

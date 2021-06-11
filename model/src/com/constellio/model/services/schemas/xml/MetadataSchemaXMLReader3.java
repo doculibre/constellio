@@ -2,6 +2,7 @@ package com.constellio.model.services.schemas.xml;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -13,6 +14,7 @@ import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.schemas.entries.AdvancedSequenceCalculator;
 import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
@@ -99,7 +101,7 @@ public class MetadataSchemaXMLReader3 {
 		String id = element.getAttributeValue("id");
 
 		Map<Language, String> labels = readLabels(element);
-		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false)
+		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaTypeWithSecurity(code, false)
 				.setLabels(labels);
 
 		if (id != null) {
@@ -440,6 +442,20 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setMarkedForDeletion(readBooleanWithDefaultValue(markedForDeletion, false));
 		}
 
+		MetadataValueType markedMigrationToType = getTypeValue(metadataElement, "markedMigrationToType");
+		if (inheriteGlobalMetadata && markedMigrationToType == null) {
+			metadataBuilder.setMarkedForMigrationToType(globalMetadataInCollectionSchema.getMarkedForMigrationToType());
+		} else {
+			metadataBuilder.setMarkedForMigrationToType(markedMigrationToType);
+		}
+
+		String markedMigrationToMultivalue = metadataElement.getAttributeValue("markedMigrationToMultivalue");
+		if (inheriteGlobalMetadata && markedMigrationToMultivalue == null) {
+			metadataBuilder.setMarkedForMigrationToMultivalue(globalMetadataInCollectionSchema.isMarkedForMigrationToMultivalue());
+		} else {
+			metadataBuilder.setMarkedForMigrationToMultivalue(markedMigrationToMultivalue == null ? null : Boolean.TRUE.equals(readBoolean(markedMigrationToMultivalue)));
+		}
+
 		String childOfRelationshipStringValue = metadataElement.getAttributeValue("childOfRelationship");
 		if (inheriteGlobalMetadata && childOfRelationshipStringValue == null) {
 			metadataBuilder.setChildOfRelationship(globalMetadataInCollectionSchema.isChildOfRelationship());
@@ -496,14 +512,27 @@ public class MetadataSchemaXMLReader3 {
 		//}
 
 		Class<StructureFactory> structureFactoryClass = getClassValue(metadataElement, "structureFactory");
-		if (structureFactoryClass != null) {
-			metadataBuilder.defineStructureFactory(structureFactoryClass);
+		if (inheriteGlobalMetadata && structureFactoryClass == null) {
+			if (globalMetadataInCollectionSchema.getStructureFactory() != null) {
+				metadataBuilder.defineStructureFactory(globalMetadataInCollectionSchema.getStructureFactory());
+			}
+		} else {
+			if (structureFactoryClass != null) {
+				metadataBuilder.defineStructureFactory(structureFactoryClass);
+			}
 		}
 
 		Class<? extends Enum<?>> enumClass = getClassValue(metadataElement, "enumClass");
-		if (enumClass != null) {
-			metadataBuilder.defineAsEnum(enumClass);
+		if (inheriteGlobalMetadata && enumClass == null) {
+			if (globalMetadataInCollectionSchema.getEnumClass() != null) {
+				metadataBuilder.defineAsEnum(globalMetadataInCollectionSchema.getEnumClass());
+			}
+		} else {
+			if (enumClass != null) {
+				metadataBuilder.defineAsEnum(enumClass);
+			}
 		}
+
 
 		if (!isInheriting(metadataElement)) {
 			setAccessRestrictions(metadataBuilder.defineAccessRestrictions(), metadataElement);
@@ -727,6 +756,18 @@ public class MetadataSchemaXMLReader3 {
 				String metadataProvidingSequenceCode = dataEntry.getAttributeValue("metadataProvidingSequenceCode");
 				metadataBuilder.defineDataEntry().asSequenceDefinedByMetadata(metadataProvidingSequenceCode);
 
+			} else if (dataEntry.getAttributeValue("advancedSequenceCalculator") != null) {
+				Class<? extends AdvancedSequenceCalculator> advancedSequenceCalculator = null;
+				String advancedSequenceCalculatorClass = dataEntry.getAttributeValue("advancedSequenceCalculator");
+				try {
+					advancedSequenceCalculator = Class.forName(advancedSequenceCalculatorClass)
+							.asSubclass(AdvancedSequenceCalculator.class);
+				} catch (ClassNotFoundException e) {
+					SystemLogger.error(String.format("Advanced sequence calculator '%s' of metadata '%s' not found",
+							advancedSequenceCalculatorClass, metadataElement.getAttributeValue("code")), e);
+				}
+				metadataBuilder.defineDataEntry().asAdvancedSequence(advancedSequenceCalculator);
+
 			} else if (dataEntry.getAttributeValue("agregationType") != null) {
 				AggregationType aggregationType = (AggregationType)
 						toEnum(AggregationType.class, dataEntry.getAttributeValue("agregationType"));
@@ -801,7 +842,11 @@ public class MetadataSchemaXMLReader3 {
 	}
 
 	private MetadataValueType getTypeValue(Element element) {
-		String stringValue = element.getAttributeValue("type");
+		return getTypeValue(element, "type");
+	}
+
+	private MetadataValueType getTypeValue(Element element, String attributeName) {
+		String stringValue = element.getAttributeValue(attributeName);
 		return StringUtils.isBlank(stringValue) ? null : MetadataValueType.valueOf(stringValue);
 	}
 

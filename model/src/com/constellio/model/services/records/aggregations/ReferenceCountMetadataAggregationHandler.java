@@ -10,12 +10,12 @@ public class ReferenceCountMetadataAggregationHandler implements MetadataAggrega
 
 	@Override
 	public Object calculate(SearchAggregatedValuesParams params) {
-		return new Double(params.getSearchServices().getResultsCount(params.getCombinedQuery()));
+		return params.getSearchServices().getResultsCount(params.getCombinedQuery());
 	}
 
 	@Override
 	public Object calculate(InMemoryAggregatedValuesParams params) {
-		return (double) params.getReferenceCount();
+		return params.getReferenceCount();
 	}
 
 	@Override

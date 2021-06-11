@@ -63,7 +63,7 @@ dependencies {
     compile "com.vaadin:vaadin-client:7.7.17"
     compile "com.vaadin:vaadin-client-compiled:7.7.17"
     compile "com.vaadin:vaadin-shared:7.7.17"
-    compile "com.vaadin:vaadin-server:7.7.17"
+    //compile "com.vaadin:vaadin-server:7.7.17" --> IMPORTANT : we use a custom patched version
     compile 'vaadin:breadcrumb:1.7.3'
     compile 'vaadin:mediaelementjs-player:1.2.6'
     compile 'eu.maxschuster:vaadin-autocompletetextfield:1.0-alpha-4'
@@ -71,8 +71,8 @@ dependencies {
     compile 'org.apache.chemistry.opencmis:chemistry-opencmis-server-support:1.1.0'
     compile 'com.jgoodies:jgoodies-common:1.7.0'
     compile 'org.mockito:mockito-all:1.10.8'
-    compile 'net.sf.jasperreports:jasperreports:6.12.2'
-    compile 'net.sf.jasperreports:jasperreports-functions:6.12.2'
+    compile 'net.sf.jasperreports:jasperreports:6.16.0'
+    compile 'net.sf.jasperreports:jasperreports-functions:6.16.0'
     compile 'net.sourceforge.barbecue:barbecue:1.5-beta1'
     compile 'nl.bitwalker:UserAgentUtils:1.2.4'
     compile 'org.samba.jcifs:jcifs_gcm:322'
@@ -83,6 +83,7 @@ dependencies {
     compile files("../libs/vaadin-lazy-load-wrapper-0.1-alpha.jar");
     compile files("../libs/vaadin-lazyquerycontainer-7.6.1.3.jar")
     compile files("../libs/vaadin-jsclipboard-1.0.12.jar")
+    compile files("../libs/vaadin-server-7.7.17.jar")
     compile 'commons-io:commons-io:2.4'
     compile 'org.apache.commons:commons-compress:1.18'
     compile 'net.sourceforge.htmlunit:htmlunit:2.23'
@@ -99,6 +100,7 @@ dependencies {
     runtime 'org.projectlombok:lombok:1.18.2'
 
     compile "com.googlecode.java-diff-utils:diffutils:1.3.0"
+    compile "net.sourceforge.tess4j:tess4j:4.3.1"
 }
 
 war {

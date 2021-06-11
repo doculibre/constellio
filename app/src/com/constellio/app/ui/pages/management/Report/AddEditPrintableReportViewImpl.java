@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.Report;
 
+import com.constellio.app.modules.rm.enums.TemplateVersionType;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -30,7 +31,6 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -72,13 +72,15 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
-		if (StringUtils.isNotEmpty(event.getParameters())) {
-			Map<String, String> paramsMap = ParamUtils.getParamsMap(event.getParameters());
+		Map<String, String> paramsMap = ParamUtils.getParamsMap(event.getParameters());
+		if (paramsMap.get("id") != null) {
 			recordVO = presenter.getRecordVO(paramsMap.get("id"));
 			isEdit = true;
 		} else {
 			recordVO = new RecordToVOBuilder().build(presenter.newRecord(), RecordVO.VIEW_MODE.FORM, getSessionContext());
 			isEdit = false;
+			presenter.setCurrentType(paramsMap.get("schemaType"));
+			recordVO.set(PrintableReport.SCHEMA_NAME + "_" + PrintableReport.RECORD_TYPE, presenter.getCurrentType());
 		}
 	}
 
@@ -183,9 +185,15 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 								}
 							}
 						});
+					} else if (metadataVO.codeMatches(PrintableReport.JASPER_SUBREPORT_FILES) ||
+							   metadataVO.codeMatches(PrintableReport.ADD_PARENTS) ||
+							   metadataVO.codeMatches(PrintableReport.ADD_CHILDREN)) {
+						field.setVisible(presenter.getTemplateVersionType() == TemplateVersionType.CONSTELLIO_10);
 					}
 					break;
 			}
+			field.setEnabled(recordVO == null || metadataVO.getLocalCode().equals(PrintableReport.DISABLED) ||
+							 Boolean.TRUE.equals(recordVO.get(PrintableReport.ISDELETABLE)));
 			return field;
 		}
 
@@ -194,10 +202,18 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 			String folderValue = PrintableReportListPossibleType.FOLDER.getSchemaType();
 			String documentValue = PrintableReportListPossibleType.DOCUMENT.getSchemaType();
 			String taskValue = PrintableReportListPossibleType.TASK.getSchemaType();
-			typeCombobox.addItems(folderValue, documentValue, taskValue);
+			String categoryValue = PrintableReportListPossibleType.CATEGORY.getSchemaType();
+			String retentionRuleValue = PrintableReportListPossibleType.RETENTION_RULE.getSchemaType();
+			String administrativeUnitValue = PrintableReportListPossibleType.ADMINISTRATIVE_UNIT.getSchemaType();
+			String legalRequirementValue = PrintableReportListPossibleType.LEGAL_REQUIREMENT.getSchemaType();
+			typeCombobox.addItems(folderValue, documentValue, taskValue, categoryValue, retentionRuleValue, administrativeUnitValue, legalRequirementValue);
 			typeCombobox.setItemCaption(folderValue, presenter.getLabelForSchemaType(folderValue));
 			typeCombobox.setItemCaption(documentValue, presenter.getLabelForSchemaType(documentValue));
 			typeCombobox.setItemCaption(taskValue, presenter.getLabelForSchemaType(taskValue));
+			typeCombobox.setItemCaption(categoryValue, presenter.getLabelForSchemaType(categoryValue));
+			typeCombobox.setItemCaption(retentionRuleValue, presenter.getLabelForSchemaType(retentionRuleValue));
+			typeCombobox.setItemCaption(administrativeUnitValue, presenter.getLabelForSchemaType(administrativeUnitValue));
+			typeCombobox.setItemCaption(legalRequirementValue, presenter.getLabelForSchemaType(legalRequirementValue));
 			typeCombobox.setTextInputAllowed(false);
 			typeCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
 			//            typeCombobox.setConverter(new PrintableReportListToStringConverter());
@@ -225,16 +241,7 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 			schemaCombobox = fillComboBox(schemaCombobox);
 			schemaCombobox.setTextInputAllowed(false);
 			schemaCombobox.setCaption(metadataVO.getLabel(i18n.getLocale()));
-			schemaCombobox.setNullSelectionAllowed(false);
-			//schemaCombobox.setConverter(new CustomSchemaToStringConverter(getCollection(), getConstellioFactories().getAppLayerFactory()));
-			schemaCombobox.addValidator(new Validator() {
-				@Override
-				public void validate(Object value) throws InvalidValueException {
-					if (value == null) {
-						throw new InvalidValueException($("PrintableReport.addEdit.emptySchema"));
-					}
-				}
-			});
+			schemaCombobox.setNullSelectionAllowed(true);
 			return schemaCombobox;
 		}
 
@@ -243,10 +250,6 @@ public class AddEditPrintableReportViewImpl extends BaseViewImpl implements AddE
 			for (MetadataSchema metadataSchema : presenter.getSchemasForCurrentType()) {
 				comboBox.addItem(metadataSchema.getCode());
 				comboBox.setItemCaption(metadataSchema.getCode(), metadataSchema.getFrenchLabel());
-				if (comboBox.getItemIds().size() == 1) {
-					comboBox.setValue(metadataSchema.getCode());
-				}
-
 			}
 			return comboBox;
 		}

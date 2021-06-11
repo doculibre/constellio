@@ -47,7 +47,7 @@ public class CoreMigrationTo_7_5 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaTypeBuilder schemaType = typesBuilder.createNewSchemaType(TemporaryRecord.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder schemaType = typesBuilder.createNewSchemaTypeWithSecurity(TemporaryRecord.SCHEMA_TYPE);
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 			defaultSchema.createUndeletable(TemporaryRecord.DESTRUCTION_DATE).setType(MetadataValueType.DATE_TIME).defineDataEntry().asCalculated(TemporaryRecordDestructionDateCalculator.class).setSystemReserved(true);

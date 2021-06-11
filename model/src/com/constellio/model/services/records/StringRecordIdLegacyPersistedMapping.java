@@ -1,10 +1,12 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.data.dao.dto.records.StringRecordIdLegacyMapping;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.data.utils.systemLogger.SystemLogger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,6 +59,13 @@ public class StringRecordIdLegacyPersistedMapping implements StringRecordIdLegac
 						public void alter(Map<String, String> properties) {
 							int assignedIntIt = seq - 1;
 							properties.put(id, "" + assignedIntIt);
+
+							if (id.length() == 36 && FoldersLocator.usingAppWrapper()) {
+								String m = "UUID '" + id + "' is converted to an int id";
+								if (FoldersLocator.usingAppWrapper()) {
+									SystemLogger.warn(m, new Exception(m));
+								}
+							}
 						}
 					});
 

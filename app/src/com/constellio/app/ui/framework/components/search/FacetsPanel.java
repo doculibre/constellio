@@ -38,18 +38,25 @@ public abstract class FacetsPanel extends VerticalLayout {
 
 	private final KeySetMap<String, String> facetValuesSelectedMap = new KeySetMap<>();
 	private final boolean applyButtonEnabled;
+	private boolean sortComponentVisible;
 
 	public FacetsPanel(boolean applyButtonEnabled) {
 		addStyleName("search-result-facets");
 		setWidth("250px");
 		setSpacing(true);
 		this.applyButtonEnabled = applyButtonEnabled;
+
+		sortComponentVisible = true;
 	}
 
 	public void refresh(List<FacetVO> facets, KeySetMap<String, String> facetSelections,
 						List<MetadataVO> sortableMetadata, String sortCriterionValue, SortOrder sortOrder) {
 		removeAllComponents();
-		addComponent(buildSortComponent(sortableMetadata, sortCriterionValue, sortOrder));
+
+		if (isSortComponentVisible()) {
+			addComponent(buildSortComponent(sortableMetadata, sortCriterionValue, sortOrder));
+		}
+
 
 		for (FacetVO facet : facets) {
 			addComponent(buildFacetComponent(facet, facetSelections.get(facet.getId())));
@@ -247,6 +254,15 @@ public abstract class FacetsPanel extends VerticalLayout {
 			layout.addStyleName("facet-box");
 		}
 		return layout;
+	}
+
+
+	public void setSortComponentVisible(boolean sortComponentVisible) {
+		this.sortComponentVisible = sortComponentVisible;
+	}
+
+	public boolean isSortComponentVisible() {
+		return sortComponentVisible;
 	}
 
 	protected abstract void sortCriterionSelected(String sortCriterion, SortOrder sortOrder);

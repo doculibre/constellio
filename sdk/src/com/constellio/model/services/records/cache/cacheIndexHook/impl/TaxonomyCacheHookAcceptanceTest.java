@@ -957,7 +957,7 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 		if (write) {
 			query.filteredWithUserWrite(user);
 		} else {
-			query.filteredWithUser(user);
+			query.filteredWithUserRead(user);
 		}
 
 
@@ -975,12 +975,12 @@ public class TaxonomyCacheHookAcceptanceTest extends ConstellioTest {
 		} else {
 			query.setCondition(from(rm.folder.schemaType()).where(Schemas.PATH_PARTS).isEqualTo(unit.getId()));
 		}
-		query.filteredWithUser(user);
+		query.filteredWithUserRead(user);
 
 		if (write) {
 			query.filteredWithUserWrite(user);
 		} else {
-			query.filteredWithUser(user);
+			query.filteredWithUserRead(user);
 		}
 
 		return searchServices.hasResults(query);

@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.systemCheck;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FileResource;
@@ -79,7 +80,7 @@ public class SystemCheckViewImpl extends BaseViewImpl implements SystemCheckView
 
 		referenceLayout = new HorizontalLayout();
 		referenceLayout.setSpacing(true);
-		idField = new TextField();
+		idField = new BaseTextField();
 
 		findReferences = new Button($("SystemCheckView.findReferencesToId"));
 		findReferences.addClickListener(new ClickListener() {

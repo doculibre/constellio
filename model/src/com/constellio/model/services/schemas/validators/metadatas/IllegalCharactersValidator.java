@@ -30,6 +30,10 @@ public class IllegalCharactersValidator implements RecordMetadataValidator<Strin
 			return true;
 		}
 
-		return !ILLEGAL_CHARACTERS.matcher(value).find();
+		return !match(value);
+	}
+
+	public static boolean match(String value) {
+		return value != null && ILLEGAL_CHARACTERS.matcher(value).find();
 	}
 }

@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class DecommissioningSecurityService {
 	RMSchemasRecordsServices rm;
 	TaxonomiesSearchServices taxonomiesSearchServices;
@@ -43,7 +45,7 @@ public class DecommissioningSecurityService {
 			}
 		}
 
-		return false;
+		return isSuperUserOnSomething(user);
 	}
 
 	public boolean hasAccessToDecommissioningListPage(DecommissioningList list, User user) {
@@ -71,6 +73,10 @@ public class DecommissioningSecurityService {
 	}
 
 	private boolean hasPermissionOnList(User user, DecommissioningList list, String permission) {
+		if (user.getId().equals(list.getSuperUser())) {
+			return true;
+		}
+
 		String administrativeUnitId = list.getAdministrativeUnit();
 		if (administrativeUnitId != null) {
 			AdministrativeUnit administrativeUnit = rm.getAdministrativeUnit(administrativeUnitId);
@@ -122,7 +128,7 @@ public class DecommissioningSecurityService {
 		List<String> tabs;
 		boolean createDecommissioningListPerm = user.has(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST).onSomething();
 		if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()
-			|| createDecommissioningListPerm) {
+			|| createDecommissioningListPerm || isSuperUserOnSomething(user)) {
 			tabs = new ArrayList<>(Arrays.asList(
 					DecommissioningMainPresenter.GENERATED,
 					DecommissioningMainPresenter.PENDING_VALIDATION,
@@ -184,5 +190,10 @@ public class DecommissioningSecurityService {
 	public boolean isListOfSearchTypeTransfer(DecommissioningList list) {
 		return DecommissioningListType.FOLDERS_TO_TRANSFER.equals(list.getDecommissioningListType())
 			   && OriginStatus.ACTIVE.equals(list.getOriginArchivisticStatus());
+	}
+
+	private boolean isSuperUserOnSomething(User user) {
+		return searchServices.hasResults(from(rm.decommissioningList.schemaType())
+				.where(rm.decommissioningList.superUser()).isEqualTo(user.getId()));
 	}
 }

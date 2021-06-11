@@ -174,7 +174,7 @@ public class AddEditCollectionPresenter extends BasePresenter<AddEditCollectionV
 		}
 		Set<String> languages = entity.getSupportedLanguages();
 		Record record = collectionsManager
-				.createCollectionInCurrentVersion(collectionCode, collectionName, new ArrayList<>(languages));
+				.createCollection(collectionCode, collectionName, new ArrayList<>(languages));
 		updateCollectionModules(entity, record, collectionCode, modules);
 		runScriptsFromConfigs(collectionCode);
 

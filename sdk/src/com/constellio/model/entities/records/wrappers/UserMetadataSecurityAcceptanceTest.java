@@ -54,7 +54,7 @@ public class UserMetadataSecurityAcceptanceTest extends ConstellioTest {
 		user.setCollectionReadAccess(false);
 		recordServices.update(user);
 
-		Folder folder = rmSchemasRecordsServices.getFolderSummary(records.folder_A16);
+		Folder folder = rmSchemasRecordsServices.getFolder(records.folder_A16);
 
 		// Validate that the user does not have the permission directly
 		assertThat(user.getAllRoles().contains("ADM")).isEqualTo(false);
@@ -96,7 +96,7 @@ public class UserMetadataSecurityAcceptanceTest extends ConstellioTest {
 		user.setCollectionReadAccess(false);
 		recordServices.update(user);
 
-		Folder folder = rmSchemasRecordsServices.getFolderSummary(records.folder_A16);
+		Folder folder = rmSchemasRecordsServices.getFolder(records.folder_A16);
 
 		setFolderCategoryMetadataWithAccessRestriction("ADM");
 

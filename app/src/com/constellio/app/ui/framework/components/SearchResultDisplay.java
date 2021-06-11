@@ -129,6 +129,10 @@ public class SearchResultDisplay extends VerticalLayout {
 		this.extraParam = extraParam;
 	}
 
+	public void addVisitedStyleNameToTitle() {
+		ComponentTreeUtils.getFirstChild(titleLink, Button.class).addStyleName("visited-link");
+	}
+
 	private void init() {
 		RecordVO recordVO = searchResultVO.getRecordVO();
 

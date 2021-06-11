@@ -14,6 +14,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 
@@ -38,6 +39,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	protected boolean writeAccess;
 	protected boolean includeDeactivated;
 	protected boolean includeLogicallyDeleted;
+	protected VisibilityStatusFilter visibilityStatus = VisibilityStatusFilter.ALL;
 	protected ConverterWithCache<String, String> converterWithCache;
 	protected List<String> idsToIgnore;
 
@@ -66,6 +68,13 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 									   String schemaTypeCode, String schemaCode, boolean writeAccess,
 									   boolean includeDeactivated, boolean onlyLinkables,
 									   boolean includeLogicallyDeleted) {
+		this(constellioFactories, sessionContext, schemaTypeCode, schemaCode, writeAccess, includeDeactivated, onlyLinkables, includeLogicallyDeleted, VisibilityStatusFilter.ALL);
+	}
+
+	public RecordTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext,
+									   String schemaTypeCode, String schemaCode, boolean writeAccess,
+									   boolean includeDeactivated, boolean onlyLinkables,
+									   boolean includeLogicallyDeleted, VisibilityStatusFilter visibilityStatus  ) {
 		this.writeAccess = writeAccess;
 		this.sessionContext = sessionContext;
 		this.schemaTypeCode = schemaTypeCode;
@@ -77,7 +86,9 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		this.onlyLinkables = onlyLinkables;
 		this.includeLogicallyDeleted = includeLogicallyDeleted;
 		this.idsToIgnore = new ArrayList<>();
+		this.visibilityStatus = visibilityStatus;
 	}
+
 
 	public RecordTextInputDataProvider addIdToToIgnore(List<String> idToIgnore) {
 		if (idToIgnore != null) {
@@ -182,6 +193,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 				.onlyLinkables(onlyLinkables)
 				.includeDeactivated(includeDeactivated)
 				.includeLogicallyDeleted(includeLogicallyDeleted)
+				.visibilityStatus(visibilityStatus)
 				.idsToIgnore(idsToIgnore)
 				.build().searchQuery();
 	}

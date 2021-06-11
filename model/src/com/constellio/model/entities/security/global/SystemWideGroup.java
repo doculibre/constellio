@@ -52,7 +52,7 @@ public class SystemWideGroup {
 	String toString;
 
 	public boolean isLocallyCreated() {
-		return Boolean.TRUE.equals(locallyCreated);
+		return !Boolean.FALSE.equals(locallyCreated);
 	}
 
 	public String toString() {

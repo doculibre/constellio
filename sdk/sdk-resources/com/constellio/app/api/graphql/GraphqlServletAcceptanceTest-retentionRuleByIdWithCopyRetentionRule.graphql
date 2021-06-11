@@ -1,0 +1,12 @@
+query retentionRuleById {
+    retentionRuleById(id: "ruleId_1") {
+        id
+        copyRetentionRules {
+            copyType
+            activeRetentionPeriod
+            mediumTypes {
+                code
+            }
+        }
+    }
+}

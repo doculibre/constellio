@@ -16,7 +16,6 @@ import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.cache.LocalCacheConfigs;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.cacheIndexConditions.MetadataValueIndexCacheIdsStreamer;
 import com.constellio.model.services.records.cache.cacheIndexConditions.SortedIdsStreamer;
@@ -81,7 +80,6 @@ public class LogicalSearchQueryExecutorInCache {
 	String mainDataLanguage;
 	SearchConfigurationsManager searchConfigurationsManager;
 	ConstellioEIMConfigs constellioEIMConfigs;
-	LocalCacheConfigs localCacheConfigs;
 
 	public LogicalSearchQueryExecutorInCache(SearchServices searchServices, RecordsCaches recordsCaches,
 											 MetadataSchemasManager schemasManager,
@@ -96,7 +94,7 @@ public class LogicalSearchQueryExecutorInCache {
 		this.modelLayerExtensions = modelLayerExtensions;
 		this.mainDataLanguage = mainDataLanguage;
 		this.searchConfigurationsManager = searchConfigurationsManager;
-		this.localCacheConfigs = recordsCaches == null ? null : recordsCaches.getLocalCacheConfigs();
+
 	}
 
 	public Stream<Record> stream(LogicalSearchQuery query)
@@ -134,6 +132,34 @@ public class LogicalSearchQueryExecutorInCache {
 			if (!query.getSortFields().isEmpty()) {
 				List<Record> records = consummeForSorting(stream, query, schemaType);
 				if (query.getSkipSortingOverRecordSize() == -1 || records.size() <= query.getSkipSortingOverRecordSize()) {
+
+					Comparator<Record> comparator = newQuerySortFieldsComparator(query, schemaType);
+					if (Toggle.DEBUG_CACHE_SORTS.isEnabled()) {
+						for (int i = 0; i < records.size(); i++) {
+							for (int j = 0; j < records.size(); j++) {
+								int compare1 = comparator.compare(records.get(i), records.get(j));
+								int compare2 = comparator.compare(records.get(j), records.get(i));
+								compare1 = compare1 > 0 ? 1 : compare1;
+								compare1 = compare1 < 0 ? -1 : compare1;
+								compare2 = compare2 > 0 ? 1 : compare2;
+								compare2 = compare2 < 0 ? -1 : compare2;
+								if (compare1 != -1 * compare2) {
+									StringBuilder details = new StringBuilder();
+
+									for (LogicalSearchQuerySort sort : query.getSortFields()) {
+										FieldLogicalSearchQuerySort fieldSort = (FieldLogicalSearchQuerySort) sort;
+										Metadata metadata =
+												schemaType.getDefaultSchema().getMetadataByDatastoreCode(fieldSort.getField().getDataStoreCode());
+										details.append("\n" + fieldSort.getField().getDataStoreCode() + " : " + records.get(i).get(metadata) + " ; " + records.get(j).get(metadata));
+									}
+
+
+									throw new RuntimeException("Comparison of records " + records.get(i) + " and " + records.get(j) + " failed. " + details.toString());
+								}
+							}
+						}
+					}
+
 					records.sort(newQuerySortFieldsComparator(query, schemaType));
 				}
 
@@ -593,7 +619,7 @@ public class LogicalSearchQueryExecutorInCache {
 							}
 						}
 
-						if (localCacheConfigs.excludedDuringLastCacheRebuild(metadata)) {
+						if (recordsCaches.getLocalCacheConfigs().excludedDuringLastCacheRebuild(metadata)) {
 							return false;
 						}
 
@@ -663,12 +689,12 @@ public class LogicalSearchQueryExecutorInCache {
 			return false;
 
 		} else if (schemaType.getCacheType() == RecordCacheType.FULLY_CACHED) {
-			return condition.isSupportingMemoryExecution(new IsSupportingMemoryExecutionParams(false, requiringCacheExecution, localCacheConfigs, schemaType))
+			return condition.isSupportingMemoryExecution(new IsSupportingMemoryExecutionParams(false, requiringCacheExecution, recordsCaches.getLocalCacheConfigs(), schemaType))
 				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
 		} else if (schemaType.getCacheType().hasPermanentCache()) {
 			//Verify that schemaType is loaded
 			return (returnedMetadatasFilter.isOnlySummary() || returnedMetadatasFilter.isOnlyId()) &&
-				   condition.isSupportingMemoryExecution(new IsSupportingMemoryExecutionParams(true, requiringCacheExecution, localCacheConfigs, schemaType))
+				   condition.isSupportingMemoryExecution(new IsSupportingMemoryExecutionParams(true, requiringCacheExecution, recordsCaches.getLocalCacheConfigs(), schemaType))
 				   && (!queryExecutionMethod.requiringCacheIndexBaseStream(schemaType.getCacheType()) || findRequiredFieldEqualCondition(condition, schemaType) != null);
 		} else {
 			return false;

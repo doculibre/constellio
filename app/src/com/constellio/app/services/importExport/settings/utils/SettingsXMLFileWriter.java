@@ -446,6 +446,12 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 					}
 					break;
 
+				case "advancedSequence":
+					if (StringUtils.isNotBlank(dataEntry.getAdvancedSequenceCalculatorClass())) {
+						dataEntryElem.setAttribute("advancedSequenceCalculator", dataEntry.getAdvancedSequenceCalculatorClass());
+					}
+					break;
+
 				default:
 					break;
 			}

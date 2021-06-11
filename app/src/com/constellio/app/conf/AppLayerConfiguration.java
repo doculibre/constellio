@@ -18,6 +18,8 @@ public interface AppLayerConfiguration {
 
 	File getSetupProperties();
 
+	File getSignatureKey();
+
 	boolean isFastMigrationsEnabled();
 
 	List<Language> getSupportedLanguages();

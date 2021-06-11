@@ -6,6 +6,10 @@ import com.constellio.model.services.encrypt.EncryptionServicesRuntimeException.
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.openssl.PEMWriter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.bouncycastle.openssl.jcajce.JcaPKCS8Generator;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -21,12 +25,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.Key;
 import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Signature;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -325,6 +335,71 @@ public class EncryptionServices {
 	//
 	// RSA
 	//
+
+	public KeyPair generateRSAKeyPair() {
+		try {
+			KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+			kpg.initialize(4096, new SecureRandom());
+			return kpg.generateKeyPair();
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("Cannot generate key", e);
+		}
+	}
+
+	public void writePrivateKeyToFile(PrivateKey key, File keyFile) {
+		try (StringWriter privateWrite = new StringWriter();
+			 JcaPEMWriter privatePemWriter = new JcaPEMWriter(privateWrite)) {
+			JcaPKCS8Generator pkcs8Gen = new JcaPKCS8Generator(key, null);
+			privatePemWriter.writeObject(pkcs8Gen.generate());
+			privatePemWriter.close();
+			String pkcs8PrivateKey = privateWrite.toString();
+			Files.write(keyFile.toPath(), pkcs8PrivateKey.getBytes("UTF-8"));
+		} catch (IOException e) {
+			throw new RuntimeException("Could not write private key to file", e);
+		}
+	}
+
+	public void writePublicKeyToFile(PublicKey key, File keyFile) {
+		try (StringWriter publicWrite = new StringWriter();
+			 PEMWriter publicPemWriter = new PEMWriter(publicWrite)) {
+			publicPemWriter.writeObject(key);
+			publicPemWriter.close();
+			String privateKey = publicWrite.toString();
+			Files.write(keyFile.toPath(), privateKey.getBytes("UTF-8"));
+		} catch (IOException e) {
+			throw new RuntimeException("Could not write private key to file", e);
+		}
+	}
+
+	public String sign(String text, PrivateKey privateKey) {
+		if (StringUtils.isBlank(text)) {
+			return null;
+		}
+
+		try {
+			Signature signature = Signature.getInstance("SHA256withRSA");
+			signature.initSign(privateKey);
+			signature.update(text.getBytes(StandardCharsets.UTF_8));
+			return Base64.encodeBase64URLSafeString(signature.sign());
+		} catch (Exception e) {
+			throw new RuntimeException("Couldn't sign '" + text + "'", e);
+		}
+	}
+
+	public boolean verify(String text, String expected, PublicKey publicKey) {
+		if (StringUtils.isBlank(text) || StringUtils.isBlank(expected)) {
+			return false;
+		}
+
+		try {
+			Signature signature = Signature.getInstance("SHA256withRSA");
+			signature.initVerify(publicKey);
+			signature.update(text.getBytes(StandardCharsets.UTF_8));
+			return signature.verify(Base64.decodeBase64(expected));
+		} catch (Exception e) {
+			return false;
+		}
+	}
 
 	public String encryptKey(Key toEncrypt, PublicKey key) {
 		if (toEncrypt == null) {

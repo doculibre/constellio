@@ -40,6 +40,8 @@ public class ConstellioEIMConfigs {
 
 	//Retention calendar configs
 
+	public static final SystemConfiguration REMOVE_BRACKETS_IN_EXCEL_REPORTS;
+
 	public static final SystemConfiguration DEFAULT_PARSING_BEHAVIOR;
 
 	public static final SystemConfiguration INCLUDE_CONTENTS_IN_SAVESTATE;
@@ -53,8 +55,6 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration FILE_EXTENSIONS_EXCLUDED_FROM_PARSING;
 	public static final SystemConfiguration BACKGROUND_RECORDS_REINDEXING_MODE;
 	public static final SystemConfiguration PDFTRON_LICENSE;
-	public static final SystemConfiguration SIGNING_KEYSTORE;
-	public static final SystemConfiguration SIGNING_KEYSTORE_PASSWORD;
 
 	public static final SystemConfiguration METADATA_POPULATE_PRIORITY, TITLE_METADATA_POPULATE_PRIORITY;
 	public static final SystemConfiguration LOGO;
@@ -136,6 +136,10 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration IS_RUNNING_WITH_SOLR_6;
 	public static final SystemConfiguration PRIVACY_POLICY;
 	public static final SystemConfiguration LOGIN_NOTIFICATION_ALERT;
+	public static final SystemConfiguration INTERNAL_SERVER_URL;
+	public static final SystemConfiguration LICENSE_INFO_PAGES_URL;
+	public static final SystemConfiguration UPDATE_SERVER_PING_ENABLED;
+	public static final SystemConfiguration UPDATE_SERVER_PING_INTERVAL;
 	public static final SystemConfiguration ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE;
 	public static final SystemConfiguration INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS;
 
@@ -178,11 +182,16 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration ALWAYS_SEARCH_USING_EDISMAX;
 	public static final SystemConfiguration SEARCH_USING_TERMS_IN_BQ;
 
+	public static final SystemConfiguration LDAP_DETAILED_REPORT;
+
 	public static final SystemConfiguration ASK_FOR_CONFIRMATION_BEFORE_EDIT_OR_DELETE;
 	public static final SystemConfiguration ENABLE_ILLEGAL_CHARACTERS_VALIDATION;
 	public static final SystemConfiguration CALENDAR_COUNTRY;
 
 	public static final SystemConfiguration DEFAULT_TABLE_MODE;
+
+	public static final SystemConfiguration HIDE_LEADING_ZEROS_WHEN_DISPLAYING_ID;
+	public static final SystemConfiguration SHOW_MESSAGE_TO_USER_AT_LOGIN;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -200,6 +209,7 @@ public class ConstellioEIMConfigs {
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
 		add(AUTHENTIFICATION_IMAGE = others.createBinary("authentificationImage"));
 		add(PRIVACY_POLICY = others.createBinary("privacyPolicy"));
+
 		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
 				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
@@ -221,9 +231,6 @@ public class ConstellioEIMConfigs {
 				.withDefaultValue(BackgroundRecordsReindexingMode.SLOW).whichIsHidden());
 		add(PDFTRON_LICENSE = advanced.createString("pdftronLicense"));
 
-		add(SIGNING_KEYSTORE = advanced.createBinary("signingKeystore"));
-		add(SIGNING_KEYSTORE_PASSWORD = advanced.createString("signingPassword").whichHasHiddenValue());
-
 		add(CLEAN_DURING_INSTALL = advanced.createBooleanFalseByDefault("cleanDuringInstall"));
 
 		add(LEGACY_IDENTIFIER_INDEXED_IN_MEMORY = advanced.createBooleanFalseByDefault("legacyIdentifierIndexedInMemory")
@@ -234,6 +241,12 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup hiddenSystemConfigs = new SystemConfigurationGroup(null, "system");
 		add(IN_UPDATE_PROCESS = hiddenSystemConfigs.createBooleanFalseByDefault("inUpdateProcess").whichIsHidden());
 		add(LOGIN_NOTIFICATION_ALERT = hiddenSystemConfigs.createBinary("loginNotificationAlert").whichIsHidden());
+		add(INTERNAL_SERVER_URL = hiddenSystemConfigs.createString("internalServerUrl").whichIsHidden());
+		add(LICENSE_INFO_PAGES_URL = hiddenSystemConfigs.createString("licenseInfoPagesUrl").whichIsHidden()
+				.withDefaultValue("https://update.cloud.constellio.com/constellio/dl?id=00000505528;https://update.cloud.constellio.com/constellio/dl?id=00000505532"));
+		add(UPDATE_SERVER_PING_ENABLED = hiddenSystemConfigs.createBooleanTrueByDefault("updateServerPingEnabled").whichIsHidden());
+		add(UPDATE_SERVER_PING_INTERVAL = hiddenSystemConfigs.createInteger("updateServerPingInterval")
+				.withDefaultValue(1440).whichIsHidden());
 		add(BATCH_PROCESSING_LIMIT = others.createInteger("batchProcessingLimit").withDefaultValue(-1));
 		add(TRASH_PURGE_DELAI = others.createInteger("trashPurgeDelaiInDays").withDefaultValue(30));
 		add(DEFAULT_START_TAB = others.createString("defaultStartTab").withDefaultValue("taxonomies"));
@@ -322,6 +335,8 @@ public class ConstellioEIMConfigs {
 
 		SystemConfigurationGroup reports = new SystemConfigurationGroup(null, "reports");
 
+		add(REMOVE_BRACKETS_IN_EXCEL_REPORTS = reports.createBooleanFalseByDefault("removeBracketsInExcelReports"));
+
 		add(ENABLE_STATISTIC_REPORT = reports.createBooleanTrueByDefault("enableStatisticReport"));
 		add(REMOVE_TAB_AND_NEW_LINE_ON_DELTA_FIELD_IN_EDIT_REPORT = reports
 				.createBooleanTrueByDefault("removeTabAndNewLineOnDeltaFieldInEditReport"));
@@ -369,6 +384,14 @@ public class ConstellioEIMConfigs {
 		add(SEARCH_USING_TERMS_IN_BQ = search.createBooleanTrueByDefault("searchUsingBQ").whichIsHidden());
 
 		add(DEFAULT_TABLE_MODE = others.createEnum("defaultTableMode", TableMode.class).withDefaultValue(TableMode.LIST));
+
+		SystemConfigurationGroup signature = new SystemConfigurationGroup(null, "signature");
+
+		add(LDAP_DETAILED_REPORT = advanced.createBooleanFalseByDefault("ldapDetailedReport").whichIsHidden());
+
+		add(HIDE_LEADING_ZEROS_WHEN_DISPLAYING_ID = others.createBooleanFalseByDefault("hideTrailingZerosWhenDisplayingId"));
+
+		add(SHOW_MESSAGE_TO_USER_AT_LOGIN = others.createBinary("showMessageToUserAtLogin"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -616,6 +639,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(ENABLE_STATISTIC_REPORT);
 	}
 
+	public boolean isBraketsRemovedInExcelReports() {
+		return manager.getValue(REMOVE_BRACKETS_IN_EXCEL_REPORTS);
+	}
+
 	public boolean isAddingSecondarySortWhenSortingByScoreOrTitle() {
 		return manager.getValue(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE);
 	}
@@ -727,5 +754,21 @@ public class ConstellioEIMConfigs {
 
 	public TableMode getDefaultTableMode() {
 		return manager.getValue(DEFAULT_TABLE_MODE);
+	}
+
+	public boolean isLdapDetailReportEnabled() {
+		return manager.getValue(LDAP_DETAILED_REPORT);
+	}
+
+	public String getInternalServerUrl() {
+		return manager.getValue(INTERNAL_SERVER_URL);
+	}
+
+	public boolean isLeadingZerosHiddenWhenDisplayingID() {
+		return manager.getValue(HIDE_LEADING_ZEROS_WHEN_DISPLAYING_ID);
+	}
+
+	public int getUpdateServerPingInterval() {
+		return manager.getValue(UPDATE_SERVER_PING_INTERVAL);
 	}
 }

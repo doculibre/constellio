@@ -28,5 +28,6 @@ public class RMEmailTemplateConstants {
 	public static final String ACCEPTED = "Accepted";
 	public static final String DENIED = "Denied";
 	public static final String ALERT_DECOMMISSIONING_ENDED = "alertDecommissioningEnded";
-	public static final String EXTERNAL_SIGNATURE_REQUEST = "externalSignatureRequest";
+	public static final String SIGNATURE_REQUEST = "externalSignatureRequest";
+	public static final String ALERT_IMPORTATION_ENDED = "alertImportationEnded";
 }

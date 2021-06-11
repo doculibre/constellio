@@ -2,11 +2,13 @@ package com.constellio.app.ui.pages.management.ldap;
 
 import com.constellio.app.ui.framework.components.StringListComponent;
 import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.config.UserNameType;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.CheckBox;
@@ -14,14 +16,16 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextArea;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static org.mockito.Mockito.when;
 
 public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements LDAPConfigManagementView {
 	private AzurAuthenticationTab azurAuthenticationTab;
@@ -154,10 +158,9 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 			authorityTenantId = createStringField(ldapServerConfiguration.getTenantName(), true);
 			authorityTenantId.setCaption($("LDAPConfigManagementView.authorityTenantId"));
-			HorizontalLayout authority = new HorizontalLayout(authorityTenantId);
-			addComponent(authority);
+			addComponent(authorityTenantId);
 
-			userField = new TextField($("LDAPConfigManagementView.testAuthenticationUser"));
+			userField = new BaseTextField($("LDAPConfigManagementView.testAuthenticationUser"));
 			addComponent(userField);
 
 			passwordField = new EditablePasswordField($("LDAPConfigManagementView.testAuthenticationPassword"));
@@ -190,6 +193,11 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 	private class AzurSynchTab extends VerticalLayout {
 		Field applicationKey, clientId;
+		private OptionGroup usernameTypeOptions;
+		private final List<String> options = Arrays.asList(new String[]{UserNameType.MAIL_NICKNAME.getCode(), UserNameType.EMAIL.getCode()});
+		private CheckBox fetchSubGroupsCheckbox;
+		private CheckBox ignoreRegexForSubGroupsCheckbox;
+		private CheckBox syncUsersOnlyIfInAcceptedGroupsCheckbox;
 
 		private AzurSynchTab() {
 			LDAPUserSyncConfiguration ldapUserSyncConfiguration = presenter.getLDAPUserSyncConfiguration();
@@ -201,6 +209,8 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 
 			buildCollectionsPanel();
 			addComponent(collectionsComponent);
+
+			usernameTypeOptions = buildOptionsComponent(ldapUserSyncConfiguration);
 
 			clientId = createStringField(ldapUserSyncConfiguration.getClientId(), true);
 			clientId.setCaption($("LDAPConfigManagementView.clientId"));
@@ -219,6 +229,24 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			addComponent(groupsAcceptanceRegexField);
 			buildGroupsRejectRegex(ldapUserSyncConfiguration);
 			addComponent(groupsRejectionRegexField);
+
+			boolean fetchSubGroups = ldapUserSyncConfiguration.isFetchSubGroups();
+			fetchSubGroupsCheckbox = new CheckBox($("ldap.syncConfiguration.fetchSubGroups"));
+			fetchSubGroupsCheckbox.setDescription($("ldap.syncConfiguration.fetchSubGroups.description"));
+			fetchSubGroupsCheckbox.setValue(fetchSubGroups);
+			addComponent(fetchSubGroupsCheckbox);
+
+			boolean ignoreRegexForSubGroups = ldapUserSyncConfiguration.isIgnoreRegexForSubGroups();
+			ignoreRegexForSubGroupsCheckbox = new CheckBox($("ldap.syncConfiguration.ignoreRegexForSubGroups"));
+			ignoreRegexForSubGroupsCheckbox.setDescription($("ldap.syncConfiguration.ignoreRegexForSubGroups.description"));
+			ignoreRegexForSubGroupsCheckbox.setValue(ignoreRegexForSubGroups);
+			addComponent(ignoreRegexForSubGroupsCheckbox);
+
+			boolean syncUsersOnlyIfInAcceptedGroups = ldapUserSyncConfiguration.isSyncUsersOnlyIfInAcceptedGroups();
+			syncUsersOnlyIfInAcceptedGroupsCheckbox = new CheckBox($("ldap.syncConfiguration.syncUsersOnlyIfInAcceptedGroups"));
+			syncUsersOnlyIfInAcceptedGroupsCheckbox.setDescription($("ldap.syncConfiguration.syncUsersOnlyIfInAcceptedGroups.description"));
+			syncUsersOnlyIfInAcceptedGroupsCheckbox.setValue(syncUsersOnlyIfInAcceptedGroups);
+			addComponent(syncUsersOnlyIfInAcceptedGroupsCheckbox);
 		}
 
 		public String getApplicationKey() {
@@ -228,14 +256,38 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		public LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
 			AzureADUserSynchConfig azurUserSynchConfig = new AzureADUserSynchConfig()
 					.setApplicationKey(azurSynchTab.getApplicationKey())
-					.setClientId(azurSynchTab.getClientId());
+					.setClientId(azurSynchTab.getClientId())
+					.setUserNameType(azurSynchTab.getUsernameType());
 			return new LDAPUserSyncConfiguration(azurUserSynchConfig, getUserFilter(), getGroupsFilter(),
-					scheduleComponentField.getPeriod(), scheduleComponentField.getTimeList(), selectedCollections());
+					scheduleComponentField.getPeriod(), scheduleComponentField.getTimeList(), selectedCollections(), 
+					fetchSubGroupsCheckbox.getValue(), ignoreRegexForSubGroupsCheckbox.getValue(), syncUsersOnlyIfInAcceptedGroupsCheckbox.getValue());
 		}
 
 		private String getClientId() {
 			return (String) clientId.getValue();
 		}
+		private String getUsernameType(){return (String) usernameTypeOptions.getValue();}
+
+		private OptionGroup buildOptionsComponent(LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+			final OptionGroup usernameTypeOptions = new OptionGroup($("ldap.syncConfiguration.userNameType"), options);
+
+			usernameTypeOptions.setItemCaption( UserNameType.MAIL_NICKNAME.getCode(), $("ldap.syncConfiguration.userNameTypeMailNickname"));
+			usernameTypeOptions.setItemCaption( UserNameType.EMAIL.getCode(), $("ldap.syncConfiguration.userNameTypeEmail"));
+
+			usernameTypeOptions.setNullSelectionAllowed(true);
+			usernameTypeOptions.setImmediate(true);
+
+			addComponent(usernameTypeOptions);
+
+			if (ldapUserSyncConfiguration.getClientId() == null) {
+				usernameTypeOptions.select(options.get(0));
+			} else {
+				usernameTypeOptions.select(ldapUserSyncConfiguration.getUsernameType());
+			}
+
+			return usernameTypeOptions;
+		}
+
 	}
 
 	private class DefaultAuthenticationTab extends VerticalLayout {
@@ -287,6 +339,9 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 		private StringListComponent userFilterGroupsField;
 		private Field userField;
 		private EditablePasswordField passwordField;
+		private CheckBox fetchSubGroupsCheckbox;
+		private CheckBox ignoreRegexForSubGroupsCheckbox;
+		private CheckBox syncUsersOnlyIfInAcceptedGroupsCheckbox;
 
 		private DefaultSynchTab() {
 			setSizeFull();
@@ -348,6 +403,24 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			membershipAutomaticDerivationActivatedCheckbox = new CheckBox($("ldap.syncConfiguration.membershipAutomaticDerivationActivated"));
 			membershipAutomaticDerivationActivatedCheckbox.setValue(membershipAutomaticDerivationActivated);
 			layout.addComponent(membershipAutomaticDerivationActivatedCheckbox);
+
+			boolean fetchSubGroups = ldapUserSyncConfiguration.isFetchSubGroups();
+			fetchSubGroupsCheckbox = new CheckBox($("ldap.syncConfiguration.fetchSubGroups"));
+			fetchSubGroupsCheckbox.setDescription($("ldap.syncConfiguration.fetchSubGroups.description"));
+			fetchSubGroupsCheckbox.setValue(fetchSubGroups);
+			layout.addComponent(fetchSubGroupsCheckbox);
+
+			boolean ignoreRegexForSubGroups = ldapUserSyncConfiguration.isIgnoreRegexForSubGroups();
+			ignoreRegexForSubGroupsCheckbox = new CheckBox($("ldap.syncConfiguration.ignoreRegexForSubGroups"));
+			ignoreRegexForSubGroupsCheckbox.setDescription($("ldap.syncConfiguration.ignoreRegexForSubGroups.description"));
+			ignoreRegexForSubGroupsCheckbox.setValue(ignoreRegexForSubGroups);
+			layout.addComponent(ignoreRegexForSubGroupsCheckbox);
+
+			boolean syncUsersOnlyIfInAcceptedGroups = ldapUserSyncConfiguration.isSyncUsersOnlyIfInAcceptedGroups();
+			syncUsersOnlyIfInAcceptedGroupsCheckbox = new CheckBox($("ldap.syncConfiguration.syncUsersOnlyIfInAcceptedGroups"));
+			syncUsersOnlyIfInAcceptedGroupsCheckbox.setDescription($("ldap.syncConfiguration.syncUsersOnlyIfInAcceptedGroups.description"));
+			syncUsersOnlyIfInAcceptedGroupsCheckbox.setValue(syncUsersOnlyIfInAcceptedGroups);
+//			layout.addComponent(syncUsersOnlyIfInAcceptedGroupsCheckbox);
 		}
 
 		public String getTestUser() {
@@ -363,8 +436,10 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 					notNull(userField), notNull(passwordField),
 					getUserFilter(), getGroupsFilter(),
 					scheduleComponentField.getPeriod(), scheduleComponentField.getTimeList(), groupsField.getValues(), usersField.getValues(),
-					userFilterGroupsField.getValues(), membershipAutomaticDerivationActivatedCheckbox.getValue(), selectedCollections());
+					userFilterGroupsField.getValues(), membershipAutomaticDerivationActivatedCheckbox.getValue(), selectedCollections(),
+					fetchSubGroupsCheckbox.getValue(), ignoreRegexForSubGroupsCheckbox.getValue(), syncUsersOnlyIfInAcceptedGroupsCheckbox.getValue());
 		}
+
 	}
 
 	private String notNull(Field field) {

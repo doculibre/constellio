@@ -4,21 +4,29 @@ import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitEx
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.services.RMRecordDeletionServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementViewImpl;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -82,15 +90,27 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 	}
 
 	@Test
-	public void whenCleaningAnAdministrativeUnitThenFoldersAndDocumentsNoLongerExist() {
+	public void whenCleaningAnAdministrativeUnitThenFoldersAndDocumentsNoLongerExist() throws RecordServicesException {
 		Record administrativeUnit = searchServices.searchSingleResult(from(rm.administrativeUnit.schema())
 				.where(rm.administrativeUnit.code()).isEqualTo("30C"));
 
-		long oldTotalNumFolder = searchServices.getResultsCount(from(rm.folder.schema()).returnAll());
-		long oldTotalNumDocument = searchServices.getResultsCount(from(rm.document.schema()).returnAll());
-		long oldNumFolderInAdminUnit = searchServices.getResultsCount(from(rm.folder.schema()).where(Schemas.PRINCIPAL_PATH)
+		Transaction tx = new Transaction();
+		Folder michelangelo = rm.newFolderWithType(records.folderTypeEmploye())
+				.setTitle("Michelangelo")
+				.setAdministrativeUnitEntered(administrativeUnit)
+				.setCategoryEntered(records.categoryId_X)
+				.setRetentionRuleEntered(records.ruleId_1)
+				.setOpenDate(TimeProvider.getLocalDate());
+		Document cawabonga = rm.newDocumentWithType(records.documentTypeReport())
+				.setTitle("Cawabonga")
+				.setFolder(michelangelo);
+		recordServices.execute(tx.addAll(michelangelo, cawabonga));
+
+		long oldTotalNumFolder = searchServices.getResultsCount(from(rm.folder.schemaType()).returnAll());
+		long oldTotalNumDocument = searchServices.getResultsCount(from(rm.document.schemaType()).returnAll());
+		long oldNumFolderInAdminUnit = searchServices.getResultsCount(from(rm.folder.schemaType()).where(Schemas.PRINCIPAL_PATH)
 				.isContainingText(administrativeUnit.getId()));
-		long oldNumDocumentInAdminUnit = searchServices.getResultsCount(from(rm.document.schema()).where(Schemas.PRINCIPAL_PATH)
+		long oldNumDocumentInAdminUnit = searchServices.getResultsCount(from(rm.document.schemaType()).where(Schemas.PRINCIPAL_PATH)
 				.isContainingText(administrativeUnit.getId()));
 		assertThat(oldTotalNumFolder).isNotEqualTo(0);
 		assertThat(oldTotalNumDocument).isNotEqualTo(0);
@@ -100,11 +120,11 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 		extension.decorateMainComponentBeforeViewAssembledOnViewEntered(new DecorateMainComponentAfterInitExtensionParams(view));
 		extension.cleanAdministrativeUnitButtonClicked(recordVO, users.adminIn(zeCollection));
 
-		long newTotalNumFolder = searchServices.getResultsCount(from(rm.folder.schema()).returnAll());
-		long newTotalNumDocument = searchServices.getResultsCount(from(rm.document.schema()).returnAll());
-		long newNumFolderInAdminUnit = searchServices.getResultsCount(from(rm.folder.schema()).where(Schemas.PRINCIPAL_PATH)
+		long newTotalNumFolder = searchServices.getResultsCount(from(rm.folder.schemaType()).returnAll());
+		long newTotalNumDocument = searchServices.getResultsCount(from(rm.document.schemaType()).returnAll());
+		long newNumFolderInAdminUnit = searchServices.getResultsCount(from(rm.folder.schemaType()).where(Schemas.PRINCIPAL_PATH)
 				.isContainingText(administrativeUnit.getId()));
-		long newNumDocumentInAdminUnit = searchServices.getResultsCount(from(rm.document.schema()).where(Schemas.PRINCIPAL_PATH)
+		long newNumDocumentInAdminUnit = searchServices.getResultsCount(from(rm.document.schemaType()).where(Schemas.PRINCIPAL_PATH)
 				.isContainingText(administrativeUnit.getId()));
 		assertThat(newNumFolderInAdminUnit).isEqualTo(0);
 		assertThat(newNumDocumentInAdminUnit).isEqualTo(0);
@@ -113,20 +133,39 @@ public class RMCleanAdministrativeUnitButtonExtensionAcceptanceTest extends Cons
 	}
 
 	@Test
-	public void whenCleaningAnAdministrativeUnitThenContainersNoLongerExist() {
+	public void whenCleaningAnAdministrativeUnitThenContainersNoLongerExist() throws RecordServicesException {
 		Record administrativeUnit = searchServices.searchSingleResult(from(rm.administrativeUnit.schema())
 				.where(rm.administrativeUnit.code()).isEqualTo("30C"));
 
-		long oldTotalNumContainer = searchServices.getResultsCount(from(rm.containerRecord.schema()).returnAll());
-		long oldNumContainerInAdminUnit = searchServices.getResultsCount(from(rm.containerRecord.schema()).where(Schemas.PRINCIPAL_PATH)
+		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		metadataSchemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			types.getSchemaType(ContainerRecord.SCHEMA_TYPE).createCustomSchema("gift");
+		});
+
+		Transaction tx = new Transaction();
+		Record giftType = rm.newContainerRecordType()
+				.setCode("gift")
+				.setTitle("Gift")
+				.getWrappedRecord();
+		Record gift = new ContainerRecord(recordServices.newRecordWithSchema(rm.schema(ContainerRecord.SCHEMA_TYPE + "_gift")),
+				metadataSchemasManager.getSchemaTypes(zeCollection))
+				.setType(giftType)
+				.setIdentifier("Pizza with pepperoni, ham, pineapple, and jalapeno")
+				.setAdministrativeUnits(asList(administrativeUnit))
+				.setDecommissioningType(DecommissioningType.DEPOSIT)
+				.getWrappedRecord();
+		this.recordServices.execute(tx.addAll(giftType, gift));
+
+		long oldTotalNumContainer = searchServices.getResultsCount(from(rm.containerRecord.schemaType()).returnAll());
+		long oldNumContainerInAdminUnit = searchServices.getResultsCount(from(rm.containerRecord.schemaType()).where(Schemas.PRINCIPAL_PATH)
 				.isContainingText(administrativeUnit.getId()));
 		assertThat(oldTotalNumContainer).isNotEqualTo(0);
 		assertThat(oldNumContainerInAdminUnit).isNotEqualTo(0);
 
 		RMRecordDeletionServices.cleanAdministrativeUnit(zeCollection, administrativeUnit.getId(), getAppLayerFactory());
 
-		long newTotalNumContainer = searchServices.getResultsCount(from(rm.containerRecord.schema()).returnAll());
-		long newNumContainerInAdminUnit = searchServices.getResultsCount(from(rm.containerRecord.schema()).where(Schemas.PRINCIPAL_PATH)
+		long newTotalNumContainer = searchServices.getResultsCount(from(rm.containerRecord.schemaType()).returnAll());
+		long newNumContainerInAdminUnit = searchServices.getResultsCount(from(rm.containerRecord.schemaType()).where(Schemas.PRINCIPAL_PATH)
 				.isContainingText(administrativeUnit.getId()));
 		assertThat(newNumContainerInAdminUnit).isEqualTo(0);
 		assertThat(newTotalNumContainer).isEqualTo(oldTotalNumContainer - oldNumContainerInAdminUnit);

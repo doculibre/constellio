@@ -7,6 +7,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -164,7 +165,7 @@ public class SearchBoostByQueryViewImpl extends BaseViewImpl implements SearchBo
 			@Override
 			protected Component buildWindowContent() {
 
-				final TextField labelField = new TextField($("SearchBoostByQueryView.labelField"));
+				final TextField labelField = new BaseTextField($("SearchBoostByQueryView.labelField"));
 				labelField.setRequired(true);
 				labelField.setId("labelField");
 				labelField.addStyleName("labelField");
@@ -173,7 +174,7 @@ public class SearchBoostByQueryViewImpl extends BaseViewImpl implements SearchBo
 					labelField.setValue(currentSearchBoostVO.getLabel());
 				}
 
-				final TextField valueField = new TextField($("SearchBoostByQueryView.valueField"));
+				final TextField valueField = new BaseTextField($("SearchBoostByQueryView.valueField"));
 				valueField.setRequired(true);
 				valueField.setId("valueField");
 				valueField.addStyleName("valueField");
@@ -182,7 +183,7 @@ public class SearchBoostByQueryViewImpl extends BaseViewImpl implements SearchBo
 					valueField.setValue(String.valueOf(currentSearchBoostVO.getValue()));
 				}
 
-				final TextField keyField = new TextField($("SearchBoostByQueryView.keyField"));
+				final TextField keyField = new BaseTextField($("SearchBoostByQueryView.keyField"));
 				keyField.setRequired(true);
 				keyField.setId("keyField");
 				keyField.addStyleName("keyField");

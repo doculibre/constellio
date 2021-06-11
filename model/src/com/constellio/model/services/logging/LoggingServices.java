@@ -33,9 +33,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class LoggingServices {
 
-	EventFactory eventFactory;
+	protected EventFactory eventFactory;
 
-	ModelLayerFactory modelLayerFactory;
+	protected ModelLayerFactory modelLayerFactory;
 
 	RecordServices recordServices;
 
@@ -161,8 +161,12 @@ public class LoggingServices {
 		executeTransaction(eventFactory.newRecordEvent(record, currentUser, EventType.CONSULTATION, null, dateTime));
 	}
 
+	public void logSignatureRequest(Record record, User user, LocalDateTime dateTime) {
+		executeTransaction(eventFactory.newSignatureEvent(EventType.SIGNATURE_REQUEST, record, user, null, dateTime), RecordsFlushing.NOW());
+	}
+
 	public void logSignedRecord(Record record, User user, LocalDateTime dateTime) {
-		executeTransaction(eventFactory.newSignedRecordEvent(record, user, null, dateTime));
+		executeTransaction(eventFactory.newSignatureEvent(EventType.SIGN_DOCUMENT, record, user, null, dateTime), RecordsFlushing.NOW());
 	}
 
 	public void returnRecord(Record record, User currentUser, LocalDateTime returnDateTime) {
@@ -257,16 +261,20 @@ public class LoggingServices {
 		return null;
 	}
 
-	private void executeTransaction(Event event) {
+	protected void executeTransaction(Event event) {
+		executeTransaction(event, RecordsFlushing.ADD_LATER());
+	}
+
+	protected void executeTransaction(Event event, RecordsFlushing recordsFlushing) {
 		if (event != null) {
-			executeTransaction(event.getWrappedRecord());
+			executeTransaction(event.getWrappedRecord(), recordsFlushing);
 		}
 	}
 
-	private void executeTransaction(Record record) {
+	private void executeTransaction(Record record, RecordsFlushing recordsFlushing) {
 		if (Toggle.AUDIT_EVENTS.isEnabled()) {
 			Transaction transaction = new Transaction();
-			transaction.setRecordFlushing(RecordsFlushing.ADD_LATER());
+			transaction.setRecordFlushing(recordsFlushing);
 			transaction.getRecordUpdateOptions().setSkipFindingRecordsToReindex(true);
 			transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
 			transaction.addUpdate(record);

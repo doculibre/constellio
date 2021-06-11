@@ -3,7 +3,10 @@ package com.constellio.model.services.batch.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskList {
@@ -27,6 +30,25 @@ public class TaskList {
 	void addSubTask(BatchProcessTask task) {
 		totalTasksCount.incrementAndGet();
 		task.fork();
+	}
+
+	void addSubTask(Runnable runnable) {
+		RecursiveTask recursiveTask = new RecursiveTask() {
+			@Override
+			protected Object compute() {
+				List<String> errors = new ArrayList<>();
+				try {
+					runnable.run();
+					onTaskFinished();
+				} catch (Exception e) {
+					e.printStackTrace();
+					LOGGER.error("Could not execute action", e);
+				}
+				return errors;
+			}
+		};
+		totalTasksCount.incrementAndGet();
+		recursiveTask.fork();
 	}
 
 	void onTaskFinished() {

@@ -129,6 +129,9 @@ public class ZipContentsService {
 		for (NodeContent nodeContent : node.getContents()) {
 			ContentVersion currentContentVersion = nodeContent.getContentCurrentVersion();
 			String contentTitle = nodeContent.getUniqueName();
+			if (contentTitle.length() > 120) {
+				contentTitle = contentTitle.substring(0, 97) + "..." + contentTitle.substring(contentTitle.length() - 20);
+			}
 			InputStream contentInputStream = contentManager
 					.getContentInputStream(currentContentVersion.getHash(), CONTENTS_FOLDER);
 			File currentFile = new File(nodeFile, contentTitle);
@@ -259,9 +262,17 @@ public class ZipContentsService {
 	private RecordToZipNode newRecordToZipNode(Record record) {
 		String recordId = record.getId();
 		String recordName = record.get(Schemas.TITLE);
+		String recordAbbreviation = null;
+
+		try {
+			recordAbbreviation = record.get(Schemas.ABBREVIATION);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
 		boolean canHaveChildren = canHaveChildren(
 				metadataSchemaManager.getSchemaTypes(collection).getSchema(record.getSchemaCode()));
-		return new RecordToZipNode(recordId, recordName, canHaveChildren);
+		return new RecordToZipNode(recordId, recordAbbreviation, recordName, canHaveChildren);
 	}
 
 	private List<String> removeRedundantRecords(List<String> recordIds) {

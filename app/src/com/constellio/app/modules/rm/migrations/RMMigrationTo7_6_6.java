@@ -144,7 +144,7 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 							.defineDataEntry().asUnion(documentFolder, documentTokensHierarchy);
 				}
 			//}
-			MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(BagInfo.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaTypeWithSecurity(BagInfo.SCHEMA_TYPE);
 			MetadataSchemaBuilder defaultBagInfoSchema = builder.getDefaultSchema();
 
 			defaultBagInfoSchema.create(BagInfo.ARCHIVE_TITLE).setType(MetadataValueType.STRING);

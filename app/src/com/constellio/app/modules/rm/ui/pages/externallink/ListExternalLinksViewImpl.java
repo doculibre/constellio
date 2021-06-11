@@ -39,6 +39,10 @@ public class ListExternalLinksViewImpl extends BaseViewImpl implements ListExter
 
 	private TabSheet tabSheet;
 
+	public static boolean isOffice365SelectPopupShowing = false;
+
+	private WindowButton externalLinksAddButton;
+
 	public ListExternalLinksViewImpl() {
 		presenter = new ListExternalLinksPresenter(this);
 	}
@@ -70,6 +74,10 @@ public class ListExternalLinksViewImpl extends BaseViewImpl implements ListExter
 			mainLayout.addComponent(tabSheet);
 
 			refreshTables();
+			if (!presenter.hasExternalLinks() && !isOffice365SelectPopupShowing) {
+				isOffice365SelectPopupShowing = true;
+				externalLinksAddButton.click();
+			}
 		} else {
 			Label errorLabel = new Label($("ListExternalLinksView.noSource"));
 			errorLabel.addStyleName("error-label");
@@ -87,7 +95,7 @@ public class ListExternalLinksViewImpl extends BaseViewImpl implements ListExter
 		WindowConfiguration config = singleSource != null
 									 ? new WindowConfiguration(true, true, "50%", "50%")
 									 : new WindowConfiguration(true, true, "30%", "25%");
-		WindowButton addButton = new WindowButton($("ListExternalLinksView.add"), windowTitle, config) {
+		externalLinksAddButton = new WindowButton($("ListExternalLinksView.add"), windowTitle, config) {
 			@Override
 			protected Component buildWindowContent() {
 				if (singleSource != null) {
@@ -99,18 +107,19 @@ public class ListExternalLinksViewImpl extends BaseViewImpl implements ListExter
 		};
 
 		if (singleSource != null) {
-			addButton.addCloseListener(new CloseListener() {
+			externalLinksAddButton.addCloseListener(new CloseListener() {
 				@Override
 				public void windowClose(CloseEvent e) {
 					refreshTables();
+					isOffice365SelectPopupShowing = false;
 				}
 			});
 		}
 
-		addButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-		addButton.addStyleName("add-button");
+		externalLinksAddButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		externalLinksAddButton.addStyleName("add-button");
 
-		return addButton;
+		return externalLinksAddButton;
 	}
 
 	private Component buildSourceSelectionWindow(Window window) {

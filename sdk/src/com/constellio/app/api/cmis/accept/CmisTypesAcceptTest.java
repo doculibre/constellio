@@ -1,6 +1,8 @@
 package com.constellio.app.api.cmis.accept;
 
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
+import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestCalculatedSeparatedStructureCalculator;
+import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestCalculatedSeparatedStructureFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -14,6 +16,7 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.chemistry.opencmis.client.api.ObjectType;
 import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Cardinality;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.enums.Updatability;
@@ -59,7 +62,12 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
-		defineSchemasManager().using(zeCollectionSchemas);
+		defineSchemasManager().using(zeCollectionSchemas.with(schemaTypes -> {
+			schemaTypes.getSchema(com.constellio.app.modules.rm.wrappers.Folder.DEFAULT_SCHEMA)
+					.create("separatedStructure")
+					.defineStructureFactory(TestCalculatedSeparatedStructureFactory.class)
+					.defineDataEntry().asCalculated(TestCalculatedSeparatedStructureCalculator.class);
+		}));
 		defineSchemasManager().using(anotherCollectionSchemas);
 
 		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
@@ -245,6 +253,9 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		assertThat(folderDefault.getLocalName()).isEqualTo("folder_default");
 		//		assertThat(folderDefault.getPropertyDefinitions().get("parent")).isNull();
 		assertThat(folderDefault.getParentTypeId()).isEqualTo(baseFolderType.getId());
+		PropertyDefinition<?> separatedStructure = folderDefault.getPropertyDefinitions().get("separatedStructure");
+		assertThat(separatedStructure.getUpdatability()).isEqualTo(Updatability.READONLY);
+		assertThat(separatedStructure.getPropertyType()).isEqualTo(PropertyType.STRING);
 
 		ObjectType groupDefault = typesMap.get("group_default");
 		assertThat(groupDefault.getBaseTypeId().value()).isEqualTo("cmis:folder");

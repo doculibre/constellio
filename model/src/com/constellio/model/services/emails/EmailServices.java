@@ -109,14 +109,14 @@ public class EmailServices {
 	}
 
 	public MimeMessage createMimeMessage(String from, String subject, String body, List<MessageAttachment> attachments,
-										 ConstellioEIMConfigs configs)
+										 ConstellioEIMConfigs configs, String fullName)
 			throws MessagingException, IOException {
 		String charset = "UTF-8";
 		System.setProperty("mail.mime.splitlongparameters", "false");
 		MimeMessage message = new MimeMessage(Session.getInstance(System.getProperties()));
 		message.setSentDate(LocalDateTime.now().toDate());
 		if (StringUtils.isNotBlank(from) && configs.isIncludingFromFieldWhenGeneratingEmails()) {
-			message.setFrom(new InternetAddress(from));
+			message.setFrom(new InternetAddress(from, fullName));
 		}
 		if (subject != null) {
 			message.setSubject(subject);

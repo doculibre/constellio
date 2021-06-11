@@ -74,7 +74,7 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 				LocalDateTime.fromDateFields(view.getEventStartDate()).withTime(0, 0, 0, 0);
 		LocalDateTime endDate = (view.getEventEndDate() == null) ? null : LocalDateTime.fromDateFields(view.getEventEndDate()).withTime(23, 59, 59, 59);
 		return EventsListDataProviderFactory
-				.getEventsListDataProviderFactory(eventCategory, modelLayerFactory, collection, username,
+				.getEventsListDataProviderFactory(eventCategory, appLayerFactory, collection, username,
 						startDate, endDate, view.getEventId());
 	}
 

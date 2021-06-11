@@ -11,6 +11,7 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
@@ -66,6 +67,7 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 
 		sessionContext = forRealUserIncollection(users.adminIn(zeCollection));
 		when(view.getSessionContext()).thenReturn(sessionContext);
+		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
 	}
 
 	@Test
@@ -84,27 +86,29 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name(), MenuItemActionStateStatus.VISIBLE),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_MOVE.name(), MenuItemActionStateStatus.VISIBLE),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_COPY.name(), MenuItemActionStateStatus.VISIBLE),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_DUPLICATE.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP.name(), MenuItemActionStateStatus.VISIBLE),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW_REQUEST.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_CANCEL_RETURN.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REQUEST.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW_REQUEST.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CANCEL_RETURN.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REQUEST.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REMAINDER.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name(), MenuItemActionStateStatus.VISIBLE),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_REMOVE_SELECTION.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE.name(), MenuItemActionStateStatus.VISIBLE),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK.name(), MenuItemActionStateStatus.VISIBLE),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKIN.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKIN.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK.name(), MenuItemActionStateStatus.VISIBLE),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_PUT_IN_CONTAINER.name(), MenuItemActionStateStatus.DISABLED)
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_PUT_IN_CONTAINER.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_DELETE_CONTAINERS_CONTENT.name(), MenuItemActionStateStatus.HIDDEN)
 
 		));
 
@@ -125,30 +129,32 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 		assertThat(actions).extracting("type", "state.status").isEqualTo(asList(
 				tuple("CONSULTATION_LINK", MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name(), MenuItemActionStateStatus.VISIBLE),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_MOVE.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_COPY.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_MOVE.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_COPY.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_DUPLICATE.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_PRINT_LABEL.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW_REQUEST.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_CANCEL_RETURN.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REQUEST.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BORROW_REQUEST.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CANCEL_RETURN.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REQUEST.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_RETURN_REMAINDER.name(), MenuItemActionStateStatus.DISABLED),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name(), MenuItemActionStateStatus.VISIBLE),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_REMOVE_SELECTION.name(), MenuItemActionStateStatus.HIDDEN),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE.name(), MenuItemActionStateStatus.VISIBLE),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CONSULT_LINK.name(), MenuItemActionStateStatus.VISIBLE),
 				//tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKOUT.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKIN.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.DISABLED),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CHECKIN.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.DISABLED),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_PUT_IN_CONTAINER.name(), MenuItemActionStateStatus.DISABLED)
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_PUT_IN_CONTAINER.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_DELETE_CONTAINERS_CONTENT.name(), MenuItemActionStateStatus.HIDDEN)
 		));
 
 	}
@@ -169,6 +175,7 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_MOVE.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_COPY.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_DUPLICATE.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_SEND_EMAIL.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF.name(), MenuItemActionStateStatus.HIDDEN),
@@ -190,7 +197,8 @@ public class RMRecordsMenuItemServicesAcceptanceTest extends ConstellioTest {
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH.name(), MenuItemActionStateStatus.HIDDEN),
 				tuple(RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT.name(), MenuItemActionStateStatus.VISIBLE),
-				tuple(RMRecordsMenuItemActionType.RMRECORDS_PUT_IN_CONTAINER.name(), MenuItemActionStateStatus.HIDDEN)
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_PUT_IN_CONTAINER.name(), MenuItemActionStateStatus.HIDDEN),
+				tuple(RMRecordsMenuItemActionType.RMRECORDS_DELETE_CONTAINERS_CONTENT.name(), MenuItemActionStateStatus.HIDDEN)
 		));
 
 	}

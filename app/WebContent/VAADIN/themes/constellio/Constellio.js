@@ -2,6 +2,61 @@ var isScrolling;
 
 var lastKnownActiveElement;
 
+function adjustViewerPanelPositionToScroll() {
+	var contentFooterWrapper = document.getElementById("content-footer-wrapper");
+	// Run the callback
+	//console.log("Scrolling has stopped.");
+	var closableViewerLayout = document.getElementById("close-button-viewer-metadata-layout");
+	var newScrollTop = contentFooterWrapper.scrollTop;
+	
+	if (closableViewerLayout) {
+		var viewerContainer = document.getElementsByClassName("main-component-wrapper")[0];
+		var constellioHeader = document.getElementsByClassName("header")[0];
+		
+		var headerHeight = constellio_getHeight(constellioHeader);
+		var viewerHeight = constellio_getHeight(closableViewerLayout);
+		var viewerContainerHeight = constellio_getHeight(viewerContainer);
+		var maxViewerScrollTop = viewerContainerHeight - viewerHeight;
+		if (maxViewerScrollTop < 0) {
+			maxViewerScrollTop = 0;
+		}
+		
+		var newViewerScrollTop;
+		if (newScrollTop == 0) {
+			newViewerScrollTop = newScrollTop;
+		} else if (newScrollTop <= headerHeight) {
+			newViewerScrollTop = newScrollTop;
+		} else {
+			newViewerScrollTop = newScrollTop - headerHeight;
+		}
+		
+		var adjustViewerPosition;
+		if (newViewerScrollTop > maxViewerScrollTop) {
+			adjustViewerPosition = true;
+			newViewerScrollTop = maxViewerScrollTop;
+		} else {
+			var lastViewerScrollTop = closableViewerLayout.style.top;
+			if (!lastViewerScrollTop) {
+				lastViewerScrollTop = 0;
+			} else {
+				lastViewerScrollTop = parseInt(lastViewerScrollTop, 10);
+			}
+			var outOfSightScrollTop = lastViewerScrollTop + viewerHeight;
+			if (newScrollTop < lastViewerScrollTop) {
+				// Scrolling up
+				adjustViewerPosition = true;
+			} else if (newScrollTop > outOfSightScrollTop) {
+				adjustViewerPosition = true;
+			} else {
+				adjustViewerPosition = false;
+			}
+		}
+		if (adjustViewerPosition) {
+			closableViewerLayout.style.top = newViewerScrollTop + "px";
+		}
+	}
+}
+
 function constellio_registerScrollListener() {
 	var contentFooterWrapper = document.getElementById("content-footer-wrapper");
 	if (contentFooterWrapper) {
@@ -11,57 +66,7 @@ function constellio_registerScrollListener() {
 
 			// Set a timeout to run after scrolling ends
 			isScrolling = setTimeout(function() {
-				// Run the callback
-				//console.log("Scrolling has stopped.");
-				var closableViewerLayout = document.getElementById("close-button-viewer-metadata-layout");
-				var newScrollTop = contentFooterWrapper.scrollTop;
-				
-				if (closableViewerLayout) {
-					var viewerContainer = document.getElementsByClassName("main-component-wrapper")[0];
-					var constellioHeader = document.getElementsByClassName("header")[0];
-					
-					var headerHeight = constellio_getHeight(constellioHeader);
-					var viewerHeight = constellio_getHeight(closableViewerLayout);
-					var viewerContainerHeight = constellio_getHeight(viewerContainer);
-					var maxViewerScrollTop = viewerContainerHeight - viewerHeight;
-					if (maxViewerScrollTop < 0) {
-						maxViewerScrollTop = 0;
-					}
-					
-					var newViewerScrollTop;
-					if (newScrollTop == 0) {
-						newViewerScrollTop = newScrollTop;
-					} else if (newScrollTop <= headerHeight) {
-						newViewerScrollTop = newScrollTop;
-					} else {
-						newViewerScrollTop = newScrollTop - headerHeight;
-					}
-					
-					var adjustViewerPosition;
-					if (newViewerScrollTop > maxViewerScrollTop) {
-						adjustViewerPosition = true;
-						newViewerScrollTop = maxViewerScrollTop;
-					} else {
-						var lastViewerScrollTop = closableViewerLayout.style.top;
-						if (!lastViewerScrollTop) {
-							lastViewerScrollTop = 0;
-						} else {
-							lastViewerScrollTop = parseInt(lastViewerScrollTop, 10);
-						}
-						var outOfSightScrollTop = lastViewerScrollTop + viewerHeight;
-						if (newScrollTop < lastViewerScrollTop) {
-							// Scrolling up
-							adjustViewerPosition = true;
-						} else if (newScrollTop > outOfSightScrollTop) {
-							adjustViewerPosition = true;
-						} else {
-							adjustViewerPosition = false;
-						}
-					}
-					if (adjustViewerPosition) {
-						closableViewerLayout.style.top = newViewerScrollTop + "px";
-					}
-				}
+				adjustViewerPanelPositionToScroll();
 			}, 66);
 
 		}, false);
@@ -165,10 +170,259 @@ function scrollEnd(overflowElement) {
 	overflowElement.scrollTop = 9999999;
 }
 
+function isElementIsScrolledToTop(element){
+	return element.scrollTop === 0;
+}
+
+function registerScrollCallback(callback, elementQuerySelector){
+    if(!elementQuerySelector){
+        elementQuerySelector = "#content-footer-wrapper";
+    }
+
+	const element = document.querySelector(elementQuerySelector);
+
+	if(element){
+		if(!element.registeredScrollCallbacks){
+			element.registeredScrollCallbacks = [];
+
+			let isScrolling = false;
+
+			element.addEventListener("scroll", function(ev){
+
+				if(!element.constellio_scrollProgrammaticaly){
+					if(!isScrolling){
+						isScrolling = true;
+						const scrollStart = element.scrollTop;
+
+						handleScrolling(element, 1, function(){
+							const scrollEnd = element.scrollTop;
+							const isScrollingUp = scrollEnd < scrollStart;
+
+							element.registeredScrollCallbacks.forEach(function(registeredCallback){
+								registeredCallback(isScrollingUp);
+							});
+
+							isScrolling = false;
+						}, 500);
+					}
+				}else{
+					element.constellio_scrollProgrammaticaly = false;
+				}
+
+			});
+		}
+
+		const index = element.registeredScrollCallbacks.indexOf(callback);
+		if (index === -1) {
+			element.registeredScrollCallbacks.push(callback);
+		}
+	}
+}
+function unregisterScrollCallback(callback, elementQuerySelector){
+    if(!elementQuerySelector){
+        elementQuerySelector = "#content-footer-wrapper";
+    }
+
+	const element = document.querySelector(elementQuerySelector);
+
+	if(element.registeredScrollCallbacks){
+		const index = element.registeredScrollCallbacks.indexOf(callback);
+		if (index > -1) {
+			element.registeredScrollCallbacks.splice(index, 1);
+		}
+	}
+}
+function handleScrolling(element, isScrollingWhenScrollDeltaIsHigherThanThis, whatToDoWhenScrollingIsOver, timeoutInterval){
+    if(!isScrollingWhenScrollDeltaIsHigherThanThis){
+        isScrollingWhenScrollDeltaIsHigherThanThis = 10;
+    }
+
+    if(!whatToDoWhenScrollingIsOver){
+        whatToDoWhenScrollingIsOver =  function(){};
+    }
+
+    if(!timeoutInterval){
+        timeoutInterval =  500;
+    }
+
+
+	const scrollStart = element.scrollTop;
+
+	setTimeout(function(){
+		const scrollEnd = element.scrollTop;
+		const scrollDelta = Math.abs(scrollStart - scrollEnd);
+
+		const isStillScrolling = scrollDelta > isScrollingWhenScrollDeltaIsHigherThanThis;
+
+		if(isStillScrolling){
+			const variableWaiting = scrollDelta/isScrollingWhenScrollDeltaIsHigherThanThis;
+			handleScrolling(element, isScrollingWhenScrollDeltaIsHigherThanThis, whatToDoWhenScrollingIsOver, variableWaiting);
+		}else{
+			whatToDoWhenScrollingIsOver();
+		}
+	}, timeoutInterval);
+}
+
+function elementIsVisibleOnScreen(elementRequiredId, callback, overflowElementQuerySelector){
+	const overflowElement = document.querySelector(overflowElementQuerySelector);
+	const elementRequired = document.getElementById(elementRequiredId);
+
+	if(!callback){
+	    callback = function(topIsVisible, scrollTopValueToShowTopOfRequiredElement, bottomIsVisible, scrollTopValueToShowBottomOfRequiredElement){};
+	}
+
+	if(!overflowElementQuerySelector){
+        overflowElementQuerySelector = "#content-footer-wrapper";
+    }
+
+	if(overflowElement && elementRequired){
+		const overflowClientRect = overflowElement.getBoundingClientRect();
+		const overflowVisibleTop = overflowClientRect.top;
+		const overflowVisibleBottom = overflowVisibleTop + overflowElement.clientHeight;
+
+		const elementRequiredClientRect = elementRequired.getBoundingClientRect();
+		const elementRequiredHeight = elementRequired.clientHeight;
+		const elementRequiredRelativeTop = elementRequiredClientRect.top - overflowClientRect.top;
+		const elementRequiredRelativeBottom = elementRequiredRelativeTop + elementRequiredHeight;
+
+		const topIsHigherThanVisibleViewport = elementRequiredRelativeTop < 0;
+		const topIsLowerThanVisibleViewport = elementRequiredRelativeTop > overflowVisibleBottom;
+		const topIsVisible = !(topIsLowerThanVisibleViewport || topIsHigherThanVisibleViewport);
+
+		let scrollTopValueToShowTopOfRequiredElement = 0;
+		if(!topIsVisible){
+			if(topIsHigherThanVisibleViewport){
+				scrollTopValueToShowTopOfRequiredElement = overflowElement.scrollTop + elementRequiredRelativeTop;
+			}else{
+				scrollTopValueToShowTopOfRequiredElement = overflowElement.scrollTop + elementRequiredRelativeTop - overflowElement.clientHeight + 1;
+			}
+		}
+
+		const bottomIsHigherThanVisibleViewport = elementRequiredRelativeBottom < 0;
+		const bottomIsLowerThanVisibleViewport = elementRequiredRelativeBottom > overflowVisibleBottom;
+		const bottomIsVisible = !(bottomIsHigherThanVisibleViewport || bottomIsLowerThanVisibleViewport);
+
+		let scrollTopValueToShowBottomOfRequiredElement = 0;
+		if(!bottomIsVisible){
+			if(topIsHigherThanVisibleViewport){
+				scrollTopValueToShowBottomOfRequiredElement = overflowElement.scrollTop + elementRequiredRelativeBottom;
+			}else{
+				scrollTopValueToShowBottomOfRequiredElement = overflowElement.scrollTop + elementRequiredRelativeBottom - overflowElement.clientHeight + 1;
+			}
+		}
+
+		if(callback){
+			callback(topIsVisible, scrollTopValueToShowTopOfRequiredElement, bottomIsVisible, scrollTopValueToShowBottomOfRequiredElement);
+		}
+	}
+}
+
+function getElementTopLocationRelativeToScreenAndScrollableElement(elementId, callback, overflowElementQuerySelector){
+	if(!callback){
+	    callback = function(){};
+	}
+
+	if(!overflowElementQuerySelector){
+	    overflowElementQuerySelector = "#content-footer-wrapper";
+	}
+
+	const element = document.getElementById(elementId);
+	const overflowElement = document.querySelector(overflowElementQuerySelector);
+
+	if(element && overflowElement){
+		const elementRect = element.getBoundingClientRect();
+		const overflowClientRect = overflowElement.getBoundingClientRect();
+
+		const elementRequiredRelativeTop = elementRect.top - overflowClientRect.top;
+		if(callback){
+			callback(elementRequiredRelativeTop);
+		}
+	}
+}
+
+function setElementAtTopPositionRelativeToScreenAndScrollableElement(elementId, top, overflowElementQuerySelector){
+    if(!overflowElementQuerySelector){
+        overflowElementQuerySelector = "#content-footer-wrapper";
+    }
+
+	const element = document.getElementById(elementId);
+	const overflowElement = document.querySelector(overflowElementQuerySelector);
+
+	if(element && overflowElement){
+		const overflowClientRect = overflowElement.getBoundingClientRect();
+
+		const relativeTop = top + overflowClientRect.top;
+		let deltaToGetToRequiredTop = element.getBoundingClientRect().top - relativeTop;
+
+		const newScrollTopValue = overflowElement.scrollTop + deltaToGetToRequiredTop;
+		overflowElement.constellio_scrollProgrammaticaly = true;
+		overflowElement.scrollTop = newScrollTopValue;
+	}
+}
+
+function setElementAtTopOfScreen(elementId, overflowElementQuerySelector){
+    if(!overflowElementQuerySelector){
+        overflowElementQuerySelector = "#content-footer-wrapper";
+    }
+
+	setElementAtTopPositionRelativeToScreenAndScrollableElement(elementId, 0, overflowElementQuerySelector);
+}
+
+function setElementAtBottomOfScreen(elementId, overflowElementQuerySelector){
+    if(!overflowElementQuerySelector){
+        overflowElementQuerySelector = "#content-footer-wrapper";
+    }
+
+	const element = document.getElementById(elementId);
+	const overflowElement = document.querySelector(overflowElementQuerySelector);
+
+	if(element && overflowElement){
+		const elementHeight = element.clientHeight;
+		const visibleHeight = overflowElement.clientHeight;
+
+		const topPosition = visibleHeight - elementHeight;
+
+		setElementAtTopPositionRelativeToScreenAndScrollableElement(elementId, topPosition, overflowElementQuerySelector);
+	}
+}
+
+function setElementAtCenterOfScreen(elementId, overflowElementQuerySelector){
+    if(!overflowElementQuerySelector){
+        overflowElementQuerySelector = "#content-footer-wrapper";
+    }
+
+	const element = document.getElementById(elementId);
+	const overflowElement = document.querySelector(overflowElementQuerySelector);
+
+	if(element && overflowElement){
+		const elementHeight = element.clientHeight;
+		const visibleHeight = overflowElement.clientHeight;
+
+		const topPosition = visibleHeight/2 - elementHeight / 2;
+
+		setElementAtTopPositionRelativeToScreenAndScrollableElement(elementId, topPosition, overflowElementQuerySelector);
+	}
+}
+
+function areTheNumbersAlmostEqual(num1, num2, validDelta){
+    if(!validDelta){
+        validDelta = Number.EPSILON;
+    }
+
+    return Math.abs( num1 - num2 ) < validDelta;
+}
+
+function forceScrollToTop(querySelector){
+    if(!querySelector){
+        querySelector = "#content-footer-wrapper";
+    }
+
+    document.querySelector(querySelector).scrollTop = 0;
+}
 
 /*
- * Konami-JS ~ 
- * :: Now with support for touch events and multiple instances for 
+ * Konami-JS ~
+ * :: Now with support for touch events and multiple instances for
  * :: those situations that call for multiple easter eggs!
  * Code: http://konami-js.googlecode.com/
  * Examples: http://www.snaptortoise.com/konami-js
@@ -188,7 +442,7 @@ var Konami = function (callback) {
 				obj["e" + type + fn] = fn;
 				obj[type + fn] = function () {
 					obj["e" + type + fn](window.event, ref_obj);
-				}
+				};
 				obj.attachEvent("on" + type, obj[type + fn]);
 			}
 		},

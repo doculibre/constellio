@@ -58,6 +58,7 @@ public class SystemStateExporter {
 
 	private static final String PATH_TO_BASE_FILE = "shared/tlogBaseFile.zip";
 	private static final String PATH_TO_BASE_FILE_INFO = "shared/tlog-infos.txt";
+	public static final String EXPORT_FILE_NAME_PRIVATE_KEY = "key.txt";
 
 	RecordServices recordServices;
 
@@ -113,9 +114,9 @@ public class SystemStateExporter {
 
 	private LocalDateTime getLastWeeklyExportBeginningTimeStamp() {
 		//return null;
-				Map<String, String> infos = readWeeklyExportInfos();
-				String lastExport = infos.get(EXPORT_TIMESTAMP);
-				return lastExport == null ? null : LocalDateTime.parse(lastExport);
+		Map<String, String> infos = readWeeklyExportInfos();
+		String lastExport = infos.get(EXPORT_TIMESTAMP);
+		return lastExport == null ? null : LocalDateTime.parse(lastExport);
 	}
 
 	private void markHasLastWeeklyExport(LocalDateTime localDateTime) {
@@ -128,12 +129,20 @@ public class SystemStateExporter {
 		secondTransactionLogManager.regroupAndMove();
 		File tempFolderContentFolder = new File(folder, "content");
 		File tempFolderSettingsFolder = new File(folder, "settings");
+		try {
+			if (params.isIncludePrivateKey()) {
+				File encryptionFile = modelLayerFactory.getConfiguration().getConstellioEncryptionFile();
+				File keyFile = new File(folder, EXPORT_FILE_NAME_PRIVATE_KEY);
+				FileUtils.copyFile(encryptionFile, keyFile);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 		copySettingsTo(tempFolderSettingsFolder);
 
 		if (params.isExportAllContent()) {
 			copyContentsExceptTLog(tempFolderContentFolder);
-
 		} else {
 			new PartialVaultExporter(tempFolderContentFolder, appLayerFactory)
 					.export(params.getOnlyExportContentOfRecords());
@@ -151,14 +160,20 @@ public class SystemStateExporter {
 			exportSystemToFolder(tempFolder, params);
 			File tempFolderContentFolder = new File(tempFolder, "content");
 			File tempFolderSettingsFolder = new File(tempFolder, "settings");
+			List<File> list = null;
 
-			List<File> list = asList(tempFolderContentFolder, tempFolderSettingsFolder);
+			if (params.isIncludePrivateKey()) {
+				File keyFile = new File(tempFolder, EXPORT_FILE_NAME_PRIVATE_KEY);
+				list = asList(tempFolderContentFolder, tempFolderSettingsFolder, keyFile);
+			} else {
+				list = asList(tempFolderContentFolder, tempFolderSettingsFolder);
+			}
+
 			try {
 				zipService.zip(file, list);
 			} catch (ZipServiceException e) {
 				throw new RuntimeException(e);
 			}
-
 		} finally {
 			ioServices.deleteQuietly(tempFolder);
 		}

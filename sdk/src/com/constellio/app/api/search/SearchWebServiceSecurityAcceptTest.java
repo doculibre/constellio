@@ -3,8 +3,8 @@ package com.constellio.app.api.search;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -52,8 +52,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 	String anotherCollection = "otherCollection";
+	String fourthCollection = "fourthCollection";
 	TestsSchemasSetup anotherCollectionSetup = new TestsSchemasSetup(anotherCollection);
 	ZeSchemaMetadatas anotherCollectionSchema = anotherCollectionSetup.new ZeSchemaMetadatas();
+	TestsSchemasSetup fourthCollectionSetup = new TestsSchemasSetup(fourthCollection);
 	TestsSchemasSetup zeCollectionSetup = new TestsSchemasSetup(zeCollection);
 	ZeSchemaMetadatas zeCollectionSchema = zeCollectionSetup.new ZeSchemaMetadatas();
 	TestsSchemasSetup.AnotherSchemaMetadatas zeCollectionUnsecuredSchema = zeCollectionSetup.new AnotherSchemaMetadatas();
@@ -83,14 +85,15 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withAllTest(users),
-				withCollection(anotherCollection)
+				withCollection(anotherCollection),
+				withCollection(fourthCollection)
 		);
 
 		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		for (String collection : asList(zeCollection, anotherCollection)) {
 			MetadataSchemaTypesBuilder metadataSchemaTypesBuilder = schemasManager.modify(collection);
-			metadataSchemaTypesBuilder.getSchemaType(Authorization.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			metadataSchemaTypesBuilder.getSchemaType(RecordAuthorization.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
 			metadataSchemaTypesBuilder.getSchemaType(User.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
 			metadataSchemaTypesBuilder.getSchemaType(Group.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
 			metadataSchemaTypesBuilder.getSchemaType(SearchEvent.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
@@ -111,6 +114,14 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 				}));
 		defineSchemasManager().using(anotherCollectionSetup.withSecurityFlag(true)
 				.withAStringMetadata(whichIsMultivalue).withAContentListMetadata());
+
+		defineSchemasManager().using(fourthCollectionSetup.withSecurityFlag(false)
+				.withAStringMetadata(whichIsMultivalue).withAContentMetadata().with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchemaType("anotherSchemaType").setSecurity(false);
+					}
+				}));
 
 		//		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 		//			@Override
@@ -214,6 +225,20 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 		params.add("q", "schema_s:zeSchemaType");
 		assertThat(searchServices.isSecurityEnabled(params)).isTrue();
 
+		params = new ModifiableSolrParams();
+		params.add("fq", "collection_s:zeCollection OR collection_s:otherCollection");
+		params.add("q", "schema_s:anotherSchemaType");
+		assertThat(searchServices.isSecurityEnabled(params)).isTrue();
+
+		params = new ModifiableSolrParams();
+		params.add("fq", "collection_s:zeCollection OR collection_s:" + fourthCollection);
+		params.add("q", "schema_s:anotherSchemaType");
+		assertThat(searchServices.isSecurityEnabled(params)).isFalse();
+
+		params = new ModifiableSolrParams();
+		params.add("fq", "collection_s:zeCollection OR collection_s:" + fourthCollection + " OR collection_s:otherCollection");
+		params.add("q", "schema_s:anotherSchemaType");
+		assertThat(searchServices.isSecurityEnabled(params)).isTrue();
 	}
 
 	@Test

@@ -152,7 +152,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				MetadataSchemaTypeBuilder justeadmin = types.createNewSchemaType("justeadmin");
+				MetadataSchemaTypeBuilder justeadmin = types.createNewSchemaTypeWithSecurity("justeadmin");
 				justeadmin.getDefaultSchema().create("code").setType(MetadataValueType.STRING);
 			}
 		});

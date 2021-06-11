@@ -1,15 +1,20 @@
 package com.constellio.app.modules.rm.services.menu;
 
+import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
+import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.ContainerRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.actions.StorageSpaceRecordActionsServices;
 import com.constellio.app.modules.rm.services.menu.behaviors.RMRecordsMenuItemBehaviors;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.LegalRequirement;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -19,6 +24,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.ActionDisplayOption;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.MenuItemUtil;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
@@ -28,7 +34,6 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +44,7 @@ import java.util.stream.Collectors;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_CART;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_DELETE;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_DUPLICATE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNPUBLISH;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BATCH_UNSHARE;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_BORROW;
@@ -50,6 +56,7 @@ import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServi
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_PDF;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_SIP;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_CREATE_TASK;
+import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_DELETE_CONTAINERS_CONTENT;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_DOWNLOAD_ZIP;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_GENERATE_REPORT;
 import static com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType.RMRECORDS_MOVE;
@@ -117,22 +124,10 @@ public class RMRecordsMenuItemServices {
 
 	private MenuItemActionState computeActionState(RMRecordsMenuItemActionType menuItemActionType, List<Record> records,
 												   User user, MenuItemActionBehaviorParams params) {
-		if (records.isEmpty()) {
-			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.noRecordSelected"));
-		}
+		MenuItemActionState menuItemAction = MenuItemUtil.testLimitAndSchemaType(menuItemActionType.getSchemaTypes(), menuItemActionType.getRecordsLimit(), records);
 
-		int limit = getRecordsLimit(menuItemActionType);
-		if (records.size() > limit) {
-			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.recordsLimitReached", String.valueOf(limit)));
-		}
-
-		long recordWithSupportedSchemaTypeCount = getRecordWithSupportedSchemaTypeCount(records, menuItemActionType);
-		if (recordWithSupportedSchemaTypeCount == 0) {
-			return new MenuItemActionState(HIDDEN);
-		} else if (recordWithSupportedSchemaTypeCount != records.size()) {
-			List<String> schemaTypes = getLocalizedSchemaTypes(menuItemActionType.getSchemaTypes());
-			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.unsupportedSchema",
-					StringUtils.join(schemaTypes, ", ")));
+		if (menuItemAction != null) {
+			return menuItemAction;
 		}
 
 		if (!menuItemActionType.allowDifferentSchemaType) {
@@ -195,6 +190,18 @@ public class RMRecordsMenuItemServices {
 				}
 				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
 						$("RMRecordsMenuItemServices.actionImpossible"));
+
+			case RMRECORDS_BATCH_DUPLICATE:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+						actionPossible = folderRecordActionsServices.isBatchDuplicateActionPossible(record, user);
+					}
+					possibleCount += actionPossible ? 1 : 0;
+				}
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount,
+						$("RMRecordsMenuItemServices.actionImpossible"));
+
 			case RMRECORDS_CREATE_SIP:
 				for (Record record : records) {
 					boolean actionPossible = false;
@@ -456,12 +463,10 @@ public class RMRecordsMenuItemServices {
 						case StorageSpace.SCHEMA_TYPE:
 							actionPossible = storageSpaceRecordActionsServices.isGenerateReportActionPossible(record, user);
 							break;
-
+						case AdministrativeUnit.SCHEMA_TYPE:
 						case RetentionRule.SCHEMA_TYPE:
-							actionPossible = true;
-							break;
-
 						case Category.SCHEMA_TYPE:
+						case LegalRequirement.SCHEMA_TYPE:
 							actionPossible = true;
 							break;
 
@@ -478,6 +483,17 @@ public class RMRecordsMenuItemServices {
 
 				return calculateCorrectActionState(possibleCount,
 						records.size() - possibleCount, $("RMRecordsMenuItemServices.actionImpossible"));
+			case RMRECORDS_DELETE_CONTAINERS_CONTENT:
+				for (Record record : records) {
+					boolean actionPossible = false;
+					if (record.isOfSchemaType(ContainerRecord.SCHEMA_TYPE)) {
+						actionPossible = containerRecordActionsServices.isDeleteContainerContent(record, user);
+					}
+
+					possibleCount += actionPossible ? 1 : 0;
+				}
+
+				return calculateCorrectActionState(possibleCount, records.size() - possibleCount, $("RMRecordsMenuItemServices.actionImpossible"));
 		}
 
 		return new MenuItemActionState(HIDDEN);
@@ -523,6 +539,12 @@ public class RMRecordsMenuItemServices {
 						$("ConstellioHeader.selection.actions.duplicate"), null, -1, 300,
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).copy(ids, params));
+				break;
+			case RMRECORDS_BATCH_DUPLICATE:
+				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_DUPLICATE, state,
+						$("ConstellioHeader.selection.actions.batchDuplicate"), null, -1, 300,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchDuplicate(ids, params));
 				break;
 			case RMRECORDS_CREATE_SIP:
 				menuItemAction = buildMenuItemAction(RMRECORDS_CREATE_SIP, state,
@@ -610,7 +632,7 @@ public class RMRecordsMenuItemServices {
 				break;
 			case RMRECORDS_BATCH_DELETE:
 				menuItemAction = buildMenuItemAction(RMRECORDS_BATCH_DELETE, state,
-						$("deleteWithIcon"), null, -1, Integer.MAX_VALUE,
+						$("delete"), null, -1, Integer.MAX_VALUE,
 						getRecordsLimit(actionType), (ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).batchDelete(ids, params));
 				break;
 			case RMRECORDS_CREATE_TASK:
@@ -638,12 +660,16 @@ public class RMRecordsMenuItemServices {
 						$("DocumentContextMenu.ReportGeneratorButton"), FontAwesome.LIST_ALT, -1, 2400,
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).generateReport(ids, params));
-
 				break;
 			case RMRECORDS_PUT_IN_CONTAINER:
 				menuItemAction = buildMenuItemAction(RMRECORDS_PUT_IN_CONTAINER, state, $("ContainersButton.containerAssigner"), FontAwesome.ARCHIVE, -1, 2600,
 						getRecordsLimit(actionType),
 						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).putInContainer(ids, params));
+				break;
+			case RMRECORDS_DELETE_CONTAINERS_CONTENT:
+				menuItemAction = buildMenuItemAction(RMRECORDS_DELETE_CONTAINERS_CONTENT, state, $("ContainerMenuItemServices.deleteContent"), FontAwesome.ERASER, -1, 2600,
+						getRecordsLimit(actionType),
+						(ids) -> new RMRecordsMenuItemBehaviors(collection, appLayerFactory).deleteContainersContent(ids, params));
 		}
 
 		if (menuItemAction != null) {
@@ -651,15 +677,6 @@ public class RMRecordsMenuItemServices {
 		}
 	}
 
-	private String getSchemaType(Record record) {
-		return record.getSchemaCode().substring(0, record.getSchemaCode().indexOf("_"));
-	}
-
-	private long getRecordWithSupportedSchemaTypeCount(List<Record> records, RMRecordsMenuItemActionType type) {
-		return records.stream()
-				.filter(r -> type.getSchemaTypes().contains(getSchemaType(r)))
-				.count();
-	}
 
 	private MenuItemAction buildMenuItemAction(RMRecordsMenuItemActionType type, MenuItemActionState state,
 											   String caption, Resource icon, int group, int priority, int recordsLimit,
@@ -698,6 +715,7 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_ADD_CART(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_MOVE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_COPY(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
+		RMRECORDS_BATCH_DUPLICATE(singletonList(Folder.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_CREATE_SIP(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_SEND_EMAIL(singletonList(Document.SCHEMA_TYPE), 100000, true),
 		RMRECORDS_CREATE_PDF(singletonList(Document.SCHEMA_TYPE), 100000, true),
@@ -719,8 +737,11 @@ public class RMRecordsMenuItemServices {
 		RMRECORDS_BATCH_UNSHARE(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE), 10000, false),
 		RMRECORDS_BATCH_UNPUBLISH(asList(Document.SCHEMA_TYPE), 10000, false),
 		RMRECORDS_GENERATE_REPORT(asList(Document.SCHEMA_TYPE, Folder.SCHEMA_TYPE, Task.SCHEMA_TYPE,
-				ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE), 10000, false),
-		RMRECORDS_PUT_IN_CONTAINER(asList(Folder.SCHEMA_TYPE), 10000, false);
+				ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Category.SCHEMA_TYPE,
+				ConnectorLDAPUserDocument.SCHEMA_TYPE, ConnectorHttpDocument.SCHEMA_TYPE, ConnectorSmbDocument.SCHEMA_TYPE),
+				10000, false),
+		RMRECORDS_PUT_IN_CONTAINER(asList(Folder.SCHEMA_TYPE), 10000, false),
+		RMRECORDS_DELETE_CONTAINERS_CONTENT(asList(ContainerRecord.SCHEMA_TYPE), 20, false);
 
 		private final List<String> schemaTypes;
 		private final int recordsLimit;

@@ -32,6 +32,20 @@ public class AppManagementServiceRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class AlertFileNotFoundException extends AppManagementServiceRuntimeException {
+
+		public AlertFileNotFoundException() {
+			super("No alerts found");
+		}
+	}
+
+	public static class ErrorResponseCodeException extends AppManagementServiceRuntimeException {
+
+		public ErrorResponseCodeException(int statusCode) {
+			super("Unexpected request response '" + statusCode + "'");
+		}
+	}
+
 	public static class CannotConnectToServer extends AppManagementServiceException {
 
 		public CannotConnectToServer(String url, Exception e) {
@@ -50,6 +64,14 @@ public class AppManagementServiceRuntimeException extends RuntimeException {
 																				   String file2) {
 			super("the same version: " + version + " could not be in different folders: " + file1 + ", " + file2);
 		}
+	}
+
+	public static class InvalidLicenseInstalled extends AppManagementServiceRuntimeException {
+
+		public InvalidLicenseInstalled() {
+			super("Invalid license installed, couldn't be loaded");
+		}
+
 	}
 
 }

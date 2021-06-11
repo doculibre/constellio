@@ -4,6 +4,13 @@ import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsMan
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableTypeRestrictionInFolderScript;
+import com.constellio.app.modules.rm.enums.TemplateVersionType;
+import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
+import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
+import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
+import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
+import com.constellio.app.modules.rm.model.enums.DocumentsTypeChoice;
+import com.constellio.app.modules.rm.model.enums.ReportsSortingMetadata;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice;
 import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
@@ -31,10 +38,15 @@ public class RMConfigs {
 		NEVER, ON_DEPOSIT, ON_TRANSFER_OR_DEPOSIT
 	}
 
+	public enum ConversionPdfFormat {
+		PDF, PDF_A
+	}
+
 	static List<SystemConfiguration> configurations = new ArrayList<>();
 
 	// Advanced
-	public static final SystemConfiguration ALLOW_TO_EDIT_OLD_DOCUMENT_VERSION_ANNOTATION;
+	public static final SystemConfiguration ALLOW_TO_EDIT_OLD_DOCUMENT_VERSION_ANNOTATION,
+			COPY_STATUS_ENTERED_HAS_PRIORITY_OVER_PARENTS_COPY_STATUS;
 
 	// Retention calendar configs
 	public static final SystemConfiguration DOCUMENT_RETENTION_RULES,
@@ -82,6 +94,7 @@ public class RMConfigs {
 			ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE,
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
 			NEED_REASON_BEFORE_DELETING_FOLDERS,
+			NEED_REASON_BEFORE_DELETING_DOCUMENTS,
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
 			SORTING_METADATA_FOR_LABELS_AND_METADATA_REPORTS,
 			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE,
@@ -95,7 +108,10 @@ public class RMConfigs {
 			ENABLE_TYPE_RESTRICTION_IN_FOLDER,
 			SHARE_CONTENT_REQUIRES_DATE_VALUES,
 			PUBLISH_DOCUMENT_REQUIRES_DATE_VALUES,
-			DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT;
+			DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT,
+			CONVERT_TO_PDFA_WHEN_DECOMMISSIONING,
+			TEMPLATE_VERSION_FOR_REPORTS;
+
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
 
@@ -105,7 +121,7 @@ public class RMConfigs {
 
 	// Agent configs
 	public static final SystemConfiguration AGENT_ENABLED, AGENT_SWITCH_USER_POSSIBLE, AGENT_DOWNLOAD_ALL_USER_CONTENT,
-			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH, AGENT_CREATE_DROP_DIR_SHORTCUT, AGENT_DELETE_IMPORTED_FILES, AGENT_WEB_SIGN_IN;
+			AGENT_EDIT_USER_DOCUMENTS, AGENT_BACKUP_RETENTION_PERIOD_IN_DAYS, AGENT_TOKEN_DURATION_IN_HOURS, AGENT_READ_ONLY_WARNING, AGENT_DISABLED_UNTIL_FIRST_CONNECTION, AGENT_MOVE_IMPORTED_FILES_TO_TRASH, AGENT_CREATE_DROP_DIR_SHORTCUT, AGENT_DELETE_IMPORTED_FILES, AGENT_WEB_SIGN_IN, AGENT_SEND_BACKUP_FILES_HASHES;
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER, MAJOR_VERSION_FOR_NEW_FILE;
@@ -115,6 +131,8 @@ public class RMConfigs {
 
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(ALLOW_TO_EDIT_OLD_DOCUMENT_VERSION_ANNOTATION = advanced.createBooleanFalseByDefault("allowToEditOldVersionAnnotation"));
+		add(COPY_STATUS_ENTERED_HAS_PRIORITY_OVER_PARENTS_COPY_STATUS = advanced.createBooleanFalseByDefault("copyStatusEnteredHasPriorityOverParentsCopyStatus")
+				.scriptedBy(RMFolderCopyStatusPriorityScript.class));
 
 		SystemConfigurationGroup decommissioning = new SystemConfigurationGroup(ID, decommissioningGroup);
 
@@ -234,6 +252,9 @@ public class RMConfigs {
 		add(NUMBER_OF_DAYS_BEFORE_PREDICTED_DECOMMISSIONING_DATE = decommissioning.createInteger("numberOfDaysBeforePredictedDecommissioningDate")
 				.withDefaultValue(0));
 
+		add(CONVERT_TO_PDFA_WHEN_DECOMMISSIONING = decommissioning.createEnum("convertToPdfaWhenDecommissioning", ConversionPdfFormat.class)
+				.withDefaultValue(ConversionPdfFormat.PDF_A));
+
 		SystemConfigurationGroup trees = new SystemConfigurationGroup(ID, "trees");
 
 		add(DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES = trees.createBooleanFalseByDefault("displaySemiActiveInTrees"));
@@ -269,6 +290,8 @@ public class RMConfigs {
 		add(AGENT_DELETE_IMPORTED_FILES = agent.createBooleanTrueByDefault("deleteImportedFiles"));
 
 		add(AGENT_WEB_SIGN_IN = agent.createBooleanFalseByDefault("agentWebSignIn"));
+
+		add(AGENT_SEND_BACKUP_FILES_HASHES = agent.createBooleanFalseByDefault("agentSendBackupFilesHashes").whichIsHidden());
 
 		SystemConfigurationGroup others = new SystemConfigurationGroup(ID, "others");
 
@@ -343,6 +366,8 @@ public class RMConfigs {
 
 		add(NEED_REASON_BEFORE_DELETING_FOLDERS = others.createBooleanTrueByDefault("needReasonBeforeDeletingFolders"));
 
+		add(NEED_REASON_BEFORE_DELETING_DOCUMENTS = others.createBooleanFalseByDefault("needReasonBeforeDeletingDocuments"));
+
 		add(DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS = decommissioning
 				.createBooleanFalseByDefault("decommissioningListWithSelectedFolders"));
 
@@ -357,6 +382,8 @@ public class RMConfigs {
 		add(SHARE_CONTENT_REQUIRES_DATE_VALUES = others.createBooleanFalseByDefault("shareContentRequiresDateValues"));
 
 		add(PUBLISH_DOCUMENT_REQUIRES_DATE_VALUES = others.createBooleanFalseByDefault("publishDocumentRequiresDateValues"));
+
+		add(TEMPLATE_VERSION_FOR_REPORTS = reports.createEnum("templateVersionForReports", TemplateVersionType.class).withDefaultValue(TemplateVersionType.CONSTELLIO_10));
 	}
 
 
@@ -542,7 +569,13 @@ public class RMConfigs {
 		return manager.getValue(AGENT_DELETE_IMPORTED_FILES);
 	}
 
-	public boolean isAgentWebSignIn(){return manager.getValue(AGENT_WEB_SIGN_IN);}
+	public boolean isAgentWebSignIn() {
+		return manager.getValue(AGENT_WEB_SIGN_IN);
+	}
+
+	public boolean isAgentSendBackupFilesHashes() {
+		return manager.getValue(AGENT_SEND_BACKUP_FILES_HASHES);
+	}
 
 	public int getFolderBorrowingDurationDays() {
 		return manager.getValue(FOLDER_BORROWING_DURATION_IN_DAYS);
@@ -632,6 +665,11 @@ public class RMConfigs {
 		return manager.getValue(NEED_REASON_BEFORE_DELETING_FOLDERS);
 	}
 
+	public boolean isNeedingAReasonBeforeDeletingDocuments() {
+		return manager.getValue(NEED_REASON_BEFORE_DELETING_DOCUMENTS);
+	}
+
+
 	public boolean isDepositAndDestructionDatesBasedOnActualTransferDate() {
 		return manager.getValue(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE);
 	}
@@ -668,4 +706,11 @@ public class RMConfigs {
 		return manager.getValue(DESTRUCTION_DECOMMISSIONING_LIST_INCLUDES_SORT);
 	}
 
+	public boolean isConvertToPdfAWhenDecommissioning() {
+		return manager.getValue(CONVERT_TO_PDFA_WHEN_DECOMMISSIONING).equals(ConversionPdfFormat.PDF_A);
+	}
+
+	public TemplateVersionType getTemplateVersionForReports() {
+		return manager.getValue(TEMPLATE_VERSION_FOR_REPORTS);
+	}
 }

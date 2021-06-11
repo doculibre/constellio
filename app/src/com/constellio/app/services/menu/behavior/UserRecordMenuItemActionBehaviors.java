@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.TransferPermissionsButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenter;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -26,7 +27,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import lombok.extern.slf4j.Slf4j;
@@ -135,7 +135,7 @@ public class UserRecordMenuItemActionBehaviors {
 			@Override
 			protected Component buildWindowContent() {
 				//				final BaseIntegerField durationField = new BaseIntegerField($("DisplayUserCredentialView.Duration"));
-				final TextField durationField = new TextField($("DisplayUserCredentialView.Duration"));
+				final BaseTextField durationField = new BaseTextField($("DisplayUserCredentialView.Duration"));
 
 				final ComboBox unitTimeCombobox = new BaseComboBox();
 				unitTimeCombobox.setNullSelectionAllowed(false);

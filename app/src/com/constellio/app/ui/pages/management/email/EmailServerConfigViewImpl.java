@@ -4,6 +4,7 @@ import com.constellio.app.ui.entities.EmailServerConfigVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.StringListComponent;
 import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.vaadin.navigator.ViewChangeListener;
@@ -58,7 +59,7 @@ public class EmailServerConfigViewImpl extends BaseViewImpl implements EmailServ
 	}
 
 	private void buildTestArea(VerticalLayout layout) {
-		testEmailField = new TextField($("EmailServerConfigView.testEmail"));
+		testEmailField = new BaseTextField($("EmailServerConfigView.testEmail"));
 		testEmailField.setNullRepresentation("");
 		layout.addComponent(testEmailField);
 
@@ -164,13 +165,13 @@ public class EmailServerConfigViewImpl extends BaseViewImpl implements EmailServ
 		enabledCheckbox.setValue(enabled);
 		layout.addComponent(enabledCheckbox);
 
-		userField = new TextField($("EmailServerConfigView.username"));
+		userField = new BaseTextField($("EmailServerConfigView.username"));
 		userField.setValue(user);
 		userField.setRequired(true);
 		userField.setNullRepresentation("");
 		layout.addComponent(userField);
 
-		defaultEmailSenderField = new TextField($("EmailServerConfigView.defaultEmailSender"));
+		defaultEmailSenderField = new BaseTextField($("EmailServerConfigView.defaultEmailSender"));
 		defaultEmailSenderField.setValue(defaultEmail);
 		defaultEmailSenderField.setRequired(true);
 		defaultEmailSenderField.setNullRepresentation("");

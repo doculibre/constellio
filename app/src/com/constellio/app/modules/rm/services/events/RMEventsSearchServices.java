@@ -87,14 +87,14 @@ public class RMEventsSearchServices {
 
 	public LogicalSearchQuery newFindCurrentlyBorrowedDocumentsQuery(User currentUser) {
 		return new LogicalSearchQuery(from(schemas.documentSchemaType()).where(schemas.documentContent()).is(checkedOut()))
-				.filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
+				.filteredWithUserRead(currentUser).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery newFindCurrentlyBorrowedFoldersQuery(User currentUser) {
 		return new LogicalSearchQuery(from(schemas.folder.schemaType())
 				.where(schemas.folder.borrowed()).isTrue()
 				.andWhere(schemas.folder.borrowingType()).is(BorrowingType.BORROW))
-				.filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
+				.filteredWithUserRead(currentUser).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery newFindCurrentlyBorrowedFoldersByUser(User currentUser, String userId) {
@@ -102,7 +102,7 @@ public class RMEventsSearchServices {
 				.where(schemas.folder.borrowed()).isTrue()
 				.andWhere(schemas.folder.borrowingType()).is(BorrowingType.BORROW)
 				.andWhere(schemas.folder.borrowUserEntered()).is(userId);
-		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
+		return new LogicalSearchQuery(condition).filteredWithUserRead(currentUser).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery newFindLateBorrowedFoldersByUserAndDateRangeQuery(User currentUser, String userId) {
@@ -110,7 +110,7 @@ public class RMEventsSearchServices {
 				.where(schemas.folder.borrowed()).isTrue().andWhere(schemas.folder.borrowUserEntered())
 				.is(userId).andWhere(schemas.folder.borrowPreviewReturnDate())
 				.isLessThan(TimeProvider.getLocalDate());
-		return new LogicalSearchQuery(condition).filteredWithUser(currentUser).sortAsc(Schemas.TITLE);
+		return new LogicalSearchQuery(condition).filteredWithUserRead(currentUser).sortAsc(Schemas.TITLE);
 	}
 
 	public LogicalSearchQuery newFindCreatedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,

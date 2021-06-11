@@ -1,12 +1,17 @@
 package com.constellio.app.ui.pages.collection;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.dao.services.Stats;
@@ -19,6 +24,7 @@ import com.vaadin.ui.VerticalLayout;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -60,14 +66,15 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		if (event != null) {
 			presenter.forParams(event.getParameters());
+			buildActionMenuButtons();
 		}
 	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
-		mainLayout.addStyleName("display-folder-view");
-		mainLayout.setSizeFull();
+		mainLayout.addStyleName("collection-security");
+		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
 
 		tabSheet = new TabSheet();
@@ -107,28 +114,40 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		addUserButton = newAddUserButton();
-		addGroupButton = newAddGroupButton();
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		ArrayList<MenuItemAction> menuItemActions = new ArrayList<>(buildRecordVOActionButtonFactory().buildMenuItemActions());
 
-		List<String> excludedActionTypes = new ArrayList<String>();
+		if (addUserButton != null) {
+			menuItemActions.add(MenuItemActionConverter.toMenuItemAction(addUserButton, menuItemActionBuilder -> menuItemActionBuilder.priority(10).build()));
+		}
 
-		excludedActionTypes.addAll(rmModuleExtensions.getFilteredActionsForFolders());
-		return new RecordVOActionButtonFactory(null, excludedActionTypes).build();
+		if (addGroupButton != null) {
+			menuItemActions.add(MenuItemActionConverter.toMenuItemAction(addGroupButton, menuItemActionBuilder -> menuItemActionBuilder.priority(15).build()));
+		}
+
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				menuItemActions
+		);
 	}
 
 	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		List<Button> quickActionMenuButtons = new ArrayList<>();
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay) {
+			@Override
+			public Supplier<MenuItemRecordProvider> getMenuItemRecordProviderSupplier() {
+				return buildRecordVOActionButtonFactory()::buildMenuItemRecordProvider;
+			}
+		};
+	}
 
-		if (addUserButton != null) {
-			quickActionMenuButtons.add(addUserButton);
-		}
-		if (addGroupButton != null) {
-			quickActionMenuButtons.add(addGroupButton);
-		}
+	private RecordVOActionButtonFactory buildRecordVOActionButtonFactory() {
+		return new RecordVOActionButtonFactory(null, null);
+	}
 
-		return quickActionMenuButtons;
+	protected void buildActionMenuButtons() {
+		addUserButton = newAddUserButton();
+		addGroupButton = newAddGroupButton();
 	}
 
 	@Override
@@ -215,13 +234,8 @@ public class CollectionSecurityManagementImpl extends BaseViewImpl implements Co
 	}
 
 	@Override
-	protected boolean isActionMenuBar() {
-		return true;
-	}
-
-	@Override
 	protected String getActionMenuBarCaption() {
-		return getQuickActionMenuButtons().isEmpty() ? super.getActionMenuBarCaption() : null;
+		return super.getActionMenuBarCaption();
 	}
 
 }

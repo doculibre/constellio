@@ -8,19 +8,22 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.vaadin.server.Resource;
 import com.vaadin.ui.Label;
 import org.apache.commons.lang3.StringUtils;
 
 public class UserDisplay extends I18NHorizontalLayout {
-	
+
+	private UserImage userImage;
+
 	public UserDisplay(String id) {
 		if (id != null) {
-			ModelLayerFactory modelLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory(); 
+			ModelLayerFactory modelLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory();
 			RecordServices recordServices = modelLayerFactory.newRecordServices();
-			
+
 			Record userRecord = recordServices.getDocumentById(id);
 			String collection = userRecord.getCollection();
-			
+
 			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 			User user = schemasRecordsServices.wrapUser(userRecord);
 			init(user.getUsername(), user.getFirstName(), user.getLastName());
@@ -39,7 +42,8 @@ public class UserDisplay extends I18NHorizontalLayout {
 	
 	private void init(String username, String firstName, String lastName) {
 		addStyleName("user-display");
-		UserImage userImage = new UserImage(username);
+
+		userImage = new UserImage(username);
 		userImage.addStyleName("user-display-icon");
 		userImage.setCaption(null);
 
@@ -59,4 +63,9 @@ public class UserDisplay extends I18NHorizontalLayout {
 		addComponents(userImage, nameLabel);
 	}
 
+
+	@Override
+	public Resource getIcon() {
+		return userImage != null ? userImage.getSource() : null;
+	}
 }

@@ -4,6 +4,7 @@ import com.constellio.app.ui.framework.data.trees.LegacyTreeNodesDataProviderAda
 import com.constellio.data.utils.LangUtils;
 import com.vaadin.server.Resource;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
@@ -17,10 +18,10 @@ public class TreeNode implements Serializable {
 	@Getter
 	private String nodeType;
 
-	@Getter
+	@Getter @Setter
 	private String caption;
 
-	@Getter
+	@Getter @Setter
 	private String description;
 
 	@Getter

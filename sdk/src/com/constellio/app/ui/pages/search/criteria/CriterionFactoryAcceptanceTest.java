@@ -49,6 +49,17 @@ public class CriterionFactoryAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenACriterionWithStructuredFactoryMetadataWhenSavingAndRestoringThenGetRestoredInstanceWithSameValuesAsSavedInstance()
+			throws ConditionException {
+		Criterion savedCriterion = structuredFactoryCriterion();
+		String serializedCriterion = factory.toString(savedCriterion);
+		Criterion restoredCriterion = factory.build(serializedCriterion);
+		String reserializedCriterion = factory.toString(restoredCriterion);
+		assertThat(savedCriterion).isEqualToComparingFieldByField(restoredCriterion);
+		assertThat(serializedCriterion).isEqualTo(reserializedCriterion);
+	}
+
+	@Test
 	public void givenACriterionWithSpecialCharactersInStringMetadataWhenSavingAndRestoringThenGetRestoredInstanceWithSameValuesAsSavedInstance()
 			throws ConditionException {
 		Criterion savedCriterion = stringWithSpecialCharactersCriterion();
@@ -215,6 +226,15 @@ public class CriterionFactoryAcceptanceTest extends ConstellioTest {
 		// criterionTestRecord_default_aString CONTAINS "string value"
 		Criterion criterion = new Criterion(shortcuts.code());
 		criterion.setMetadata(shortcuts.aString().getCode(), shortcuts.aString().getType(), null);
+		criterion.setSearchOperator(SearchOperator.CONTAINS_TEXT);
+		criterion.setValue(STRING_VALUE);
+		return criterion;
+	}
+
+	private Criterion structuredFactoryCriterion() {
+		// criterionTestRecord_default_aString CONTAINS "string value"
+		Criterion criterion = new Criterion(shortcuts.code());
+		criterion.setMetadata(shortcuts.aSeparatedStructure().getCode(), shortcuts.aSeparatedStructure().getType(), null);
 		criterion.setSearchOperator(SearchOperator.CONTAINS_TEXT);
 		criterion.setValue(STRING_VALUE);
 		return criterion;

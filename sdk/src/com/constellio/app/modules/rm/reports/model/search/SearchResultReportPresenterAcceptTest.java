@@ -6,6 +6,8 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestCalculatedSeparatedStructureCalculator;
+import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestCalculatedSeparatedStructureFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -234,6 +236,30 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 				admin, reportTitle, searchQuery, Locale.FRENCH);
 		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
 		reportTestUtils.validateDefaultReportWithBoolean(model);
+	}
+
+	@Test
+	public void givenReportWithSeparatedStructureThenWrittenCorrectly() throws Exception {
+		String separatedStructureLocalCode = "separatedStructure";
+
+		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
+		manager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			types.getSchema(Folder.DEFAULT_SCHEMA)
+					.create(separatedStructureLocalCode)
+					.defineStructureFactory(TestCalculatedSeparatedStructureFactory.class)
+					.defineDataEntry().asCalculated(TestCalculatedSeparatedStructureCalculator.class);
+		});
+
+		reindex();
+
+		String separatedStructureCode = Folder.DEFAULT_SCHEMA + "_" + separatedStructureLocalCode;
+		reportTestUtils.addDefaultReportWithSeparatedStructure(reportTitle, separatedStructureCode);
+		searchQuery = new LogicalSearchQuery(from(schemas.folderSchemaType()).where(Schemas.IDENTIFIER)
+				.isIn(asList(records.folder_A01, records.folder_A02))).sortAsc(Schemas.TITLE);
+		presenter = new SearchResultReportPresenter(getAppLayerFactory(), asList(records.folder_A01), folderSchemaType, zeCollection,
+				admin, reportTitle, searchQuery, Locale.FRENCH);
+		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+		reportTestUtils.validateDefaultReportWithSeparateStructure(model, separatedStructureCode);
 	}
 
 	@Test

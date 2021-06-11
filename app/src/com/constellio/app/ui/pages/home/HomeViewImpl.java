@@ -187,7 +187,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView, PartialRefre
 		Component selectedTabComponent;
 
 		PlaceHolder placeHolder = (PlaceHolder) tabSheet.getSelectedTab();
-		Component compositionRoot = placeHolder.getCompositionRoot();
+		Component compositionRoot = placeHolder != null ? placeHolder.getCompositionRoot() : null;
 		if (compositionRoot != null) {
 			if (compositionRoot instanceof TabSheet) {
 				TabSheet subTabSheet = (TabSheet) compositionRoot;

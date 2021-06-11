@@ -4,6 +4,8 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleTransaction;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
@@ -44,6 +46,9 @@ public class RetentionRule extends RecordWrapper {
 	public static final String SCOPE = "scope";
 	public static final String YEAR_TYPES = "yearTypes";
 	public static final String YEAR_TYPES_YEAR_END = "yearTypesYearEnd";
+	public static final String TRANSACTION = "transaction";
+	public static final String APPLICATION_NOTES = "applicationNotes";
+	public static final String COMMENTS = "comments";
 
 	public RetentionRule(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -364,5 +369,23 @@ public class RetentionRule extends RecordWrapper {
 
 	public List<String> getYearTypesYearEnd() {
 		return getList(YEAR_TYPES_YEAR_END);
+	}
+
+	public RetentionRuleTransaction getTransaction() {
+		return get(TRANSACTION);
+	}
+
+	public RetentionRule setTransaction(RetentionRuleTransaction tr) {
+		set(TRANSACTION, tr);
+		return this;
+	}
+
+	public List<Comment> getComments() {
+		return get(COMMENTS);
+	}
+
+	public RetentionRule setComments(List<Comment> comments) {
+		set(COMMENTS, comments);
+		return this;
 	}
 }

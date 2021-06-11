@@ -1,16 +1,22 @@
 package com.constellio.app.modules.reports;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.enums.TemplateVersionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.reports.label.LabelXmlGenerator;
+import com.constellio.app.modules.rm.services.reports.xml.legacy.LabelXmlGenerator;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestCalculatedSeparatedStructureCalculator;
+import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestCalculatedSeparatedStructureFactory;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
@@ -68,7 +74,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 
 		adminInZeCollection = FakeSessionContext.adminInCollection(zeCollection).getCurrentUser();
 
-		reportXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH, adminInZeCollection);
+		reportXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH, adminInZeCollection.getUsername());
 		contentManager = getModelLayerFactory().getContentManager();
 
 	}
@@ -84,6 +90,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		PrintableLabel r = rm.newPrintableLabel();
 		r.setTitle(title);
 		r.setJasperFile(c);
+		r.setTemplateVersion(TemplateVersionType.CONSTELLIO_5);
 		Transaction t = new Transaction();
 		t.add(r);
 		r.setLigne(4);
@@ -112,6 +119,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		printableLabel.setTitle(title);
 		printableLabel.setLigne(4);
 		printableLabel.setColonne(2);
+		printableLabel.setTemplateVersion(TemplateVersionType.CONSTELLIO_5);
 
 		Transaction t = new Transaction();
 		t.add(printableLabel);
@@ -149,9 +157,22 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 	@Test
 	public void testConvertFoldersWithIdentifierToXML()
 			throws Exception {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			types.getSchema(Folder.DEFAULT_SCHEMA)
+					.create("separatedStructure")
+					.defineStructureFactory(TestCalculatedSeparatedStructureFactory.class)
+					.defineDataEntry().asCalculated(TestCalculatedSeparatedStructureCalculator.class);
+		});
+
+		Record folderA05 = records.getFolder_A05().getWrappedRecord();
+		Record folder06 = records.getFolder_A06().getWrappedRecord();
+		Record folder07 = records.getFolder_A80().getWrappedRecord();
+		recordServices.recalculate(folderA05);
+		recordServices.recalculate(folder06);
+		recordServices.recalculate(folder07);
+
 		SAXBuilder builder = new SAXBuilder();
-		reportXmlGenerator.setElements(records.getFolder_A05().getWrappedRecord(), records.getFolder_A06().getWrappedRecord(),
-				records.getFolder_A80().getWrappedRecord());
+		reportXmlGenerator.setElements(folderA05, folder06, folder07);
 		String xmlSeul = reportXmlGenerator.generateXML();
 		ByteArrayInputStream stream = new ByteArrayInputStream(xmlSeul.getBytes("UTF-8"));
 		Document document = builder.build(stream);
@@ -171,6 +192,10 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 				.getValue()).isEqualTo(records.getFolder_A05().getTitle());
 		assertThat(XmlMuliple.get(1).getChild("metadatas").getChild(rm.folder.title().getLocalCode().toLowerCase())
 				.getValue()).isEqualTo(records.getFolder_A06().getTitle());
+		assertThat(XmlMuliple.get(0).getChild("metadatas").getChild("separatedstructure")
+				.getValue()).isEqualTo("Analysis of title '" + records.getFolder_A05().getTitle() + "'");
+		assertThat(XmlMuliple.get(1).getChild("metadatas").getChild("separatedstructure")
+				.getValue()).isEqualTo("Analysis of title '" + records.getFolder_A06().getTitle() + "'");
 		String Null = null;
 		try {
 			String xmlNull = reportXmlGenerator.generateXML();
@@ -219,7 +244,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 			throws Exception {
 		SAXBuilder builder = new SAXBuilder();
 		LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH,
-				adminInZeCollection,
+				adminInZeCollection.getUsername(),
 				records.getContainerBac05().getWrappedRecord());
 
 		String contenu = labelXmlGenerator.generateXML();
@@ -228,7 +253,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		Element meta = ((Element) document.getRootElement().getChildren().get(0)).getChild("metadatas");
 
 		LabelXmlGenerator labelXmlGeneratorContenuSeul = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH,
-				adminInZeCollection,
+				adminInZeCollection.getUsername(),
 				records.getContainerBac08().getWrappedRecord());
 		String contenuSeul = labelXmlGeneratorContenuSeul.generateXML();
 		ByteArrayInputStream stream1 = new ByteArrayInputStream(contenuSeul.getBytes("UTF-8"));
@@ -242,7 +267,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 				.getValue()).isEqualTo(records.getContainerBac08().getStorageSpace());
 
 		LabelXmlGenerator labelXmlGeneratorConteneurWithMultipleIds = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH,
-				adminInZeCollection,
+				adminInZeCollection.getUsername(),
 				records.getContainerBac05().getWrappedRecord(), records.getContainerBac07().getWrappedRecord());
 		String conteneurWithMultipleIds = labelXmlGeneratorConteneurWithMultipleIds.generateXML();
 		ByteArrayInputStream streamWithMultipleIds = new ByteArrayInputStream(conteneurWithMultipleIds.getBytes("UTF-8"));
@@ -260,7 +285,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 			throws Exception {
 		SAXBuilder builder = new SAXBuilder();
 		LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH,
-				adminInZeCollection,
+				adminInZeCollection.getUsername(),
 				records.getContainerBac05().getWrappedRecord());
 
 		labelXmlGenerator.setStartingPosition(2);
@@ -276,7 +301,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 			throws Exception {
 		SAXBuilder builder = new SAXBuilder();
 		LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH,
-				adminInZeCollection,
+				adminInZeCollection.getUsername(),
 				records.getFolder_A01().getWrappedRecord());
 		labelXmlGenerator.setStartingPosition(5); // index 4
 		String contenu = labelXmlGenerator.generateXML();
@@ -369,7 +394,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 		assertThat(getTupleOfNameAndValueForEachMetadata(metadatasOfContainer.getChildren())).contains(expectedResults);
 
 		LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH,
-				adminInZeCollection,
+				adminInZeCollection.getUsername(),
 				records.getContainerBac05().getWrappedRecord());
 		String contenuFromV2 = labelXmlGenerator.generateXML();
 		ByteArrayInputStream streamV2 = new ByteArrayInputStream(contenuFromV2.getBytes());
@@ -384,7 +409,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 	public void testingStartingPositionInvalidIsFailing() {
 		try {
 			LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH,
-					adminInZeCollection,
+					adminInZeCollection.getUsername(),
 					records.getContainerBac05().getWrappedRecord());
 			labelXmlGenerator.setStartingPosition(-1);
 			labelXmlGenerator.generateXML();
@@ -400,7 +425,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 	public void testingNumberOfCopiesInvalidFailing() {
 		try {
 			LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH,
-					adminInZeCollection,
+					adminInZeCollection.getUsername(),
 					records.getContainerBac05().getWrappedRecord());
 			labelXmlGenerator.setNumberOfCopies(0);
 			labelXmlGenerator.generateXML();
@@ -415,7 +440,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 	public void testingElementNullFailing() {
 		try {
 			LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, getAppLayerFactory(), Locale.FRENCH,
-					adminInZeCollection);
+					adminInZeCollection.getUsername());
 			labelXmlGenerator.setElements(null);
 			labelXmlGenerator.generateXML();
 			fail();
@@ -429,7 +454,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 	public void testingNullCollectionFailing() {
 		try {
 			LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(null, getAppLayerFactory(), Locale.FRENCH,
-					adminInZeCollection,
+					adminInZeCollection.getUsername(),
 					records.getContainerBac07().getWrappedRecord());
 			labelXmlGenerator.generateXML();
 			fail();
@@ -443,7 +468,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 	public void testingEmptyCollectionFailing() {
 		try {
 			LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator("", getAppLayerFactory(), Locale.FRENCH,
-					adminInZeCollection,
+					adminInZeCollection.getUsername(),
 					records.getContainerBac07().getWrappedRecord());
 			labelXmlGenerator.generateXML();
 			fail();
@@ -456,7 +481,7 @@ public class ReportsRecordsAcceptTest extends ConstellioTest {
 	@Test
 	public void testingNullFactoryFailing() {
 		try {
-			LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, null, Locale.FRENCH, adminInZeCollection,
+			LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(zeCollection, null, Locale.FRENCH, adminInZeCollection.getUsername(),
 					records.getContainerBac07().getWrappedRecord());
 			labelXmlGenerator.generateXML();
 			fail();

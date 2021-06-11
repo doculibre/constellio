@@ -4,6 +4,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
@@ -46,8 +47,15 @@ public class UserCredential extends RecordWrapper {
 	public static final String ELECTRONIC_INITIALS = "electronicInitials";
 	public static final String AZURE_USERNAME = "azureUsername";
 
+	public static final String LICENSE_NOTIFICATION_VIEW_DATE = "licenseNotificationViewDate";
+	public static final String NEW_VERSIONS_NOTIFICATION_VIEW_DATE = "newVersionsNotificationViewDate";
+	public static final String LTS_END_OF_LIFE_NOTIFICATION_VIEW_DATE = "ltsEndOfLifeNotificationViewDate";
+	public static final String NOT_A_LTS_NOTIFICATION_VIEW_DATE = "notALtsNotificationViewDate";
+
 	public static final String TEAMS_FAVORITES_DISPLAY_ORDER = "teamsFavoritesDisplayOrder";
 	public static final String TEAMS_HIDDEN_FAVORITES = "teamsHiddenFavorites";
+
+	public static final String HAS_SEEN_LATEST_MESSAGE_AT_LOGIN = "hasSeenLatestMessageAtLogin";
 
 	public UserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -276,6 +284,41 @@ public class UserCredential extends RecordWrapper {
 		return this;
 	}
 
+	public LocalDate getLicenseNotificationViewDate() {
+		return get(LICENSE_NOTIFICATION_VIEW_DATE);
+	}
+
+	public UserCredential setLicenseNotificationViewDate(LocalDate date) {
+		set(LICENSE_NOTIFICATION_VIEW_DATE, date);
+		return this;
+	}
+
+	public LocalDate getNewVersionsNotificationViewDate() {
+		return get(NEW_VERSIONS_NOTIFICATION_VIEW_DATE);
+	}
+
+	public UserCredential setNewVersionsNotificationViewDate(LocalDate date) {
+		set(NEW_VERSIONS_NOTIFICATION_VIEW_DATE, date);
+		return this;
+	}
+
+	public LocalDate getLtsEndOfLifeNotificationViewDate() {
+		return get(LTS_END_OF_LIFE_NOTIFICATION_VIEW_DATE);
+	}
+
+	public UserCredential setLtsEndOfLifeNotificationViewDate(LocalDate date) {
+		set(LTS_END_OF_LIFE_NOTIFICATION_VIEW_DATE, date);
+		return this;
+	}
+
+	public LocalDate getNotALtsNotificationViewDate() {
+		return get(NOT_A_LTS_NOTIFICATION_VIEW_DATE);
+	}
+
+	public UserCredential setNotALtsNotificationViewDate(LocalDate date) {
+		set(NOT_A_LTS_NOTIFICATION_VIEW_DATE, date);
+		return this;
+	}
 
 	public UserCredential setNotReceivingEmails(Boolean value) {
 		set(DO_NOT_RECEIVE_EMAILS, value);
@@ -311,6 +354,15 @@ public class UserCredential extends RecordWrapper {
 
 	public UserCredential setElectronicInitials(Content content) {
 		set(ELECTRONIC_INITIALS, content);
+		return this;
+	}
+
+	public boolean hasSeenLatestMessageAtLogin() {
+		return Boolean.TRUE.equals(get(HAS_SEEN_LATEST_MESSAGE_AT_LOGIN));
+	}
+
+	public UserCredential setSeenLatestMessageAtLogin(Boolean seenLatestMessageAtLogin) {
+		set(HAS_SEEN_LATEST_MESSAGE_AT_LOGIN, seenLatestMessageAtLogin);
 		return this;
 	}
 }

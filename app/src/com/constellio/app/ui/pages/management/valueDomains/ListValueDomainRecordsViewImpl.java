@@ -81,14 +81,16 @@ public class ListValueDomainRecordsViewImpl extends BaseViewImpl implements List
 		Table inactiveRecordsTable = buildRecordsTable(false);
 
 		VerticalLayout activeLayout = new VerticalLayout();
-		Button addButton = new AddButton() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.addLinkClicked();
-			}
-		};
-		activeLayout.addComponent(addButton);
-		activeLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+		if (presenter.isManageable()) {
+			Button addButton = new AddButton() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.addLinkClicked();
+				}
+			};
+			activeLayout.addComponent(addButton);
+			activeLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+		}
 		activeLayout.addComponent(activeRecordsTable);
 
 		VerticalLayout inactiveLayout = new VerticalLayout();
@@ -142,50 +144,52 @@ public class ListValueDomainRecordsViewImpl extends BaseViewImpl implements List
 			}
 		});
 
-		if (active) {
+		if (presenter.isManageable()) {
+			if (active) {
+				buttonsContainer.addButton(new ContainerButton() {
+					@Override
+					protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+						return new DisableButton() {
+							@Override
+							protected void confirmButtonClick(ConfirmDialog dialog) {
+								Integer index = (Integer) itemId;
+								RecordVO entity = dataProvider.getRecordVO(index);
+								presenter.disableButtonClick(entity);
+							}
+						};
+					}
+				});
+			} else {
+				buttonsContainer.addButton(new ContainerButton() {
+					@Override
+					protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+						return new EnableButton() {
+							@Override
+							protected void confirmButtonClick(ConfirmDialog dialog) {
+								Integer index = (Integer) itemId;
+								RecordVO entity = dataProvider.getRecordVO(index);
+								presenter.enableButtonClick(entity);
+							}
+						};
+					}
+				});
+			}
+
 			buttonsContainer.addButton(new ContainerButton() {
 				@Override
 				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-					return new DisableButton() {
+					DeleteButton deleteButton = new DeleteButton() {
 						@Override
 						protected void confirmButtonClick(ConfirmDialog dialog) {
 							Integer index = (Integer) itemId;
 							RecordVO entity = dataProvider.getRecordVO(index);
-							presenter.disableButtonClick(entity);
+							presenter.deleteButtonClicked(entity);
 						}
 					};
-				}
-			});
-		} else {
-			buttonsContainer.addButton(new ContainerButton() {
-				@Override
-				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-					return new EnableButton() {
-						@Override
-						protected void confirmButtonClick(ConfirmDialog dialog) {
-							Integer index = (Integer) itemId;
-							RecordVO entity = dataProvider.getRecordVO(index);
-							presenter.enableButtonClick(entity);
-						}
-					};
+					return deleteButton;
 				}
 			});
 		}
-
-		buttonsContainer.addButton(new ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				DeleteButton deleteButton = new DeleteButton() {
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						Integer index = (Integer) itemId;
-						RecordVO entity = dataProvider.getRecordVO(index);
-						presenter.deleteButtonClicked(entity);
-					}
-				};
-				return deleteButton;
-			}
-		});
 		recordsContainer = buttonsContainer;
 
 		RecordVOTable table = new RecordVOTable($("ListSchemaRecordsView.tableTitle", dataProvider.size()), recordsContainer);

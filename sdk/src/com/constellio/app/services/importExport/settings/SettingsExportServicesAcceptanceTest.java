@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.appManagement.GetWarVersionUtils;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
 import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
@@ -25,6 +26,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.ReferencedMetadataBasedTestSequenceCalculator;
 import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -416,6 +418,42 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(settings.getSequences()).extracting("key", "value")
 				.containsOnly(tuple("sequence1", "42"), tuple("sequence2", "666"));
 
+	}
+
+	@Test
+	public void givenAdvancedSequenceWhenExportingThenCalculatorClassExported()
+			throws ValidationException, IOException {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			MetadataBuilder metadataBuilder = types.getSchemaType(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE)
+					.createMetadata("USRzeAdvancedSequence").setType(MetadataValueType.STRING);
+			metadataBuilder.defineDataEntry().asAdvancedSequence(ReferencedMetadataBasedTestSequenceCalculator.class);
+		});
+
+		ImportedSettings settings = services.exportSettings(asList(zeCollection), options);
+
+		ImportedCollectionSettings zeCollectionSettings = settings.getCollectionsSettings().get(0);
+
+		ImportedType importedDocumentType = zeCollectionSettings.getType("document");
+		assertThat(importedDocumentType).isNotNull();
+
+		ImportedMetadata importMetadata = importedDocumentType.getDefaultSchema().getMetadata("USRzeAdvancedSequence");
+
+		ImportedDataEntry importMetadataDataEntry = importMetadata.getDataEntry();
+		assertThat(importMetadataDataEntry.getType()).isEqualTo("advancedSequence");
+		assertThat(importMetadataDataEntry.getAdvancedSequenceCalculatorClass())
+				.isEqualTo(ReferencedMetadataBasedTestSequenceCalculator.class.getCanonicalName());
+
+		String outputFilePath = "settings-export-output.xml";
+		File outputFile = new File(newTempFolder(), outputFilePath);
+
+		Document document = new SettingsXMLFileWriter().writeSettings(settings);
+
+		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
+
+		System.out.println("File Saved!");
 	}
 
 	@Test

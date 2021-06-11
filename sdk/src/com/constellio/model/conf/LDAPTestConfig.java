@@ -62,6 +62,18 @@ public class LDAPTestConfig {
 	public static boolean isMembershipAutomaticDerivationActivated() {
 		return true;
 	}
+	
+	public static boolean isFetchSubGroups() {
+		return false;
+	}
+	
+	public static boolean isIgnoreRegexForSubGroups() {
+		return false;
+	}
+	
+	public static boolean isSyncUsersOnlyIfInAcceptedGroups() {
+		return false;
+	}
 
 	public static RegexFilter getUserFiler() {
 		return new RegexFilter(".*", "testAuj");
@@ -95,7 +107,10 @@ public class LDAPTestConfig {
 				getUsersWithoutGroupsBaseContextList(),
 				getUserFilterGroupsList(),
 				isMembershipAutomaticDerivationActivated(),
-				selectedCollectionsCodes);
+				selectedCollectionsCodes,
+				isFetchSubGroups(),
+				isIgnoreRegexForSubGroups(),
+				isSyncUsersOnlyIfInAcceptedGroups());
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
@@ -112,7 +127,10 @@ public class LDAPTestConfig {
 				getGroupBaseContextList(),
 				getUsersWithoutGroupsBaseContextList(),
 				getUserFilterGroupsList(),
-				isMembershipAutomaticDerivationActivated());
+				isMembershipAutomaticDerivationActivated(),
+				isFetchSubGroups(),
+				isIgnoreRegexForSubGroups(),
+				isSyncUsersOnlyIfInAcceptedGroups());
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(String password) {
@@ -125,7 +143,10 @@ public class LDAPTestConfig {
 				getGroupBaseContextList(),
 				getUsersWithoutGroupsBaseContextList(),
 				getUserFilterGroupsList(),
-				isMembershipAutomaticDerivationActivated());
+				isMembershipAutomaticDerivationActivated(),
+				isFetchSubGroups(),
+				isIgnoreRegexForSubGroups(),
+				isSyncUsersOnlyIfInAcceptedGroups());
 	}
 
 	public static LDAPServerConfiguration getExchangeLDAPServerConfiguration() {
@@ -143,7 +164,10 @@ public class LDAPTestConfig {
 				getUsersWithoutGroupsBaseContextList(),
 				getUserFilterGroupsList(),
 				isMembershipAutomaticDerivationActivated(),
-				asList("zeCollection"));
+				asList("zeCollection"),
+				isFetchSubGroups(),
+				isIgnoreRegexForSubGroups(),
+				isSyncUsersOnlyIfInAcceptedGroups());
 	}
 
 	public static LDAPServerConfiguration getLDAPSServerConfiguration() {

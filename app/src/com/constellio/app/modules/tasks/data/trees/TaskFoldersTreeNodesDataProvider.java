@@ -69,7 +69,7 @@ public class TaskFoldersTreeNodesDataProvider implements RecordTreeNodesDataProv
 		query.setReturnedMetadatas(returnedMetadatasForRecordsIn(collection,
 				appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)));
 		query.sortAsc(TITLE);
-		query.filteredWithUser(getCurrentUser(appLayerFactory.getModelLayerFactory()));
+		query.filteredWithUserRead(getCurrentUser(appLayerFactory.getModelLayerFactory()));
 
 		SPEQueryResponse queryResponse = searchServices.query(query);
 		List<TaxonomySearchRecord> taxonomySearchRecords = new ArrayList<>();
@@ -92,7 +92,7 @@ public class TaskFoldersTreeNodesDataProvider implements RecordTreeNodesDataProv
 
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(condition);
 
-		logicalSearchQuery.filteredWithUser(getCurrentUser(appLayerFactory.getModelLayerFactory()));
+		logicalSearchQuery.filteredWithUserRead(getCurrentUser(appLayerFactory.getModelLayerFactory()));
 		logicalSearchQuery.setStartRow(start);
 		logicalSearchQuery.setNumberOfRows(maxSize);
 		logicalSearchQuery.sortDesc(Schemas.SCHEMA).sortAsc(TITLE);

@@ -24,7 +24,7 @@ public class IsEndingWithTextCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public boolean isValidFor(DataStoreField dataStoreField) {
-		return dataStoreField.getType() == MetadataValueType.STRING;
+		return dataStoreField.getType() == MetadataValueType.STRING || dataStoreField.getType() == MetadataValueType.STRUCTURE;
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 
 import java.util.ArrayList;
@@ -37,11 +38,9 @@ public class TasksRecordExportExtension extends RecordExportExtension {
 
 	@Override
 	public void onWriteRecord(OnWriteRecordParams params) {
-
 		if (params.isRecordOfType(Task.SCHEMA_TYPE)) {
 			manageUserTask(params);
 		}
-
 	}
 
 	@Override
@@ -77,6 +76,12 @@ public class TasksRecordExportExtension extends RecordExportExtension {
 		}
 
 		params.getModifiableImportRecord().addField(Task.TASK_FOLLOWERS, listTaskFollowers);
+		if (task.getSchema().hasMetadataWithCode(Schemas.CODE.getLocalCode())) {
+			String code = task.get(Schemas.CODE.getLocalCode());
+			if (code != null) {
+				params.getModifiableImportRecord().addField(Schemas.CODE.getLocalCode(), code);
+			}
+		}
 	}
 
 

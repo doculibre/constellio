@@ -217,7 +217,7 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 		assertThat(metadataDeletionService.canDeleteMetadata(copiedMetadataDestination.getCode())).isNull();
 		assertThat(metadataDeletionService.canDeleteMetadata(calculatedMetadataDestination.getCode())).isNull();
 		assertThat(metadataDeletionService.canDeleteMetadata(extractedMetadataDestination.getCode())).isNull();
-		assertThat(metadataDeletionService.canDeleteMetadata(userEncryptedMetadataWithDefaultValue.getCode())).isNull();
+		assertThat(metadataDeletionService.canDeleteMetadata(userEncryptedMetadataWithDefaultValue.getCode())).isNotNull();
 		assertThat(metadataDeletionService.canDeleteMetadata(inheritedMetadata.getCode())).isEqualTo(INHERITED_METADATA);
 		assertThat(metadataDeletionService.canDeleteMetadata(directlyPopulatedMetadata.getCode())).isEqualTo(POPULATED_METADATA);
 		assertThat(metadataDeletionService.canDeleteMetadata(populatedMetadataInInheritance
@@ -243,12 +243,16 @@ public class MetadataDeletionServiceAcceptanceTest extends ConstellioTest {
 			throws MetadataDeletionException {
 		metadataDeletionService.deleteMetadata(folderSchema.getCode() + "_" + mappedMetadata.getLocalCode());
 		assertMetadataDeletedCorrectly(mappedMetadata);
-		metadataDeletionService.deleteMetadata(userEncryptedMetadataWithDefaultValue.getCode());
-		assertMetadataDeletedCorrectly(userEncryptedMetadataWithDefaultValue);
-		assertMetadataDeletedCorrectly(userEncryptedMetadataWithDefaultValue);
 		metadataDeletionService.deleteMetadata(userMetadataInCustomSchema.getCode());
 		assertMetadataDeletedCorrectly(userMetadataInCustomSchema);
 		assertThat(schemaManager.getSchemaTypes(zeCollection).getMetadata(userMetadataInCustomSchema2.getCode())).isNotNull();
+
+		try {
+			metadataDeletionService.deleteMetadata(userEncryptedMetadataWithDefaultValue.getCode());
+			fail("encrypted metadata does not discriminate the default value. If there is one it counted a data.");
+		} catch (MetadataDeletionException_PopulatedMetadata e) {
+			assertMetadataNotDeletedAndCanBeDeletedFromDocumentSchema(userEncryptedMetadataWithDefaultValue);
+		}
 
 		try {
 			metadataDeletionService.deleteMetadata(systemMetadata.getCode());

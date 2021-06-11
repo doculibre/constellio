@@ -27,7 +27,9 @@ public abstract class IndexedCalculatedKeysHookHandler<K, V> {
 
 	public IndexedCalculatedKeysHookHandler(MetadataIndexCacheDataStoreHook hook, MetadataSchemaTypes types) {
 		this.hook = hook;
-		this.onTypesModified(types);
+		if (types != null) {
+			this.onTypesModified(types);
+		}
 	}
 
 	public MetadataIndexCacheDataStoreHook<K> getHook() {

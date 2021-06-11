@@ -5,6 +5,8 @@ import com.constellio.app.modules.rm.reports.model.search.SearchResultReportMode
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.conf.FoldersLocator;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import jxl.CellView;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
@@ -20,6 +22,7 @@ import org.jsoup.safety.Whitelist;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,11 +33,14 @@ public class SearchResultReportWriter extends BaseExcelReportWriter implements R
 	SearchResultReportModel model;
 	FoldersLocator foldersLocator;
 	Locale locale;
+	ModelLayerFactory modelLayerFactory;
+	boolean isBracketRemovedConfig;
 
 	public SearchResultReportWriter(SearchResultReportModel model, FoldersLocator foldersLocator, Locale locale) {
 		this.model = model;
 		this.foldersLocator = foldersLocator;
 		this.locale = locale;
+		this.isBracketRemovedConfig = new ConstellioEIMConfigs(model.getModelLayerFactory()).isBraketsRemovedInExcelReports();
 	}
 
 	@Override
@@ -94,6 +100,10 @@ public class SearchResultReportWriter extends BaseExcelReportWriter implements R
 		}
 	}
 
+	private String removeBracketsFromStringObject(Object stringWithBackets) {
+		return stringWithBackets.toString().substring(0, stringWithBackets.toString().length() - 1).substring(1);
+	}
+
 	protected void writeLine(WritableSheet sheet, List<Object> currentLine, int lineNumber, WritableCellFormat font)
 			throws WriteException {
 		CellView cv = new CellView();
@@ -108,6 +118,8 @@ public class SearchResultReportWriter extends BaseExcelReportWriter implements R
 				cellObject instanceof Integer ||
 				cellObject instanceof Double) {
 				addNumber(sheet, font, columnNumber, lineNumber, new Double(cellObject.toString()));
+			} else if (cellObject instanceof ArrayList<?> && this.isBracketRemovedConfig) {
+				addString(sheet, font, columnNumber, lineNumber, removeBracketsFromStringObject(cellObject));
 			} else {
 				addString(sheet, font, columnNumber, lineNumber, cellObject.toString());
 			}

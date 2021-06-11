@@ -35,13 +35,13 @@ public class FolderBreadCrumbItem implements BreadcrumbItem {
 
 	@Override
 	public String getLabel() {
-		return SchemaCaptionUtils.getCaptionForRecordId(folderId);
+		return SchemaCaptionUtils.getCaptionForRecord(schemaPresenterUtils.getSummaryRecord(folderId));
 	}
 
 	@Override
 	public boolean isEnabled() {
 		boolean enabled;
-		Record record = schemaPresenterUtils.getRecord(folderId);
+		Record record = schemaPresenterUtils.getSummaryRecord(folderId);
 		User user = schemaPresenterUtils.getCurrentUser();
 		boolean readAccess = user.hasReadAccess().on(record);
 

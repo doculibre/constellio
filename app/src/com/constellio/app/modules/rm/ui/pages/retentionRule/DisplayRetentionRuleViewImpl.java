@@ -9,6 +9,8 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
+import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.SelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
@@ -184,7 +186,7 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 			actionMenuButtons.add(editButton);
 			actionMenuButtons.add(deleteButton);
 		}
-
+		actionMenuButtons.add(buildAdditionalMenuButton());
 		return actionMenuButtons;
 	}
 
@@ -213,4 +215,18 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 		};
 	}
 
+	private Button buildAdditionalMenuButton() {
+		SelectionPanelReportPresenter selectionPanelReportPresenter = presenter.getRMSelectionPanelReportPresenter(retentionRuleVO);
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"),
+				$("SearchView.metadataReportTitle"),
+				getConstellioFactories().getAppLayerFactory(), getCollection(), false, false, false, false, false,
+				selectionPanelReportPresenter, getSessionContext()) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				setRecordVoList(retentionRuleVO);
+				super.buttonClick(event);
+			}
+		};
+		return reportGeneratorButton;
+	}
 }

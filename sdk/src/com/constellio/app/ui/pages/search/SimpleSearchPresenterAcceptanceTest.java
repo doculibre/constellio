@@ -6,6 +6,8 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.LegalReference;
+import com.constellio.app.modules.rm.wrappers.LegalRequirement;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.importExport.settings.SettingsImportServices;
@@ -329,6 +331,8 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 				types.getDefaultSchema(Document.SCHEMA_TYPE).getMetadata("id").setSortable(false);
 				types.getDefaultSchema(Task.SCHEMA_TYPE).getMetadata("id").setSortable(false);
 				types.getDefaultSchema(StorageSpace.SCHEMA_TYPE).get("id").setSortable(false);
+				types.getDefaultSchema(LegalReference.SCHEMA_TYPE).get("id").setSortable(false);
+				types.getDefaultSchema(LegalRequirement.SCHEMA_TYPE).get("id").setSortable(false);
 			}
 		});
 

@@ -109,7 +109,7 @@ public class DocumentViewer extends CustomComponent {
 							InputStream in = null;
 							try {
 								in = contentManager.getContentInputStream(hash, getClass() + ".documentConversionFile");
-								documentViewerFile = conversionManager.convertToPDF(in, fileName, tempDir);
+								documentViewerFile = conversionManager.convertToPDF(in, fileName, tempDir, false);
 								cache.put(hash, documentViewerFile);
 							} finally {
 								IOUtils.closeQuietly(in);
@@ -196,29 +196,38 @@ public class DocumentViewer extends CustomComponent {
 				PdfJSServices pdfJSServices = new PdfJSServices(appLayerFactory);
 				SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 
-				User user = presenterService.getCurrentUser(sessionContext);
-				String username = user.getUsername();
-				UserCredential userCredentials = userServices.getUserCredential(username);
-				String serviceKey = userCredentials.getServiceKey();
-				if (serviceKey == null) {
-					serviceKey = userServices.giveNewServiceKey(username);
-				}
-				String tokenAttributeName = "document_viewer_token";
-				String token = ConstellioUI.getCurrent().getAttribute(tokenAttributeName);
-				if (token == null || !userServices.isAuthenticated(serviceKey, token)) {
-					token = userServices.generateToken(username);
-					ConstellioUI.getCurrent().setAttribute(tokenAttributeName, token);
-					final String finalToken = token;
-					// Token only valid while current UI is alive
-					ConstellioUI.getCurrent().addDetachListener(new DetachListener() {
-						@Override
-						public void detach(DetachEvent event) {
-							ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-							ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-							UserServices userServices = modelLayerFactory.newUserServices();
-							userServices.removeToken(finalToken);
-						}
-					});
+				User user;
+				String serviceKey;
+				String token;
+				if (file == null) {
+					user = presenterService.getCurrentUser(sessionContext);
+					String username = user.getUsername();
+					UserCredential userCredentials = userServices.getUserCredential(username);
+					serviceKey = userCredentials.getServiceKey();
+					if (serviceKey == null) {
+						serviceKey = userServices.giveNewServiceKey(username);
+					}
+					String tokenAttributeName = "document_viewer_token";
+					token = ConstellioUI.getCurrent().getAttribute(tokenAttributeName);
+					if (token == null || !userServices.isAuthenticated(serviceKey, token)) {
+						token = userServices.generateToken(username);
+						ConstellioUI.getCurrent().setAttribute(tokenAttributeName, token);
+						final String finalToken = token;
+						// Token only valid while current UI is alive
+						ConstellioUI.getCurrent().addDetachListener(new DetachListener() {
+							@Override
+							public void detach(DetachEvent event) {
+								ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+								ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+								UserServices userServices = modelLayerFactory.newUserServices();
+								userServices.removeToken(finalToken);
+							}
+						});
+					}
+				} else {
+					user = null;
+					serviceKey = null;
+					token = null;
 				}
 
 				String viewerUrl;

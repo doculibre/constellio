@@ -1,6 +1,7 @@
 package com.constellio.app.modules.tasks.extensions;
 
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.app.modules.tasks.TaskConfigs;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
@@ -18,6 +19,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -30,7 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -48,6 +49,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMPLETE
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DELETED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_FOLLOWER_ADDED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_MODIFIED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED;
@@ -154,7 +156,33 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		for (EmailAddress emailAddress : emailToSend.getTo()) {
 			expectedRecipients.add(emailAddress.getEmail());
 		}
-		assertThat(expectedRecipients).isEqualTo(new HashSet<>(Arrays.asList(getUserEmail(users.aliceIn(zeCollection).getId()), getUserEmail(zeTaskFinishedEventFollower.getFollowerId()))));
+		assertThat(expectedRecipients).isEqualTo(new HashSet<>(asList(getUserEmail(users.aliceIn(zeCollection).getId()), getUserEmail(zeTaskFinishedEventFollower.getFollowerId()))));
+	}
+
+	@Test
+	public void givenTaskWithSetCommentAndConfigEnabledThenOneValidEmailToSendToAssignerAndFollowerIsCreated()
+			throws RecordServicesException {
+		givenConfig(TaskConfigs.SHOW_COMMENTS, true);
+
+		LocalDateTime time = new LocalDateTime(2001, 12, 19, 21, 0);
+		Comment comment = new Comment("You shall not pass!", users.gandalfIn(zeCollection), time);
+		recordServices.add(zeTask.setComments(asList(comment)).setStatus(FIN()));
+		recordServices.flush();
+		EmailToSend emailToSend = getEmailToSendNotHavingAssignedToYouTemplateId();
+		assertThat(emailToSend).isNotNull();
+		assertThat(emailToSend.getTemplate()).isEqualTo(TASK_COMPLETED);
+		assertThatParametersAreOk(zeTask, emailToSend);
+		assertThat(emailToSend.getFrom()).isNull();
+		assertThat(emailToSend.getSendOn()).isEqualTo(this.now);
+		assertThat(emailToSend.getTo().size()).isEqualTo(2);
+		assertThat(emailToSend.getParameters()).contains("taskComments:Commentaires :<br/>Gandalf Leblanc : 2001-12-19T21:00:00.000<br/>You shall not pass!<br/>");
+		assertThat(tasksSchemas.getTask(zeTask.getId()).getEndDate()).isEqualTo(this.now.toLocalDate());
+
+		final Set<String> expectedRecipients = new HashSet<>();
+		for (EmailAddress emailAddress : emailToSend.getTo()) {
+			expectedRecipients.add(emailAddress.getEmail());
+		}
+		assertThat(expectedRecipients).isEqualTo(new HashSet<>(asList(getUserEmail(users.aliceIn(zeCollection).getId()), getUserEmail(zeTaskFinishedEventFollower.getFollowerId()))));
 	}
 
 	@Test
@@ -386,6 +414,27 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 		assertThat(emailToSend.getSendOn()).isEqualTo(now);
 		assertThat(emailToSend.getTo().size()).isEqualTo(1);
 		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(getUserEmail(zeTaskDeletionFollower.getFollowerId()));
+	}
+
+	@Test
+	public void givenTaskFollowersModifiedThenValidEmailToSendCreated() throws Exception {
+		clearFollowerAddedEmails();
+
+		String aliceId = users.aliceIn(zeCollection).getId();
+		TaskFollower taskFollower = new TaskFollower();
+		taskFollower.setFollowerId(aliceId);
+
+		recordServices.add(zeTask.setTaskFollowers(asList(taskFollower)));
+		recordServices.flush();
+
+		EmailToSend emailToSend = getEmailToSendHavingFollowerAddedTemplateId();
+		assertThat(emailToSend).isNotNull();
+		assertThat(emailToSend.getTemplate()).isEqualTo(TASK_FOLLOWER_ADDED);
+		assertThatParametersAreOk(zeTask, emailToSend);
+		assertThat(emailToSend.getFrom()).isNull();
+		assertThat(emailToSend.getSendOn()).isEqualTo(now);
+		assertThat(emailToSend.getTo().size()).isEqualTo(1);
+		assertThat(emailToSend.getTo().get(0).getEmail()).isEqualTo(getUserEmail(aliceId));
 	}
 
 	@Test
@@ -717,14 +766,36 @@ public class TaskRecordExtensionAcceptanceTest extends ConstellioTest {
 
 	private EmailToSend getEmailToSendNotHavingAssignedToYouTemplateId() {
 		LogicalSearchCondition condition = from(emailToSendSchema)
-				.where(tasksSchemas.emailToSend().getMetadata(EmailToSend.TEMPLATE))
-				.isNotEqual(TASK_ASSIGNED_TO_YOU);
+				.where(tasksSchemas.emailToSend().getMetadata(EmailToSend.TEMPLATE)).isNotEqual(TASK_ASSIGNED_TO_YOU)
+				.andWhere(tasksSchemas.emailToSend().getMetadata(EmailToSend.TEMPLATE)).isNotEqual(TASK_FOLLOWER_ADDED);
 		Record emailRecord = searchServices.searchSingleResult(condition);
 		if (emailRecord != null) {
 			return tasksSchemas.wrapEmailToSend(emailRecord);
 		} else {
 			return null;
 		}
+	}
+
+	private EmailToSend getEmailToSendHavingFollowerAddedTemplateId() {
+		LogicalSearchCondition condition = from(emailToSendSchema)
+				.where(tasksSchemas.emailToSend().getMetadata(EmailToSend.TEMPLATE)).isEqualTo(TASK_FOLLOWER_ADDED)
+				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
+		Record emailRecord = searchServices.searchSingleResult(condition);
+		if (emailRecord != null) {
+			return tasksSchemas.wrapEmailToSend(emailRecord);
+		} else {
+			return null;
+		}
+	}
+
+	private void clearFollowerAddedEmails() {
+		LogicalSearchCondition condition = from(emailToSendSchema)
+				.where(tasksSchemas.emailToSend().getMetadata(EmailToSend.TEMPLATE)).isEqualTo(TASK_FOLLOWER_ADDED);
+		List<Record> emailRecords = searchServices.search(new LogicalSearchQuery(condition));
+		for (Record email : emailRecords) {
+			recordServices.logicallyDelete(email, null);
+		}
+		recordServices.flush();
 	}
 
 	private String getUserEmail(String userId) {

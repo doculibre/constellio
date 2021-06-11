@@ -205,7 +205,7 @@ public abstract class Decommissioner {
 			parameters.add("comment" + EmailToSend.PARAMETER_SEPARATOR + StringUtils.defaultIfBlank(comment, ""));
 			String rmObjectTitle = decommissioningList.getTitle();
 			boolean isAddingRecordIdInEmails = new ConstellioEIMConfigs(modelLayerFactory).isAddingRecordIdInEmails();
-			if(isAddingRecordIdInEmails) {
+			if (isAddingRecordIdInEmails) {
 				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle + " (" + decommissioningList.getId() + ")");
 			} else {
 				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
@@ -313,13 +313,12 @@ public abstract class Decommissioner {
 	private void processFolders() {
 		DecommissioningListType decommissioningListType = decommissioningList.getDecommissioningListType();
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-			if (FolderDetailStatus.EXCLUDED.equals(detail.getFolderDetailStatus())) {
-				continue;
+			if (FolderDetailStatus.INCLUDED.equals(detail.getFolderDetailStatus())) {
+				Folder folder = rm.getFolder(detail.getFolderId());
+				preprocessFolder(folder, detail, decommissioningListType);
+				processFolder(folder, detail);
+				add(folder);
 			}
-			Folder folder = rm.getFolder(detail.getFolderId());
-			preprocessFolder(folder, detail, decommissioningListType);
-			processFolder(folder, detail);
-			add(folder);
 		}
 	}
 
@@ -438,7 +437,7 @@ public abstract class Decommissioner {
 							try {
 								String fileExtension = FilenameUtils.getExtension(content.getCurrentVersion().getFilename());
 								if (!("pdf".equalsIgnoreCase(fileExtension))) {
-									content = createPDFa(content);
+									content = createPDF(content);
 									loggingServices.logPdfAGeneration(document, user);
 								}
 							} catch (NullPointerException e) {
@@ -518,8 +517,9 @@ public abstract class Decommissioner {
 		return ContentImpl.create(content.getId(), current, history);
 	}
 
-	private Content createPDFa(Content content) {
-		return conversionManager.replaceContentByPDFA(content);
+	private Content createPDF(Content content) {
+		boolean convertToPdfA = configs.isConvertToPdfAWhenDecommissioning();
+		return conversionManager.replaceContentByPDF(content, convertToPdfA);
 	}
 
 	private void destroyContent(Content content) {

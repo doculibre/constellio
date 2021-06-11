@@ -22,12 +22,12 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
+import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.SelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorItem;
 import com.constellio.app.ui.framework.components.fields.list.TaskCollaboratorsGroupItem;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -47,6 +47,7 @@ import org.joda.time.LocalDate;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
@@ -305,9 +306,24 @@ public class TaskManagementPresenter extends AbstractTaskPresenter<TaskManagemen
 
 	@Override
 	public void generateReportButtonClicked(RecordVO recordVO) {
-		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
-				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, recordVO);
-		button.click();
+		SelectionPanelReportPresenter selectionPanelReportPresenter = new SelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
+			@Override
+			public String getSelectedSchemaType() {
+				return Task.SCHEMA_TYPE;
+			}
+
+			@Override
+			public List<String> getSelectedRecordIds() {
+				return Collections.singletonList(recordVO.getId());
+			}
+		};
+
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"),
+				$("SearchView.metadataReportTitle"), appLayerFactory, collection, selectionPanelReportPresenter, view.getSessionContext()) {
+
+		};
+		reportGeneratorButton.setRecordVoList(recordVO);
+		reportGeneratorButton.click();
 	}
 
 	public RecordVODataProvider getWorkflows() {

@@ -123,11 +123,11 @@ public class TransactionTest extends ConstellioTest {
 			throws Exception {
 		when(record1.getId()).thenReturn("id1");
 		when(record1.getCollection()).thenReturn("collection1");
-		doNothing().when(transaction).validateCollection(anyString());
+		doNothing().when(transaction).validateCollection(anyString(), anyString());
 
 		transaction.addUpdate(record1);
 
-		verify(transaction, times(1)).validateCollection("collection1");
+		verify(transaction, times(1)).validateCollection("collection1", record1.getId());
 	}
 
 	@Test
@@ -139,12 +139,13 @@ public class TransactionTest extends ConstellioTest {
 		when(record1.getCollection()).thenReturn("collection1");
 		when(record2.getCollection()).thenReturn("collection1");
 		when(record3.getCollection()).thenReturn("collection2");
-		doNothing().when(transaction).validateCollection(anyString());
+		doNothing().when(transaction).validateCollection(anyString(), anyString());
 
 		transaction.addUpdate(record1, record2, record3);
 
-		verify(transaction, times(2)).validateCollection("collection1");
-		verify(transaction, times(1)).validateCollection("collection2");
+		verify(transaction, times(1)).validateCollection("collection1", record1.getId());
+		verify(transaction, times(1)).validateCollection("collection1", record2.getId());
+		verify(transaction, times(1)).validateCollection("collection2", record3.getId());
 	}
 
 	@Test
@@ -156,12 +157,13 @@ public class TransactionTest extends ConstellioTest {
 		when(record1.getCollection()).thenReturn("collection1");
 		when(record2.getCollection()).thenReturn("collection1");
 		when(record3.getCollection()).thenReturn("collection2");
-		doNothing().when(transaction).validateCollection(anyString());
+		doNothing().when(transaction).validateCollection(anyString(),anyString());
 
 		transaction.addUpdate(Arrays.asList(record1, record2, record3));
 
-		verify(transaction, times(2)).validateCollection("collection1");
-		verify(transaction, times(1)).validateCollection("collection2");
+		verify(transaction, times(1)).validateCollection("collection1",record1.getId());
+		verify(transaction, times(1)).validateCollection("collection1",record2.getId());
+		verify(transaction, times(1)).validateCollection("collection2", record3.getId());
 	}
 
 	@Test
@@ -169,11 +171,11 @@ public class TransactionTest extends ConstellioTest {
 			throws Exception {
 		when(record1.getId()).thenReturn("id1");
 		when(record1.getCollection()).thenReturn("collection1");
-		doNothing().when(transaction).validateCollection(anyString());
+		doNothing().when(transaction).validateCollection(anyString(), anyString());
 
 		transaction.add(record1);
 
-		verify(transaction, times(1)).validateCollection("collection1");
+		verify(transaction, times(1)).validateCollection("collection1", record1.getId());
 	}
 
 	@Test
@@ -181,11 +183,11 @@ public class TransactionTest extends ConstellioTest {
 			throws Exception {
 		when(record1.getId()).thenReturn("id1");
 		when(record1.getCollection()).thenReturn("collection1");
-		doNothing().when(transaction).validateCollection(anyString());
+		doNothing().when(transaction).validateCollection(anyString(),anyString());
 
 		transaction.update(record1);
 
-		verify(transaction, times(1)).validateCollection("collection1");
+		verify(transaction, times(1)).validateCollection("collection1",record1.getId());
 	}
 
 	@Test
@@ -197,12 +199,13 @@ public class TransactionTest extends ConstellioTest {
 		when(record1.getCollection()).thenReturn("collection1");
 		when(record2.getCollection()).thenReturn("collection1");
 		when(record3.getCollection()).thenReturn("collection2");
-		doNothing().when(transaction).validateCollection(anyString());
+		doNothing().when(transaction).validateCollection(anyString(),anyString());
 
 		transaction.update(record1, record2, record3);
 
-		verify(transaction, times(2)).validateCollection("collection1");
-		verify(transaction, times(1)).validateCollection("collection2");
+		verify(transaction, times(1)).validateCollection("collection1",record1.getId());
+		verify(transaction, times(1)).validateCollection("collection1",record2.getId());
+		verify(transaction, times(1)).validateCollection("collection2", record3.getId());
 	}
 
 	@Test
@@ -214,12 +217,13 @@ public class TransactionTest extends ConstellioTest {
 		when(record1.getCollection()).thenReturn("collection1");
 		when(record2.getCollection()).thenReturn("collection1");
 		when(record3.getCollection()).thenReturn("collection2");
-		doNothing().when(transaction).validateCollection(anyString());
+		doNothing().when(transaction).validateCollection(anyString(), anyString());
 
 		transaction.update(Arrays.asList(record1, record2, record3));
 
-		verify(transaction, times(2)).validateCollection("collection1");
-		verify(transaction, times(1)).validateCollection("collection2");
+		verify(transaction, times(1)).validateCollection("collection1", record1.getId());
+		verify(transaction, times(1)).validateCollection("collection1", record2.getId());
+		verify(transaction, times(1)).validateCollection("collection2", record3.getId());
 	}
 
 	@Test(expected = TransactionRuntimeException.DifferentCollectionsInRecords.class)

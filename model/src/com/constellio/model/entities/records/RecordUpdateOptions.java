@@ -3,6 +3,8 @@ package com.constellio.model.entities.records;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 
+import static com.constellio.model.entities.records.ImpactHandlingMode.HANDLE_ALL_IN_TRANSACTION_OR_EXCEPTION;
+
 public class RecordUpdateOptions {
 
 	private TransactionRecordsReindexation transactionRecordsReindexation = new TransactionRecordsReindexation();
@@ -56,6 +58,8 @@ public class RecordUpdateOptions {
 
 	private boolean replaceIllegalCharactersIfException = false;
 
+	private ImpactHandlingMode impactHandlingMode = HANDLE_ALL_IN_TRANSACTION_OR_EXCEPTION;
+
 	public RecordUpdateOptions() {
 
 	}
@@ -100,6 +104,18 @@ public class RecordUpdateOptions {
 		this.repopulate = copy.repopulate;
 
 		this.markIdsForReindexing = copy.markIdsForReindexing;
+
+		this.impactHandlingMode = copy.impactHandlingMode;
+	}
+
+	public ImpactHandlingMode getImpactHandlingMode() {
+		return impactHandlingMode;
+	}
+
+	public RecordUpdateOptions setImpactHandlingMode(
+			ImpactHandlingMode impactHandlingMode) {
+		this.impactHandlingMode = impactHandlingMode;
+		return this;
 	}
 
 	public boolean isMarkIdsForReindexing() {

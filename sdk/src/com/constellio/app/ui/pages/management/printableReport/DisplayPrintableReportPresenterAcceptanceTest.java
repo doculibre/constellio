@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.management.printableReport;
 
+import com.constellio.app.modules.rm.enums.TemplateVersionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.reports.printable.PrintableExtension;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -23,6 +25,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -82,7 +85,9 @@ public class DisplayPrintableReportPresenterAcceptanceTest extends ConstellioTes
 			report.setTitle(titleForFolder)
 					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder)
 					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 			transaction.add(report);
 			getModelLayerFactory().newRecordServices().execute(transaction);
 

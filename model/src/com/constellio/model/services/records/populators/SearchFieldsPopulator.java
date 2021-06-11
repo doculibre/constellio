@@ -1,8 +1,8 @@
 package com.constellio.model.services.records.populators;
 
-import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.FoldersLocatorMode;
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -12,6 +12,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
 import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.ParsedContentProvider;
@@ -33,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 
 public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements FieldsPopulator {
 
@@ -123,6 +126,9 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 			} else if (!metadata.isMultivalue() && metadata.getType().isStringOrText()) {
 				return populateCopyFieldsOfSinglevalueSearchableTextMetadata((String) value, metadata, locale);
 
+			} else if (!metadata.isMultivalue() && metadata.getType() == STRUCTURE && metadata.getStructureFactory() instanceof SeparatedStructureFactory) {
+				return populateCopyFieldsOfSeparatedStructure((ModifiableStructure) value, metadata, locale);
+
 			} else if (!metadata.isMultivalue() && metadata.getType().equals(MetadataValueType.DATE)) {
 				return populateCopyFieldsOfSinglevalueSearchableDateMetadata(value, getSearchFieldFor(metadata));
 
@@ -140,6 +146,25 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 			return Collections.emptyMap();
 		}
 
+	}
+
+	private Map<String, Object> populateCopyFieldsOfSeparatedStructure(ModifiableStructure value, Metadata metadata,
+																	   Locale locale) {
+
+
+		SearchFieldPopulatorParams extensionParam = new SearchFieldPopulatorParams(metadata, value, locale);
+		Object finalValue = extensions.forCollection(metadata.getCollection()).populateSearchField(extensionParam);
+
+		if (finalValue instanceof ModifiableStructure) {
+			SeparatedStructureFactory factory = (SeparatedStructureFactory) metadata.getStructureFactory();
+			finalValue = factory.toFields((ModifiableStructure) finalValue).get(factory.getMainValueFieldName());
+		}
+
+		Map<String, Object> copyfields = new HashMap<>();
+		String fieldCode = getSearchFieldFor(metadata) + locale.getLanguage();
+		copyfields.put(fieldCode, finalValue);
+
+		return copyfields;
 	}
 
 	private void addFilenameAndParsedContent(ContentVersion currentVersion, KeyListMap<String, Object> keyListMap,

@@ -1,19 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.IconButton;
@@ -33,6 +19,7 @@ import com.constellio.app.ui.pages.search.criteria.Criterion.SearchOperator;
 import com.constellio.app.ui.pages.search.criteria.RelativeCriteria.RelativeSearchOperator;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.vaadin.data.Property;
@@ -51,6 +38,19 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.joda.time.LocalDateTime;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class AdvancedSearchCriteriaComponent extends Table {
 	public static final String LEFT_PARENS_FIELD = "leftParensField";
@@ -236,29 +236,30 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				cell = buildSchemaCriterionComponent(criterion);
 			} else {
 				switch (criterion.getMetadataType()) {
-				case STRING:
-				case TEXT:
-					cell = criterion.getSearchOperator() == SearchOperator.IN_HIERARCHY ?
-						   buildHierarchyValueCriterion(criterion) :
-						   buildStringValueComponent(criterion);
-					break;
-				case DATE:
-				case DATE_TIME:
-					cell = buildDateValueComponent(criterion);
-					break;
-				case NUMBER:
-				case INTEGER:
-					cell = buildNumberValueComponent(criterion);
-					break;
-				case BOOLEAN:
-					cell = buildBooleanValueComponent(criterion);
-					break;
-				case ENUM:
-					cell = buildEnumValueComponent(criterion);
-					break;
-				case REFERENCE:
-					cell = buildReferenceComponent(criterion);
-					break;
+					case STRING:
+					case TEXT:
+					case STRUCTURE:
+						cell = criterion.getSearchOperator() == SearchOperator.IN_HIERARCHY ?
+							   buildHierarchyValueCriterion(criterion) :
+							   buildStringValueComponent(criterion);
+						break;
+					case DATE:
+					case DATE_TIME:
+						cell = buildDateValueComponent(criterion);
+						break;
+					case NUMBER:
+					case INTEGER:
+						cell = buildNumberValueComponent(criterion);
+						break;
+					case BOOLEAN:
+						cell = buildBooleanValueComponent(criterion);
+						break;
+					case ENUM:
+						cell = buildEnumValueComponent(criterion);
+						break;
+					case REFERENCE:
+						cell = buildReferenceComponent(criterion);
+						break;
 					default:
 						return null;
 				}
@@ -352,7 +353,14 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			Set<String> allowedSchemas = references.getAllowedSchemas();
 			String firstAllowedSchema = !allowedSchemas.isEmpty() ? allowedSchemas.iterator().next() : null;
 
-			final LookupRecordField field = new LookupRecordField(allowedSchemaType, firstAllowedSchema, true);
+			LookupRecordField tmpField = null;
+			if (User.SCHEMA_TYPE.equals(allowedSchemaType) || User.DEFAULT_SCHEMA.equals(firstAllowedSchema)) {
+				tmpField = new LookupRecordField(allowedSchemaType, firstAllowedSchema, true, true, true, true, null);
+			} else {
+				tmpField = new LookupRecordField(allowedSchemaType, firstAllowedSchema, true);
+			}
+
+			final LookupRecordField field = tmpField;
 			field.setWidth("100%");
 			field.addValueChangeListener(new ValueChangeListener() {
 				@Override
@@ -382,8 +390,8 @@ public class AdvancedSearchCriteriaComponent extends Table {
 			}
 
 			for (MetadataVO metadata : presenter.getCopiedMetadataAllowedInCriteria(criterion.getMetadataCode())) {
-				comboBox.addItem(metadata.getCode());
 				MetadataVO sourceMetadata = presenter.getCopiedSourceMetadata(metadata);
+				comboBox.addItem(metadata.getCode());
 				comboBox.setItemCaption(metadata.getCode(), sourceMetadata.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale()));
 			}
 			comboBox.addValueChangeListener(new ValueChangeListener() {
@@ -683,7 +691,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 		}
 
 		private Component buildNumberValueComponent(final Criterion criterion) {
-			final TextField value = new TextField();
+			final TextField value = new BaseTextField();
 			value.setWidth("100px");
 			value.setNullRepresentation("");
 			value.setConverter(new BaseStringToDoubleConverter());
@@ -695,18 +703,20 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 			value.setVisible(true);
+			value.setImmediate(true);
 
-			final TextField endValue = new TextField();
+			final TextField endValue = new BaseTextField();
 			endValue.setWidth("100px");
 			endValue.setNullRepresentation("");
 			endValue.setConverter(new BaseStringToDoubleConverter());
-			endValue.setConvertedValue(criterion.getValue());
+			endValue.setConvertedValue(criterion.getEndValue());
 			endValue.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					verifyNewValue(value, criterion);
+					verifyEndValue(endValue, criterion);
 				}
 			});
+			endValue.setImmediate(true);
 
 			appendHelpMessage(criterion, value, endValue);
 
@@ -733,6 +743,15 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				criterion.setValue(newValue.getConvertedValue());
 			} catch (ConversionException e) {
 				criterion.setValue(null);
+				presenter.showErrorMessage($("AdvancedSearchView.invalidDoubleFormat"));
+			}
+		}
+
+		private void verifyEndValue(TextField newValue, Criterion criterion) {
+			try {
+				criterion.setEndValue(newValue.getConvertedValue());
+			} catch (ConversionException e) {
+				criterion.setEndValue(null);
 				presenter.showErrorMessage($("AdvancedSearchView.invalidDoubleFormat"));
 			}
 		}
@@ -817,7 +836,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 				}
 			});
 
-			final TextField textValue = new TextField();
+			final TextField textValue = new BaseTextField();
 			textValue.setWidth("100px");
 			textValue.setNullRepresentation("");
 			try {
@@ -994,7 +1013,7 @@ public class AdvancedSearchCriteriaComponent extends Table {
 
 		@Override
 		public Component generateCell(final Table source, final Object itemId, Object columnId) {
-			TextField field = new TextField();
+			TextField field = new BaseTextField();
 			boolean active = (boolean) source.getItem(itemId).getItemProperty(propertyId).getValue();
 			field.setValue(active ? symbol : "");
 			field.setWidth("25px");

@@ -31,6 +31,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,12 +43,12 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	CollectionsListManager collectionsListManager;
 	MigrationServices migrationServices;
 
-	@Mock MigrationScript moduleAMigrationScript111;
-	@Mock MigrationScript moduleAMigrationScript112;
-	@Mock MigrationScript moduleBMigrationScript111;
-	@Mock MigrationScript moduleBMigrationScript112;
-	@Mock MigrationScript moduleCMigrationScript111;
-	@Mock MigrationScript moduleCMigrationScript112;
+	MigrationScript moduleAMigrationScript111;
+	MigrationScript moduleAMigrationScript112;
+	MigrationScript moduleBMigrationScript111;
+	MigrationScript moduleBMigrationScript112;
+	MigrationScript moduleCMigrationScript111;
+	MigrationScript moduleCMigrationScript112;
 
 	@Mock InstallableModule moduleA;
 	@Mock InstallableModule moduleB;
@@ -104,12 +105,107 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 		migrationServices = getAppLayerFactory().newMigrationServices();
 		collectionsListManager = getModelLayerFactory().getCollectionsListManager();
 
-		when(moduleAMigrationScript111.getVersion()).thenReturn("11.1.1");
-		when(moduleAMigrationScript112.getVersion()).thenReturn("11.1.2");
-		when(moduleBMigrationScript111.getVersion()).thenReturn("11.1.1");
-		when(moduleBMigrationScript112.getVersion()).thenReturn("11.1.2");
-		when(moduleCMigrationScript111.getVersion()).thenReturn("11.1.1");
-		when(moduleCMigrationScript112.getVersion()).thenReturn("11.1.2");
+		moduleAMigrationScript111 = spy(new MigrationScript() {
+			@Override
+			public String getVersion() {
+				return "11.1.1";
+			}
+
+			@Override
+			public String getResourcesDirectoryName() {
+				return "11_1_1";
+			}
+
+			@Override
+			public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+								AppLayerFactory appLayerFactory) throws Exception {
+			}
+		});
+
+		moduleAMigrationScript112 = spy(new MigrationScript() {
+			@Override
+			public String getVersion() {
+				return "11.1.2";
+			}
+
+			@Override
+			public String getResourcesDirectoryName() {
+				return "11_1_2";
+			}
+
+			@Override
+			public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+								AppLayerFactory appLayerFactory) throws Exception {
+			}
+		});
+
+		moduleBMigrationScript111 = spy(new MigrationScript() {
+			@Override
+			public String getVersion() {
+				return "11.1.1";
+			}
+
+			@Override
+			public String getResourcesDirectoryName() {
+				return "11_1_1";
+			}
+
+			@Override
+			public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+								AppLayerFactory appLayerFactory) throws Exception {
+			}
+		});
+
+		moduleBMigrationScript112 = spy(new MigrationScript() {
+			@Override
+			public String getVersion() {
+				return "11.1.2";
+			}
+
+			@Override
+			public String getResourcesDirectoryName() {
+				return "11_1_2";
+			}
+
+			@Override
+			public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+								AppLayerFactory appLayerFactory) throws Exception {
+			}
+		});
+
+		moduleCMigrationScript111 = spy(new MigrationScript() {
+			@Override
+			public String getVersion() {
+				return "11.1.1";
+			}
+
+			@Override
+			public String getResourcesDirectoryName() {
+				return "11_1_1";
+			}
+
+			@Override
+			public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+								AppLayerFactory appLayerFactory) throws Exception {
+			}
+		});
+
+		moduleCMigrationScript112 = spy(new MigrationScript() {
+			@Override
+			public String getVersion() {
+				return "11.1.2";
+			}
+
+			@Override
+			public String getResourcesDirectoryName() {
+				return "11_1_2";
+			}
+
+			@Override
+			public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+								AppLayerFactory appLayerFactory) throws Exception {
+			}
+		});
 
 		when(moduleA.getId()).thenReturn("moduleA_Id");
 		when(moduleA.getName()).thenReturn("moduleA");
@@ -171,9 +267,9 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		//Deoing some changes
 		collectionsManager
-				.createCollectionInCurrentVersion("collection1", Arrays.asList("fr"));
+				.createCollection("collection1", Arrays.asList("fr"));
 		collectionsManager
-				.createCollectionInCurrentVersion("collection2", Arrays.asList("fr"));
+				.createCollection("collection2", Arrays.asList("fr"));
 		migrationServices.setCurrentDataVersion("zeCollection", "11.1.2");
 		manager.installValidModuleAndGetInvalidOnes(moduleA, collectionsListManager);
 		manager.installValidModuleAndGetInvalidOnes(moduleB, collectionsListManager);
@@ -205,7 +301,7 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	public void whenEnablingAllDependenciesThenComplementaryModuleEnabled()
 			throws Exception {
 		collectionsManager
-				.createCollectionInCurrentVersion("collection1", Arrays.asList("fr"));
+				.createCollection("collection1", Arrays.asList("fr"));
 		migrationServices.setCurrentDataVersion("zeCollection", "11.1.2");
 
 		manager.installValidModuleAndGetInvalidOnes(moduleA, collectionsListManager);
@@ -234,9 +330,9 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 	public void givenMultipleCollectionsThenEnableStatusIsHandledSeparately()
 			throws Exception {
 		collectionsManager
-				.createCollectionInCurrentVersion("collection1", Arrays.asList("fr"));
+				.createCollection("collection1", Arrays.asList("fr"));
 		collectionsManager
-				.createCollectionInCurrentVersion("collection2", Arrays.asList("fr"));
+				.createCollection("collection2", Arrays.asList("fr"));
 		migrationServices.setCurrentDataVersion("zeCollection", "11.1.2");
 
 		manager.installValidModuleAndGetInvalidOnes(moduleA, collectionsListManager);
@@ -341,9 +437,9 @@ public class ConstellioModulesManagerImplAcceptanceTest extends ConstellioTest {
 
 		inOrder.verify(moduleBMigrationScript111)
 				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
-		inOrder.verify(moduleCMigrationScript111)
-				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 		inOrder.verify(moduleBMigrationScript112)
+				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
+		inOrder.verify(moduleCMigrationScript111)
 				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));
 		inOrder.verify(moduleCMigrationScript112)
 				.migrate(eq("zeCollection"), any(MigrationResourcesProvider.class), any(AppLayerFactory.class));

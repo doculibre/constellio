@@ -107,13 +107,13 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 
 		if (typesBuilder != null && !typesBuilder.hasSchemaType("documentFond")) {
 
-			MetadataSchemaTypeBuilder documentFondType = typesBuilder.createNewSchemaType("documentFond");
-			MetadataSchemaTypeBuilder categoryType = typesBuilder.createNewSchemaType("category");
-			MetadataSchemaTypeBuilder administrativeUnitType = typesBuilder.createNewSchemaType("administrativeUnit");
-			MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("folder");
+			MetadataSchemaTypeBuilder documentFondType = typesBuilder.createNewSchemaTypeWithSecurity("documentFond");
+			MetadataSchemaTypeBuilder categoryType = typesBuilder.createNewSchemaTypeWithSecurity("category");
+			MetadataSchemaTypeBuilder administrativeUnitType = typesBuilder.createNewSchemaTypeWithSecurity("administrativeUnit");
+			MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaTypeWithSecurity("folder");
 			MetadataSchemaTypeBuilder folderTypeType = new ValueListItemSchemaTypeBuilder(typesBuilder)
 					.createValueListItemSchema("folderType", labelTitle1, codeMetadataFacultative());
-			MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("document");
+			MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaTypeWithSecurity("document");
 
 			setupTaxonomy1(documentFondType, categoryType);
 			setupTaxonomy2(administrativeUnitType);

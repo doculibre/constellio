@@ -5,16 +5,20 @@ import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUr
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDate;
 
+import java.util.List;
+
 public class ExternalAccessUrl extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "externalAccessUrl";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 
 	public static final String TOKEN = "token";
+	public static final String USER = "user";
 	public static final String FULLNAME = "fullname";
 	public static final String EMAIL = "email";
 	public static final String EXPIRATION_DATE = "expirationDate";
 	public static final String STATUS = "status";
 	public static final String ACCESS_RECORD = "accessRecord";
+	public static final String ROLES = "roles";
 
 	public ExternalAccessUrl(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -26,6 +30,15 @@ public class ExternalAccessUrl extends RecordWrapper {
 
 	public ExternalAccessUrl setToken(String token) {
 		set(TOKEN, token);
+		return this;
+	}
+
+	public String getUser() {
+		return get(USER);
+	}
+
+	public ExternalAccessUrl setUser(String userId) {
+		set(USER, userId);
 		return this;
 	}
 
@@ -71,6 +84,15 @@ public class ExternalAccessUrl extends RecordWrapper {
 
 	public ExternalAccessUrl setAccessRecord(String recordId) {
 		set(ACCESS_RECORD, recordId);
+		return this;
+	}
+
+	public List<String> getRoles() {
+		return get(ROLES);
+	}
+
+	public ExternalAccessUrl setRoles(List<String> roles) {
+		set(ROLES, roles);
 		return this;
 	}
 }

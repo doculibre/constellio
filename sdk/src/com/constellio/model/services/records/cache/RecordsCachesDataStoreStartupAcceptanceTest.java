@@ -93,7 +93,7 @@ public class RecordsCachesDataStoreStartupAcceptanceTest extends ConstellioTest 
 				@Override
 				public void alter(MetadataSchemaTypesBuilder typesBuilder) {
 					for (String type : types) {
-						MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType(type);
+						MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaTypeWithSecurity(type);
 						typeBuilder.setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
 						//The number is kept in the memory byte array
 						typeBuilder.getDefaultSchema().create("intMetadata").setType(INTEGER).setAvailableInSummary(true);

@@ -102,7 +102,7 @@ public class MessageUtils {
 		}
 	}
 
-	private static String toMessage(ValidationErrors validationErrors) {
+	public static String toMessage(ValidationErrors validationErrors) {
 
 		StringBuilder stringBuilder = new StringBuilder();
 
@@ -118,7 +118,7 @@ public class MessageUtils {
 
 	}
 
-	private static String toDetailedReportMessage(ValidationErrors validationErrors) {
+	public static String toDetailedReportMessage(ValidationErrors validationErrors) {
 
 		StringBuilder summaryBuilder = new StringBuilder();
 		summaryBuilder.append($("errorReportSummaryTitle"));

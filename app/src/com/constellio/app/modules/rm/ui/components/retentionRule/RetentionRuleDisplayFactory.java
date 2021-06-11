@@ -2,10 +2,14 @@ package com.constellio.app.modules.rm.ui.components.retentionRule;
 
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
+import com.constellio.app.modules.rm.ui.pages.retentionRule.retentionRuleDocumentType.DisplayRetentionRuleDocumentTypes;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.ui.Component;
 
 import java.util.List;
@@ -47,11 +51,28 @@ public class RetentionRuleDisplayFactory extends RMMetadataDisplayFactory {
 			component = null;
 		} else if (DOCUMENT_TYPES_DETAILS.equals(metadataCode)) {
 			component = new RetentionRuleDocumentTypeDisplay(retentionRuleVO);
-			component.setVisible(presenter.shouldDisplayDocumentTypeDetails());
+			component.setVisible(presenter.shouldDisplayDocumentTypeDetails() && !Toggle.DISPLAY_DOCUMENT_TYPE_AS_TABLE.isEnabled());
+		} else if (RetentionRuleVO.RETENTION_RULE_DOCUMENT_TYPE.equals(metadataCode)) {
+			component = buildRetentionRuleDocumentTypeComponent(metadataValueVO);
+			component.setVisible(component.isVisible() && presenter.shouldDisplayDocumentTypeDetails() && Toggle.DISPLAY_DOCUMENT_TYPE_AS_TABLE.isEnabled());
 		} else {
 			component = super.build(recordVO, metadataValueVO);
 		}
 		return component;
+	}
+
+	private Component buildRetentionRuleDocumentTypeComponent(MetadataValueVO metadataValueVO) {
+
+		final List<String> recordIds = metadataValueVO.getValue();
+
+		DisplayRetentionRuleDocumentTypes displayRetentionRuleDocumentTypes = new DisplayRetentionRuleDocumentTypes(
+				ConstellioFactories.getInstanceIfAlreadyStarted().getAppLayerFactory(),
+				ConstellioUI.getCurrentSessionContext(),
+				() -> recordIds);
+
+		displayRetentionRuleDocumentTypes.setVisible(recordIds != null && !recordIds.isEmpty());
+
+		return displayRetentionRuleDocumentTypes;
 	}
 
 	public interface RetentionRuleDisplayPresenter extends RetentionRuleTablePresenter {

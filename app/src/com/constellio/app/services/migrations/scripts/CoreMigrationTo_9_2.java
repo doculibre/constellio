@@ -15,6 +15,7 @@ import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.services.tenant.TenantLocal;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
+import com.constellio.model.entities.records.ImpactHandlingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -33,7 +34,6 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.UnhandledRecordModificationImpactHandler;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -285,7 +285,8 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 					}
 					if (tx.getRecords().size() > 0) {
 						tx.setSkippingRequiredValuesValidation(true);
-						recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
+						tx.getRecordUpdateOptions().setImpactHandlingMode(ImpactHandlingMode.NEXT_SYSTEM_REINDEXING);
+						recordServices.execute(tx);
 					}
 				}
 			}.execute(from(schemas.user.schemaType()).returnAll());
@@ -321,7 +322,8 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 					}
 					if (tx.getRecords().size() > 0) {
 						tx.setSkippingRequiredValuesValidation(true);
-						recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
+						tx.getRecordUpdateOptions().setImpactHandlingMode(ImpactHandlingMode.NEXT_SYSTEM_REINDEXING);
+						recordServices.execute(tx);
 					}
 				}
 			}.execute(from(schemas.group.schemaType()).returnAll());
@@ -365,6 +367,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 				Transaction tx = new Transaction();
 				for (Record record : records) {
 					UserCredential credential = systemSchemas.wrapUserCredential(record);
+					credential.setTitle(null);
 					if (credential.getDn() != null) {
 						credential.setSyncMode(SYNCED);
 					} else {
@@ -373,7 +376,8 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 					tx.add(credential);
 				}
 				tx.setSkippingRequiredValuesValidation(true);
-				recordServices.executeWithImpactHandler(tx, new UnhandledRecordModificationImpactHandler());
+				tx.getRecordUpdateOptions().setImpactHandlingMode(ImpactHandlingMode.NEXT_SYSTEM_REINDEXING);
+				recordServices.execute(tx);
 			}
 		}.execute(from(systemSchemas.credentialSchemaType()).returnAll());
 	}
@@ -525,7 +529,7 @@ public class CoreMigrationTo_9_2 extends MigrationHelper implements MigrationScr
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			if (!typesBuilder.hasSchemaType(ExternalAccessUrl.SCHEMA_TYPE)) {
 				MetadataSchemaTypeBuilder externalAccessUrlSchemaType =
-						typesBuilder.createNewSchemaType(ExternalAccessUrl.SCHEMA_TYPE).setSecurity(false);
+						typesBuilder.createNewSchemaTypeWithSecurity(ExternalAccessUrl.SCHEMA_TYPE).setSecurity(false);
 				MetadataSchemaBuilder externalAccessUrlSchema = externalAccessUrlSchemaType.getDefaultSchema();
 
 				externalAccessUrlSchema.createUndeletable(ExternalAccessUrl.TOKEN)

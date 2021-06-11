@@ -1,10 +1,10 @@
 package com.constellio.app.modules.restapi.cache;
 
+import com.constellio.app.modules.restapi.apis.v1.document.BaseDocumentRestfulServiceAcceptanceTest;
+import com.constellio.app.modules.restapi.apis.v1.document.dto.DocumentDto;
 import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
-import com.constellio.app.modules.restapi.document.BaseDocumentRestfulServiceAcceptanceTest;
-import com.constellio.app.modules.restapi.document.dto.DocumentDto;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;

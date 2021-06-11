@@ -12,7 +12,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.HasChildrenQueryHandler;
@@ -97,8 +96,7 @@ public class GetChildrenContext {
 
 	public boolean hasUserAccessToSomethingInConcept(Record record) {
 		boolean write = Role.WRITE.equals(options.getRequiredAccess());
-		boolean onlyVisible = options.getIncludeStatus() == StatusFilter.ACTIVES
-							  && (this.forSelectionOfSchemaType == null || !this.getOptions().isShowInvisibleRecordsInLinkingMode());
+		boolean onlyVisible = !this.getOptions().isShowInvisibleRecords(this.forSelectionOfSchemaType != null);
 
 		if (taxonomy != null && taxonomy.getSchemaTypes().contains(record.getTypeCode())) {
 			if (isPrincipalTaxonomy()) {
@@ -248,7 +246,7 @@ public class GetChildrenContext {
 		LogicalSearchQuery logicalSearchQuery;
 		if (user != null) {
 			logicalSearchQuery = new LogicalSearchQuery(condition).filteredWithUserHierarchy(
-					user, options.getRequiredAccess(), forSelectionOfSchemaType, options.isShowInvisibleRecordsInLinkingMode());
+					user, options.getRequiredAccess(), forSelectionOfSchemaType, options.isShowInvisibleRecords(forSelectionOfSchemaType != null));
 
 		} else {
 			logicalSearchQuery = new LogicalSearchQuery(condition).setQueryExecutionMethod(USE_SOLR);
@@ -257,7 +255,7 @@ public class GetChildrenContext {
 	}
 
 	public boolean isHiddenInvisibleInTree() {
-		return forSelectionOfSchemaType == null ? true : !options.isShowInvisibleRecordsInLinkingMode();
+		return !options.isShowInvisibleRecords(forSelectionOfSchemaType != null);
 	}
 
 	public boolean isSelectingAConcept() {
@@ -271,7 +269,7 @@ public class GetChildrenContext {
 
 	public String getCacheMode() {
 		return HasChildrenQueryHandler.getCacheMode(forSelectionOfSchemaType, options.getRequiredAccess(),
-				options.isShowInvisibleRecordsInLinkingMode(),
+				options.isShowInvisibleRecords(forSelectionOfSchemaType != null),
 				options.isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable());
 
 	}

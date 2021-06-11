@@ -32,6 +32,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.AdvancedSequenceDataEntry;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -369,6 +370,11 @@ public class SettingsExportServices {
 					importedDataEntry = ImportedDataEntry
 							.asMetadataProvidingSequence(((SequenceDataEntry) dataEntry).getMetadataProvidingSequenceCode());
 				}
+				break;
+
+			case ADVANCED_SEQUENCE:
+				importedDataEntry = ImportedDataEntry
+						.asAdvancedSequence(((AdvancedSequenceDataEntry) dataEntry).getCalculator().getClass().getCanonicalName());
 				break;
 
 			default:

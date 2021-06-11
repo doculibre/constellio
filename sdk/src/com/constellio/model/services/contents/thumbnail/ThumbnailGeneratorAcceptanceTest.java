@@ -1,9 +1,12 @@
 package com.constellio.model.services.contents.thumbnail;
 
+import com.constellio.app.services.systemProperties.SystemPropertiesServices;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.utils.MimeTypes;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -13,10 +16,15 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 public class ThumbnailGeneratorAcceptanceTest extends ConstellioTest {
 
-    private ThumbnailGenerator thumbnailGenerator = new ThumbnailGenerator();
+    private static final String TEST_FOLDER_NAME = SystemPropertiesServices.class.getName() + "-testFolderName";
+    private ThumbnailGenerator thumbnailGenerator;
+
+    private IOServices ioServices;
 
     private File pdf1File, pdf1RoatedFile, pdf2File, image1File;
 
@@ -25,8 +33,12 @@ public class ThumbnailGeneratorAcceptanceTest extends ConstellioTest {
 
     @Before
     public void setUp() throws Exception {
+        //when(ioServices.newTemporaryFolder(anyString())).thenReturn(new File(TEST_FOLDER_NAME));
+        ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
+        thumbnailGenerator = new ThumbnailGenerator(ioServices);
         thumbnail = null;
         filename = null;
+
 
         pdf1File = getTestResourceFile("pdf1.pdf");
         pdf1RoatedFile = getTestResourceFile("pdf1-rotated.pdf");

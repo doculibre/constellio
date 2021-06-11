@@ -24,9 +24,11 @@ import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.FileDownloader;
+import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
@@ -62,7 +64,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		getXMLButton = new GetXMLButton($("DisplayLabelViewImpl.menu.getXMLButton"),
 				$("DisplayLabelViewImpl.menu.getXMLButton"),
 				getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(),
-				this, true, getSessionContext().getCurrentUser());
+				this, true, getSessionContext().getCurrentUser().getUsername());
 	}
 
 	@Override
@@ -338,10 +340,13 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		};
 
 		downloadTemplateButton = new Button($("DisplayLabelViewImpl.menu.getTemplate"));
-		StreamResource zip = createResource();
-		FileDownloader fileDownloader = new FileDownloader(zip);
-		fileDownloader.extend(downloadTemplateButton);
-
+		downloadTemplateButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				StreamResource zip = createResource();
+				Page.getCurrent().open(zip, null, false);
+			}
+		});
 
 		actionMenuButtons.add(addLabelButton);
 		actionMenuButtons.add(getXMLButton);

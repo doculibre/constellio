@@ -20,7 +20,7 @@ import com.constellio.app.modules.tasks.data.trees.TaskFoldersTreeNodesDataProvi
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
+import com.constellio.app.modules.tasks.ui.components.ExpandableTaskTable.TaskPresenter;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -191,7 +191,7 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		newComments.add(0, newComment);
 		task.setComments(newComments);
 		try {
-			recordServices.update(task.getWrappedRecord());
+			recordServices.update(task.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 			added = true;
 		} catch (RecordServicesException e) {
 			added = false;
@@ -235,10 +235,11 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 		Task task = tasksSchemasRecordsServices.getTask(taskVO.getId());
 		task.setComments(newComments);
 		try {
+			RecordUpdateOptions recordUpdateOptions = RecordUpdateOptions.validationExceptionSafeOptions();
 			if (eimConfigs.isAddCommentsWhenReadAuthorization()) {
-				recordServices().update(task, new RecordUpdateOptions().setSkipUserAccessValidation(true));
+				recordServices().update(task, recordUpdateOptions.setSkipUserAccessValidation(true));
 			} else {
-				recordServices().update(task);
+				recordServices().update(task, recordUpdateOptions);
 			}
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
@@ -283,7 +284,7 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 										.where(rm.document.content()).is(ContentFactory.isHash(uploadedContentVO.getDuplicatedHash()))
 										.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 								)
-								.filteredWithUser(getCurrentUser());
+								.filteredWithUserRead(getCurrentUser());
 						List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 						if (duplicateDocuments.size() > 0) {
 							StringBuilder message = new StringBuilder(
@@ -349,10 +350,11 @@ public abstract class AbstractTaskPresenter<T extends BaseView> extends SingleSc
 	}
 
 	@Override
-	public List<String> addDocumentsButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs, String folderId /*, LazyTreeDataProvider<String> treeDataProvider*/) {
+	public List<String> addFilesButtonClicked(RecordVO taskVO, List<ContentVersionVO> contentVersionVOs,
+											  String folderId /*, LazyTreeDataProvider<String> treeDataProvider*/) {
 		List<String> newDocumentRecordIds = new ArrayList<>();
 		List<Content> newContents = new ArrayList<>();
-		
+
 		for (ContentVersionVO contentVersionVO : contentVersionVOs) {
 			Object uploadResult = contentVersionUploaded(taskVO, contentVersionVO, folderId);
 			if (uploadResult instanceof Record) {

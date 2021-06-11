@@ -12,3 +12,12 @@ function dynamicallyLoadScript(url) {
     script.src = url;  // set its src to the provided URL
     document.head.appendChild(script);  // add it to the end of the head section of the page (could change 'head' to 'body' to add it to the end of the body section instead)
 }
+
+if (!String.prototype.startsWith) {
+    Object.defineProperty(String.prototype, 'startsWith', {
+        value: function(search, rawPos) {
+            var pos = rawPos > 0 ? rawPos|0 : 0;
+            return this.substring(pos, pos + search.length) === search;
+        }
+    });
+}

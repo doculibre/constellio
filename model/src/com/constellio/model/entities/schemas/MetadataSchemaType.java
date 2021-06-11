@@ -386,6 +386,27 @@ public class MetadataSchemaType implements Serializable {
 		return refs;
 	}
 
+	public List<Metadata> getAllParentOrTaxonomyReferencesTo(String metadataSchemaType) {
+		List<Metadata> refs = new ArrayList<>();
+
+
+		for (Metadata parentReferenceMetadata : defaultSchema.getParentReferences()) {
+			if (parentReferenceMetadata.getReferencedSchemaTypeCode().equals(metadataSchemaType)) {
+				refs.add(parentReferenceMetadata);
+			}
+		}
+
+		for (Metadata nonParentReferenceMetadata : defaultSchema.getNonParentReferences()) {
+			if (nonParentReferenceMetadata.isTaxonomyRelationship()) {
+				if (nonParentReferenceMetadata.getReferencedSchemaTypeCode().equals(metadataSchemaType)) {
+					refs.add(nonParentReferenceMetadata);
+				}
+			}
+		}
+
+		return refs;
+	}
+
 	public List<Metadata> getAllParentReferences() {
 		List<Metadata> parentReferenceMetadatas = new ArrayList<>();
 
@@ -530,7 +551,7 @@ public class MetadataSchemaType implements Serializable {
 	}
 
 	public Metadata getMetadataWithDataStoreCode(String dataStoreCode) {
-		String localCode = new SchemaUtils().getLocalCodeFromDataStoreCode(dataStoreCode);
+		String localCode = SchemaUtils.getLocalCodeFromDataStoreCode(dataStoreCode);
 		Metadata metadata = metadatasByAtomicCode.get(localCode);
 		if (metadata == null) {
 			throw new MetadataSchemasRuntimeException.NoSuchMetadataWithDatastoreCodeInSchemaType(dataStoreCode, code);
@@ -540,6 +561,18 @@ public class MetadataSchemaType implements Serializable {
 
 	public MetadataList getAllMetadatas() {
 		return allMetadatas;
+	}
+
+	public MetadataList getContentMetadatas() {
+		MetadataList metadatas = new MetadataList();
+
+		for (Metadata metadata : allMetadatas) {
+			if (metadata.getType() == MetadataValueType.CONTENT) {
+				metadatas.add(metadata);
+			}
+		}
+
+		return metadatas;
 	}
 
 	public MetadataList getAllMetadatasIncludingThoseWithInheritance() {

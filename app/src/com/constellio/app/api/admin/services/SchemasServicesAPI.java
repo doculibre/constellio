@@ -143,7 +143,7 @@ public class SchemasServicesAPI {
 								   @QueryParam("schemaTypeCode") String schemaTypeCode) {
 		logServiceCall("createSchemaType", collection, schemaTypeCode);
 		MetadataSchemaTypesBuilder typesBuilder = typesBuilder(collection);
-		typesBuilder.createNewSchemaType(schemaTypeCode);
+		typesBuilder.createNewSchemaTypeWithSecurity(schemaTypeCode);
 		save(typesBuilder);
 		return "OK";
 	}

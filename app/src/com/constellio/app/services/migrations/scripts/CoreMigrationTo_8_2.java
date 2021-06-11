@@ -7,9 +7,9 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.core.CoreTypes;
 import com.constellio.app.modules.rm.model.calculators.UserDocumentContentSizeCalculator;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.FoldersLocatorMode;
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.calculators.SavedSearchRestrictedCalculator;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
@@ -19,6 +19,7 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
@@ -90,11 +91,12 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 					public void doActionOnBatch(List<Record> records) throws Exception {
 						Transaction tx = new Transaction();
 						tx.getRecordUpdateOptions().setMarkIdsForReindexing(false);
-						for (Authorization detail : schemas.wrapSolrAuthorizationDetailss(records)) {
+						for (Authorization detail : schemas.wrapAuthorizations(records)) {
+							RecordAuthorization recordDetail = (RecordAuthorization) detail;
 							if (!detail.getRoles().isEmpty()) {
-								tx.add(detail.setPrincipals(authsPrincipals.get(detail.getId())));
+								tx.add(recordDetail.setPrincipals(authsPrincipals.get(detail.getId())));
 							} else {
-								recordServices.logicallyDelete(detail.getWrappedRecord(), User.GOD);
+								recordServices.logicallyDelete(recordDetail.getWrappedRecord(), User.GOD);
 							}
 						}
 
@@ -170,8 +172,8 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 				defaultSchema.createUndeletable(Event.NEGATIVE_AUTHORIZATION).setType(BOOLEAN);
 			}
 
-			if (!typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA).hasMetadata(Authorization.PRINCIPALS)) {
-				typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA).create(Authorization.PRINCIPALS)
+			if (!typesBuilder.getSchema(RecordAuthorization.DEFAULT_SCHEMA).hasMetadata(RecordAuthorization.PRINCIPALS)) {
+				typesBuilder.getSchema(RecordAuthorization.DEFAULT_SCHEMA).create(RecordAuthorization.PRINCIPALS)
 						.setType(STRING).setMultivalue(true);
 			}
 

@@ -32,7 +32,8 @@ import static java.util.Arrays.asList;
 
 class ReportTabButtonPresenter {
 	private List<RecordVO> recordVOList;
-	private boolean removeExcelTab = false, removePrintableTab = false;
+	private boolean removeExcelTab = false, removeWordTab = false, removePrintableTab = false,
+			removeXlsxTab = false, removeHtmlTab = false;
 	private ReportTabButton view;
 	List<PrintableReportListPossibleType> generalSchemaList;
 	List<MetadataSchemaVO> specificsSchemaList;
@@ -46,6 +47,7 @@ class ReportTabButtonPresenter {
 	}
 
 	public void setRecordVoList(RecordVO... recordVOS) {
+		recordVOList.clear();
 		if (recordVOS.length > 0) {
 			recordVOList.addAll(asList(recordVOS));
 		}
@@ -73,6 +75,18 @@ class ReportTabButtonPresenter {
 
 	public boolean isNeedToRemovePDFTab() {
 		return removePrintableTab;
+	}
+
+	public boolean isNeedToRemoveWordTab() {
+		return removeWordTab;
+	}
+
+	public boolean isNeedToRemoveXlsxTab() {
+		return removeXlsxTab;
+	}
+
+	public boolean isNeedToRemoveHtmlTab() {
+		return removeHtmlTab;
 	}
 
 	public void setNeedToRemoveExcelTab(boolean needToRemove) {
@@ -131,7 +145,10 @@ class ReportTabButtonPresenter {
 	public List<RecordVO> getAllAvailableReport(MetadataSchemaVO currentCustomSchema) {
 		List<RecordVO> currentAvailableReport = new ArrayList<>();
 		for (RecordVO recordVO : reportList) {
-			if (recordVO.<String>get(PrintableReport.RECORD_SCHEMA).equals(currentCustomSchema.getCode())) {
+			String recordType = recordVO.get(PrintableReport.RECORD_TYPE);
+			String recordSchema = recordVO.get(PrintableReport.RECORD_SCHEMA);
+			if (recordType.equals(currentCustomSchema.getTypeCode()) &&
+				(recordSchema == null || recordSchema.equals(currentCustomSchema.getCode()))) {
 				currentAvailableReport.add(recordVO);
 			}
 		}
@@ -211,8 +228,10 @@ class ReportTabButtonPresenter {
 		List<PrintableReport> allPrintableReport = rm.wrapPrintableReports(searchServices.cachedSearch(new LogicalSearchQuery(
 				LogicalSearchQueryOperators.from(printableSchemaType).where(Schemas.SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));
 		for (PrintableReport currentReport : allPrintableReport) {
-			MetadataSchemaVO metadataSchemaVO = new MetadataSchemaToVOBuilder().build(currentReport.getSchema(), RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
-			printableReportVOS.add(builder.build(currentReport.getWrappedRecord(), RecordVO.VIEW_MODE.DISPLAY, metadataSchemaVO, view.getSessionContext()));
+			if (!currentReport.isDisabled()) {
+				MetadataSchemaVO metadataSchemaVO = new MetadataSchemaToVOBuilder().build(currentReport.getSchema(), RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
+				printableReportVOS.add(builder.build(currentReport.getWrappedRecord(), RecordVO.VIEW_MODE.DISPLAY, metadataSchemaVO, view.getSessionContext()));
+			}
 		}
 		if (printableReportVOS.isEmpty()) {
 			this.removePrintableTab = true;

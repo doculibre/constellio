@@ -173,12 +173,12 @@ public class RecordsModificationBuilderAcceptTest extends ConstellioTest {
 		@Override
 		public void setUp() {
 
-			MetadataSchemaTypeBuilder type1 = typesBuilder.createNewSchemaType("type1");
-			MetadataSchemaTypeBuilder type2 = typesBuilder.createNewSchemaType("type2");
-			MetadataSchemaTypeBuilder type3 = typesBuilder.createNewSchemaType("type3");
-			MetadataSchemaTypeBuilder type4 = typesBuilder.createNewSchemaType("type4");
-			MetadataSchemaTypeBuilder type5 = typesBuilder.createNewSchemaType("type5");
-			MetadataSchemaTypeBuilder type6 = typesBuilder.createNewSchemaType("type6");
+			MetadataSchemaTypeBuilder type1 = typesBuilder.createNewSchemaTypeWithSecurity("type1");
+			MetadataSchemaTypeBuilder type2 = typesBuilder.createNewSchemaTypeWithSecurity("type2");
+			MetadataSchemaTypeBuilder type3 = typesBuilder.createNewSchemaTypeWithSecurity("type3");
+			MetadataSchemaTypeBuilder type4 = typesBuilder.createNewSchemaTypeWithSecurity("type4");
+			MetadataSchemaTypeBuilder type5 = typesBuilder.createNewSchemaTypeWithSecurity("type5");
+			MetadataSchemaTypeBuilder type6 = typesBuilder.createNewSchemaTypeWithSecurity("type6");
 			type1.getDefaultSchema().create("m1").setType(MetadataValueType.STRING);
 			type1.getDefaultSchema().create("m2").setType(MetadataValueType.STRING);
 			type1.createCustomSchema("custom1").create("m3").setType(MetadataValueType.STRING);

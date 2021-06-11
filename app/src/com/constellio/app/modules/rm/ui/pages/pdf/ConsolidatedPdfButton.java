@@ -36,7 +36,7 @@ public class ConsolidatedPdfButton extends WindowButton {
 			public void pdfFileNameFinished(PdfFileNamePanel.PdfInfos pdfInfos) {
 				if (!CollectionUtils.isEmpty(recordIds)) {
 					ConsolidatedPdfWindow window = ConsolidatedPdfWindow.getInstance();
-					window.createPdf(pdfInfos.getPdfFileName(), recordIds, pdfInfos.isIncludeMetadatas());
+					window.createPdf(pdfInfos.getPdfFileName(), recordIds, pdfInfos.isIncludeMetadatas(), pdfInfos.isGeneratePdfA());
 				} else {
 					showErrorMessage($("ConsolidatedPDFWindow.noDocumentSelectedForPdf"));
 				}

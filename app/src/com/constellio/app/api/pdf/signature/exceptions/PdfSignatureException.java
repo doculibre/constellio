@@ -1,11 +1,16 @@
 package com.constellio.app.api.pdf.signature.exceptions;
 
+
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class PdfSignatureException extends Exception {
 
 	public PdfSignatureException(String message, Exception e) {
 		super(message, e);
+	}
+
+	public PdfSignatureException(String message) {
+		super(message);
 	}
 
 	public static class PdfSignatureException_NothingToSignException extends PdfSignatureException {
@@ -16,7 +21,11 @@ public class PdfSignatureException extends Exception {
 
 	public static class PdfSignatureException_CannotReadSourceFileException extends PdfSignatureException {
 		public PdfSignatureException_CannotReadSourceFileException() {
-			super($("pdf.cannotReadSourceFileException"), new Exception());
+			this(new Exception());
+		}
+		
+		public PdfSignatureException_CannotReadSourceFileException(Exception e) {
+			super($("pdf.cannotReadSourceFileException"), e);
 		}
 	}
 
@@ -57,6 +66,17 @@ public class PdfSignatureException extends Exception {
 	public static class PdfSignatureException_CannotSignDocumentException extends PdfSignatureException {
 		public PdfSignatureException_CannotSignDocumentException(Exception e) {
 			super($("pdf.cannotSignDocumentException"), e);
+		}
+
+		public PdfSignatureException_CannotSignDocumentException(String message, Exception e) {
+			super(message, e);
+		}
+	}
+
+	public static class PdfSignatureException_ExternalSignaturesAreDisabled extends PdfSignatureException {
+
+		public PdfSignatureException_ExternalSignaturesAreDisabled() {
+			super("External signatures are disabled");
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.extractors.fields;
 
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.management.extractors.entities.RegexConfigVO;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 import com.vaadin.data.Validator.InvalidValueException;
@@ -84,12 +85,12 @@ public class RegexConfigFieldImpl extends CustomField<RegexConfigVO> implements 
 		inputMetadataComboboxField.addItem("test");
 		inputMetadataComboboxField.setNullSelectionAllowed(false);
 
-		regexTextField = new TextField();
+		regexTextField = new BaseTextField();
 		regexTextField.setCaption($("RegexConfigField.regex"));
 		regexTextField.setId("regex");
 		regexTextField.setNullRepresentation("");
 
-		valueTextField = new TextField();
+		valueTextField = new BaseTextField();
 		valueTextField.setCaption($("RegexConfigField.value"));
 		valueTextField.setId("value");
 		valueTextField.setNullRepresentation("");

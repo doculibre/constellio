@@ -13,7 +13,10 @@ import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -27,14 +30,22 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.VerticalLayout;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -95,29 +106,69 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	@Override
 	public List<TaxonomyExtraField> getTaxonomyExtraFieldsFor(GetTaxonomyExtraFieldsParam params) {
 		List<TaxonomyExtraField> fields = new ArrayList<>();
+		if (params.isTaxonomy(RMTaxonomies.CLASSIFICATION_PLAN)) {
+			fields.add(new TaxonomyExtraField() {
+				@Override
+				public String getCode() {
+					return "administrativeUnits";
+				}
 
-		//		if (params.isTaxonomy(RMTaxonomies.ADMINISTRATIVE_UNITS)) {
-		//			final List<String> retentionRules = getRetentionRules(params.getRecord().getId(), params.getSessionContextProvider());
-		//			fields.add(new TaxonomyExtraField() {
-		//				@Override
-		//				public String getCode() {
-		//					return "retentionRules";
-		//				}
-		//
-		//				@Override
-		//				public String getTitle() {
-		//					return $("TaxonomyManagementView.retentionRules");
-		//				}
-		//
-		//				@Override
-		//				public Component buildComponent() {
-		//					return buildDisplayList(retentionRules);
-		//				}
-		//			});
-		//		}
+				@Override
+				public String getLabel() {
+					return $("TaxonomyManagementView.responsibleAdministrativeUnits");
+				}
+
+				@Override
+				public Component buildComponent() {
+					return buildResponsibleAdministrativeUnitsComponent(params);
+				}
+
+			});
+		}
 
 		return fields;
 	}
+
+	private Component buildResponsibleAdministrativeUnitsComponent(GetTaxonomyExtraFieldsParam params) {
+		Set<String> rulesResponsibleAdministrativeUnits = getRulesResponsibleAdministrativeUnits(params);
+		List<Component> administrativeUnitsReferenceDisplayComponents = getAdministrativeUnitsReferenceDisplaySortedComponents(rulesResponsibleAdministrativeUnits, params.getSessionContextProvider());
+		VerticalLayout verticalLayout = new VerticalLayout();
+		boolean hasComponents = false;
+		for (Component component : administrativeUnitsReferenceDisplayComponents) {
+			verticalLayout.addComponent(component);
+			hasComponents = true;
+		}
+		return hasComponents ? verticalLayout : null;
+	}
+
+	private Set<String> getRulesResponsibleAdministrativeUnits(GetTaxonomyExtraFieldsParam params) {
+		final Record record = params.getRecord();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, params.getSessionContextProvider());
+		Category category = rm.wrapCategory(record);
+		List<String> rententionRulesIds = category.getRententionRules();
+		List<RetentionRule> retentionRules = rm.getRetentionRules(rententionRulesIds);
+		Set<String> responsibleAdministrativeUnits = new HashSet<>();
+		for (RetentionRule retentionRule : retentionRules) {
+			responsibleAdministrativeUnits.addAll(retentionRule.getAdministrativeUnits());
+		}
+		return responsibleAdministrativeUnits;
+	}
+
+	private List<Component> getAdministrativeUnitsReferenceDisplaySortedComponents(
+			Set<String> responsibleAdministrativeUnits, SessionContextProvider sessionContextProvider) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, sessionContextProvider);
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		Metadata metadata = rm.retentionRule.administrativeUnits();
+		String currentCollection = metadata.getCollection();
+		List<Component> componentsList = new ArrayList<>();
+		for (String administrativeUnit : responsibleAdministrativeUnits) {
+			componentsList.add(appLayerFactory.getExtensions().forCollection(currentCollection).
+					getDisplayForReference(metadata.getAllowedReferences(), administrativeUnit));
+		}
+		Collections.sort(componentsList, Comparator.comparing(Component::getCaption));
+		return componentsList;
+	}
+
 
 	@Override
 	public ExtensionBooleanResult displayTaxonomy(User user, Taxonomy taxonomy) {
@@ -255,7 +306,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 		return new RecordVODataProvider(foldersSchemaVO, voBuilder, sessionContextProvider) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				return logicalSearchQueryFactory.get().filteredWithUser(currentUser);
+				return logicalSearchQueryFactory.get().filteredWithUserRead(currentUser);
 			}
 		};
 	}
@@ -282,7 +333,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 				User currentUser = getCurrentUser(sessionContextProvider);
 				return new LogicalSearchQuery()
 						.setCondition(from(rm.folder.schemaType()).where(rm.folder.administrativeUnit()).isEqualTo(conceptId))
-						.sortAsc(Schemas.TITLE).filteredWithUser(currentUser);
+						.sortAsc(Schemas.TITLE).filteredWithUserRead(currentUser);
 			}
 		};
 	}
@@ -320,7 +371,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 				User currentUser = getCurrentUser(sessionContextProvider);
 				return new LogicalSearchQuery()
 						.setCondition(from(rm.folder.schemaType()).where(rm.folder.category()).isEqualTo(conceptId))
-						.sortAsc(Schemas.TITLE).filteredWithUser(currentUser);
+						.sortAsc(Schemas.TITLE).filteredWithUserRead(currentUser);
 			}
 		};
 	}

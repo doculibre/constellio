@@ -5,11 +5,11 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
@@ -70,8 +70,8 @@ public class CoreMigrationTo_9_0_0_5 extends MigrationHelper implements Migratio
 			typesBuilder.getSchemaType(UserDocument.SCHEMA_TYPE).setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
 			typesBuilder.getSchemaType(UserFolder.SCHEMA_TYPE).setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
 
-			typesBuilder.getDefaultSchema(Authorization.SCHEMA_TYPE).get(Authorization.TARGET).setCacheIndex(true);
-			typesBuilder.getDefaultSchema(Authorization.SCHEMA_TYPE).get(Authorization.PRINCIPALS).setCacheIndex(true);
+			typesBuilder.getDefaultSchema(RecordAuthorization.SCHEMA_TYPE).get(RecordAuthorization.TARGET).setCacheIndex(true);
+			typesBuilder.getDefaultSchema(RecordAuthorization.SCHEMA_TYPE).get(RecordAuthorization.PRINCIPALS).setCacheIndex(true);
 		}
 	}
 }

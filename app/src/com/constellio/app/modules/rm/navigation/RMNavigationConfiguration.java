@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.ui.components.contextmenu.DocumentContextMenuImpl;
+import com.constellio.app.modules.rm.ui.externalAccessUrl.ExternalUploadViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.AgentRequestViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.AgentSetupViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.ListAgentLogsViewImpl;
@@ -41,6 +42,11 @@ import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
 import com.constellio.app.modules.rm.ui.pages.home.SharedDocumentsAndFoldersProvider;
+import com.constellio.app.modules.rm.ui.pages.legalrequirement.LegalRequirementListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.legalrequirement.reference.AddEditLegalReferenceViewImpl;
+import com.constellio.app.modules.rm.ui.pages.legalrequirement.reference.DisplayLegalReferenceViewImpl;
+import com.constellio.app.modules.rm.ui.pages.legalrequirement.requirement.AddEditLegalRequirementViewImpl;
+import com.constellio.app.modules.rm.ui.pages.legalrequirement.requirement.DisplayLegalRequirementViewImpl;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
 import com.constellio.app.modules.rm.ui.pages.personalspace.PersonnalSpaceView;
 import com.constellio.app.modules.rm.ui.pages.reports.RMReportsViewImpl;
@@ -83,6 +89,7 @@ import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.app.ui.pages.viewGroups.CartViewGroup;
 import com.constellio.app.ui.pages.viewGroups.LogsViewGroup;
 import com.constellio.app.ui.util.ResponsiveUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
@@ -183,6 +190,14 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String RECORD_TRIGGER_MANAGER = "triggerRecordManager";
 	public static final String ADD_EDIT_TRIGGER_TO_RECORD = "addEditTriggerToRecord";
 	public static final String LIST_EXTERNAL_LINKS = "listExternalLinks";
+	public static final String LEGAL_REQUIREMENTS = "legalRequirements";
+	public static final String LEGAL_REQUIREMENTS_ICON = "images/icons/config/codes_of_law.png";
+	public static final String LIST_LEGAL_REQUIREMENTS = "listLegalRequirements";
+	public static final String DISPLAY_LEGAL_REQUIREMENT = "displayLegalRequirement";
+	public static final String DISPLAY_LEGAL_REFERENCE = "displayLegalReference";
+	public static final String ADD_EDIT_LEGAL_REQUIREMENT = "addEditLegalRequirement";
+	public static final String ADD_EDIT_LEGAL_REFERENCE = "addEditLegalReference";
+	public static final String EXTERNAL_UPLOAD = "externalUpload";
 
 
 	public static void configureNavigation(NavigationConfig config) {
@@ -234,7 +249,12 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(ADD_EDIT_TRIGGER_TO_RECORD, AddEditTriggerViewImpl.class);
 		service.register(LIST_EXTERNAL_LINKS, ListExternalLinksViewImpl.class);
 		service.register(SHARE_MANAGEMENT, ShareContentListViewImpl.class);
-
+		service.register(LIST_LEGAL_REQUIREMENTS, LegalRequirementListViewImpl.class);
+		service.register(DISPLAY_LEGAL_REQUIREMENT, DisplayLegalRequirementViewImpl.class);
+		service.register(DISPLAY_LEGAL_REFERENCE, DisplayLegalReferenceViewImpl.class);
+		service.register(ADD_EDIT_LEGAL_REQUIREMENT, AddEditLegalRequirementViewImpl.class);
+		service.register(ADD_EDIT_LEGAL_REFERENCE, AddEditLegalReferenceViewImpl.class);
+		service.register(EXTERNAL_UPLOAD, ExternalUploadViewImpl.class);
 	}
 
 	private static void configureHeaderActionMenu(NavigationConfig config) {
@@ -523,6 +543,20 @@ public class RMNavigationConfiguration implements Serializable {
 			@Override
 			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
 				return visibleIf(user.has(CorePermissions.MANAGE_SECURITY).globally());
+			}
+		});
+
+		config.add(AdminView.COLLECTION_SECTION, new NavigationItem.Active(LEGAL_REQUIREMENTS, LEGAL_REQUIREMENTS_ICON) {
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).listLegalRequirements();
+			}
+
+			@Override
+			public ComponentState getStateFor(User user, AppLayerFactory appLayerFactory) {
+				return visibleIf(Toggle.DISPLAY_LEGAL_REQUIREMENTS.isEnabled() &&
+								 (user.has(RMPermissionsTo.CONSULT_LEGAL_REQUIREMENTS).globally()
+								  || user.has(RMPermissionsTo.MANAGE_LEGAL_REQUIREMENTS).globally()));
 			}
 		});
 	}

@@ -10,7 +10,9 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
@@ -31,9 +33,12 @@ import org.apache.curator.shaded.com.google.common.base.Objects;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -52,11 +57,21 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.Schemas.CAPTION;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.GetRecordOptions.RETURNING_SUMMARY;
+import static com.constellio.model.services.records.GetRecordOptions.WARN_IF_DOES_NOT_EXIST;
 import static com.constellio.model.services.search.SearchServices.addParamsForFreeTextSearch;
 import static com.constellio.model.services.search.SearchServices.addParamsForHighlight;
 import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.join;
+import static org.apache.commons.lang3.StringUtils.split;
 
 public class SearchWebService extends AbstractSearchServlet {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SearchWebService.class);
+
 	@Override
 	protected void doGet(SystemWideUserInfos user, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -88,9 +103,34 @@ public class SearchWebService extends AbstractSearchServlet {
 		solrParams.remove("freeText");
 		String facetWithLabels = solrParams.get("facet.withLabels");
 		solrParams.remove("facet.withLabels");
+
+		String[] collectionsPlaceHolderParam = solrParams.getParams("collection");
+
+		List<String> collectionFromPlaceHolder = new ArrayList<>();
+
+		if (collectionsPlaceHolderParam != null && StringUtils.isNotBlank(collection)) {
+			throw new RuntimeException("You cannot use the collection placeholder and also provide an fq " +
+									   "containing a collection_s condition");
+		}
+
+
+		if (collectionsPlaceHolderParam != null) {
+			for (int i = 0; i < collectionsPlaceHolderParam.length; i++) {
+				collectionFromPlaceHolder.add(collectionsPlaceHolderParam[i]);
+				collectionsPlaceHolderParam[i] = Schemas.COLLECTION.getDataStoreCode() + ":" + collectionsPlaceHolderParam[i];
+			}
+
+			solrParams.add("fq", join(collectionsPlaceHolderParam, " OR "));
+			solrParams.remove("collection");
+		}
+
 		List<String> userCollections = user.getCollections();
-		List<String> queryCollections = StringUtils.isNotBlank(collection) ? asList(collection) : userCollections;
-		adjustForFreeText(queryCollections, freeText, solrParams);
+		List<String> queryCollections = StringUtils.isNotBlank(collection) ? asList(collection) : collectionFromPlaceHolder.size() > 0 ? collectionFromPlaceHolder : userCollections;
+		if (solrParams.get("q") == null) {
+			adjustForFreeText(queryCollections, freeText, solrParams);
+		}
+
+		List<String[]> extraMetadatas = removeExtraReferencedMetadatas(solrParams);
 
 		QueryResponse queryResponse;
 		if (!Strings.isNullOrEmpty(thesaurusValue) && searchingInEvents) {
@@ -139,10 +179,14 @@ public class SearchWebService extends AbstractSearchServlet {
 			}
 
 			if (StringUtils.isBlank(solrParams.get(CommonParams.DF))) {
-				solrParams.add(CommonParams.DF, Schemas.TITLE.getDataStoreCode());
+				solrParams.add(CommonParams.DF, TITLE.getDataStoreCode());
 			}
 
 			queryResponse = getQueryResponse(core, solrParams, user);
+
+			if (!extraMetadatas.isEmpty()) {
+				insertExtraMetadatas(queryResponse, extraMetadatas, user);
+			}
 
 			if (schemasRecordsServices != null) {
 
@@ -207,6 +251,97 @@ public class SearchWebService extends AbstractSearchServlet {
 		writeResponse(resp, solrParams, queryResponse, skosConceptsNL, null, facetLabels, null, null);
 	}
 
+	private List<String[]> removeExtraReferencedMetadatas(ModifiableSolrParams solrParams) {
+
+		if (solrParams.get("fl.extraReferencedMetadatas") != null) {
+
+			List<String[]> extras = new ArrayList<>();
+			for (String extraReferencedMetadata : solrParams.get("fl.extraReferencedMetadatas").split(",")) {
+				String item = extraReferencedMetadata.replace(" ", "");
+				if (item.contains(".")) {
+					String[] parts = split(item, ".");
+					if (parts.length != 2) {
+						throw new IllegalArgumentException("Bad 'fl.extraReferencedMetadatas' value : " + item);
+					} else {
+						extras.add(parts);
+					}
+				} else {
+					throw new IllegalArgumentException("Bad 'fl.extraReferencedMetadatas' value : " + item);
+				}
+			}
+
+			solrParams.remove("fl.extraReferencedMetadatas");
+			return extras;
+		} else {
+			return Collections.emptyList();
+		}
+
+	}
+
+	private void insertExtraMetadatas(QueryResponse queryResponse, List<String[]> extraMetadatas,
+									  SystemWideUserInfos user) {
+
+		for (SolrDocument document : queryResponse.getResults()) {
+
+			String schemaCode = (String) document.getFieldValue("schema_s");
+			String collection = (String) document.getFieldValue("collection_s");
+
+			if (schemaCode != null && collection != null) {
+				MetadataSchemaTypes types = modelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+				MetadataSchema schema = types.getSchema(schemaCode);
+				for (String[] extraMetadata : extraMetadatas) {
+					Metadata metadata = schema.getMetadataWithCodeOrNull(extraMetadata[0]);
+					if (metadata != null && metadata.getType() == REFERENCE && !metadata.isMultivalue()
+						&& document.getFieldValue(metadata.getDataStoreCode()) != null) {
+						String referencedMetadataDataStoreCode = extraMetadata[1];
+						insertExtraMetadataInDocument(user, document, types, metadata, referencedMetadataDataStoreCode);
+					}
+				}
+			}
+		}
+	}
+
+	private void insertExtraMetadataInDocument(SystemWideUserInfos user, SolrDocument document,
+											   MetadataSchemaTypes types, Metadata metadata,
+											   String referencedMetadataDataStoreCode) {
+		String id = (String) document.getFieldValue(metadata.getDataStoreCode());
+		Record record = modelLayerFactory().newRecordServices().get(id, WARN_IF_DOES_NOT_EXIST, RETURNING_SUMMARY);
+		if (record != null) {
+			MetadataSchema referencedRecordSchema = types.getSchemaOf(record);
+			Metadata referencedRecordMetadata = referencedRecordSchema.getMetadataByDatastoreCode(referencedMetadataDataStoreCode);
+
+			if (referencedRecordMetadata == null) {
+				throw new IllegalArgumentException("Bad 'fl.extraReferencedMetadatas' value : " + metadata.getLocalCode() + "." + referencedMetadataDataStoreCode);
+			}
+
+			if (referencedRecordSchema.getSchemaType().getCacheType().isSummaryCache() &&
+				!referencedRecordMetadata.isAvailableInSummary()) {
+				record = modelLayerFactory().newRecordServices().get(id, WARN_IF_DOES_NOT_EXIST);
+			}
+
+			if (record.get(referencedRecordMetadata) != null) {
+				if (!hasUserAccessTo(user, record, referencedRecordSchema, referencedRecordMetadata)) {
+					LOGGER.warn("User does not have access to metadata '" + referencedRecordMetadata.getCode() + "' of " + id);
+				} else {
+					String field = metadata.getLocalCode() + "." + referencedRecordMetadata.getDataStoreCode();
+					document.addField(field, record.get(referencedRecordMetadata));
+				}
+			}
+		}
+	}
+
+	private boolean hasUserAccessTo(SystemWideUserInfos systemWideUser, Record record,
+									MetadataSchema referencedRecordSchema, Metadata referencedRecordMetadata) {
+
+		if (!referencedRecordSchema.getSchemaType().hasSecurity()) {
+			return true;
+		}
+
+		User user = modelLayerFactory().newUserServices().getUserInCollection(systemWideUser.getUsername(), record.getCollection());
+		return referencedRecordMetadata.isSameLocalCodeThanAny(TITLE, CAPTION) ||
+			   (user.hasReadAccess().on(record) && user.hasAccessToMetadata(referencedRecordMetadata, record));
+	}
+
 	private NamedList getFacetLabels(QueryResponse queryResponse, List<String> collections) {
 		List<Metadata> specialMetadatas = asList(Schemas.COLLECTION);
 		RecordServices recordServices = modelLayerFactory().newRecordServices();
@@ -235,7 +370,7 @@ public class SearchWebService extends AbstractSearchServlet {
 					Map<String, String> valueLabels = new HashMap<>();
 					switch (facetMetadata.getType()) {
 						case REFERENCE:
-							valueLabels = facetField.getValues().stream().map(value -> recordServices.getDocumentById(value.getName())).collect(Collectors.toMap(Record::getId,
+							valueLabels = facetField.getValues().stream().map(value -> recordServices.getDocumentByIdOrNull(value.getName())).filter(record -> record != null).collect(Collectors.toMap(record -> record.getId(),
 									record -> StringUtils.defaultIfBlank(SchemaCaptionUtils.getShortCaptionForRecord(record, locale, false), "")));
 							break;
 						case ENUM:
@@ -322,15 +457,11 @@ public class SearchWebService extends AbstractSearchServlet {
 			addParamsForFreeTextSearch(solrParams, freeText, null, new ArrayList<>(languages), null,
 					mainDataLanguage, new ArrayList<>(fieldBoosts), new ArrayList<>(queryBoosts), searchedSchemaTypes, systemConfigs);
 
-			solrParams.add(CommonParams.DF, Schemas.TITLE.getDataStoreCode());
+			solrParams.add(CommonParams.DF, TITLE.getDataStoreCode());
 
 			addParamsForHighlight(solrParams, MetadataSchemaTypes.getSearchableMetadatas(searchedSchemaTypes), new ArrayList<>(languages));
 		}
 
-		String oldQParam = solrParams.get(CommonParams.Q);
-		if (StringUtils.isNotBlank(oldQParam) && !oldQParam.equals("*:*")) {
-			solrParams.add(CommonParams.FQ, oldQParam);
-		}
 		solrParams.set(CommonParams.Q, StringUtils.defaultString(freeText, "*:*"));
 	}
 }

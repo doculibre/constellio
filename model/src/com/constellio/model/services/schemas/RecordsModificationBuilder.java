@@ -2,6 +2,7 @@ package com.constellio.model.services.schemas;
 
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -33,15 +34,16 @@ public class RecordsModificationBuilder {
 			if (recordsSplittedByTypes.containsKey(schemaTypeCode)) {
 				MetadataSchemaType schemaType = metadataSchemaTypes.getSchemaType(schemaTypeCode);
 				List<Record> records = recordsSplittedByTypes.get(schemaTypeCode);
-				recordsModifications.add(getSchemaTypeRecordsModifications(schemaType, records));
+				recordsModifications.add(getSchemaTypeRecordsModifications(schemaType, records, transaction.getRecordUpdateOptions()));
 			}
 		}
 		return recordsModifications;
 	}
 
-	private RecordsModification getSchemaTypeRecordsModifications(MetadataSchemaType schemaType, List<Record> records) {
+	private RecordsModification getSchemaTypeRecordsModifications(MetadataSchemaType schemaType, List<Record> records,
+																  RecordUpdateOptions options) {
 		List<Metadata> modifiedMetadatas = getModifiedMetadatas(schemaType, records);
-		return new RecordsModification(records, modifiedMetadatas, schemaType);
+		return new RecordsModification(records, modifiedMetadatas, schemaType, options);
 	}
 
 	private List<Metadata> getModifiedMetadatas(MetadataSchemaType schemaType, List<Record> records) {

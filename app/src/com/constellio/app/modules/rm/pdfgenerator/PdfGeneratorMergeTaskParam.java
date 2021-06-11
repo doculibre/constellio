@@ -4,6 +4,7 @@ import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.factories.ModelLayerFactory;
 
 import java.util.Map;
 
@@ -46,6 +47,12 @@ public class PdfGeneratorMergeTaskParam implements AsyncTaskExecutionParams {
 
 	@Override
 	public AsyncTaskBatchProcess getBatchProcess() {
+		return null;
+	}
+
+	@Override
+	public ModelLayerFactory getModelLayerFactory() {
+		//Should not be used...
 		return null;
 	}
 

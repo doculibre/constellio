@@ -59,7 +59,7 @@ public class GlobalGroup extends RecordWrapper {
 
 
 	public boolean isLocallyCreated() {
-		return Boolean.TRUE.equals(get(LOCALLY_CREATED));
+		return !Boolean.FALSE.equals(get(LOCALLY_CREATED));
 	}
 
 	public String toString() {

@@ -86,12 +86,12 @@ public class TasksMigrationTo6_0 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaTypeBuilder userSchemaType = typesBuilder.getSchemaType(User.SCHEMA_TYPE);
 
-			MetadataSchemaTypeBuilder workflowSchemaType = typesBuilder.createNewSchemaType(BetaWorkflow.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder workflowSchemaType = typesBuilder.createNewSchemaTypeWithSecurity(BetaWorkflow.SCHEMA_TYPE);
 			workflowSchemaType.setSecurity(false);
 			MetadataSchemaBuilder workflowSchema = workflowSchemaType.getDefaultSchema();
 			workflowSchema.create(BetaWorkflow.CODE).setType(STRING).setUniqueValue(true);
 
-			MetadataSchemaTypeBuilder workflowInstanceSchemaType = typesBuilder.createNewSchemaType(BetaWorkflowInstance.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder workflowInstanceSchemaType = typesBuilder.createNewSchemaTypeWithSecurity(BetaWorkflowInstance.SCHEMA_TYPE);
 			workflowInstanceSchemaType.setSecurity(false);
 			MetadataSchemaBuilder workflowInstanceSchema = workflowInstanceSchemaType.getDefaultSchema();
 			workflowInstanceSchema.create(BetaWorkflowInstance.STARTED_BY).defineReferencesTo(userSchemaType);

@@ -1,6 +1,7 @@
 package com.constellio.app.services.appManagement;
 
 import com.constellio.app.entities.modules.ProgressInfo;
+import com.constellio.app.entities.support.SupportPlan;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFoundException;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
@@ -31,7 +32,6 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.io.FileUtils.readFileToString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -52,6 +52,7 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 	File uploadWarFile;
 	File pluginsFolder;
 	File constellioProperties;
+	File verificationKey;
 
 	AppManagementService appManagementService;
 	FoldersLocator foldersLocator;
@@ -68,7 +69,9 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		wrapperConf = new File(newTempFolder(), "wrapper.conf");
 		pluginsFolder = newTempFolder();
 		constellioProperties = new File(newTempFolder(), "constellio.properties");
+		verificationKey = new File(newTempFolder(), "verification-key.pub");
 		FileUtils.copyFile(getTestResourceFile("initial-wrapper.conf"), wrapperConf);
+		FileUtils.copyFile(getTestResourceFile("verification-key.pub"), verificationKey);
 		FileUtils.touch(constellioProperties);
 
 		SystemGlobalConfigsManager systemGlobalConfigsManager = getAppLayerFactory().getSystemGlobalConfigsManager();
@@ -104,6 +107,11 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 			@Override
 			public File getConstellioProperties() {
 				return constellioProperties;
+			}
+
+			@Override
+			public File getVerificationKey() {
+				return verificationKey;
 			}
 		};
 
@@ -269,63 +277,88 @@ public class AppManagementServicesAcceptanceTest extends ConstellioTest {
 		assertThat(keptFilesNames).containsOnly(expectedFilesNames);
 	}
 
-	@Test(expected = AppManagementServiceRuntimeException.CannotConnectToServer.class)
-	public void givenNoConnectionChangelogCannotBeRetrieve()
-			throws Exception {
-		doReturn(new LicenseInfo("", new LocalDate(), "")).when(appManagementService).getLicenseInfo();
-		doReturn("").when(appManagementService).sendPost(any(String.class), any(String.class));
-		doReturn(null).when(appManagementService).getInputForPost(any(String.class), any(String.class));
+	@Test
+	public void givenNoLicenseLoadedWhenStoringInvalidLicense() {
+		appManagementService.storeLicense(getTestResourceFile("bad-license.xml"));
+		assertThat(appManagementService.getLicenseInfo()).isNull();
 
-		appManagementService.getChangelogFromServer();
+		appManagementService.storeLicense(getTestResourceFile("modified-good-license.xml"));
+		assertThat(appManagementService.getLicenseInfo()).isNull();
 	}
 
 	@Test
-	public void givenConnectionChangelogCanBeRetrieve()
-			throws Exception {
-		InputStream tmp = getDummyInputStream();
-		doReturn(new LicenseInfo("", new LocalDate(), "")).when(appManagementService).getLicenseInfo();
-		doReturn("").when(appManagementService).sendPost(any(String.class), any(String.class));
-		doReturn(tmp).when(appManagementService).getInputForPost(any(String.class), any(String.class));
-		doReturn(false).when(appManagementService).isProxyPage(anyString());
-
-		appManagementService.getChangelogFromServer();
-		tmp.close();
+	public void givenLicenseLoadedWhenStoringValidLicense() {
+		appManagementService.storeLicense(getTestResourceFile("good-license.xml"));
+		LicenseInfo licenseInfo = appManagementService.getLicenseInfo();
+		assertThat(licenseInfo).isNotNull();
+		assertThat(licenseInfo.getClientName()).isEqualTo("dev");
+		assertThat(licenseInfo.getExpirationDate()).isEqualTo(new LocalDate(9999, 12, 31));
+		assertThat(licenseInfo.getSignature()).isEqualTo("cmc8q6vOzUCnUclbx9mlECI24E54fFvD9kK9Nhd_bGafoKnM8ypW1vi0V8Q6Y4nk3xdc6MoLmJL5cecY4--yxIq1cC2BhnUjsA4G-GzURDmx0lJD_CZnsdORC2M4uq27K0zDYP6QxumsDakUSP-80pEMM_d6dsYbxkMKH27IQzSi-tE7XtqlR9fCSbb-5F5yoOIB9EEjp7z38IsSPOWh21EMQIWSjalr39My5YYfTIkwBdhn9zH3H4uoryKRJcS5LQFxHIyNIAe81ebfszjiLGdft9oZQoMvRVgne-n65VC5xwir1C-4k-q9hJFaeuCRKrwE3YKLJwCaPKYMGNjaAOIbcpAFTI1a8wDkPvep_ziQO8mtIVTy68Adtz7pgXRHMYqjPk8d5h8lWQLLaIlS29zJi0oHNxYAQX7Dq7dJjmvTJ8Ddpdvl7_I_a3tU2ck9vXeMIPuX417L_IPgoAbeI0KH_9gg5TB6EGcCe0Yk_TrAiFCilR63cZGhN2--V9nr4JdThf2ZnYqcr584DGbeEYIxxy0HIX-qL7QayGr5IcNKv44N-ade91IRATOlKzSbMwmh8a9ka1JFmM7wPW0tpaA9xdXQfJy0J03-HvkUkw0VL_98w5_fsxXZzzwGhhPfxRWylC1UwwLL_xKcPAdt3GXpKAipfl1BjczKevdnQ7Q");
+		assertThat(licenseInfo.getSupportPlan()).isEqualTo(SupportPlan.PLATINUM);
+		assertThat(licenseInfo.getPlugins()).isEmpty();
+		assertThat(licenseInfo.getAdditionalInfo()).isEmpty();
+		assertThat(licenseInfo.getVaultQuota()).isEqualTo(2000);
+		assertThat(licenseInfo.getMaxUsersAllowed()).isEqualTo(1000);
+		assertThat(licenseInfo.getMaxServersAllowed()).isEqualTo((byte) 1);
 	}
 
-	//TODO Maxime
-	//@Test(expected = AppManagementServiceRuntimeException.CannotConnectToServer.class)
-	public void givenProxyConnectionWarCannotBeRetrieve()
-			throws Exception {
-		doReturn(new LicenseInfo("", new LocalDate(), "")).when(appManagementService).getLicenseInfo();
-		doReturn("").when(appManagementService).sendPost(any(String.class), any(String.class));
-		doReturn(null).when(appManagementService).getInputForPost(any(String.class), any(String.class));
-		doReturn(true).when(appManagementService).isProxyPage(anyString());
+	//	@Test(expected = AppManagementServiceRuntimeException.CannotConnectToServer.class)
+	//	public void givenNoConnectionChangelogCannotBeRetrieve()
+	//			throws Exception {
+	//		doReturn(new LicenseInfo("", new LocalDate(), "", null, Collections.EMPTY_MAP, Collections.EMPTY_MAP, 0, 0, (byte) 0)).when(appManagementService).getLicenseInfo();
+	//		doReturn("").when(appManagementService).sendPost(any(String.class), any(Map.class));
+	//		doReturn(null).when(appManagementService).getInputForPost(any(String.class), any(Map.class));
+	//
+	//		appManagementService.getReleaseNoteFromServer("", Locale.FRENCH);
+	//	}
 
-		appManagementService.getWarFromServer(new ProgressInfo());
-	}
+	//	@Test
+	//	public void givenConnectionChangelogCanBeRetrieve()
+	//			throws Exception {
+	//		InputStream tmp = getDummyInputStream();
+	//		doReturn(new LicenseInfo("", new LocalDate(), "", "", Collections.EMPTY_MAP, 0, 0, (byte) 0)).when(appManagementService).getLicenseInfo();
+	//		doReturn("").when(appManagementService).sendPost(any(String.class), any(String.class));
+	//		doReturn(tmp).when(appManagementService).getInputForPost(any(String.class), any(String.class));
+	//		doReturn(false).when(appManagementService).isProxyPage(anyString());
+	//
+	//		appManagementService.getChangelogFromServer();
+	//		tmp.close();
+	//	}
 
-	//TODO Maxime
-	//@Test(expected = AppManagementServiceRuntimeException.CannotConnectToServer.class)
-	public void givenNoConnectionWarCannotBeRetrieve()
-			throws Exception {
-		doReturn(new LicenseInfo("", new LocalDate(), "")).when(appManagementService).getLicenseInfo();
-		doReturn("").when(appManagementService).sendPost(any(String.class), any(String.class));
-		doReturn(null).when(appManagementService).getInputForPost(any(String.class), any(String.class));
+	//	//TODO Maxime
+	//	//@Test(expected = AppManagementServiceRuntimeException.CannotConnectToServer.class)
+	//	public void givenProxyConnectionWarCannotBeRetrieve()
+	//			throws Exception {
+	//		doReturn(new LicenseInfo("", new LocalDate(), "", "", Collections.EMPTY_MAP, 0, 0, (byte) 0)).when(appManagementService).getLicenseInfo();
+	//		doReturn("").when(appManagementService).sendPost(any(String.class), any(String.class));
+	//		doReturn(null).when(appManagementService).getInputForPost(any(String.class), any(String.class));
+	//		doReturn(true).when(appManagementService).isProxyPage(anyString());
+	//
+	//		appManagementService.getWarFromServer(new ProgressInfo());
+	//	}
 
-		appManagementService.getWarFromServer(new ProgressInfo());
-	}
+	//	//TODO Maxime
+	//	//@Test(expected = AppManagementServiceRuntimeException.CannotConnectToServer.class)
+	//	public void givenNoConnectionWarCannotBeRetrieve()
+	//			throws Exception {
+	//		doReturn(new LicenseInfo("", new LocalDate(), "", "", Collections.EMPTY_MAP, 0, 0, (byte) 0)).when(appManagementService).getLicenseInfo();
+	//		doReturn("").when(appManagementService).sendPost(any(String.class), any(String.class));
+	//		doReturn(null).when(appManagementService).getInputForPost(any(String.class), any(String.class));
+	//
+	//		appManagementService.getWarFromServer(new ProgressInfo());
+	//	}
 
-	@Test
-	public void givenConnectionWarCanBeRetrieve()
-			throws Exception {
-		InputStream tmp = getDummyInputStream();
-		doReturn(new LicenseInfo("", new LocalDate(), "")).when(appManagementService).getLicenseInfo();
-		doReturn("").when(appManagementService).sendPost(any(String.class), any(String.class));
-		doReturn(tmp).when(appManagementService).getInputForPost(any(String.class), any(String.class));
-
-		appManagementService.getWarFromServer(new ProgressInfo());
-		tmp.close();
-	}
+	//	@Test
+	//	public void givenConnectionWarCanBeRetrieve()
+	//			throws Exception {
+	//		InputStream tmp = getDummyInputStream();
+	//		doReturn(new LicenseInfo("", new LocalDate(), "", "", Collections.EMPTY_MAP, 0, 0, (byte) 0)).when(appManagementService).getLicenseInfo();
+	//		doReturn("").when(appManagementService).sendPost(any(String.class), any(String.class));
+	//		doReturn(tmp).when(appManagementService).getInputForPost(any(String.class), any(String.class));
+	//
+	//		appManagementService.getWarFromServer(new ProgressInfo());
+	//		tmp.close();
+	//	}
 
 	@Test
 	public void givenUploadedWarIsSameVersionThenCanUpload()

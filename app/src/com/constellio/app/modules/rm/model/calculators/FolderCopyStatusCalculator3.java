@@ -42,6 +42,8 @@ public class FolderCopyStatusCalculator3 extends AbstractMetadataValueCalculator
 
 	ConfigDependency<Boolean> openHolderParam = RMConfigs.OPEN_HOLDER.dependency();
 
+	ConfigDependency<Boolean> copyStatusPriorityParam = RMConfigs.COPY_STATUS_ENTERED_HAS_PRIORITY_OVER_PARENTS_COPY_STATUS.dependency();
+
 
 	@Override
 	public CopyType calculate(CalculatorParameters parameters) {
@@ -53,9 +55,14 @@ public class FolderCopyStatusCalculator3 extends AbstractMetadataValueCalculator
 		boolean documentRule = RetentionRuleScope.DOCUMENTS == parameters.get(ruleScopeParam);
 		List<CopyRetentionRule> ruleCopyRules = parameters.get(ruleCopyRulesParam);
 		Boolean openHolder = parameters.get(openHolderParam);
+		Boolean copyStatusEnteredHasPriority = parameters.get(copyStatusPriorityParam);
 
 		if (ruleCopyRules.isEmpty() && !documentRule) {
 			return null;
+		}
+
+		if (Boolean.TRUE.equals(copyStatusEnteredHasPriority) && folderCopyTypeManual != null) {
+			return folderCopyTypeManual;
 		}
 
 		CopyType parentCopyType = parameters.get(parentCopyTypeParam);
@@ -114,6 +121,7 @@ public class FolderCopyStatusCalculator3 extends AbstractMetadataValueCalculator
 	@Override
 	public List<? extends Dependency> getDependencies() {
 		return Arrays.asList(folderCopyTypeManualParam, folderUnitParam, folderUnitAncestorsParam, ruleUnitsParam,
-				ruleResponsibleUnitsParam, ruleCopyRulesParam, parentCopyTypeParam, ruleScopeParam, openHolderParam);
+				ruleResponsibleUnitsParam, ruleCopyRulesParam, parentCopyTypeParam, ruleScopeParam,
+				openHolderParam, copyStatusPriorityParam);
 	}
 }

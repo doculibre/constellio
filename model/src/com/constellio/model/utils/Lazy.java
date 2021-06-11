@@ -15,4 +15,7 @@ public abstract class Lazy<T> {
 
 	protected abstract T load();
 
+	public boolean isLoaded() {
+		return loaded;
+	}
 }

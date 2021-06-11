@@ -70,6 +70,7 @@ public class DownloadLink extends BaseLink {
 	private static String normalizeFileName(String filename) {
 		filename = StringUtils.replace(filename, "%", "_");
 		filename = StringUtils.replace(filename, "#", "_");
+		filename = StringUtils.replace(filename, ";", "_");
 		return filename;
 	}
 

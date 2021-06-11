@@ -19,10 +19,12 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsParams;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +65,25 @@ public class RecordUtils {
 				record.set(metadata, null);
 			}
 		}
+	}
+
+	public static void migrateMetadataTypeAndMultivalueOn(MetadataList metadatas, Record record) {
+		metadatas.stream()
+				.filter(metadata -> metadata.getDataEntry().getType() == MANUAL)
+				.forEach(metadata -> {
+					if (record.getSchemaCode().equals(metadata.getSchemaCode())) {
+						Metadata migrationMetadata = metadata.getTypeAndMultivalueMigrationMetadata();
+						if (migrationMetadata != null) {
+							if (Boolean.TRUE.equals(metadata.isMarkedForMigrationToMultivalue())) {
+								record.set(migrationMetadata, Lists.newArrayList((Object) record.get(metadata)));
+							} else {
+								record.set(migrationMetadata, record.get(metadata));
+							}
+
+							record.set(metadata, null);
+						}
+					}
+				});
 	}
 
 	public static boolean isZeroPaddingId(String id) {
@@ -811,5 +832,46 @@ public class RecordUtils {
 		}
 
 		return Collections.emptyList();
+	}
+
+	public static boolean isMetadataValueTypeMigrationSupported(MetadataValueType sourceType,
+																MetadataValueType destType) {
+		if (sourceType == destType) {
+			throw new ImpossibleRuntimeException("Metadata cannot be migrated to the same type. " +
+												 "If you want to keep the type the same, set the value to null.");
+		}
+		if (destType == null) {
+			return true;
+		}
+
+		switch (sourceType) {
+			case STRING:
+			case TEXT:
+				switch (destType) {
+					case TEXT:
+					case STRING:
+						return true;
+				}
+			default:
+				return false;
+		}
+	}
+
+	public static boolean isMetadataMultivalueMigrationSupported(boolean sourceMultivalue,
+																 Boolean destMutlivalue) {
+		boolean destIsMultivalue = Boolean.TRUE.equals(destMutlivalue);
+
+		if (sourceMultivalue && destIsMultivalue) {
+			throw new ImpossibleRuntimeException("Metadata cannot be migrated to the same mutlivalue's value. " +
+												 "If you want to keep the type the same, set the value to null.");
+		}
+		if (destMutlivalue == null) {
+			return true;
+		}
+		if (sourceMultivalue) {
+			return false;
+		} else {
+			return destIsMultivalue;
+		}
 	}
 }

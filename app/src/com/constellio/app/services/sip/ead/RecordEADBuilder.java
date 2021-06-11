@@ -27,6 +27,7 @@ import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
 import com.constellio.model.entities.structures.MapStringStringStructure;
+import com.constellio.model.entities.structures.UrlsStructure;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -232,6 +233,10 @@ public class RecordEADBuilder {
 
 			if (modifiableStructure instanceof MapStringStringStructure) {
 				mappedStructure = new TreeMap<String, Object>((MapStringStringStructure) modifiableStructure);
+			}
+
+			if (modifiableStructure instanceof UrlsStructure) {
+				mappedStructure = new TreeMap<String, Object>((UrlsStructure) modifiableStructure);
 			}
 
 			if (modifiableStructure instanceof MapStringListStringStructure) {

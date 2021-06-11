@@ -1,10 +1,13 @@
 package com.constellio.model.entities.security;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.AuthorizationDetailsFilter;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
@@ -19,6 +22,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
+
+import static com.constellio.model.entities.security.SecurityModelAuthorization.wrapExistingAuthUsingModifiedUsersAndGroups;
 
 @Slf4j
 public class SingletonSecurityModel implements SecurityModel {
@@ -64,6 +70,8 @@ public class SingletonSecurityModel implements SecurityModel {
 	 * Cache for retrieveUserTokens, which is called a lot!
 	 */
 	Map<Integer, KeySetMap<String, String>> cachedUserTokens = new HashMap<>();
+
+	Map<RecordId, Map<String, Object>> cachedUserSecurityValues = new HashMap<>();
 
 	private boolean noNegativeAuth;
 
@@ -153,6 +161,24 @@ public class SingletonSecurityModel implements SecurityModel {
 	}
 
 	@Override
+	public List<SecurityModelAuthorization> wrapNestedAuthorizationsOnTarget(
+			NestedRecordAuthorizations authorizations) {
+
+		List<SecurityModelAuthorization> auths = new ArrayList<>();
+
+		authorizations.getAuthorizations().forEach(authorization -> {
+			auths.add(wrapExistingAuthUsingModifiedUsersAndGroups(
+					this.groupAuthorizationsInheritance,
+					this.securableRecordSchemaTypes.contains(authorization.getTargetSchemaType()),
+					authorization,
+					this.getGroupIds()));
+		});
+
+		return auths;
+
+	}
+
+	@Override
 	public SecurityModelAuthorization getAuthorizationWithId(String authId) {
 		return authorizationsById.get(authId);
 	}
@@ -218,7 +244,7 @@ public class SingletonSecurityModel implements SecurityModel {
 		KeySetMap<String, String> tokens = new KeySetMap<>();
 		for (SecurityModelAuthorization auth : getAuthorizationsToPrincipal(user.getId(), true)) {
 			if (auth.getDetails().isActiveAuthorization() && filter.isIncluded(auth.getDetails())
-				&& (!Authorization.isSecurableSchemaType(auth.getDetails().getTargetSchemaType()) || includeSpecifics)) {
+				&& (!RecordAuthorization.isSecurableSchemaType(auth.getDetails().getTargetSchemaType()) || includeSpecifics)) {
 				tokens.add(auth.getDetails().getTarget(), auth.getDetails().getId());
 			}
 		}
@@ -282,6 +308,7 @@ public class SingletonSecurityModel implements SecurityModel {
 	public synchronized void removeAuth(String authId) {
 		directAndInheritedAuthorizationsByPrincipalId = new HashMap<>();
 		cachedUserTokens = new HashMap<>();
+		cachedUserSecurityValues.clear();
 		removeAuthWithId(authId, authorizations);
 
 		SecurityModelAuthorization auth = authorizationsById.remove(authId);
@@ -300,6 +327,7 @@ public class SingletonSecurityModel implements SecurityModel {
 
 	public synchronized void updateCache(List<Authorization> newAuths, List<Authorization> modifiedAuths) {
 		cachedUserTokens = new HashMap<>();
+		cachedUserSecurityValues.clear();
 		directAndInheritedAuthorizationsByPrincipalId = new HashMap<>();
 		for (Authorization auth : newAuths) {
 			insertAuthorizationInMemoryMaps(auth);
@@ -313,5 +341,23 @@ public class SingletonSecurityModel implements SecurityModel {
 			insertAuthorizationInMemoryMaps(auth);
 		}
 		this.version = new Date().getTime();
+	}
+
+	public <T> T getCachedValue(User user, String valueKey, Supplier<T> supplier) {
+
+		Map<String, Object> cachedValues = cachedUserSecurityValues.get(user.getWrappedRecordId());
+		if (cachedValues == null) {
+			cachedValues = new HashMap<>();
+			cachedUserSecurityValues.put(user.getWrappedRecordId(), cachedValues);
+		}
+
+		Object value = cachedValues.get(valueKey);
+		if (value == null) {
+			value = supplier.get();
+			cachedValues.put(valueKey, value);
+		}
+
+		return (T) value;
+
 	}
 }

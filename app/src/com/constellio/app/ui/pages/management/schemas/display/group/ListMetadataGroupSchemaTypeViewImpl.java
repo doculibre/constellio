@@ -5,6 +5,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -299,7 +300,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 		viewObject.setCode(code);
 		viewObject.setLabels(labels);
 
-		codeField = new TextField();
+		codeField = new BaseTextField();
 		codeField.setRequired(addForm);
 		codeField.setEnabled(addForm);
 		codeField.setCaption($("ListMetadataGroupSchemaTypeView.code"));

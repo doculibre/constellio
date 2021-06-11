@@ -50,6 +50,8 @@ public class Toggle {
 
 	public static AvailableToggle RETENTION_RULE_DATE_TYPES = newToggle(false);
 
+	public static AvailableToggle DISPLAY_DOCUMENT_TYPE_AS_TABLE = newToggle(false);
+
 	public static AvailableToggle FOLDER_SUMMARY_CONFIG = newToggle(false);
 
 	public static AvailableToggle ADVANCED_SEARCH_CONFIGS = newToggle(false);
@@ -94,6 +96,7 @@ public class Toggle {
 	//Debug the dtos!
 	public static AvailableToggle VALIDATE_BYTE_ARRAY_DTOS_AFTER_CREATION = newToggle(false);
 	public static AvailableToggle DEBUG_DTOS = newToggle(false);
+	public static AvailableToggle DEBUG_CACHE_SORTS = newToggle(false);
 
 	public static AvailableToggle MIGRATING_LEGACY_SAVESTATE = newToggle(false);
 
@@ -135,8 +138,7 @@ public class Toggle {
 	public static AvailableToggle TIFF_VIEWER = newToggle(false);
 	public static AvailableToggle SDK_PANEL_LOG_CALLS = newToggle(false);
 
-	public static AvailableToggle IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS = newToggle(false);
-	public static AvailableToggle ALLOW_LDAP_FETCH_SUB_GROUPS = newToggle(false);
+//	public static AvailableToggle ALLOW_LDAP_FETCH_SUB_GROUPS = newToggle(true);
 
 	public static AvailableToggle PUT_IN_CONTAINER_ACTION = newToggle(false);
 
@@ -149,6 +151,21 @@ public class Toggle {
 	public static AvailableToggle ENABLE_CLOUD_SYSADMIN_FEATURES = newToggle(false);
 
 	public static AvailableToggle VALIDATE_USER_COLLECTIONS = newToggle(true);
+
+	public static AvailableToggle SHOW_LEGACY_TASK_TABLE = newToggle(false);
+
+	public static AvailableToggle VALIDATE_VERSION_NUMBER_BEFORE_SETTINGS_IMPORT = newToggle(true);
+
+	// Agent plugin
+	public static AvailableToggle AGENT_PLUGIN_INSTALLED = newToggle(false);
+
+	public static AvailableToggle WEB_SCANNING_ENABLED = newToggle(false);
+
+	public static AvailableToggle DISPLAY_LEGAL_REQUIREMENTS = newToggle(false);
+
+	public static AvailableToggle LIST_365_TEMPLATES = newToggle(false);
+
+	public static AvailableToggle EXTERNAL_UPLOAD_LINK = newToggle(false);
 
 
 	// ------------------------------------------------

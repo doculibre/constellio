@@ -41,6 +41,11 @@ public class Comment implements ModifiableStructure {
 		}
 	}
 
+	public void setUserId(String userId) {
+		dirty = true;
+		this.userId = userId;
+	}
+
 	public String getMessage() {
 		return message;
 	}

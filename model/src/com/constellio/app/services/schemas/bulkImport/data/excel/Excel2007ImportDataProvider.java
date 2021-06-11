@@ -5,6 +5,7 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRun
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProviderRuntimeException;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProviderRuntimeException.ImportDataProviderRuntimeException_InvalidDate;
+import org.apache.commons.lang.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -66,7 +67,10 @@ public class Excel2007ImportDataProvider implements ImportDataProvider {
 		List<String> sheetNames = new ArrayList<>();
 		Iterator<Sheet> iterator = workbook.iterator();
 		while (iterator.hasNext()) {
-			sheetNames.add(iterator.next().getSheetName());
+			String sheetName = iterator.next().getSheetName();
+			if (!StringUtils.startsWith(sheetName, "#")) {
+				sheetNames.add(sheetName);
+			}
 		}
 		return sheetNames;
 	}

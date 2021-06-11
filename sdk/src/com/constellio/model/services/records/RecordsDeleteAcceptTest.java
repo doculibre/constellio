@@ -2038,10 +2038,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 
 			@Override
 			public void configure(MetadataSchemaTypesBuilder schemaTypes) {
-				MetadataSchemaTypeBuilder aValueListType = schemaTypes.createNewSchemaType("valueList");
+				MetadataSchemaTypeBuilder aValueListType = schemaTypes.createNewSchemaTypeWithSecurity("valueList");
 				aValueListType.setSecurity(false);
 
-				MetadataSchemaTypeBuilder securedUnclassifiedSchemaType = schemaTypes.createNewSchemaType("securedUnclassified");
+				MetadataSchemaTypeBuilder securedUnclassifiedSchemaType = schemaTypes.createNewSchemaTypeWithSecurity("securedUnclassified");
 				securedUnclassifiedSchemaType.setSecurity(true);
 				securedUnclassifiedSchemaType.getDefaultSchema().create("parent")
 						.defineChildOfRelationshipToType(securedUnclassifiedSchemaType);
@@ -2051,7 +2051,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 				folderSchema.create("valueListSingleRef").defineReferencesTo(aValueListType).setMultivalue(false);
 				folderSchema.create("securedUnclassified").defineReferencesTo(securedUnclassifiedSchemaType);
 
-				MetadataSchemaTypeBuilder typeSupportingRawDelete = schemaTypes.createNewSchemaType("typeSupportingRawDelete")
+				MetadataSchemaTypeBuilder typeSupportingRawDelete = schemaTypes.createNewSchemaTypeWithSecurity("typeSupportingRawDelete")
 						.setInTransactionLog(false);
 			}
 		};

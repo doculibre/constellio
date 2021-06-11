@@ -11,7 +11,6 @@ import com.constellio.model.services.migrations.RecordMigrationsManagerRuntimeEx
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesTestSchemaSetup;
-import com.constellio.model.services.records.reindexing.ReindexationParams;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -516,7 +515,7 @@ public class RecordMigrationsManagerAcceptanceTest extends ConstellioTest {
 		List<MetadataSchemaType> schemaTypes = manager.getSchemaTypes(zeCollection)
 				.getSchemaTypesWithCode(new ArrayList<>(schemaTypeCodes));
 
-		reindexingServices.reindexCollections(ReindexationParams.recalculateAndRewriteSchemaTypesInBackground(schemaTypes));
+		getModelLayerFactory().getBatchProcessesManager().reindexInBackground(schemaTypes);
 	}
 
 	void registerInAnotherCollectionAndReindex(RecordMigrationScript... scripts) {
@@ -526,7 +525,7 @@ public class RecordMigrationsManagerAcceptanceTest extends ConstellioTest {
 		List<MetadataSchemaType> schemaTypes = manager.getSchemaTypes("anotherCollection")
 				.getSchemaTypesWithCode(new ArrayList<>(schemaTypeCodes));
 
-		reindexingServices.reindexCollections(ReindexationParams.recalculateAndRewriteSchemaTypesInBackground(schemaTypes));
+		getModelLayerFactory().getBatchProcessesManager().reindexInBackground(schemaTypes);
 	}
 
 	private Record given(Record record)

@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components.contextmenu;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.services.actionDisplayManager.MenuDisplayList;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
@@ -33,6 +34,7 @@ public class RecordVOContextMenu extends BaseContextMenu {
 	private MenuItemServices menuItemServices;
 	private MenuItemFactory menuItemFactory;
 	private UserServices userServices;
+	private final MenuDisplayList menuDisplayList;
 
 	public RecordVOContextMenu(RecordVO recordVO) {
 		super();
@@ -45,6 +47,8 @@ public class RecordVOContextMenu extends BaseContextMenu {
 		userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		menuItemServices = new MenuItemServices(collection, appLayerFactory);
 		menuItemFactory = new MenuItemFactory();
+
+		menuDisplayList = appLayerFactory.getMenusDisplayManager().getMenuDisplayList(collection).getActionDisplayList(recordVO.getSchema().getTypeCode());
 	}
 
 	public void build() {
@@ -98,6 +102,6 @@ public class RecordVOContextMenu extends BaseContextMenu {
 			public LogicalSearchQuery getQuery() {
 				return null;
 			}
-		});
+		}, menuDisplayList);
 	}
 }

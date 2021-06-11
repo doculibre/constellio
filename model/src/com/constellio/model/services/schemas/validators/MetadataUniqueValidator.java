@@ -17,6 +17,7 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 public class MetadataUniqueValidator implements Validator<Record> {
 	public static final String NON_UNIQUE_METADATA = "nonUniqueMetadata";
 	public static final String METADATA_LABEL = "metadataLabel";
+	public static final String METADATA_CODE = "metadataCode";
 	public static final String VALUE = "value";
 	public static final String NON_UNIQUE_CALULATED_METADATA = "nonUniqueCalculatedMetadata";
 	public static final String METADATA_DEPENDENCY_LIST = "metadataDependecyList";
@@ -49,46 +51,54 @@ public class MetadataUniqueValidator implements Validator<Record> {
 		}
 		for (Metadata metadata : metadatas) {
 			if (metadata.isUniqueValue() && record.isModified(metadata)) {
-				Object value = record.get(metadata);
+				final MetadataValueType type = metadata.getType();
+				final boolean isText = type == MetadataValueType.STRING || type == MetadataValueType.TEXT;
 
-				MetadataValueType type = metadata.getType();
-				boolean isText = type == MetadataValueType.STRING || type == MetadataValueType.TEXT;
-				boolean isTextAndEmpty = false;
-				if (isText && value != null) {
-					isTextAndEmpty = value.toString().isEmpty();
-				}
+				record.getValues(metadata).forEach(value -> {
+					boolean isTextAndEmpty = false;
+					if (isText && value != null) {
+						isTextAndEmpty = value.toString().isEmpty();
+					}
 
-				if (value != null && !isTextAndEmpty) {
-					String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
-					LogicalSearchCondition condition = from(schemaTypes.getSchemaType(schemaTypeCode)).where(metadata)
-							.isEqualTo(value).andWhere(Schemas.IDENTIFIER).isNotEqual(record.getId());
+					if (value != null && !isTextAndEmpty) {
+						String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(metadata);
+						LogicalSearchCondition condition = from(schemaTypes.getSchemaType(schemaTypeCode))
+								.where(Schemas.IDENTIFIER).isNotEqual(record.getId());
 
-					if (searchServices.hasResults(new LogicalSearchQuery(condition).filteredByStatus(StatusFilter.ACTIVES))) {
-						if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
-							CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadata.getDataEntry();
-							List<? extends Dependency> dependencyList = calculatedDataEntry.getCalculator().getDependencies();
-
-							Map<String, String> dependencyLanguageMap = new HashMap<>();
-
-							for (Dependency dependency : dependencyList) {
-								Metadata metadataDependedOn = schemaTypes.getSchemaOf(record).get(dependency.getLocalMetadataCode());
-								for (Language language : metadataDependedOn.getLabels().keySet()) {
-									String currentValue = dependencyLanguageMap.get(language.getCode());
-									if (currentValue == null) {
-										currentValue = "";
-									} else {
-										currentValue += ", ";
-									}
-									String newValue = currentValue + metadataDependedOn.getLabel(language);
-									dependencyLanguageMap.put(language.getCode(), newValue);
-								}
-							}
-							addValidationErrors(validationErrors, dependencyLanguageMap, NON_UNIQUE_CALULATED_METADATA, value.toString());
+						if (metadata.isMultivalue()) {
+							condition = condition.andWhere(metadata).isContaining(Collections.singletonList(value));
 						} else {
-							addValidationErrors(validationErrors, value.toString(), NON_UNIQUE_METADATA, metadata);
+							condition = condition.andWhere(metadata).isEqualTo(value);
+						}
+
+
+						if (searchServices.hasResults(new LogicalSearchQuery(condition).filteredByStatus(StatusFilter.ACTIVES))) {
+							if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
+								CalculatedDataEntry calculatedDataEntry = (CalculatedDataEntry) metadata.getDataEntry();
+								List<? extends Dependency> dependencyList = calculatedDataEntry.getCalculator().getDependencies();
+
+								Map<String, String> dependencyLanguageMap = new HashMap<>();
+
+								for (Dependency dependency : dependencyList) {
+									Metadata metadataDependedOn = schemaTypes.getSchemaOf(record).get(dependency.getLocalMetadataCode());
+									for (Language language : metadataDependedOn.getLabels().keySet()) {
+										String currentValue = dependencyLanguageMap.get(language.getCode());
+										if (currentValue == null) {
+											currentValue = "";
+										} else {
+											currentValue += ", ";
+										}
+										String newValue = currentValue + metadataDependedOn.getLabel(language);
+										dependencyLanguageMap.put(language.getCode(), newValue);
+									}
+								}
+								addValidationErrors(validationErrors, dependencyLanguageMap, NON_UNIQUE_CALULATED_METADATA, value.toString());
+							} else {
+								addValidationErrors(validationErrors, value.toString(), NON_UNIQUE_METADATA, metadata);
+							}
 						}
 					}
-				}
+				});
 			}
 		}
 	}

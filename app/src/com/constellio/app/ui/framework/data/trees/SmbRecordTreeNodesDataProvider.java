@@ -89,7 +89,7 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
 
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
 
-		logicalSearchQuery.filteredWithUser(getCurrentUser(appLayerFactory.getModelLayerFactory()));
+		logicalSearchQuery.filteredWithUserRead(getCurrentUser(appLayerFactory.getModelLayerFactory()));
 		logicalSearchQuery.setStartRow(start);
 		logicalSearchQuery.setNumberOfRows(maxSize);
 		logicalSearchQuery.sortDesc(Schemas.SCHEMA).sortAsc(TITLE);
@@ -119,7 +119,7 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
 		query.setReturnedMetadatas(returnedMetadatasForRecordsIn(collection,
 				appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)));
 		query.sortAsc(TITLE);
-		query.filteredWithUser(getCurrentUser(appLayerFactory.getModelLayerFactory()));
+		query.filteredWithUserRead(getCurrentUser(appLayerFactory.getModelLayerFactory()));
 
 		SPEQueryResponse queryResponse = searchServices.query(query);
 		List<TaxonomySearchRecord> taxonomySearchRecords = new ArrayList<>();

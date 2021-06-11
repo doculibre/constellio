@@ -59,6 +59,16 @@ public class Borrowing implements ModifiableStructure {
 		return borrowerUsername;
 	}
 
+	public void setBorrowerId(String id) {
+		dirty = true;
+		this.borrowerId = id;
+	}
+
+	public void setReturnerId(String id) {
+		dirty = true;
+		this.returnerId = id;
+	}
+
 	public void setBorrower(User user) {
 		dirty = true;
 		if (user != null) {

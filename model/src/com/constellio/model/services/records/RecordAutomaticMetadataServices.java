@@ -5,6 +5,9 @@ import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.Stats.CallStatCompiler;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.data.utils.LangUtils;
+import com.constellio.data.utils.LangUtils.StringReplacer;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
@@ -28,6 +31,7 @@ import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -36,6 +40,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadata;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.AdvancedSequenceDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
@@ -55,6 +60,7 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServicesImpl.RecordsPreparationContext;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -87,6 +93,9 @@ import java.util.stream.Stream;
 
 import static com.constellio.data.utils.systemLogger.SystemLogger.logImportantWarningOnce;
 import static com.constellio.model.entities.enums.GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.ONLY_MAIN_STRUCTURE_VALUE;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -403,7 +412,7 @@ public class RecordAutomaticMetadataServices {
 		if (metadataWithCalculatedDataEntry.isMultiLingual()) {
 			for (Locale locale : types.getCollectionInfo().getCollectionLocales()) {
 				calculateValueInRecord(context, record, metadataWithCalculatedDataEntry, recordProvider, types, transaction,
-						locale, LocalisedRecordMetadataRetrieval.PREFERRING);
+						locale, PREFERRING);
 			}
 
 		} else {
@@ -429,7 +438,7 @@ public class RecordAutomaticMetadataServices {
 			boolean typeInPrincipalTaxonomy = taxonomiesManager.isTypeInPrincipalTaxonomy(schemaType);
 			modelLayerLogger.logCalculatedValue(record, calculator, values);
 			calculatedValue = calculator.calculate(new CalculatorParameters(values, record.getId(),
-					record.<String>get(Schemas.LEGACY_ID), schemaType, record.getCollection(), typeInPrincipalTaxonomy, metadataWithCalculatedDataEntry));
+					record.<String>get(LEGACY_ID), schemaType, record.getCollection(), typeInPrincipalTaxonomy, metadataWithCalculatedDataEntry));
 		} else {
 			calculatedValue = calculator.getDefaultValue();
 		}
@@ -546,7 +555,12 @@ public class RecordAutomaticMetadataServices {
 						availableMetadatasWithValue.add(metadata);
 					}
 				} else {
-					Object metadataValue = record.get(metadata, locale, mode);
+					Object metadataValue;
+					if (metadata.isSeparatedStructure()) {
+						metadataValue = record.get(metadata, locale, mode, ONLY_MAIN_STRUCTURE_VALUE);
+					} else {
+						metadataValue = record.get(metadata, locale, mode);
+					}
 					//dynamicDependencyValues.put(metadata.getLocalCode(), metadataValue);
 					availableMetadatasValues.add(metadataValue);
 					if (metadataValue != null) {
@@ -588,7 +602,7 @@ public class RecordAutomaticMetadataServices {
 		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
 		RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection());
 		if (type.hasSecurity() && recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)
-			&& recordsCache.isConfigured(Authorization.SCHEMA_TYPE)) {
+			&& recordsCache.isConfigured(RecordAuthorization.SCHEMA_TYPE)) {
 
 			RolesManager rolesManager = modelLayerFactory.getRolesManager();
 			Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
@@ -737,9 +751,9 @@ public class RecordAutomaticMetadataServices {
 		}
 
 		for (Record record : searchServices
-				.getAllRecordsInUnmodifiableState(types.getSchemaType(Authorization.SCHEMA_TYPE))) {
+				.getAllRecordsInUnmodifiableState(types.getSchemaType(RecordAuthorization.SCHEMA_TYPE))) {
 			if (record != null) {
-				authorizationDetails.add(Authorization.wrapNullable(record, types));
+				authorizationDetails.add(RecordAuthorization.wrapNullable(record, types));
 			} else {
 				LOGGER.warn("Null record returned while getting all users");
 			}
@@ -1239,4 +1253,55 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
+
+	public String calculateSequenceTableId(Record record, Metadata metadata, RecordsPreparationContext ctx) {
+		AdvancedSequenceDataEntry dataEntry = (AdvancedSequenceDataEntry) metadata.getDataEntry();
+		CalculatorParameters parameters = buildCalculatorParametersForAdvancedSequence(record, metadata, ctx);
+		String seqName = dataEntry.getCalculator().computeSequenceTableId(parameters);
+
+		return seqName;
+	}
+
+	private static StringReplacer calculateSequenceTablePrefixIdReplacer1 = LangUtils.replacingLiteral(":", "");
+	private static StringReplacer calculateSequenceTablePrefixIdReplacer2 = LangUtils.replacingLiteral(" ", "_");
+
+	public String calculateSequenceTablePrefixId(Metadata metadata) {
+		AdvancedSequenceDataEntry dataEntry = (AdvancedSequenceDataEntry) metadata.getDataEntry();
+		String prefix = dataEntry.getCalculator().getSequenceGroupName(metadata);
+		if (prefix != null) {
+			prefix = calculateSequenceTablePrefixIdReplacer1.replaceOn(prefix);
+			prefix = calculateSequenceTablePrefixIdReplacer2.replaceOn(prefix);
+		}
+
+		return prefix;
+	}
+
+	private CalculatorParameters buildCalculatorParametersForAdvancedSequence(Record record, Metadata metadata,
+																			  RecordsPreparationContext ctx) {
+		AdvancedSequenceDataEntry dataEntry = (AdvancedSequenceDataEntry) metadata.getDataEntry();
+
+		Locale locale = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage()).getLocale();
+
+		Map<Dependency, Object> values = new HashMap<>();
+		for (Dependency dependency : dataEntry.getCalculator().getDependencies()) {
+			if (dependency instanceof LocalDependency<?>) {
+				addValueForLocalDependency((RecordImpl) record, values, dependency, locale, PREFERRING);
+
+			} else if (dependency instanceof ReferenceDependency<?>) {
+				addValueForReferenceDependency((RecordImpl) record, ctx.recordProvider, values, dependency,
+						ctx.transaction.getRecordUpdateOptions(), locale, PREFERRING);
+
+			}
+		}
+
+		return new CalculatorParameters(values, record.getId(), record.get(LEGACY_ID),
+				ctx.types.getSchema(record.getSchemaCode()).getSchemaType(), record.getCollection(), false, metadata);
+	}
+
+	public String calculateSequenceDisplayValue(Record record, Metadata metadata, RecordsPreparationContext ctx,
+												int sequenceValue) {
+		AdvancedSequenceDataEntry dataEntry = (AdvancedSequenceDataEntry) metadata.getDataEntry();
+		CalculatorParameters parameters = buildCalculatorParametersForAdvancedSequence(record, metadata, ctx);
+		return dataEntry.getCalculator().computeSequenceTableValue(parameters, sequenceValue);
+	}
 }

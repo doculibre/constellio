@@ -10,8 +10,8 @@ import com.constellio.sdk.tests.setups.SchemaShortcuts;
 public class RecordUtilsAcceptanceTestSchemasSetup extends TestsSchemasSetup {
 
 	public RecordUtilsAcceptanceTestSchemasSetup withFolderAndDocumentSchemas() {
-		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("folder");
-		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("document");
+		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaTypeWithSecurity("folder");
+		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaTypeWithSecurity("document");
 
 		setupFolderType(folderType);
 		setupDocumentType(documentType, folderType);

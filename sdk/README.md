@@ -1,5 +1,5 @@
-Constellio 5 SDK
+Constellio SDK
 ===============
 
-Test pour le developpement de Constellio 5
+Test pour le developpement de Constellio
 

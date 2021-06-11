@@ -26,7 +26,7 @@ public class SchemaViewAcceptTestSetup extends SchemasSetup {
 
 	@Override
 	public void setUp() {
-		MetadataSchemaTypeBuilder zeSchemaType = typesBuilder.createNewSchemaType(ZE_SCHEMA);
+		MetadataSchemaTypeBuilder zeSchemaType = typesBuilder.createNewSchemaTypeWithSecurity(ZE_SCHEMA);
 	}
 
 	public class ZeSchema implements SchemaShortcuts {

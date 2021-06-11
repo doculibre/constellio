@@ -1,10 +1,21 @@
 package com.constellio.app.ui.pages.management.ldap;
 
-import com.constellio.app.ui.framework.buttons.AddButton;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.CollectionsSelectionPanel;
 import com.constellio.app.ui.framework.components.ScheduleComponent;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextArea;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.RegexFilter;
@@ -14,7 +25,6 @@ import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchPro
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -25,18 +35,9 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TextArea;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPConfigManagementView {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigBaseView.class);
@@ -83,12 +84,23 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 	}
 
 	protected Field createStringField(String value, boolean required) {
-		TextField textField = new TextField();
+		BaseTextField textField = new BaseTextField();
+		textField.setWidth("100%");
 		textField.setRequired(required);
 		if (value != null) {
 			textField.setValue(value);
 		}
 		return textField;
+	}
+
+	protected Field createTextArea(String value, boolean required) {
+		BaseTextArea textArea = new BaseTextArea();
+		textArea.setWidth("100%");
+		textArea.setRequired(required);
+		if (value != null) {
+			textArea.setValue(value);
+		}
+		return textArea;
 	}
 
 	protected Field createEnumField(Enum enumeration, Enum[] constants) {
@@ -203,8 +215,9 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 		hLayout.setSpacing(true);
 		hLayout.addComponent(saveButton);
 		buttonsPanel.setContent(hLayout);
-		layout.addComponent(buttonsPanel);
-		layout.setComponentAlignment(buttonsPanel, Alignment.BOTTOM_RIGHT);
+//		layout.addComponent(buttonsPanel);
+//		layout.setComponentAlignment(buttonsPanel, Alignment.BOTTOM_RIGHT);
+		ConstellioUI.getCurrent().setStaticFooterContent(buttonsPanel);
 	}
 
 	protected void buildActionCheckbox() {

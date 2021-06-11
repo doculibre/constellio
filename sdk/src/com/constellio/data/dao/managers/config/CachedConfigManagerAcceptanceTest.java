@@ -1,6 +1,9 @@
 package com.constellio.data.dao.managers.config;
 
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.data.extensions.extensions.configManager.AddUpdateConfigParams;
+import com.constellio.data.extensions.extensions.configManager.ConfigManagerExtension;
+import com.constellio.data.extensions.extensions.configManager.ReadConfigParams;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -10,6 +13,7 @@ import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,6 +57,8 @@ public class CachedConfigManagerAcceptanceTest extends ConstellioTest {
 		assertThat(cachedValueAttributeOf("file.xml")).isNull();
 	}
 
+
+
 	@Test
 	public void givenCachedPropertiesConfigWhenUpdateFailedCauseByOptimisticLockingThenInvalidatedBeforeServiceReceiveException()
 			throws Exception {
@@ -80,6 +86,86 @@ public class CachedConfigManagerAcceptanceTest extends ConstellioTest {
 		cachedConfigManager.add("file.properties", newPropertiesWithValue("v1"));
 		assertThat(cachedConfigManager.exist("file.properties")).isTrue();
 
+	}
+
+
+	@Test
+	public void givenNullCachedPropertiesConfigWhenRetrievingItMultipleTimeThenOnlyRetrievedOnce()
+			throws Exception {
+
+		AtomicInteger readCounter = new AtomicInteger();
+		AtomicInteger writeCounter = new AtomicInteger();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().configManagerExtensions.add(new ConfigManagerExtension() {
+			@Override
+			public void readConfigs(ReadConfigParams params) {
+				readCounter.incrementAndGet();
+			}
+
+			@Override
+			public void addUpdateConfig(AddUpdateConfigParams params) {
+				writeCounter.incrementAndGet();
+			}
+		});
+
+		assertThat(cachedConfigManager.getProperties("file2.properties")).isNull();
+		assertThat(readCounter.get()).isEqualTo(1);
+		assertThat(writeCounter.get()).isEqualTo(0);
+
+		cachedConfigManager.keepInCache("file2.properties");
+		assertThat(cachedConfigManager.getProperties("file2.properties")).isNull();
+		assertThat(readCounter.get()).isEqualTo(2); //Was not cached before
+		assertThat(writeCounter.get()).isEqualTo(0);
+
+		assertThat(cachedConfigManager.getProperties("file2.properties")).isNull();
+		assertThat(readCounter.get()).isEqualTo(2);
+		assertThat(writeCounter.get()).isEqualTo(0);
+
+	}
+
+	@Test
+	public void givenNullCachedXMLConfigWhenRetrievingItMultipleTimeThenOnlyRetrievedOnce()
+			throws Exception {
+
+		AtomicInteger readCounter = new AtomicInteger();
+		AtomicInteger writeCounter = new AtomicInteger();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().configManagerExtensions.add(new ConfigManagerExtension() {
+			@Override
+			public void readConfigs(ReadConfigParams params) {
+				readCounter.incrementAndGet();
+			}
+
+			@Override
+			public void addUpdateConfig(AddUpdateConfigParams params) {
+				writeCounter.incrementAndGet();
+			}
+		});
+
+		assertThat(cachedConfigManager.getXML("file2.xml")).isNull();
+		assertThat(readCounter.get()).isEqualTo(1);
+		assertThat(writeCounter.get()).isEqualTo(0);
+
+		cachedConfigManager.keepInCache("file2.xml");
+		assertThat(cachedConfigManager.getXML("file2.xml")).isNull();
+		assertThat(readCounter.get()).isEqualTo(2); //Was not cached before
+		assertThat(writeCounter.get()).isEqualTo(0);
+
+		assertThat(cachedConfigManager.getXML("file2.xml")).isNull();
+		assertThat(readCounter.get()).isEqualTo(2);
+		assertThat(writeCounter.get()).isEqualTo(0);
+
+	}
+
+	@Test
+	public void whenKeptInCacheDeleteRemoveAlsoFromCache() {
+		String somethingToKeepInCache = "Something.properties";
+		cachedConfigManager.keepInCache(somethingToKeepInCache);
+		configManager.createPropertiesDocumentIfInexistent(somethingToKeepInCache, ConfigManager.EMPTY_PROPERTY_ALTERATION);
+		assertThat(cachedConfigManager.getProperties(somethingToKeepInCache)).isNotNull();
+		assertThat(cachedConfigManager.exist(somethingToKeepInCache)).isTrue();
+
+		cachedConfigManager.delete(somethingToKeepInCache);
+		assertThat(cachedConfigManager.getProperties(somethingToKeepInCache)).isNull();
+		assertThat(cachedConfigManager.exist(somethingToKeepInCache)).isFalse();
 	}
 
 	@NotNull

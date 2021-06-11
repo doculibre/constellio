@@ -224,6 +224,12 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 				updateStaticFooterState();
 			}
 		});
+		
+		if (ConstellioUI.getCurrent().isNested()) {
+			header.setVisible(false);
+			mainMenu.setVisible(false);
+			staticFooterLayout.setVisible(false);
+		}
 	}
 
 	public Component getStaticFooterContent() {
@@ -285,11 +291,13 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	}
 
 	private void updateStaticFooterState() {
-		boolean staticFooterEmpty = isStaticFooterEmpty();
-		if (!staticFooterLayout.isVisible() && !staticFooterEmpty) {
-			staticFooterLayout.setVisible(true);
-		} else if (staticFooterLayout.isVisible() && staticFooterEmpty) {
-			staticFooterLayout.setVisible(false);
+		if (!ConstellioUI.getCurrent().isNested()) {
+			boolean staticFooterEmpty = isStaticFooterEmpty();
+			if (!staticFooterLayout.isVisible() && !staticFooterEmpty) {
+				staticFooterLayout.setVisible(true);
+			} else if (staticFooterLayout.isVisible() && staticFooterEmpty) {
+				staticFooterLayout.setVisible(false);
+			}
 		}
 	}
 
@@ -412,4 +420,8 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		return mainMenu;
 	}
 
+	@Override
+	public void scrollToTop() {
+		JavaScript.getCurrent().execute("setTimeout(function() { forceScrollToTop(); }, 100)");
+	}
 }

@@ -2,12 +2,14 @@ package com.constellio.app.ui.framework.buttons.report;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.services.reports.printable.PrintableExtension;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.utils.ReportGeneratorUtils;
@@ -137,7 +139,7 @@ public class ReportGeneratorButton extends WindowButton {
 	}
 
 	private void setupCopieFields() {
-		copiesField = new TextField($("LabelsButton.numberOfCopies"));
+		copiesField = new BaseTextField($("LabelsButton.numberOfCopies"));
 		copiesField.setRequired(true);
 		copiesField.setConverter(Integer.class);
 	}
@@ -157,7 +159,7 @@ public class ReportGeneratorButton extends WindowButton {
 			getWindow().setContent(
 					ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getTypeCode(),
 							(PrintableReportTemplate) parent.printableItemsFields.getValue(), 1, getIdsFromRecordVO(), null,
-							view.getSessionContext().getCurrentLocale(), view.getSessionContext().getCurrentUser()));
+							view.getSessionContext().getCurrentLocale(), view.getSessionContext().getCurrentUser(), PrintableExtension.PDF));
 		}
 
 		@Override

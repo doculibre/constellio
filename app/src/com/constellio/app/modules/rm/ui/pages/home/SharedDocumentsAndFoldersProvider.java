@@ -53,7 +53,8 @@ public class SharedDocumentsAndFoldersProvider {
 						List<Authorization> auth = getAuthorizationsServices().getAllUserSharedRecords(user);
 						List<String> targetIds = auth.stream().map(x -> x.getTarget()).collect(Collectors.toList());
 
-						return new LogicalSearchQuery(from(folder).where(Schemas.IDENTIFIER).isIn(targetIds));
+						return new LogicalSearchQuery(from(folder).where(Schemas.IDENTIFIER).isIn(targetIds))
+								.filteredWithUserRead(user);
 					}
 				}
 		);
@@ -65,7 +66,8 @@ public class SharedDocumentsAndFoldersProvider {
 						List<Authorization> auth = getAuthorizationsServices().getAllUserSharedRecords(user);
 						List<String> targetIds = auth.stream().map(x -> x.getTarget()).collect(Collectors.toList());
 
-						return new LogicalSearchQuery(from(document).where(Schemas.IDENTIFIER).isIn(targetIds));
+						return new LogicalSearchQuery(from(document).where(Schemas.IDENTIFIER).isIn(targetIds))
+								.filteredWithUserRead(user);
 					}
 				}
 		);
@@ -77,7 +79,8 @@ public class SharedDocumentsAndFoldersProvider {
 						List<Authorization> auth = getAuthorizationsServices().getAllAuthorizationUserShared(user);
 						List<String> targetIds = auth.stream().map(x -> x.getTarget()).collect(Collectors.toList());
 
-						return new LogicalSearchQuery(from(folder).where(Schemas.IDENTIFIER).isIn(targetIds));
+						return new LogicalSearchQuery(from(folder).where(Schemas.IDENTIFIER).isIn(targetIds))
+								.filteredWithUserRead(user);
 					}
 				}
 		);
@@ -89,7 +92,8 @@ public class SharedDocumentsAndFoldersProvider {
 						List<Authorization> auth = getAuthorizationsServices().getAllAuthorizationUserShared(user);
 						List<String> targetIds = auth.stream().map(x -> x.getTarget()).collect(Collectors.toList());
 
-						return new LogicalSearchQuery(from(document).where(Schemas.IDENTIFIER).isIn(targetIds));
+						return new LogicalSearchQuery(from(document).where(Schemas.IDENTIFIER).isIn(targetIds))
+								.filteredWithUserRead(user);
 					}
 				}
 		);

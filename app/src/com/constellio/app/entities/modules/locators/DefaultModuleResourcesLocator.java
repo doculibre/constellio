@@ -1,5 +1,6 @@
 package com.constellio.app.entities.modules.locators;
 
+import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 
 import java.io.File;
@@ -33,29 +34,26 @@ public class DefaultModuleResourcesLocator implements ModuleResourcesLocator {
 	}
 
 	@Override
-	public Utf8ResourceBundles getModuleMigrationI18nBundle(String module, String version) {
-		String versionWithUnderscores = version.replace(".", "_");
-		File folder = getModuleMigrationResourcesFolder(module, version);
+	public Utf8ResourceBundles getModuleMigrationI18nBundle(String module, MigrationScript script) {
+		String resources = script.getResourcesDirectoryName();
+		File folder = getModuleMigrationResourcesFolder(module, script);
 
 		if (folder == null) {
 			return null;
 
-		} else if (module == null) {
-			return getResourceBundle(folder, "core_" + versionWithUnderscores);
-
 		} else {
-			return getResourceBundle(folder, module + "_" + versionWithUnderscores);
+			return getResourceBundle(folder, script.getI18nBundleName(module));
 		}
 
 	}
 
 	@Override
-	public File getModuleMigrationResourcesFolder(String module, String version) {
-		String versionWithUnderscores = version.replace(".", "_");
+	public File getModuleMigrationResourcesFolder(String module, MigrationScript script) {
+		String resources = script.getResourcesDirectoryName();
 
 		File pluginResourcesFolder = getPluginResourcesFolder(module);
 		if (pluginResourcesFolder != null) {
-			File migrationFolder = new File(pluginResourcesFolder, "migrations" + File.separator + versionWithUnderscores);
+			File migrationFolder = new File(pluginResourcesFolder, "migrations" + File.separator + resources);
 			return migrationFolder.exists() ? migrationFolder : null;
 		}
 
@@ -66,7 +64,7 @@ public class DefaultModuleResourcesLocator implements ModuleResourcesLocator {
 			moduleMigrations = new File(i18nFolder, "migrations" + File.separator + module);
 		}
 
-		return new File(moduleMigrations, versionWithUnderscores);
+		return new File(moduleMigrations, resources);
 	}
 
 	@Override
@@ -103,8 +101,8 @@ public class DefaultModuleResourcesLocator implements ModuleResourcesLocator {
 	}
 
 	@Override
-	public File getModuleMigrationResource(String module, String version, String resource) {
-		return new File(getModuleMigrationResourcesFolder(module, version), removeBadSeparators(resource));
+	public File getModuleMigrationResource(String module, MigrationScript script, String resource) {
+		return new File(getModuleMigrationResourcesFolder(module, script), removeBadSeparators(resource));
 	}
 
 	private File getPluginResourcesFolder(String module) {
@@ -136,5 +134,16 @@ public class DefaultModuleResourcesLocator implements ModuleResourcesLocator {
 		} else {
 			return null;
 		}
+	}
+
+	@Override
+	public File getI18nBundleFile(String module, MigrationScript script) {
+
+		File folder = getModuleMigrationResourcesFolder(module, script);
+
+		String bundleName = script.getI18nBundleName(module);
+		return new File(folder, bundleName + ".properties");
+
+
 	}
 }

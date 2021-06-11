@@ -84,6 +84,24 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_40;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_417;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_427;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_428;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_1_89;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_11;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_2_7;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_14;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_22;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_0;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_20;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2_0_1;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2_11;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2_12;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2_13;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2_20;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_3_0;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_3_1;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
@@ -184,14 +202,30 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		scripts.add(new CoreMigrationTo_9_0_1_1());
 		scripts.add(new CoreMigrationTo_9_0_1_2());
 		scripts.add(new CoreMigrationTo_9_0_1_3());
-		//scripts.add(new CoreMigrationTo_9_0_1_4());
-		//scripts.add(new CoreMigrationTo_8_3_0_1());
-
 		scripts.add(new CoreMigrationTo_9_0_1_4());
 		scripts.add(new CoreMigrationTo_9_0_1_40());
 		scripts.add(new CoreMigrationTo_9_0_1_417());
 		scripts.add(new CoreMigrationTo_9_0_1_427());
 		scripts.add(new CoreMigrationTo_9_0_1_428());
+		scripts.add(new CoreMigrationTo_9_0_2_7());
+		scripts.add(new CoreMigrationTo_9_0_2_11());
+		scripts.add(new CoreMigrationTo_9_0_3_14());
+		scripts.add(new CoreMigrationTo_9_0_3_22());
+
+		scripts.add(new CoreMigrationTo_9_0_42_1());
+		scripts.add(new CoreMigrationTo_9_0_1_89());
+		scripts.add(new CoreMigrationTo_9_0_42_2());
+		scripts.add(new CoreMigrationTo_9_0_3());
+		scripts.add(new CoreMigrationTo_9_1_0());
+		scripts.add(new CoreMigrationTo_9_1_20());
+		scripts.add(new CoreMigrationTo_9_2());
+		scripts.add(new CoreMigrationTo_9_2_0_1());
+		scripts.add(new CoreMigrationTo_9_2_11());
+		scripts.add(new CoreMigrationTo_9_2_12());
+		scripts.add(new CoreMigrationTo_9_2_13());
+		scripts.add(new CoreMigrationTo_9_3_0());
+		scripts.add(new CoreMigrationTo_9_3_1());
+		scripts.add(new CoreMigrationTo_9_2_20());
 
 		return scripts;
 	}
@@ -201,7 +235,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 	@Override
 	public String getVersion() {
-		return getVersions().get(getVersions().size() - 1).getVersion();
+		return "combo";
 	}
 
 	@Override

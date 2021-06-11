@@ -44,7 +44,7 @@ public class ValueListItemSchemaTypeBuilder {
 			}
 		}
 
-		MetadataSchemaTypeBuilder typeBuilder = metadataSchemaTypesBuilder.createNewSchemaType(code);
+		MetadataSchemaTypeBuilder typeBuilder = metadataSchemaTypesBuilder.createNewSchemaTypeWithSecurity(code);
 		typeBuilder.setLabels(labels);
 		typeBuilder.setSecurity(false);
 

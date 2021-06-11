@@ -4,8 +4,8 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.StringReplacer;
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.services.search.query.logical.criteria.IsContainingTextCriterion;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import org.joda.time.LocalDate;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-public class CopyRetentionRuleFactory implements StructureFactory {
+public class CopyRetentionRuleFactory implements CombinedStructureFactory {
 
 	private static StringReplacer replacer = LangUtils.replacingLiteral("::", ":~null~:");
 	private static StringReplacer replacerEncodingColon = LangUtils.replacingLiteral(":", "~~~");

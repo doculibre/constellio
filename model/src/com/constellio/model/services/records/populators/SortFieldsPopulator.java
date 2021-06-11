@@ -5,7 +5,9 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
 import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -72,10 +74,16 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+
 		} else {
 			Metadata sortMetadata = metadata.getSortMetadata();
 			if (!locale.equals(types.getCollectionInfo().getMainSystemLocale())) {
 				sortMetadata = sortMetadata.getSecondaryLanguageField(locale.getLanguage());
+			}
+
+			if (metadata.isSeparatedStructure() && value instanceof ModifiableStructure) {
+				SeparatedStructureFactory factory = (SeparatedStructureFactory) metadata.getStructureFactory();
+				value = factory.toFields((ModifiableStructure) value).get(factory.getMainValueFieldName());
 			}
 
 			populateNormalizedValue(metadata, sortMetadata, value, fields);

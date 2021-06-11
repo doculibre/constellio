@@ -15,6 +15,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -69,7 +70,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
@@ -82,6 +82,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 
 public class RecordDeleteServices {
 
@@ -329,15 +330,15 @@ public class RecordDeleteServices {
 							   new ArrayList<>(Collections.singletonList(record));
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
-		if (schemas.getTypes().hasType(Authorization.SCHEMA_TYPE)) {
+		if (schemas.getTypes().hasType(RecordAuthorization.SCHEMA_TYPE)) {
 			for (Record recordInHierarchy : records) {
-				for (Authorization details : schemas.searchSolrAuthorizationDetailss(
+				for (Authorization details : schemas.searchAuthorizations(
 						where(schemas.authorizationDetails.target()).isEqualTo(recordInHierarchy.getId()))) {
 
 					authorizationsServices.execute(authorizationDeleteRequest(details));
 				}
 			}
-			for (Authorization details : schemas.searchSolrAuthorizationDetailss(
+			for (Authorization details : schemas.searchAuthorizations(
 					where(schemas.authorizationDetails.target()).isEqualTo(record.getId()))) {
 				authorizationsServices.execute(authorizationDeleteRequest(details));
 			}
@@ -425,7 +426,10 @@ public class RecordDeleteServices {
 			}
 
 			if (!records.isEmpty()) {
-				deleteContents(records);
+				List<Record> fullRecordsWithPossibleContents = records.stream()
+						.filter(r->!metadataSchemasManager.getSchemaOf(r).getContentMetadatasForPopulate().isEmpty())
+						.map(r->recordServices.get(r.getId())).collect(toList());;
+				deleteContents(fullRecordsWithPossibleContents);
 			}
 			List<RecordDTO> recordsDTO = newRecordUtils().toRecordDTOList(records);
 
@@ -514,9 +518,11 @@ public class RecordDeleteServices {
 	}
 
 	void deleteContents(List<Record> records) {
-		String collection = records.get(0).getCollection();
-		for (String potentiallyDeletableHash : newContentModificationsBuilder(collection).buildForDeletedRecords(records)) {
-			contentManager.silentlyMarkForDeletionIfNotReferenced(potentiallyDeletableHash);
+		if (!records.isEmpty()) {
+			String collection = records.get(0).getCollection();
+			for (String potentiallyDeletableHash : newContentModificationsBuilder(collection).buildForDeletedRecords(records)) {
+				contentManager.silentlyMarkForDeletionIfNotReferenced(potentiallyDeletableHash);
+			}
 		}
 	}
 
@@ -635,6 +641,7 @@ public class RecordDeleteServices {
 		if (!options.isCheckForValidationErrorEnable()) {
 			transaction.getRecordUpdateOptions().setValidationsEnabled(false);
 		}
+		transaction.getRecordUpdateOptions().setSkipMaskedMetadataValidations(true);
 
 		List<Record> hierarchyRecords = couldHaveHierarchyRecords(record) ?
 										new ArrayList<>(getAllRecordsInHierarchyForLogicalDeletion(record, options)) :
@@ -731,7 +738,7 @@ public class RecordDeleteServices {
 			return searchServices.search(query);
 		} else {
 			return recordHierarchyServices.getAllRecordsInHierarchy(record, true).stream()
-					.filter(recordHierarchy -> !recordHierarchy.isLogicallyDeleted()).collect(Collectors.toList());
+					.filter(recordHierarchy -> !recordHierarchy.isLogicallyDeleted()).collect(toList());
 		}
 	}
 
@@ -761,7 +768,7 @@ public class RecordDeleteServices {
 	List<Record> getRecordsInTypeWithReferenceTo(User user, List<String> recordsWithReferences, MetadataSchemaType type,
 												 List<Metadata> references) {
 
-		LogicalSearchQuery query = new LogicalSearchQuery().filteredWithUser(user);
+		LogicalSearchQuery query = new LogicalSearchQuery().filteredWithUserRead(user);
 		query.setCondition(from(type).whereAny(references).isIn(recordsWithReferences));
 		return searchServices.search(query);
 	}
@@ -778,19 +785,29 @@ public class RecordDeleteServices {
 	}
 
 	private boolean hasRecordInHierarchyReferencedOutsideOfHierarchy(Record record, List<Record> recordsHierarchy) {
-		if (metadataSchemasManager.getSchemaTypeOf(record).getCacheType().isSummaryCache()) {
-			int referencesTotal = modelLayerFactory.getRecordUsageCounterHookRetriever(record.getCollection())
-					.countRecordsReferencing(record);
-
-			int referencesInHierarchy = 0;
-			for (Record recordHierarchy : recordsHierarchy) {
-				MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(recordHierarchy);
-				if (recordHierarchy.getParentId(schema) != null && recordHierarchy.getParentId(schema).equals(record.getId())) {
-					referencesInHierarchy++;
-				}
+		if (metadataSchemasManager.getSchemaTypeOf(record).getCacheType().isSummaryCache() &&
+			recordsHierarchy.stream().allMatch(r -> metadataSchemasManager.getSchemaTypeOf(r).getCacheType().isSummaryCache())) {
+			List<String> recordsHierarchyIds = new RecordUtils().toIdList(recordsHierarchy);
+			if (!recordsHierarchyIds.contains(record.getId())) {
+				recordsHierarchy.add(record);
 			}
 
-			return referencesTotal > referencesInHierarchy;
+			for (Record currentRecord : recordsHierarchy) {
+				int referencesTotal = modelLayerFactory.getRecordUsageCounterHookRetriever(record.getCollection())
+						.countRecordsReferencing(currentRecord);
+				int referencesInHierarchy = 0;
+				for (Record currentRecordHierarchy : loadRecordsHierarchyOf(currentRecord)) {
+					MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(currentRecordHierarchy);
+					if (currentRecordHierarchy.getParentId(schema) != null && currentRecordHierarchy.getParentId(schema).equals(currentRecord.getId())) {
+						referencesInHierarchy++;
+					}
+				}
+
+				if (referencesTotal > referencesInHierarchy) {
+					return true;
+				}
+			}
+			return false;
 		} else {
 			return !getRecordsInHierarchyWithDependency(record, recordsHierarchy).isEmpty();
 		}

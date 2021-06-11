@@ -38,6 +38,9 @@ public class DisplayPrintableReportPresenter extends SingleSchemaBasePresenter<D
 
 	protected String getRecordSchemaValue(RecordVO recordVO) {
 		MetadataSchemaType metadataSchemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchemaType(recordVO.<String>get(PrintableReport.RECORD_TYPE));
-		return metadataSchemaType.getSchema(recordVO.<String>get(PrintableReport.RECORD_SCHEMA)).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale()));
+		String recordSchema = recordVO.get(PrintableReport.RECORD_SCHEMA);
+		return recordSchema != null ?
+			   metadataSchemaType.getSchema(recordSchema).getLabel(Language.withLocale(view.getSessionContext().getCurrentLocale())) :
+			   null;
 	}
 }

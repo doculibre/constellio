@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.collection;
 
-import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -18,20 +13,15 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
@@ -57,24 +47,17 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 	private boolean active = true;
 	private Set<String> allRecordIds;
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
-	private User user;
 	private Map<String, String> paramsMap;
 
 	private UserToVOBuilder userVOBuilder;
 
-	private Map<String, String> params = null;
-
 	private transient ConstellioEIMConfigs eimConfigs;
-	private transient RMConfigs rmConfigs;
-	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
-	private transient BorrowingServices borrowingServices;
-	private transient MetadataSchemasManager metadataSchemasManager;
-	private transient RecordServices recordServices;
-	private transient ModelLayerCollectionExtensions extensions;
-	private transient RMModuleExtensions rmModuleExtensions;
 
 	private Set<String> selectedRecordIds = new HashSet<>();
-	SortOrder sortOrder = SortOrder.ASCENDING;
+	
+	private String searchFilter;
+	
+	private boolean viewAssembled = false;
 
 	public UserSecurityManagementPresenter(SecurityManagement view, RecordVO recordVO) {
 		super(view, User.DEFAULT_SCHEMA);
@@ -85,17 +68,8 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 	}
 
 	private void initTransientObjects() {
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
-		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
 		userVOBuilder = new UserToVOBuilder();
-		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		recordServices = modelLayerFactory.newRecordServices();
-		extensions = modelLayerFactory.getExtensions().forCollection(collection);
-		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
-		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
-
 	}
 
 	@Override
@@ -108,35 +82,12 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 	}
 
 	public void viewAssembled() {
-
-		view.setDataProvider(userDataProvider);
+		this.viewAssembled = true;
+		view.reloadContent();
 	}
 
 	public void forParams(String params) {
-
-		MetadataSchemaVO userSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
-		voBuilders.put(userSchemaVO.getCode(), userVOBuilder);
-		userDataProvider = new RecordVODataProvider(Arrays.asList(userSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
-			@Override
-			public LogicalSearchQuery getQuery() {
-				return getUsersQuery();
-			}
-
-			@Override
-			public boolean isSearchCache() {
-				return eimConfigs.isOnlySummaryMetadatasDisplayedInTables();
-			}
-		};
-		view.setDataProvider(userDataProvider);
-
-	}
-
-
-	void recordsDroppedOn(List<RecordVO> droppedRecordVOs, RecordVO targetFolderRecordVO) {
-
-		//TODO
-		//is it useful to drag and drop users?
+		refreshTable();
 	}
 
 	boolean isAllItemsSelected() {
@@ -151,8 +102,9 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 		return allItemsSelected || selectedRecordIds.contains(recordVO.getId());
 	}
 
-	public void setActive(boolean active) {
+	public void activeSelectionChanged(boolean active) {
 		this.active = active;
+		refreshTable();
 	}
 
 	public boolean isActive() {
@@ -207,9 +159,7 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 	}
 
 	private LogicalSearchQuery getUsersQuery() {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-
-		MetadataSchemaType userSchemaType = getUserSchema();
+		MetadataSchemaType userSchemaType = schemaType(User.SCHEMA_TYPE);
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 
@@ -223,12 +173,9 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 		}
 
 		query.setCondition(condition);
+		query.sortAsc(Schemas.TITLE);
 
 		return query;
-	}
-
-	private MetadataSchemaType getUserSchema() {
-		return schemaType(User.SCHEMA_TYPE);
 	}
 
 	protected String filterSolrOperators(String expression) {
@@ -242,20 +189,9 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 		return userSearchExpression;
 	}
 
-	public void clearSearch() {
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(User.DEFAULT_SCHEMA);
-
-		MetadataSchemaVO userSchemaVO = schemaVOBuilder.build(schemaType(schemaTypeCode).getDefaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
-		voBuilders.put(userSchemaVO.getCode(), userVOBuilder);
-		userDataProvider = new RecordVODataProvider(Arrays.asList(userSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
-			@Override
-			public LogicalSearchQuery getQuery() {
-				return getUsersQuery();
-			}
-		};
-		view.setDataProvider(userDataProvider);
-		view.reloadContent();
+	public void clearSearchRequested() {
+		this.searchFilter = null;
+		refreshTable();
 	}
 
 	public List<String> getAutocompleteSuggestions(String text) {
@@ -290,18 +226,28 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 		return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 	}
 
-	public void changeUserDataProvider(String value) {
+	public void searchRequested(String value) {
+		this.searchFilter = value;
+		refreshTable();
+	}
+	
+	private void refreshTable() {
 		MetadataSchemaVO usersSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
 		voBuilders.put(usersSchemaVO.getCode(), userVOBuilder);
 		userDataProvider = new RecordVODataProvider(Arrays.asList(usersSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			public LogicalSearchQuery getQuery() {
-				String userSearchExpression = filterSolrOperators(value);
-				if (!StringUtils.isBlank(value)) {
-					LogicalSearchQuery logicalSearchQuery;
-					logicalSearchQuery = getUsersQuery().setFreeTextQuery(userSearchExpression);
-					if (!"*".equals(value)) {
+				if (!StringUtils.isBlank(searchFilter)) {
+					String userSearchExpression = filterSolrOperators(searchFilter);
+					if (userSearchExpression.split(" ").length < 2) {
+						userSearchExpression = userSearchExpression + " OR " + userSearchExpression + "*";
+					}
+
+					LogicalSearchQuery logicalSearchQuery =
+							getUsersQuery().setFreeTextQuery(userSearchExpression).setPreferAnalyzedFields(true);
+
+					if (!"*".equals(userSearchExpression)) {
 						logicalSearchQuery.setHighlighting(true);
 					}
 					return logicalSearchQuery;
@@ -309,9 +255,16 @@ public class UserSecurityManagementPresenter extends SingleSchemaBasePresenter<S
 					return getUsersQuery();
 				}
 			}
+
+			@Override
+			public boolean isSearchCache() {
+				return eimConfigs.isOnlySummaryMetadatasDisplayedInTables();
+			}
 		};
 		view.setDataProvider(userDataProvider);
-		view.reloadContent();
+		if (viewAssembled) {
+			view.reloadContent();
+		}
 	}
 
 	public void setParamsMap(Map<String, String> paramsMap) {

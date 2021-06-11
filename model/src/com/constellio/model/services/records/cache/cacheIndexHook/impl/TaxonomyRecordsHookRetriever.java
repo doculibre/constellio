@@ -81,13 +81,19 @@ public class TaxonomyRecordsHookRetriever implements StatefulService {
 	private boolean hasAccessToSomethingClassifiedInConcept(User user, RecordId conceptId, boolean write,
 															boolean onlyVisible, SecurityModel securityModel) {
 		if (retriever.hasRecordsWith(principalAccessOnRecordInConcept(user.getWrappedRecordId(), conceptId, write, true))
-			|| (!onlyVisible && retriever.hasRecordsWith(principalAccessOnRecordInConcept(user.getWrappedRecordId(), conceptId, write, false)))) {
+			|| (!write && retriever.hasRecordsWith(principalAccessOnRecordInConcept(user.getWrappedRecordId(), conceptId, true, true)))
+			|| (!onlyVisible && retriever.hasRecordsWith(principalAccessOnRecordInConcept(user.getWrappedRecordId(), conceptId, write, false)))
+			|| (!onlyVisible && !write && retriever.hasRecordsWith(principalAccessOnRecordInConcept(user.getWrappedRecordId(), conceptId, true, false)))
+		) {
 			return true;
 		}
 
 		for (String groupId : securityModel.getGroupsGivingAccessToUser(user.getId())) {
 			if (retriever.hasRecordsWith(principalAccessOnRecordInConcept(toId(groupId), conceptId, write, true))
-				|| (!onlyVisible && retriever.hasRecordsWith(principalAccessOnRecordInConcept(toId(groupId), conceptId, write, false)))) {
+				|| (!write && retriever.hasRecordsWith(principalAccessOnRecordInConcept(toId(groupId), conceptId, true, true)))
+				|| (!onlyVisible && retriever.hasRecordsWith(principalAccessOnRecordInConcept(toId(groupId), conceptId, write, false)))
+				|| (!onlyVisible && !write && retriever.hasRecordsWith(principalAccessOnRecordInConcept(toId(groupId), conceptId, true, false)))
+			) {
 				return true;
 			}
 		}
@@ -109,7 +115,8 @@ public class TaxonomyRecordsHookRetriever implements StatefulService {
 
 		if (user.hasCollectionAccess(write ? WRITE : READ)) {
 			if (retriever.hasRecordsWith(attachedRecordInPrincipalConcept(principalConcept.getRecordId(), true))
-				|| (!onlyVisible && retriever.hasRecordsWith(attachedRecordInPrincipalConcept(principalConcept.getRecordId(), false)))) {
+				|| (!onlyVisible && retriever.hasRecordsWith(attachedRecordInPrincipalConcept(principalConcept.getRecordId(), false)))
+			) {
 				return true;
 			}
 		}

@@ -30,6 +30,9 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 	public static final String TEMP_FILE_PRIVACY_POLICY_VO = "ConfigManagementPresenter-Temp-file-privacy-policy-vo";
 	public static final String TEMP_FILE_PRIVACY_POLICY = "ConfigManagementPresenter-Temp-file-privacy-policy";
 
+	public static final String TEMP_FILE_MESSAGE_TO_USERS_VO = "ConfigManagementPresenter-Temp-file-message-to-users-vo";
+	public static final String TEMP_FILE_MESSAGE_TO_USERS = "ConfigManagementPresenter-Temp-file-message-to-users";
+
 	private SystemConfigurationGroupdataProvider dataProvider;
 	private SchemasRecordsServices schemasRecordsServices;
 	private HashingService hashingService;
@@ -62,6 +65,7 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 			view.showErrorMessage(buildErrorMessage(errors));
 		} else {
 			privacyPolicyUpdateCheck();
+			messageToUserUpdateCheck();
 
 			boolean reindexingRequired = false;
 			for (String groupCode : groupCodes) {
@@ -118,6 +122,44 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 
 			}
 
+		}
+	}
+
+	private void messageToUserUpdateCheck() {
+		SystemConfigurationVO showMessageToUserAtLoginSystemConfiguration = dataProvider.getSystemConfigurationGroup("others")
+				.getSystemConfigurationVO("showMessageToUserAtLogin");
+
+		StreamsServices.ByteArrayStreamFactory oldShowMessageToUserAtLoginSystemConfiguration = appLayerFactory.getModelLayerFactory()
+				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SHOW_MESSAGE_TO_USER_AT_LOGIN);
+
+		boolean showMessageToUsers = false;
+
+		if (showMessageToUserAtLoginSystemConfiguration != null && showMessageToUserAtLoginSystemConfiguration.isUpdated()) {
+			if (showMessageToUserAtLoginSystemConfiguration.getValue() != null && oldShowMessageToUserAtLoginSystemConfiguration != null) {
+				StreamFactory<InputStream> messageToUsersStreamFactory = (StreamFactory<InputStream>) showMessageToUserAtLoginSystemConfiguration
+						.getValue();
+				InputStream messageToUsersInputStream;
+				try {
+					messageToUsersInputStream = messageToUsersStreamFactory.create(TEMP_FILE_MESSAGE_TO_USERS_VO);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+				try {
+					InputStream oldMessageToUsersInputStream = oldShowMessageToUserAtLoginSystemConfiguration.create(TEMP_FILE_MESSAGE_TO_USERS);
+					showMessageToUsers = !hashingService.getHashFromStream(messageToUsersInputStream)
+							.equals(hashingService.getHashFromStream(oldMessageToUsersInputStream));
+				} catch (IOException | HashingServiceException e) {
+					throw new RuntimeException(e);
+				}
+			} else {
+				if (showMessageToUserAtLoginSystemConfiguration.getValue() != null) {
+					showMessageToUsers = true;
+				}
+			}
+			if (showMessageToUsers) {
+				modelLayerFactory.newUserServices().showMessageToUsersAtLogin();
+
+			}
 		}
 	}
 

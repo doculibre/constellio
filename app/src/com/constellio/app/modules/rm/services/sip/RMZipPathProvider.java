@@ -12,6 +12,7 @@ import com.constellio.app.services.sip.record.RecordPathProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.schemas.Schemas;
 import org.joda.time.LocalDateTime;
 
@@ -44,8 +45,8 @@ class RMZipPathProvider implements RecordPathProvider {
 				   + record.getTypeCode() + "-" + record.getId();
 
 
-		} else if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
-			Authorization authorization = rm.wrapSolrAuthorizationDetails(record);
+		} else if (RecordAuthorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
+			Authorization authorization = rm.wrapAuthorization(record);
 			//addSchemaTypeInPath = false;
 			parent = authorization.getTarget();
 

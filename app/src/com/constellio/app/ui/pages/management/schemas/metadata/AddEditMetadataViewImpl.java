@@ -6,7 +6,10 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataSortingType;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RoleVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
+import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
@@ -14,6 +17,8 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.MultilingualRichTextField;
 import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
 import com.constellio.app.ui.params.ParamUtils;
@@ -31,16 +36,20 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomField;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -108,7 +117,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	private BaseTextField measurementUnit;
 
 	@PropertyId("uniqueValue")
-	private CheckBox uniqueField;
+	private UniqueFieldLayout uniqueField;
 
 	@PropertyId("multiLingual")
 	private CheckBox multiLingualField;
@@ -477,7 +486,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		helpMessagesField.addStyleName("helpMessages");
 
 		if (inherited) {
-			parentMetadataLabel = new TextField();
+			parentMetadataLabel = new BaseTextField();
 			parentMetadataLabel.setCaption($("AddEditMetadataView.parentLabel"));
 			parentMetadataLabel.addStyleName("labels");
 			parentMetadataLabel.setValue(presenter.getParentFormMetadataVO().getLabel(Language.French.getCode()));
@@ -710,10 +719,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		duplicableField.addStyleName("duplicable");
 		duplicableField.setEnabled(true);
 
-		uniqueField = new CheckBox();
-		uniqueField.setCaption($("AddEditMetadataView.unique"));
-		uniqueField.setRequired(false);
-		uniqueField.setId("unique");
+		uniqueField = new UniqueFieldLayout(() -> presenter.printDuplicateReport(this::showDuplicateReportDownloadLink));
 
 		multiLingualField = new CheckBox();
 		multiLingualField.setCaption($("AddEditMetadataView.multiLingual"));
@@ -891,11 +897,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		}
 
 		if (!isShowUnique) {
-			uniqueField.setCaption(uniqueField.getCaption() + " " + $("AddEditMetadataView.containNonUniqueValueAlready"));
+			uniqueField.setContainNonUniqueValueAlready(true);
 		}
 
 		if (!formMetadataVO.getLocalcode().toLowerCase().equals("code")) {
-			uniqueField.setEnabled(formMetadataVO.getValueType() == MetadataValueType.STRING && isShowUnique);
+			uniqueField.setSomethingOnUnderlyingCheckbox(CheckBox::setEnabled, formMetadataVO.getValueType() == MetadataValueType.STRING && isShowUnique);
 			uniqueField.setVisible(formMetadataVO.getValueType() == MetadataValueType.STRING);
 		} else {
 			uniqueField.setEnabled(false);
@@ -938,6 +944,16 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 	public void inputTypeChanged(MetadataInputType metadataInputType) {
 		enableDisableMaxLength();
+	}
+
+	private void showDuplicateReportDownloadLink(ReportWriter reportWriter, String fileName) {
+		BaseWindow window = new BaseWindow();
+		window.setContent(new ReportViewer(reportWriter, fileName));
+		window.center();
+		window.setWidth("50%");
+		window.setHeight("30%");
+
+		getUI().addWindow(window);
 	}
 
 	private void enableDisableMaxLength() {
@@ -1000,5 +1016,88 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				return intermediateBreadCrumbTailItemList;
 			}
 		};
+	}
+
+	private class UniqueFieldLayout extends CustomField<Boolean> {
+
+		private final CheckBox uniqueField;
+		private boolean containNonUniqueValueAlready;
+		private final Runnable printReport;
+		private final HorizontalLayout layout;
+
+
+		private BaseButton showDuplicateReport;
+
+		private UniqueFieldLayout(Runnable printReport) {
+			addStyleName("add-edit-metadata-unique-field-layout");
+
+			this.printReport = printReport;
+
+			uniqueField = new CheckBox();
+			uniqueField.setRequired(false);
+			uniqueField.setId("unique");
+
+			showDuplicateReport = new BaseButton($("AddEditMetadataView.containNonUniqueValueAlready.displayReportButton")) {
+				@Override
+				protected void buttonClick(ClickEvent event) {
+					if (printReport != null) {
+						printReport.run();
+					}
+				}
+			};
+			showDuplicateReport.addStyleName(ValoTheme.BUTTON_LINK);
+
+			layout = new I18NHorizontalLayout();
+			layout.setSpacing(true);
+
+			layout.addComponents(uniqueField, showDuplicateReport);
+		}
+
+		@Override
+		protected Component initContent() {
+
+			updateUniqueFieldCaption();
+			showDuplicateReport.setVisible(isContainingNonUniqueValueAlready());
+
+			return layout;
+		}
+
+		@Override
+		public Class<? extends Boolean> getType() {
+			return Boolean.class;
+		}
+
+		@Override
+		protected void setInternalValue(Boolean newValue) {
+			uniqueField.setValue(newValue);
+		}
+
+		@Override
+		protected Boolean getInternalValue() {
+			return uniqueField.getValue();
+		}
+
+		public void setContainNonUniqueValueAlready(boolean containNonUniqueValueAlready) {
+			this.containNonUniqueValueAlready = containNonUniqueValueAlready;
+
+			updateUniqueFieldCaption();
+			showDuplicateReport.setVisible(containNonUniqueValueAlready);
+		}
+
+		public boolean isContainingNonUniqueValueAlready() {
+			return containNonUniqueValueAlready;
+		}
+
+		public <T> UniqueFieldLayout setSomethingOnUnderlyingCheckbox(BiConsumer<CheckBox, T> setter, T value) {
+			if (setter != null) {
+				setter.accept(uniqueField, value);
+			}
+
+			return this;
+		}
+
+		private void updateUniqueFieldCaption() {
+			uniqueField.setCaption($("AddEditMetadataView.unique") + (isContainingNonUniqueValueAlready() ? " " + $("AddEditMetadataView.containNonUniqueValueAlready") : ""));
+		}
 	}
 }

@@ -264,30 +264,32 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	@Override
 	public boolean beforeViewChange(ViewChangeEvent event) {
 		View newView = event.getNewView();
-		final String selectedStyleName = "selected";
+		if (!presenter.hasChangedCollection((BaseView) newView)) {
+			final String selectedStyleName = "selected";
 
-		boolean newSelection = false;
-		Button lastSelectedButton = null;
-		for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
-			Button menuButton = mainMenuButton.getButton();
-			Class<? extends MenuViewGroup> menuViewGroupClass = mainMenuButton.getMenuViewGroup();
-			if (menuButton.getStyleName().contains(selectedStyleName)) {
-				lastSelectedButton = menuButton;
+			boolean newSelection = false;
+			Button lastSelectedButton = null;
+			for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
+				Button menuButton = mainMenuButton.getButton();
+				Class<? extends MenuViewGroup> menuViewGroupClass = mainMenuButton.getMenuViewGroup();
+				if (menuButton.getStyleName().contains(selectedStyleName)) {
+					lastSelectedButton = menuButton;
+				}
+				if (menuViewGroupClass.isAssignableFrom(newView.getClass())) {
+					menuButton.addStyleName(selectedStyleName);
+					newSelection = true;
+				} else {
+					menuButton.removeStyleName(selectedStyleName);
+				}
+
+				refreshBadge(mainMenuButton);
+
 			}
-			if (menuViewGroupClass.isAssignableFrom(newView.getClass())) {
-				menuButton.addStyleName(selectedStyleName);
-				newSelection = true;
-			} else {
-				menuButton.removeStyleName(selectedStyleName);
+			if (!newSelection && lastSelectedButton != null) {
+				lastSelectedButton.addStyleName(selectedStyleName);
 			}
-
-			refreshBadge(mainMenuButton);
-
+			refreshSystemStateButton();
 		}
-		if (!newSelection && lastSelectedButton != null) {
-			lastSelectedButton.addStyleName(selectedStyleName);
-		}
-		refreshSystemStateButton();
 		return true;
 	}
 

@@ -1,6 +1,7 @@
 package com.constellio.model.services.encrypt;
 
 import com.constellio.app.modules.restapi.core.util.HashingUtils;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
@@ -10,8 +11,11 @@ import org.junit.Test;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.security.Key;
+import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -388,11 +392,43 @@ public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 		}
 	}
 
+	@Test
+	public void whenGeneratingRSAKeyPairThenEncryptingWithAppKeyAndDecrypting()
+			throws IOException {
+		IOServices ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
+		File publicKeyFile = ioServices.newTemporaryFile("public_key.pem");
+		File privateKeyFile = ioServices.newTemporaryFile("private_key.pem");
+		File privateKeyEncodedFile = ioServices.newTemporaryFile("private_key_encoded.pem");
+		File privateKeyDecodedFile = ioServices.newTemporaryFile("private_key_decoded.pem");
+		try {
+			Key key = encryptionService.generateAESKey();
+
+			KeyPair keyPair = encryptionService.generateRSAKeyPair();
+			encryptionService.writePublicKeyToFile(keyPair.getPublic(), publicKeyFile);
+			encryptionService.writePrivateKeyToFile(keyPair.getPrivate(), privateKeyFile);
+			encryptionService.encryptWithAppKey(privateKeyFile, privateKeyEncodedFile);
+
+			byte[] privateKeyBytes = Files.readAllBytes(privateKeyFile.toPath());
+			byte[] privateKeyEncodedBytes = Files.readAllBytes(privateKeyEncodedFile.toPath());
+			assertThat(privateKeyBytes).isNotEqualTo(privateKeyEncodedBytes);
+
+			encryptionService.decryptWithAppKey(privateKeyEncodedFile, privateKeyDecodedFile);
+			byte[] privateKeyDecodedBytes = Files.readAllBytes(privateKeyDecodedFile.toPath());
+			assertThat(privateKeyBytes).isEqualTo(privateKeyDecodedBytes);
+		} finally {
+			ioServices.deleteQuietly(publicKeyFile);
+			ioServices.deleteQuietly(privateKeyFile);
+			ioServices.deleteQuietly(privateKeyEncodedFile);
+			ioServices.deleteQuietly(privateKeyDecodedFile);
+		}
+	}
+
 	//
 	// Private methods
 	//
 
-	private String getFileChecksum(File file) throws Exception {
+	private String getFileChecksum(File file)
+			throws Exception {
 		try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
 			byte[] fileData = IOUtils.toByteArray(in);
 			return HashingUtils.md5(fileData);

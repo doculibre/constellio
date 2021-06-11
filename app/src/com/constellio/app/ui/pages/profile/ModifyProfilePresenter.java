@@ -18,6 +18,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -308,6 +309,11 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		} else {
 			return userServices.canAddOrModifyUserAndGroup();
 		}
+	}
+
+	public boolean isLocalUser() {
+		UserCredential user = userServices.getUserCredential(username);
+		return user.getSyncMode() == UserSyncMode.LOCALLY_CREATED;
 	}
 
 	public boolean canModifyPassword() {

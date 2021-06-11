@@ -19,8 +19,8 @@ import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
-import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.SelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.fields.lookup.GroupTextInputDataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -155,8 +155,8 @@ public class TaskMenuItemActionBehaviors {
 	}
 
 	public void generateReport(Task task, MenuItemActionBehaviorParams params) {
-		RMSelectionPanelReportPresenter reportPresenter =
-				new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
+		SelectionPanelReportPresenter reportPresenter =
+				new SelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
 					@Override
 					public String getSelectedSchemaType() {
 						return Task.SCHEMA_TYPE;
@@ -169,7 +169,7 @@ public class TaskMenuItemActionBehaviors {
 				};
 
 		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory,
-				params.getView().getCollection(), false, false, reportPresenter, params.getView().getSessionContext()) {
+				params.getView().getCollection(), reportPresenter, params.getView().getSessionContext()) {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				setRecordVoList(params.getRecordVO());

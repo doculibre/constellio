@@ -34,6 +34,7 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
 	public static final String PROGRESS_LABEL_HEIGHT = "40px";
 	private final String pdfFileName;
 	private final PdfStatusViewPresenter presenter;
+	private final boolean asPdfA;
 
 	private File consolidatePdfFile;
 	private boolean finished;
@@ -48,11 +49,12 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
 
 	private VerticalLayout mainComponent;
 
-	public PdfStatusViewImpl(String pdfFileName, List<String> documentIds, boolean withMetadata) {
+	public PdfStatusViewImpl(String pdfFileName, List<String> documentIds, boolean withMetadata, boolean asPdfA) {
 		setWidth(WIDTH);
 
 		this.pdfFileName = pdfFileName;
-		this.presenter = new PdfStatusViewPresenter(this, pdfFileName, documentIds, withMetadata);
+		this.presenter = new PdfStatusViewPresenter(this, pdfFileName, documentIds, withMetadata, asPdfA);
+		this.asPdfA = asPdfA;
 		this.finished = false;
 
 		globalProgressMessage = $("PdfStatusView.generationProgress", 0, 0);
@@ -150,7 +152,8 @@ public class PdfStatusViewImpl extends BaseViewImpl implements PdfStatusView {
 		layout.setSizeFull();
 		//        layout.setSpacing(true);
 
-		DownloadLink downloadLink = new DownloadLink(getPdfDocumentResource(), $("PdfStatusView.downloadPdfFile"));
+		DownloadLink downloadLink = new DownloadLink(getPdfDocumentResource(),
+				$(String.format("PdfStatusView.download%sFile", asPdfA ? "PdfA" : "Pdf")));
 
 		layout.addComponent(downloadLink);
 		layout.setExpandRatio(downloadLink, 1);

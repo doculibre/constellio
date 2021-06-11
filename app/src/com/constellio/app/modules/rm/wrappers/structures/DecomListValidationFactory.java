@@ -1,12 +1,12 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import org.joda.time.LocalDate;
 
 import java.util.StringTokenizer;
 
-public class DecomListValidationFactory implements StructureFactory {
+public class DecomListValidationFactory implements CombinedStructureFactory {
 	private static final String NULL = "~null~";
 	private static final String ELEMENT_SEPARATOR = ":";
 

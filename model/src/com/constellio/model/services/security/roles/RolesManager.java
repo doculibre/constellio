@@ -17,6 +17,7 @@ import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
 import org.jdom2.Document;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ public class RolesManager implements StatefulService, OneXMLConfigPerCollectionM
 	private ModelLayerFactory modelLayerFactory;
 	private ConstellioCacheManager cacheManager;
 	private Map<String, SchemasRecordsServices> schemasRecordsServicesPerCollection = new HashMap<>();
+	List<RolesManagerListener> listeners = new ArrayList<>();
 
 	public RolesManager(ModelLayerFactory modelLayerFactory) {
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
@@ -187,7 +189,7 @@ public class RolesManager implements StatefulService, OneXMLConfigPerCollectionM
 
 	@Override
 	public void onValueModified(String collection, List<Role> newValue) {
-
+		listeners.forEach(l -> l.onRolesModified(collection, newValue));
 	}
 
 	@Override
@@ -195,4 +197,7 @@ public class RolesManager implements StatefulService, OneXMLConfigPerCollectionM
 
 	}
 
+	public void registerListener(RolesManagerListener listener) {
+		listeners.add(listener);
+	}
 }

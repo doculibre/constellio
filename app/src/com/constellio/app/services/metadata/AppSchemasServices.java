@@ -84,7 +84,7 @@ public class AppSchemasServices {
 
 	public List<Record> getVisibleRecords(String collection, String schemaCode, User user, int numberOfRecords) {
 		MetadataSchema metadataSchema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(metadataSchema).returnAll()).filteredWithUser(user, Role.READ);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(metadataSchema).returnAll()).filteredWithUserRead(user, Role.READ);
 		List<Record> records = searchServices.search(logicalSearchQuery);
 		if (records.size() > numberOfRecords) {
 			return records.subList(0, numberOfRecords);
@@ -95,7 +95,7 @@ public class AppSchemasServices {
 
 	public boolean areAllRecordsVisible(String collection, String schemaCode, User user) {
 		MetadataSchema metadataSchema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(metadataSchema).returnAll()).filteredWithUser(user, Role.READ);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(metadataSchema).returnAll()).filteredWithUserRead(user, Role.READ);
 		Long numberOfVisibleRecords = searchServices.getResultsCount(logicalSearchQuery);
 		Long numberOfRecords = searchServices.getResultsCount(from(metadataSchema).returnAll());
 		if (numberOfRecords > numberOfVisibleRecords) {

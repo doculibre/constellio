@@ -76,4 +76,6 @@ public interface ModelLayerConfiguration {
 	long getReindexingThreadMaxBatchMemorySize();
 
 	boolean isPersistingStringRecordIdLegacyMapping();
+
+	boolean isContentConversionAvailable();
 }

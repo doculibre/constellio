@@ -44,6 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
+import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 
 public class PersistedIdsServices {
 
@@ -54,6 +55,7 @@ public class PersistedIdsServices {
 	private static final String TEMP_IDS_FILE_RESOURCE_NAME = "PersistedIdsServices-TempIdsFile";
 	private static final String READ_IDS_FILE_INPUTSTREAM_RESOURCE_NAME = "PersistedIdsServices-ReadIdFileInputStream";
 
+	private static boolean running;
 
 	ModelLayerFactory modelLayerFactory;
 	ContentDao contentDao;
@@ -81,6 +83,8 @@ public class PersistedIdsServices {
 	public LocalDateTime retreiveAndRewriteRecordIdsFile() {
 		Iterator<RecordId> idsIterator = this.recordsIdIteratorExceptEvents();
 
+		running = true;
+
 		LocalDateTime timestamp = new LocalDateTime();
 		File tempSortValuesFiles = fileService.newTemporaryFile(TEMP_IDS_FILE_RESOURCE_NAME);
 		try {
@@ -96,8 +100,13 @@ public class PersistedIdsServices {
 
 			return timestamp;
 		} finally {
+			running = false;
 			fileService.deleteQuietly(tempSortValuesFiles);
 		}
+	}
+
+	public static boolean isRunning() {
+		return running;
 	}
 
 	private void writeToFile(Iterator<RecordId> idsIterator, File idsFile, LocalDateTime timestamp) {
@@ -125,6 +134,10 @@ public class PersistedIdsServices {
 		} else {
 			return idsFromVault;
 		}
+	}
+
+	public void clear() {
+		contentDao.delete(asList(FILE_PATH));
 	}
 
 	@AllArgsConstructor
@@ -169,7 +182,7 @@ public class PersistedIdsServices {
 	}
 
 	public Iterator<RecordId> recordsIdIteratorExceptEvents() {
-		if (systemConfigs.isRunningWithSolr6() && modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
+		if ((systemConfigs.isRunningWithSolr6() || modelLayerFactory.getDataLayerFactory().isDistributed()) && modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
 				.useSolrTupleStreamsIfSupported()) {
 			return recordsIdIteratorExceptEventsUsingTupleStream();
 

@@ -46,8 +46,13 @@ const FitWidth = "FitWidth";
                 annotManager.hideAnnotation(annotations[i]);
             }
         }
-
         annotationEnabled = enableAnnotations;
+    }
+});
+
+(window.downloadPdfWithoutAnnotations = function () {
+    if (isWebViewerInstanceSet()) {
+        window.webViewerInstance.downloadPdf(false);
     }
 });
 
@@ -79,7 +84,7 @@ const FitWidth = "FitWidth";
         webViewerInstance.setAdminUser(admin);
         webViewerInstance.setReadOnly(isReadOnly);
         webViewerInstance.setLanguage(language);
-        debugger
+
         registerAnnotationChange(webViewerInstance.getBBAnnotManager());
         rePullAnnotations();
     }
@@ -98,7 +103,7 @@ const FitWidth = "FitWidth";
 });
 
 (window.registerAnnotationChange = function (annotManager) {
-    annotManager.on('annotationChanged', async (event, annotations, action) => {
+    annotManager.on('annotationChanged', async (annotations, action) => {
         if (action === 'add' || action === 'modify' || action === 'delete') {
             if (ignoreAnnotationChange) {
                 return;
@@ -239,7 +244,7 @@ const FitWidth = "FitWidth";
         instance.setToolMode(constellioSignatureToolName);
 
         const tool = docViewer.getTool(constellioSignatureToolName);
-        tool.on('annotationCreated', (event, annotations) => {
+        tool.on('annotationCreated', (annotations) => {
             annotations.Subject = 'ConstellioSignature';
             annotations.ImageData  = signatureImage;
         });
@@ -284,7 +289,7 @@ const FitWidth = "FitWidth";
         instance.setToolMode(constellioInitialsToolName);
 
         const tool = docViewer.getTool(constellioInitialsToolName);
-        tool.on('annotationCreated', (event, annotations) => {
+        tool.on('annotationCreated', (annotations) => {
             annotations.Subject = 'ConstellioInitials';
             annotations.ImageData  = initialsImage;
         });

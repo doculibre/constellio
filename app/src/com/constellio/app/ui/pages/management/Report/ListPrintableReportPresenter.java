@@ -11,19 +11,12 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.vaadin.server.StreamResource;
-import org.apache.commons.io.FileUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +31,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
 
 	private MetadataSchemaToVOBuilder schemaVOBuilder;
 	private ListPrintableReportView view;
-	private RecordVODataProvider folderDataAdapter, documentDataAdapter, taskDataAdapter;
+	private RecordVODataProvider folderDataAdapter, documentDataAdapter, taskDataAdapter, categoryDataAdapter, retentionRuleDataAdapter, administrativeUnitDataAdapter, legalRequirementDataAdapter;
 
 	public ListPrintableReportPresenter(ListPrintableReportView view) {
 		super(view);
@@ -89,13 +82,41 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
 		return taskDataAdapter;
 	}
 
+	public RecordVODataProvider getPrintableReportCategoryDataProvider() {
+		if (this.categoryDataAdapter == null) {
+			categoryDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.CATEGORY.getSchemaType());
+		}
+		return categoryDataAdapter;
+	}
+
+	public RecordVODataProvider getPrintableReportRetentionRuleDataProvider() {
+		if (this.retentionRuleDataAdapter == null) {
+			retentionRuleDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.RETENTION_RULE.getSchemaType());
+		}
+		return retentionRuleDataAdapter;
+	}
+
+	public RecordVODataProvider getPrintableReportAdministrativeUnitDataProvider() {
+		if (this.administrativeUnitDataAdapter == null) {
+			administrativeUnitDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.ADMINISTRATIVE_UNIT.getSchemaType());
+		}
+		return administrativeUnitDataAdapter;
+	}
+
+	public RecordVODataProvider getPrintableReportLegalRequirementDataProvider() {
+		if (this.legalRequirementDataAdapter == null) {
+			legalRequirementDataAdapter = getDataProviderForSchemaType(PrintableReportListPossibleType.LEGAL_REQUIREMENT.getSchemaType());
+		}
+		return legalRequirementDataAdapter;
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return user.has(CorePermissions.MANAGE_PRINTABLE_REPORT).globally();
 	}
 
-	public void addLabelButtonClicked() {
-		view.navigate().to().addPrintableReport();
+	public void addLabelButtonClicked(String schemaType) {
+		view.navigate().to().addPrintableReport(schemaType);
 	}
 
 	protected void editButtonClicked(RecordVO report) {
@@ -118,19 +139,4 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
 		}
 	}
 
-	protected StreamResource createResource() {
-		return new StreamResource(new StreamResource.StreamSource() {
-			@Override
-			public InputStream getStream() {
-				InputStream stream = null;
-				try {
-					File file = new File(new FoldersLocator().getModuleResourcesFolder("rm"), "Template_PrintableReport.zip");
-					stream = new ByteArrayInputStream(FileUtils.readFileToByteArray(file));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				return stream;
-			}
-		}, "templates.zip");
-	}
 }

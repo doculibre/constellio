@@ -1,6 +1,7 @@
 package com.constellio.model.services.records.cache.cacheIndexHook.impl;
 
 import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -42,7 +43,15 @@ public class RecordUsageCounterHook implements MetadataIndexCacheDataStoreHook<I
 
 		Set<Integer> keys = new HashSet<>();
 		for (Metadata metadata : schemasManager.getSchemaOf(record).getReferencesToSummaryCachedType()) {
-			record.<String>getValues(metadata).forEach((stringId) -> keys.add(RecordId.toId(stringId).intValue()));
+			record.<String>getValues(metadata).forEach((stringId) -> {
+				if (stringId != null) {
+					try {
+						keys.add(RecordId.toId(stringId).intValue());
+					} catch (Throwable t) {
+						SystemLogger.error("String id without int value : " + stringId);
+					}
+				}
+			});
 		}
 
 		return keys;

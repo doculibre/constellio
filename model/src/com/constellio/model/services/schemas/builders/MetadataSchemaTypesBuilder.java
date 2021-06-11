@@ -140,11 +140,17 @@ public class MetadataSchemaTypesBuilder {
 		return types;
 	}
 
-	public MetadataSchemaTypeBuilder createNewSchemaType(String code) {
-		return createNewSchemaType(code, true);
+	/**
+	 * Si la sécurité est activée :
+	 * - Les utilisateurs ayant un accès global en lecture pourront rechercher (lorsqu'une méthode style logicalSearchQuery.filterWith... est utilisée)
+	 * - Seuls les utilisateurs ayant un accès global en écriture pourront écrire (lorsque transaction.setUser()) est utilisé. Une exception sera sinon lancée
+	 * - Aucune contrainte si aucun utilisateur n'est spécifié pour la query ou la transaction
+	 */
+	public MetadataSchemaTypeBuilder createNewSchemaTypeWithSecurity(String code) {
+		return createNewSchemaTypeWithSecurity(code, true);
 	}
 
-	public MetadataSchemaTypeBuilder createNewSchemaType(String code, boolean initialize) {
+	public MetadataSchemaTypeBuilder createNewSchemaTypeWithSecurity(String code, boolean initialize) {
 		MetadataSchemaTypeBuilder typeBuilder = new MetadataSchemaTypeBuilder();
 		if (hasSchemaType(code)) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.SchemaTypeExistent(code);
@@ -155,6 +161,21 @@ public class MetadataSchemaTypesBuilder {
 		schemaTypes.add(typeBuilder);
 		return typeBuilder;
 	}
+
+	/**
+	 * Si la sécurité n'est pas activée :
+	 * - Lorsqu'un critère logicalSearchQuery.filterWith... est utilisée, les enregistrements seront seulement retournés si l'utilisateur est admin ou si le type de schéma est enregistré avec com.constellio.model.services.security.SecurityTokenManager#registerPublicType|registerPublicTypeWithCondition
+	 * - Un utilisateur disposant d'un jeton peut accéder à l'enregistrement en passant par exemple par le service REST de recherche de solr
+	 * - La méthode transaction.setUser n'a aucun effet, le changement s'effectue peut importe si un utilisateur est précisé et peu importe lequel
+	 */
+	public MetadataSchemaTypeBuilder createNewSchemaTypeWithoutSecurity(String code) {
+		return createNewSchemaTypeWithSecurity(code).setSecurity(false);
+	}
+
+	public MetadataSchemaTypeBuilder createNewSchemaTypeWithoutSecurity(String code, boolean initialize) {
+		return createNewSchemaTypeWithSecurity(code, initialize).setSecurity(false);
+	}
+
 
 	public void resetAllIds() {
 		this.schemasTypeIdSequence = new SchemasIdSequence();
@@ -196,7 +217,7 @@ public class MetadataSchemaTypesBuilder {
 			return getSchemaType(code);
 		} catch (Exception e) {
 			LOGGER.debug("No schema type with code '{}', creating one", code, e);
-			return createNewSchemaType(code);
+			return createNewSchemaTypeWithSecurity(code);
 		}
 	}
 
@@ -498,7 +519,17 @@ public class MetadataSchemaTypesBuilder {
 	}
 
 	private void validateCopiedMetadataType(MetadataBuilder metadataBuilder, MetadataBuilder copiedMetadata) {
-		if (metadataBuilder.getType() != copiedMetadata.getType()) {
+		MetadataValueType sourceType = copiedMetadata.getType();
+		MetadataValueType targetType = metadataBuilder.getType();
+		boolean equivalentType;
+		if (sourceType == targetType) {
+			equivalentType = true;
+		} else if (sourceType == MetadataValueType.STRING && targetType == MetadataValueType.TEXT) {
+			equivalentType = true;
+		} else {
+			equivalentType = false;
+		}
+		if (!equivalentType) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCopyADifferentTypeInMetadata(
 					metadataBuilder.getCode(), metadataBuilder.getType().name(), copiedMetadata.getCode(),
 					copiedMetadata.getType().name());

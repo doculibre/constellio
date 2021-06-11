@@ -48,6 +48,8 @@ public class TableColumnsManager implements Serializable {
 	protected transient User currentUser;
 
 	protected transient MetadataSchemaTypes metadataSchemaTypes;
+	
+	private boolean doSort;
 
 	public TableColumnsManager() {
 		initTransientObjects();
@@ -80,7 +82,6 @@ public class TableColumnsManager implements Serializable {
 			collection = sessionContext.getCurrentCollection();
 		}
 
-
 		UserVO currentUserVO = sessionContext.getCurrentUser();
 		String username = null;
 		if (currentUserVO != null) {
@@ -92,11 +93,23 @@ public class TableColumnsManager implements Serializable {
 		}
 	}
 
+	public boolean isDoSort() {
+		return doSort;
+	}
+
+	public void setDoSort(boolean doSort) {
+		this.doSort = doSort;
+	}
+
 	protected void decorateVisibleColumns(List<String> visibleColumnForUser, String tableId) {
 
 	}
 
-	public void manage(final Table table, final String tableId) {
+	public void manage(Table table, String tableId) {
+		manage(table, tableId, true);
+	}
+
+	public void manage(final Table table, final String tableId, boolean doSort) {
 		if (table.getColumnHeaderMode() != ColumnHeaderMode.HIDDEN) {
 			table.setImmediate(true);
 			table.setColumnCollapsingAllowed(true);
@@ -111,7 +124,7 @@ public class TableColumnsManager implements Serializable {
 			List<Object> orderedColumns = new ArrayList<>();
 			for (String columnId : visibleColumnIdsForUser) {
 				Object propertyId = toPropertyId(columnId, table.getVisibleColumns());
-				if (propertyId != null) {
+				if (propertyId != null && !orderedColumns.contains(propertyId)) {
 					orderedColumns.add(propertyId);
 				}
 			}
@@ -149,9 +162,9 @@ public class TableColumnsManager implements Serializable {
 					table.setColumnWidth(propertyId, columnWidth);
 				}
 
-				if (columnId.equals(properties.getSortedColumnId())) {
+				if (doSort && columnId.equals(properties.getSortedColumnId())) {
 					table.setSortContainerPropertyId(propertyId);
-					table.setSortAscending(properties.getSortedAscending());
+					table.setSortAscending(Boolean.TRUE.equals(properties.getSortedAscending()));
 				}
 			}
 

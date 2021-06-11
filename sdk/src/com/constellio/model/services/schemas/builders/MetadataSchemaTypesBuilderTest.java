@@ -27,6 +27,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,15 +59,15 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		this.zeCollectionInfo = new CollectionInfo((byte) 0, "zeUltimateCollection", "fr", Arrays.asList("fr"));
 		typesBuilder = getMetadataSchemaTypesBuilder(zeCollectionInfo);
 
-		zeType = typesBuilder.createNewSchemaType("zeType");
+		zeType = typesBuilder.createNewSchemaTypeWithSecurity("zeType");
 		zeTypeDefaultSchema = zeType.getDefaultSchema();
 		zeTypeCustomSchema = zeType.createCustomSchema("custom");
 
-		anotherType = typesBuilder.createNewSchemaType("anotherType");
+		anotherType = typesBuilder.createNewSchemaTypeWithSecurity("anotherType");
 		anotherTypeDefaultSchema = anotherType.getDefaultSchema();
 		anotherTypeCustomSchema = anotherType.createCustomSchema("custom");
 
-		aThirdType = typesBuilder.createNewSchemaType("aThirdType");
+		aThirdType = typesBuilder.createNewSchemaTypeWithSecurity("aThirdType");
 		aThirdTypeDefaultSchema = aThirdType.getDefaultSchema();
 		aThirdTypeCustomSchema = aThirdType.createCustomSchema("custom");
 	}
@@ -299,6 +300,34 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		MetadataBuilder metadataWithCopiedEntry = givenZeDefaultSchemaMetadata(STRING).setMultivalue(false);
 		MetadataBuilder metadataWithReferenceToAnotherSchema = givenZeDefaultSchemaMetadata(REFERENCE).setMultivalue(false);
 		MetadataBuilder anotherMetadata = givenAnotherDefaultSchemaMetadata(STRING).setMultivalue(false);
+
+		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
+		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
+
+		typesBuilder.build(typesFactory);
+	}
+
+	@Test
+	public void givenTypeStringMetadataWithCopiedEntryAndATypeTextValueCopiedMetadataWhenBuildingThenOk()
+			throws Exception {
+
+		MetadataBuilder metadataWithCopiedEntry = givenZeDefaultSchemaMetadata(TEXT).setMultivalue(false);
+		MetadataBuilder metadataWithReferenceToAnotherSchema = givenZeDefaultSchemaMetadata(REFERENCE).setMultivalue(false);
+		MetadataBuilder anotherMetadata = givenAnotherDefaultSchemaMetadata(STRING).setMultivalue(false);
+
+		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
+		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);
+
+		typesBuilder.build(typesFactory);
+	}
+
+	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.CannotCopyADifferentTypeInMetadata.class)
+	public void givenTypeTextMetadataWithCopiedEntryAndATypeStringValueCopiedMetadataWhenBuildingThenException()
+			throws Exception {
+
+		MetadataBuilder metadataWithCopiedEntry = givenZeDefaultSchemaMetadata(STRING).setMultivalue(false);
+		MetadataBuilder metadataWithReferenceToAnotherSchema = givenZeDefaultSchemaMetadata(REFERENCE).setMultivalue(false);
+		MetadataBuilder anotherMetadata = givenAnotherDefaultSchemaMetadata(TEXT).setMultivalue(false);
 
 		metadataWithReferenceToAnotherSchema.defineReferences().set(anotherType);
 		metadataWithCopiedEntry.defineDataEntry().asCopied(metadataWithReferenceToAnotherSchema, anotherMetadata);

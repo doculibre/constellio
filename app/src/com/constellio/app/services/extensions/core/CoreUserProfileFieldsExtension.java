@@ -7,8 +7,10 @@ import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.fields.ExtraTabAdditionalRecordField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
@@ -17,14 +19,23 @@ import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField
 import com.constellio.app.ui.framework.data.TaxonomyVODataProvider;
 import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.app.ui.pages.profile.ModifyProfileView;
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.configs.UserConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.users.SystemWideUserInfos;
+import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomField;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,9 +63,11 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 			ExtraTabAdditionalRecordField defaultTaxonomyField = buildDefaultTaxonomyField(params);
 			ExtraTabAdditionalRecordField taxonomyOrderField = buildTaxonomyDisplayOrderField(params);
 			ExtraTabAdditionalRecordField enabledFacetsField = buildDoApplyFacetsButton(params);
+			ExtraTabAdditionalRecordField reinitializeTableUserSettings = buildReinitializeTableUserSettings(params);
 			//			ExtraTabAdditionalRecordField doNotReceiveEmailsField = buildDoNotReceiveEmailsField(params);
 
-			additionnalFields.addAll(asList(defaultPageLengthField, startTabField, defaultTaxonomyField,
+
+			additionnalFields.addAll(asList(reinitializeTableUserSettings, defaultPageLengthField, startTabField, defaultTaxonomyField,
 					taxonomyOrderField, enabledFacetsField/*, doNotReceiveEmailsField*/));
 		}
 		return additionnalFields;
@@ -140,6 +153,75 @@ public class CoreUserProfileFieldsExtension extends PagesComponentsExtension {
 		enableFacetsApplyButton.setValue(isApplyFacetsEnabled);
 
 		return enableFacetsApplyButton;
+	}
+
+	private ExtraTabAdditionalRecordField buildReinitializeTableUserSettings(RecordFieldsExtensionParams params) {
+		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
+
+		ResetTableUserSettingField resetTableUserSettingField = new ResetTableUserSettingField(collection, appLayerFactory, user);
+		return resetTableUserSettingField;
+	}
+
+	private class ResetTableUserSettingField extends CustomField<Object> implements ExtraTabAdditionalRecordField<Object> {
+
+		private final String collection;
+		private final AppLayerFactory appLayerFactory;
+		private final User user;
+
+		public ResetTableUserSettingField(String collection, AppLayerFactory appLayerFactory,
+										  User user) {
+			this.collection = collection;
+			this.appLayerFactory = appLayerFactory;
+			this.user = user;
+		}
+
+		@Override
+		public String getMetadataLocalCode() {
+			return "button_ResetTable_userSettings";
+		}
+
+		@Override
+		public Object getCommittableValue() {
+			return null;
+		}
+
+		@Override
+		public String getTab() {
+			return $("ModifyProfileView.configsTab");
+		}
+
+		@Override
+		public Class getType() {
+			return Object.class;
+		}
+
+		@Override
+		protected Component initContent() {
+			ConfirmDialogButton resetButton = new ConfirmDialogButton(FontAwesome.REFRESH, $("ModifyProfileView.deleteCustomUserTableSetting"), false) {
+				@Override
+				protected String getConfirmDialogMessage() {
+					return $("ModifyProfileView.deleteCustomUserTableSetting.confirm");
+				}
+
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+					DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
+					ConfigManager configManager = dataLayerFactory.getConfigManager();
+					UserConfigurationsManager userConfigurationsManager = modelLayerFactory.getUserConfigurationsManager();
+
+					String filePath = userConfigurationsManager.getFilePath(user);
+					userConfigurationsManager.deleteConfigurations(user);
+					configManager.delete(filePath);
+
+					ConstellioUI.getCurrent().showMessage($("ModifyProfileView.deleteCustomUserTableSetting.done"));
+				}
+			};
+
+			resetButton.addStyleName(ValoTheme.BUTTON_LINK);
+
+			return resetButton;
+		}
 	}
 
 	private class DefaultSearchPageLengthFieldImpl extends EnumWithSmallCodeComboBox<SearchPageLength> implements ExtraTabAdditionalRecordField<Object> {

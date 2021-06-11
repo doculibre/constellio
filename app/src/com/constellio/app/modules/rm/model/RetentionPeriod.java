@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.model.RetentionPeriod.RetentionPeriodRuntim
 import com.constellio.app.modules.rm.model.RetentionPeriod.RetentionPeriodRuntimeException.RetentionPeriodRuntimeException_PeriodIsOpened;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -18,6 +19,7 @@ public class RetentionPeriod implements Serializable {
 
 	private int variableRetentionRuleCode = 0;
 
+	@JsonValue
 	public int getValue() {
 		if (variableRetentionRuleCode != 0) {
 			return variableRetentionRuleCode;

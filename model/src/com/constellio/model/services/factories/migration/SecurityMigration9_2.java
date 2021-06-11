@@ -32,6 +32,7 @@ import java.util.List;
 
 public class SecurityMigration9_2 {
 	private ModelLayerFactory modelLayerFactory;
+	private static final String CRYPTED_PREFIX = "crypted:";
 
 	public SecurityMigration9_2(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
@@ -77,9 +78,10 @@ public class SecurityMigration9_2 {
 				LDAPUserSyncConfiguration newLdapUserSyncConfiguration = new LDAPUserSyncConfiguration(ldapUserSyncConfiguration.getUser(), password, ldapUserSyncConfiguration.getUserFilter(), ldapUserSyncConfiguration.getGroupFilter(), ldapUserSyncConfiguration.getDurationBetweenExecution(),
 						ldapUserSyncConfiguration.getScheduleTime(), ldapUserSyncConfiguration.getGroupBaseContextList(),
 						ldapUserSyncConfiguration.getUsersWithoutGroupsBaseContextList(), ldapUserSyncConfiguration.getUserFilterGroupsList(),
-						ldapUserSyncConfiguration.isMembershipAutomaticDerivationActivated(), ldapUserSyncConfiguration.getSelectedCollectionsCodes());
+						ldapUserSyncConfiguration.isMembershipAutomaticDerivationActivated(), ldapUserSyncConfiguration.getSelectedCollectionsCodes(),
+						ldapUserSyncConfiguration.isFetchSubGroups(), ldapUserSyncConfiguration.isIgnoreRegexForSubGroups(), ldapUserSyncConfiguration.isSyncUsersOnlyIfInAcceptedGroups());
 
-				ldapConfigurationManager.saveLDAPConfiguration(ldapConfigurationManager.getLDAPServerConfiguration(), newLdapUserSyncConfiguration);
+				ldapConfigurationManager.saveLDAPConfiguration(ldapConfigurationManager.getLDAPServerConfiguration(), newLdapUserSyncConfiguration, false);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -143,8 +145,8 @@ public class SecurityMigration9_2 {
 							for (Metadata currentMetadata : metadataToReEncrypt) {
 								hasModifications = true;
 								Object data = currentRecord.get(currentMetadata, GetMetadataOption.NO_DECRYPTION);
-								Object decriptedData = oldEncryptionServices.decryptVersion1(data);
-								currentRecord.set(currentMetadata, SetMetadataOption.NO_DECRYPTION, decriptedData);
+								Object decryptedData = isDataFakeEncrypted(data) ? parseFakeEncryptedContent(data) : oldEncryptionServices.decryptVersion1(data);
+								currentRecord.set(currentMetadata, SetMetadataOption.NO_DECRYPTION, decryptedData);
 							}
 
 							if (hasModifications) {
@@ -167,5 +169,21 @@ public class SecurityMigration9_2 {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
+	}
+
+	private boolean isDataFakeEncrypted(Object data) {
+		if (data instanceof String) {
+			if (((String) data).startsWith(CRYPTED_PREFIX)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private Object parseFakeEncryptedContent(Object data) {
+		if (isDataFakeEncrypted(data)) {
+			return ((String) data).substring(CRYPTED_PREFIX.length());
+		}
+		return data;
 	}
 }

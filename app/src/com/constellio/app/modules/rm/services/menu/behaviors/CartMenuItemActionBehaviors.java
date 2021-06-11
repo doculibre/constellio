@@ -349,13 +349,20 @@ public class CartMenuItemActionBehaviors {
 	public void empty(Cart cart, MenuItemActionBehaviorParams params) {
 
 		List<Record> records = cartUtil.getCartRecords(cart.getId());
+		List<Record> recordWithReadAccess = new ArrayList<>();
+
 		for (Record record : records) {
+			if (params.getUser().hasReadAccess().on(record)) {
+				recordWithReadAccess.add(record);
+			}
+		}
+		for (Record record : recordWithReadAccess) {
 			removeFromFavorite(record, cart.getId());
 		}
 		Transaction transaction = new Transaction();
 		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-		transaction.addUpdate(records);
+		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions().setSkipUserAccessValidation(true));
+		transaction.addUpdate(recordWithReadAccess);
 		try {
 			recordServices.execute(transaction);
 		} catch (RecordServicesException e) {
@@ -624,7 +631,7 @@ public class CartMenuItemActionBehaviors {
 		CartNewReportPresenter cartNewReportPresenter = new CartNewReportPresenter(params.getUser(), (CartView) params.getView(), cart.getId());
 
 		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"),
-				appLayerFactory, collection, false, false, cartNewReportPresenter, ConstellioUI.getCurrentSessionContext()) {
+				appLayerFactory, collection, cartNewReportPresenter, ConstellioUI.getCurrentSessionContext()) {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				List<RecordVO> allRecords = new ArrayList<>();

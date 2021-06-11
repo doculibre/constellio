@@ -20,6 +20,7 @@ import com.constellio.model.services.users.UserServices;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("serial")
 public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCredentialView> {
@@ -73,6 +74,20 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 	public GlobalGroupVODataProvider getGlobalGroupVODataProvider() {
 		GlobalGroupToVOBuilder voBuilder = newGlobalGroupVOBuilder();
 		return newGlobalGroupVODataProvider(voBuilder);
+	}
+
+	public String getStringCollections(Set<String> collectionCodes) {
+		StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (String code : collectionCodes) {
+			if (first) {
+				first = false;
+			} else {
+				sb.append(", ");
+			}
+			sb.append(appLayerFactory.getCollectionsManager().getCollection(code).getTitle());
+		}
+		return sb.toString();
 	}
 
 	public void displayGlobalGroupButtonClicked(String globalGroupCode, String username) {

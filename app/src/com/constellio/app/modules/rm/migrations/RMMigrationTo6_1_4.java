@@ -8,8 +8,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.schemas.ModificationImpact;
-import com.constellio.model.services.records.RecordModificationImpactHandler;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 
@@ -58,23 +56,7 @@ public class RMMigrationTo6_1_4 implements MigrationScript {
 
 				transaction.setSkippingRequiredValuesValidation(true);
 
-				recordServices.executeWithImpactHandler(transaction, new RecordModificationImpactHandler() {
-
-					@Override
-					public void prepareToHandle(ModificationImpact modificationImpact) {
-
-					}
-
-					@Override
-					public void handle() {
-						recordFixed.set(true);
-					}
-
-					@Override
-					public void cancel() {
-
-					}
-				});
+				recordServices.executeWithoutImpactHandling(transaction);
 
 			}
 		}.execute(from(rm.folder.schemaType()).where(rm.folder.parentFolder()).isNotNull());

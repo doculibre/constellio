@@ -1,6 +1,7 @@
 package com.constellio.model.services.appManagement;
 
 import com.constellio.data.io.services.facades.FileService;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +56,44 @@ public class WrapperConfigurationService {
 			throw new IOException("Error while writing in configuration file", e);
 		}
 
+	}
+
+	public void addJavaAdditionnalProperty(File configFile, String property, String value)
+			throws IOException {
+
+		FileService fileService = new FileService(null);
+
+		StringBuilder newContent = new StringBuilder();
+
+		boolean added = false;
+		boolean inAdditionnalSection = false;
+		int lastIndex = 0;
+		for (String line : fileService.readFileToLinesWithoutExpectableIOException(configFile)) {
+			if (line.startsWith("wrapper.java.additional") && !line.startsWith("wrapper.java.additional.auto")) {
+				inAdditionnalSection = true;
+				String additionalParam = StringUtils.substringAfter(line, "=");
+				lastIndex++;
+				newContent.append("wrapper.java.additional." + lastIndex + "=" + additionalParam + "\n");
+
+			} else {
+				if (inAdditionnalSection) {
+					inAdditionnalSection = false;
+					if (!added) {
+						added = true;
+						lastIndex++;
+						newContent.append("wrapper.java.additional." + lastIndex + "=-D" + property + "=" + value + "\n");
+					}
+
+				}
+				newContent.append(line + "\n");
+			}
+		}
+
+		try {
+			fileService.replaceFileContent(configFile, newContent.toString());
+		} catch (IOException e) {
+			throw new IOException("Error while writing in configuration file", e);
+		}
 	}
 
 	private String modifyFileContent(String configFileContent) {

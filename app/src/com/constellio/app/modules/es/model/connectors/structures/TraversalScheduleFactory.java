@@ -1,11 +1,11 @@
 package com.constellio.app.modules.es.model.connectors.structures;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 
 import java.util.StringTokenizer;
 
-public class TraversalScheduleFactory implements StructureFactory {
+public class TraversalScheduleFactory implements CombinedStructureFactory {
 	private static final String NULL = "~null~";
 	private static final String ELEMENT_SEPARATOR = ":";
 

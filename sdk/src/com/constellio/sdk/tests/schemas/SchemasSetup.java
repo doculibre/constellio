@@ -56,7 +56,7 @@ public abstract class SchemasSetup {
 
 			if (collectionsManager != null && !collectionsManager.getCollectionCodes().contains(setup.collection)) {
 				try {
-					collectionsManager.createCollectionInCurrentVersion(setup.collection, setup.languages);
+					collectionsManager.createCollection(setup.collection, setup.languages);
 				} catch (ConstellioModulesManagerException_ModuleInstallationFailed constellioModulesManagerException_moduleInstallationFailed) {
 					throw new RuntimeException(constellioModulesManagerException_moduleInstallationFailed);
 

@@ -1,5 +1,6 @@
 package com.constellio.model.services.records;
 
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -42,5 +43,18 @@ public class StringRecordIdLegacyPersistedMappingAcceptanceTest extends Constell
 		assertThat(mapping2.getStringId(-666)).isEqualTo(StringRecordId.INVALID_ID);
 
 		assertThat(runnableCalled.get()).isEqualTo(1);
+	}
+
+	@Test
+	public void whenInsertingZZRecordsThenNotPersisted() {
+		prepareSystem(withZeCollection());
+
+		int mappedId1 = RecordId.toId("00000123456ZZ").intValue();
+		int mappedId2 = RecordId.toId("00000234567ZZ").intValue();
+
+		assertThat(mappedId1).isEqualTo(123456);
+		assertThat(mappedId2).isEqualTo(234567);
+
+		RecordId.toId("4fef2850-8907-11e8-a6e9-005056ab92ad").intValue();
 	}
 }

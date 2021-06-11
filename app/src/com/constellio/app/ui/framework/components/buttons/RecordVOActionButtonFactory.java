@@ -6,7 +6,6 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.MenuItemFactory;
-import com.constellio.app.services.menu.MenuItemFactory.CommandCallback;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -24,8 +23,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Button;
 import org.apache.commons.collections4.MapUtils;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -74,13 +73,41 @@ public class RecordVOActionButtonFactory {
 	}
 
 	public List<Button> build() {
+		List<MenuItemAction> menuItemActions = buildMenuItemActions();
+
+		return menuItemFactory.buildActionButtons(menuItemActions, buildMenuItemRecordProvider(), (menuItemAction, component) -> {
+			Button button = (Button) component;
+			button.setEnabled(menuItemAction.getState().getStatus() != MenuItemActionStateStatus.DISABLED);
+			button.setEnabled(menuItemAction.getState().getStatus() == MenuItemActionStateStatus.VISIBLE);
+		});
+	}
+
+	@NotNull
+	public MenuItemRecordProvider buildMenuItemRecordProvider() {
+		return new MenuItemRecordProvider() {
+			@Override
+			public List<Record> getRecords() {
+				if (recordVO == null) {
+					return Collections.emptyList();
+				}
+				return Collections.singletonList(recordVO.getRecord());
+			}
+
+			@Override
+			public LogicalSearchQuery getQuery() {
+				return null;
+			}
+		};
+	}
+
+	public List<MenuItemAction> buildMenuItemActions() {
 		Record record = null;
 
 		if (recordVO != null) {
 			record = recordServices.getDocumentById(recordVO.getId());
 		}
 
-		List<MenuItemAction> menuItemActions = menuItemServices.getActionsForRecord(record, excludedActionTypes,
+		return menuItemServices.getActionsForRecord(record, excludedActionTypes,
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
@@ -123,35 +150,6 @@ public class RecordVOActionButtonFactory {
 						return objectRecordVO;
 					}
 				});
-
-		return menuItemFactory.buildActionButtons(menuItemActions, new MenuItemRecordProvider() {
-			@Override
-			public List<Record> getRecords() {
-				if (recordVO == null) {
-					return Collections.emptyList();
-				}
-				return Arrays.asList(recordVO.getRecord());
-			}
-
-			@Override
-			public LogicalSearchQuery getQuery() {
-				return null;
-			}
-		}, new CommandCallback() {
-			@Override
-			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
-				Button button = (Button) component;
-				button.setEnabled(menuItemAction.getState().getStatus() != MenuItemActionStateStatus.DISABLED);
-				button.setEnabled(menuItemAction.getState().getStatus() == MenuItemActionStateStatus.VISIBLE);
-				//				View currentView = ConstellioUI.getCurrent().getCurrentView();
-				//				// No point in refreshing menu if we left the original page
-				//				if (currentView == originalView) {
-				//					// Recursive call
-				//					buildMenuItems();
-				//				}
-			}
-
-		});
 	}
 
 }

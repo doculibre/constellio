@@ -6,7 +6,6 @@ import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -155,21 +154,6 @@ public class UserCredentialVO implements Serializable {
 
 	public Set<String> getCollections() {
 		return collections;
-	}
-
-	public String getStringCollections() {
-		boolean first = true;
-		StringBuilder sb = new StringBuilder();
-		Iterator iterator = collections.iterator();
-		while (iterator.hasNext()) {
-			if (first) {
-				first = false;
-			} else {
-				sb.append(", ");
-			}
-			sb.append(iterator.next());
-		}
-		return sb.toString();
 	}
 
 	public void setCollections(Set<String> collections) {

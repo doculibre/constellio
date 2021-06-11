@@ -18,12 +18,14 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.RetentionRuleDocumentType;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -39,6 +41,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
+import com.constellio.model.services.records.GetRecordOptions;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -49,7 +53,15 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 import static com.constellio.app.modules.rm.model.calculators.document.DocumentDecomDatesDynamicLocalDependency.isMetadataUsableByCopyRetentionRules;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -70,9 +82,13 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 
 	private boolean reloadingForm = false;
 
+	private Set<Supplier<List<Record>>> additionalRecordsToUpdateList;
+
 	public AddEditRetentionRulePresenter(AddEditRetentionRuleView view) {
 		super(view, RetentionRule.DEFAULT_SCHEMA);
 		reloadingForm = true;
+
+		additionalRecordsToUpdateList = new HashSet<>();
 	}
 
 	public void forParams(String id) {
@@ -155,6 +171,8 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 					saveUniformSubdivisions(record.getId(), rule.getUniformSubdivisions());
 				}
 
+				saveAdditionnalRecordsToUpdate();
+
 				view.navigate().to(RMViews.class).listRetentionRules();
 			} catch (ValidationRuntimeException e) {
 				view.showErrorMessage($(e.getValidationErrors()));
@@ -182,6 +200,27 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		MetadataSchema schema = schema(Category.DEFAULT_SCHEMA);
 		Metadata ruleMetadata = schema.getMetadata(Category.RETENTION_RULES);
 		saveInvertedRelation(id, categories, schema, ruleMetadata);
+	}
+
+
+	private void saveAdditionnalRecordsToUpdate() {
+		Map<String, Record> recordsToUpdate = new HashMap<>();
+
+		additionalRecordsToUpdateList.stream()
+				.map(Supplier::get)
+				.flatMap(List::stream)
+				.forEach(record -> recordsToUpdate.put(record.getId(), record));
+
+		try {
+			if (!recordsToUpdate.isEmpty()) {
+				recordServices().execute(
+						new Transaction(recordsToUpdate.values().toArray(new Record[0]))
+								.setUser(getCurrentUser())
+				);
+			}
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private void saveUniformSubdivisions(String id, List<String> subdivisions) {
@@ -413,5 +452,41 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 
 	public boolean areSubdivisionUniformEnabled() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areUniformSubdivisionEnabled();
+	}
+
+	public void getCategoriesThatTheRetentionRuleDocumentTypeCanChooseFrom(List<String> categoryIds,
+																		   Consumer<Category> addCategory) {
+		if (addCategory != null && categoryIds != null) {
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+
+			categoryIds.stream()
+					.map(categoryId -> recordServices.get(categoryId, GetRecordOptions.RETURNING_SUMMARY))
+					.map(rm::wrapCategory)
+					.forEach(addCategory);
+		}
+	}
+
+	public boolean canRemoveThisCategory(String id, List<RecordVO> retentionRuleDocumentTypeVOS) {
+		boolean canRemoveThisCategory;
+
+		if (retentionRuleDocumentTypeVOS != null) {
+			canRemoveThisCategory = retentionRuleDocumentTypeVOS.stream()
+					.filter(Objects::nonNull)
+					.map(retentionRuleDocumentTypeVO -> retentionRuleDocumentTypeVO.get(RetentionRuleDocumentType.CATEGORY))
+					.noneMatch(id::equals);
+		} else {
+			canRemoveThisCategory = true;
+		}
+
+		return canRemoveThisCategory;
+	}
+
+	public void addAdditionnalRecordsToUpdate(Supplier<List<Record>> additionalRecordsToUpdate) {
+		additionalRecordsToUpdateList.add(additionalRecordsToUpdate);
+	}
+
+	public void removeAdditionnalRecordsToUpdate(Supplier<List<Record>> additionalRecordsToUpdate) {
+		additionalRecordsToUpdateList.remove(additionalRecordsToUpdate);
 	}
 }

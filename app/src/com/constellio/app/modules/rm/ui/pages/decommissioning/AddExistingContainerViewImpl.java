@@ -1,5 +1,8 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
@@ -16,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -121,8 +125,15 @@ public class AddExistingContainerViewImpl extends SearchViewImpl<AddExistingCont
 	}
 
 	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		List<Button> listButton = new ArrayList<>(super.getQuickActionMenuButtons());
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				getActionButtons().stream().map(MenuItemActionConverter::toMenuItemAction).collect(Collectors.toList())
+		);
+	}
+
+	protected List<Button> getActionButtons() {
+		List<Button> listButton = new ArrayList<>();
 
 		Button addContainerButton = buildAddExistingContainerButton();
 		addContainerButton.setEnabled(!this.getSelectedRecordIds().isEmpty());

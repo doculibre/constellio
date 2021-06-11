@@ -3,7 +3,9 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUrlStatus;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.roles.Roles;
+import org.joda.time.LocalDate;
 
 public class ExternalAccessUser extends User {
 
@@ -44,8 +46,7 @@ public class ExternalAccessUser extends User {
 
 	@Override
 	public UserPermissionsChecker hasWriteAccess() {
-		boolean hasWriteAccess = externalAccessUrl.getStatus() == ExternalAccessUrlStatus.OPEN;
-		return new ExternalAccessPermissionsChecker(this, false, hasWriteAccess, false);
+		return new ExternalAccessPermissionsChecker(this, false, true, false);
 	}
 
 	private class ExternalAccessPermissionsChecker extends AccessUserPermissionsChecker {
@@ -56,14 +57,40 @@ public class ExternalAccessUser extends User {
 
 		@Override
 		public boolean on(Record record) {
-			return record.getId().equals(externalAccessUrl.getAccessRecord());
+			return on(record.getId());
 		}
 
 		@Override
 		public boolean on(RecordWrapper recordWrapper) {
-			return recordWrapper.getId().equals(externalAccessUrl.getAccessRecord());
+			return on(recordWrapper.getId());
 		}
 
+		private boolean on(String recordId) {
+			if (!recordId.equals(externalAccessUrl.getAccessRecord())) {
+				return false;
+			}
+
+			if (externalAccessUrl.getStatus() != ExternalAccessUrlStatus.OPEN &&
+				externalAccessUrl.getStatus() != ExternalAccessUrlStatus.TO_CLOSE) {
+				return false;
+			}
+
+			if (externalAccessUrl.getExpirationDate().isBefore(LocalDate.now())) {
+				return false;
+			}
+
+			if (readAccess) {
+				return externalAccessUrl.getRoles().contains(Role.WRITE)
+					   || externalAccessUrl.getRoles().contains(Role.READ);
+			}
+
+			if (writeAccess) {
+				return externalAccessUrl.getStatus() == ExternalAccessUrlStatus.OPEN
+					   && externalAccessUrl.getRoles().contains(Role.WRITE);
+			}
+
+			return false;
+		}
 	}
 
 }

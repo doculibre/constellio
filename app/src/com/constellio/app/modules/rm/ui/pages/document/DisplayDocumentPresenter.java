@@ -13,7 +13,6 @@ import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
-import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
@@ -71,11 +70,12 @@ import static com.constellio.app.modules.rm.constants.RMPermissionsTo.VIEW_DOCUM
 import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
+import static com.constellio.model.services.records.GetRecordOptions.RETURNING_SUMMARY;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> implements SecurityWithNoUrlParamSupport {
-	
+
 	private transient RecordServices recordServices;
 	private DocumentRecordActionsServices documentRecordActionsServices;
 
@@ -109,7 +109,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		this.inWindow = inWindow;
 		initTransientObjects();
 		documentRecordActionsServices = new DocumentRecordActionsServices(collection, appLayerFactory);
-		
+
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
 			public void updateActionsComponent() {
@@ -230,7 +230,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				query.setCondition(from(tasks.userTask.schemaType()).where(taskDocumentMetadata).is(documentVO.getId()));
 				query.filteredByStatus(StatusFilter.ACTIVES);
-				query.filteredWithUser(getCurrentUser());
+				query.filteredWithUserRead(getCurrentUser());
 
 				//This query use a function sort which is not yet supported in cache. We first test if the cache has results before returning it
 
@@ -265,38 +265,43 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void backgroundViewMonitor() {
 		clearRequestCache();
 		DocumentVO documentVO = presenterUtils.getRecordVO();
-		try {
-			ContentVersionVO contentVersionVO = documentVO.getContent();
-			Record currentRecord = getRecord(documentVO.getId());
-			Document currentDocument = new Document(currentRecord, types());
-			Content currentContent = currentDocument.getContent();
-			ContentVersion currentContentVersion =
-					currentContent != null ? currentContent.getCurrentVersionSeenBy(getCurrentUser()) : null;
-			String currentContentVersionNumber = currentContentVersion != null ? currentContentVersion.getVersion() : null;
-			String currentCheckoutUserId = currentContent != null ? currentContent.getCheckoutUserId() : null;
-			Long currentLength = currentContentVersion != null ? currentContentVersion.getLength() : null;
-			if (ObjectUtils.notEqual(lastKnownContentVersionNumber, currentContentVersionNumber)
-				|| ObjectUtils.notEqual(lastKnownCheckoutUserId, currentCheckoutUserId)
-				|| ObjectUtils.notEqual(lastKnownLength, currentLength)) {
-				documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY, view.getSessionContext());
-				view.setRecordVO(documentVO);
-				presenterUtils.setRecordVO(documentVO);
-				presenterUtils.updateActionsComponent();
-				updateContentVersions();
-				view.refreshActionMenu();
-				if ((lastKnownCheckoutUserId != null && currentCheckoutUserId == null)
-					|| ObjectUtils.notEqual(lastKnownLength, currentLength)) {
-					view.refreshContentViewer();
-				}
-			}
 
-			contentVersionVO = documentVO.getContent();
-			lastKnownContentVersionNumber = contentVersionVO != null ? contentVersionVO.getVersion() : null;
-			lastKnownCheckoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
-			lastKnownLength = contentVersionVO != null ? contentVersionVO.getLength() : null;
-		} catch (NoSuchRecordWithId e) {
-			view.invalidate();
+		Record currentRecordSummary = recordServices.get(documentVO.getId(), RETURNING_SUMMARY);
+		if (currentRecordSummary != null && documentVO.getRecord().getVersion() != currentRecordSummary.getVersion()) {
+			try {
+				ContentVersionVO contentVersionVO = documentVO.getContent();
+				Record currentRecord = getRecord(documentVO.getId());
+				Document currentDocument = new Document(currentRecord, types());
+				Content currentContent = currentDocument.getContent();
+				ContentVersion currentContentVersion =
+						currentContent != null ? currentContent.getCurrentVersionSeenBy(getCurrentUser()) : null;
+				String currentContentVersionNumber = currentContentVersion != null ? currentContentVersion.getVersion() : null;
+				String currentCheckoutUserId = currentContent != null ? currentContent.getCheckoutUserId() : null;
+				Long currentLength = currentContentVersion != null ? currentContentVersion.getLength() : null;
+				if (ObjectUtils.notEqual(lastKnownContentVersionNumber, currentContentVersionNumber)
+					|| ObjectUtils.notEqual(lastKnownCheckoutUserId, currentCheckoutUserId)
+					|| ObjectUtils.notEqual(lastKnownLength, currentLength)) {
+					documentVO = voBuilder.build(currentRecord, VIEW_MODE.DISPLAY, view.getSessionContext());
+					view.setRecordVO(documentVO);
+					presenterUtils.setRecordVO(documentVO);
+					presenterUtils.updateActionsComponent();
+					updateContentVersions();
+					view.refreshActionMenu();
+					if ((lastKnownCheckoutUserId != null && currentCheckoutUserId == null)
+						|| ObjectUtils.notEqual(lastKnownLength, currentLength)) {
+						view.refreshContentViewer();
+					}
+				}
+
+				contentVersionVO = documentVO.getContent();
+				lastKnownContentVersionNumber = contentVersionVO != null ? contentVersionVO.getVersion() : null;
+				lastKnownCheckoutUserId = contentVersionVO != null ? contentVersionVO.getCheckoutUserId() : null;
+				lastKnownLength = contentVersionVO != null ? contentVersionVO.getLength() : null;
+			} catch (NoSuchRecordWithId e) {
+				view.invalidate();
+			}
 		}
+
 	}
 
 	@Override
@@ -505,7 +510,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public MetadataSchemaVO getSchema() {
-		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+		return new MetadataSchemaToVOBuilder().build(schema(Document.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 	}
 
 	public void tasksTabSelected() {
@@ -582,5 +587,9 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		document = rm.wrapDocument(record);
 		documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setRecordVO(documentVO);
+	}
+
+	public boolean seeSourceField() {
+		return getAllAuthorizations().stream().filter(auth -> auth.getSource() != null).findAny().isPresent();
 	}
 }

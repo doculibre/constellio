@@ -1,9 +1,9 @@
 package com.constellio.model.services.background;
 
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.FoldersLocatorMode;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.enums.BackgroundRecordsReindexingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -12,7 +12,6 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -61,7 +60,8 @@ public class RecordsReindexingBackgroundAction implements Runnable {
 		boolean officeHours = isOfficeHours();
 
 		if (!Toggle.PERFORMANCE_TESTING.isEnabled()
-			&& ReindexingServices.getReindexingInfos() == null &&
+			&& Toggle.CACHES_ENABLED.isEnabled()
+			&& !modelLayerFactory.isReindexing() &&
 			(modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized() ||
 			 !modelLayerFactory.getConfiguration().isSummaryCacheEnabled())) {
 			boolean found = false;

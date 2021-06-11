@@ -87,22 +87,6 @@ public class MetadataBuilder_UniqueValueFlagTest extends MetadataBuilderTest {
 		assertThat(metadataWithInheritanceBuilder.isUniqueValue()).isTrue();
 	}
 
-	@Test(expected = MetadataBuilderRuntimeException.MetadataCannotBeUniqueAndMultivalue.class)
-	public void givenSetMultivalueBeforeUniqueValueThenException()
-			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setMultivalue(true).setUniqueValue(true);
-
-		build();
-	}
-
-	@Test(expected = MetadataBuilderRuntimeException.MetadataCannotBeUniqueAndMultivalue.class)
-	public void givenSetUniqueValueBeforeMultivalueThenException()
-			throws Exception {
-		inheritedMetadataBuilder.setType(STRING).setUniqueValue(true).setMultivalue(true);
-
-		build();
-	}
-
 	@Test
 	public void givenTrueFlagModifiedInInheritedMetadataBuilderThenModifiedInMetadataWithHeritance()
 			throws Exception {

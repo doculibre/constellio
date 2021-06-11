@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.mail.Flags;
+import javax.mail.Flags.Flag;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -19,12 +20,15 @@ import javax.mail.Store;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.search.FlagTerm;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
@@ -59,9 +63,13 @@ public class EmailServicesAcceptanceTest extends ConstellioTest {
 		emailServices.sendEmail(email);
 
 		List<Message> messages = getEmailById(email.getSubject());
-		assertThat(messages).hasSize(1);
-		assertThat(messages.get(0).getAllRecipients()).hasSize(1);
-		assertThat(messages.get(0).getSubject()).isEqualTo(email.getSubject());
+		try {
+			assertThat(messages).hasSize(1);
+			assertThat(messages.get(0).getAllRecipients()).hasSize(1);
+			assertThat(messages.get(0).getSubject()).isEqualTo(email.getSubject());
+		} finally {
+			assertThat(cleanInbox()).isFalse();
+		}
 	}
 
 	private void prepareValidEmail(Session session)
@@ -104,6 +112,15 @@ public class EmailServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		email.setRecipient(Message.RecipientType.TO, new InternetAddress("invalidEmail"));
 		emailServices.sendEmail(email);
+	}
+
+	@Test
+	public void givenUserHasAFullNameThenSetupMessageWithNameInExpeditor() throws IOException, MessagingException {
+
+		MimeMessage message = emailServices.createMimeMessage("joe@acme.com", "Test", "This is a test",
+				new ArrayList<>(), getAppLayerFactory().getModelLayerFactory().getSystemConfigs(), "Joe Jo");
+
+		assertThat(message.getFrom()[0].toString()).isEqualTo("Joe Jo <joe@acme.com>");
 	}
 
 	private List<Message> getEmailById(final String id) {
@@ -150,6 +167,39 @@ public class EmailServicesAcceptanceTest extends ConstellioTest {
 			throw new RuntimeException(e);
 		}
 		return returnList;
+	}
+
+	private boolean cleanInbox() {
+		AtomicBoolean errorEncountered = new AtomicBoolean(false);
+
+		Store store = null;
+		Folder inbox = null;
+		try {
+			store = session.getStore("imaps");
+			store.connect("smtp.gmail.com", SDKPasswords.testIMAPUsername(), SDKPasswords.testIMAPPassword());
+			inbox = store.getFolder("Inbox");
+			inbox.open(Folder.READ_WRITE);
+
+			FlagTerm unseen = new FlagTerm(new Flags(Flags.Flag.SEEN), false);
+			Arrays.stream(inbox.search(unseen)).forEach(message -> {
+				try {
+					message.setFlag(Flag.DELETED, true);
+				} catch (MessagingException e) {
+					errorEncountered.set(true);
+				}
+			});
+
+		} catch (Exception e) {
+			errorEncountered.set(true);
+		} finally {
+			try {
+				inbox.close(true);
+				store.close();
+			} catch (Exception ignored) {
+			}
+		}
+
+		return errorEncountered.get();
 	}
 
 }

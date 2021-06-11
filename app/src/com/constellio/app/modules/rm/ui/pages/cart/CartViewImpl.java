@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.menu.RMRecordsMenuItemServices.RMRecordsMenuItemActionType;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -8,8 +9,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
-import com.constellio.app.services.menu.MenuItemFactory;
-import com.constellio.app.services.menu.MenuItemFactory.CommandCallback;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -19,16 +18,18 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
+import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer.RecordVOLazyQueryFactory.RecordVOWithDistinctSchemaItem;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -47,6 +48,8 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
@@ -63,7 +66,11 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.collections4.MapUtils;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
@@ -71,12 +78,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 public class CartViewImpl extends BaseViewImpl implements CartView {
 
+	private static Logger LOGGER = LoggerFactory.getLogger(CartViewImpl.class);
 	private boolean isNested;
 	private final CartPresenter presenter;
 	private CartTabLayout folderLayout;
@@ -90,9 +99,16 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private BaseTextField containerFilterField;
 	private String currentSchemaType;
 	private VerticalLayout mainLayout;
-	private RecordListMenuBar folderListMenuBar;
-	private RecordListMenuBar documentListMenuBar;
-	private RecordListMenuBar containerListMenuBar;
+	private ActionMenuDisplay folderActionMenu;
+	private ActionMenuDisplay documentActionMenu;
+	private ActionMenuDisplay containerActionMenu;
+	private SelectDeselectAllButton folderSelectDeselectAllButton;
+	private SelectDeselectAllButton documentSelectDeselectAllButton;
+	private SelectDeselectAllButton containerSelectDeselectAllButton;
+	private List<CheckBox> allFoldersCheckBoxes;
+	private List<CheckBox> allDocumentsCheckBoxes;
+	private List<CheckBox> allContainersCheckBoxes;
+	private boolean allSelected;
 
 	public CartViewImpl() {
 		this(null, false);
@@ -101,6 +117,10 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	public CartViewImpl(String cartId, boolean isNested) {
 		this.isNested = isNested;
 		presenter = new CartPresenter(cartId, this);
+		allFoldersCheckBoxes = new ArrayList<>();
+		allDocumentsCheckBoxes = new ArrayList<>();
+		allContainersCheckBoxes = new ArrayList<>();
+		allSelected = false;
 	}
 
 	@Override
@@ -131,17 +151,13 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	@Override
-	protected boolean isActionMenuBar() {
-		return true;
-	}
-
-	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
 		return true;
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		MenuItemServices menuItemServices = new MenuItemServices(this.getCollection(), getConstellioFactories().getAppLayerFactory());
 		Cart cart = presenter.getCart();
 		Record record = null;
 		if (cart != null) {
@@ -151,8 +167,10 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		}
 
 		List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name());
-		List<MenuItemAction> menuItemActions = new MenuItemServices(this.getCollection(), getConstellioFactories().getAppLayerFactory())
-				.getActionsForRecord(record, excludedActionTypes, new MenuItemActionBehaviorParams() {
+
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				menuItemServices.getActionsForRecord(record, excludedActionTypes, new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
 						return (BaseView) ConstellioUI.getCurrent().getCurrentView();
@@ -177,32 +195,48 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 					public boolean isContextualMenu() {
 						return true;
 					}
-				});
-		return new MenuItemFactory().buildActionButtons(menuItemActions, new MenuItemRecordProvider() {
+				})
+		);
+	}
+
+	@Override
+	protected ActionMenuDisplay buildActionMenuDisplay(final ActionMenuDisplay defaultActionMenuDisplay) {
+
+		ActionMenuDisplay actionMenuDisplay = new ActionMenuDisplay(defaultActionMenuDisplay) {
 			@Override
-			public List<Record> getRecords() {
-				return presenter.getAllCartItemRecords();
+			public Supplier<MenuItemRecordProvider> getMenuItemRecordProviderSupplier() {
+				return () -> new MenuItemRecordProvider() {
+					@Override
+					public List<Record> getRecords() {
+						return presenter.getAllCartItemRecords();
+					}
+
+					@Override
+					public LogicalSearchQuery getQuery() {
+						return null;
+					}
+				};
 			}
 
 			@Override
-			public LogicalSearchQuery getQuery() {
-				return null;
+			public Supplier<String> getSchemaTypeCodeSupplier() {
+				return presenter.getCartMetadataSchema().getSchemaType()::getCode;
 			}
-		}, new CommandCallback() {
+
+			@Override
+			public boolean isQuickActionsAreVisible() {
+				return false;
+			}
+
 			@Override
 			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
 				Button button = (Button) component;
 				button.setEnabled(menuItemAction.getState().getStatus() != MenuItemActionStateStatus.DISABLED);
 				button.setEnabled(menuItemAction.getState().getStatus() == MenuItemActionStateStatus.VISIBLE);
-				//				View currentView = ConstellioUI.getCurrent().getCurrentView();
-				//				// No point in refreshing menu if we left the original page
-				//				if (currentView == originalView) {
-				//					// Recursive call
-				//					buildMenuItems();
-				//				}
 			}
+		};
 
-		});
+		return actionMenuDisplay;
 	}
 
 	@Override
@@ -245,6 +279,35 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private HorizontalLayout buildFolderFilterAndMenuBarComponent() {
 		HorizontalLayout filterAndMenuBarComponent = new HorizontalLayout();
 		filterAndMenuBarComponent.setSpacing(true);
+		folderSelectDeselectAllButton = new SelectDeselectAllButton($("CartView.selectAllFolders"), $("CartView.deselectAllFolders")) {
+			@Override
+			protected void onSelectAll(ClickEvent event) {
+				allSelected = true;
+				presenter.setAllRecordsSelected(Folder.SCHEMA_TYPE);
+				for (CheckBox checkBox : allFoldersCheckBoxes) {
+					checkBox.setValue(true);
+				}
+				allSelected = false;
+				refreshSelectionActionMenuBar();
+			}
+
+			@Override
+			protected void onDeselectAll(ClickEvent event) {
+				allSelected = false;
+				presenter.emptySelectedRecords();
+				for (CheckBox checkBox : allFoldersCheckBoxes) {
+					checkBox.setValue(false);
+				}
+				refreshSelectionActionMenuBar();
+			}
+
+			@Override
+			protected void buttonClickCallBack(boolean selectAllMode) {
+
+			}
+		};
+
+		folderSelectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		folderFilterField = new BaseTextField();
 		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
 			@Override
@@ -252,16 +315,44 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.folderFilterButtonClicked();
 			}
 		};
-		folderListMenuBar = buildSelectionPanelMenuBar();
-		folderListMenuBar.setVisible(true);
-		folderListMenuBar.buildMenuItems();
-		filterAndMenuBarComponent.addComponents(folderFilterField, filterButton, folderListMenuBar);
+
+		folderActionMenu = buildActionMenuDisplay();
+
+		filterAndMenuBarComponent.addComponents(folderFilterField, filterButton, folderSelectDeselectAllButton, folderActionMenu);
 
 		return filterAndMenuBarComponent;
 	}
 
 	private HorizontalLayout buildDocumentFilterAndMenuBarComponent() {
 		HorizontalLayout filterAndMenuBarComponent = new HorizontalLayout();
+		documentSelectDeselectAllButton = new SelectDeselectAllButton($("CartView.selectAllDocuments"), $("CartView.deselectAllDocuments")) {
+			@Override
+			protected void onSelectAll(ClickEvent event) {
+				allSelected = true;
+				presenter.setAllRecordsSelected(Document.SCHEMA_TYPE);
+				for (CheckBox checkBox : allDocumentsCheckBoxes) {
+					checkBox.setValue(true);
+				}
+				allSelected = false;
+				refreshSelectionActionMenuBar();
+			}
+
+			@Override
+			protected void onDeselectAll(ClickEvent event) {
+				allSelected = false;
+				for (CheckBox checkBox : allDocumentsCheckBoxes) {
+					checkBox.setValue(false);
+				}
+				refreshSelectionActionMenuBar();
+			}
+
+			@Override
+			protected void buttonClickCallBack(boolean selectAllMode) {
+				;
+			}
+		};
+
+		documentSelectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		filterAndMenuBarComponent.setSpacing(true);
 		documentFilterField = new BaseTextField();
 		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
@@ -270,15 +361,42 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.documentFilterButtonClicked();
 			}
 		};
-		documentListMenuBar = buildSelectionPanelMenuBar();
-		documentListMenuBar.setVisible(true);
-		documentListMenuBar.buildMenuItems();
-		filterAndMenuBarComponent.addComponents(documentFilterField, filterButton, documentListMenuBar);
+
+		documentActionMenu = buildActionMenuDisplay();
+		filterAndMenuBarComponent.addComponents(documentFilterField, filterButton, documentSelectDeselectAllButton, documentActionMenu);
 		return filterAndMenuBarComponent;
 	}
 
 	private HorizontalLayout buildContainerFilterAndMenuBarComponent() {
 		HorizontalLayout filterAndMenuBarComponent = new HorizontalLayout();
+		containerSelectDeselectAllButton = new SelectDeselectAllButton($("CartView.selectAllContainers"), $("CartView.deselectAllContainers")) {
+			@Override
+			protected void onSelectAll(ClickEvent event) {
+				allSelected = true;
+				presenter.setAllRecordsSelected(ContainerRecord.SCHEMA_TYPE);
+				for (CheckBox checkBox : allContainersCheckBoxes) {
+					checkBox.setValue(true);
+				}
+				allSelected = false;
+				refreshSelectionActionMenuBar();
+			}
+
+			@Override
+			protected void onDeselectAll(ClickEvent event) {
+				allSelected = false;
+				for (CheckBox checkBox : allContainersCheckBoxes) {
+					checkBox.setValue(false);
+				}
+				refreshSelectionActionMenuBar();
+			}
+
+			@Override
+			protected void buttonClickCallBack(boolean selectAllMode) {
+				;
+			}
+		};
+
+		containerSelectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
 		filterAndMenuBarComponent.setSpacing(true);
 		containerFilterField = new BaseTextField();
 		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
@@ -287,21 +405,19 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				presenter.containerFilterButtonClicked();
 			}
 		};
-		containerListMenuBar = buildSelectionPanelMenuBar();
-		containerListMenuBar.setVisible(true);
-		containerListMenuBar.buildMenuItems();
-		filterAndMenuBarComponent.addComponents(containerFilterField, filterButton, containerListMenuBar);
+		containerActionMenu = buildActionMenuDisplay();
+		filterAndMenuBarComponent.addComponents(containerFilterField, filterButton, containerSelectDeselectAllButton, containerActionMenu);
 		return filterAndMenuBarComponent;
 	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		addStyleName("cart-view");
-		
+
 		FireableTabSheet tabSheet = new FireableTabSheet();
 		folderTable = buildFolderTable("CartView.folders", presenter.getFolderRecords());
-		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
-		containerTable = buildTable("CartView.containers", presenter.getContainerRecords());
+		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords(), FavorisType.FAVORITE_DOCUMENTS);
+		containerTable = buildTable("CartView.containers", presenter.getContainerRecords(), FavorisType.FAVORITE_CONTAINER);
 
 		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new CartTabLayout(buildFolderFilterAndMenuBarComponent(), folderTable));
 		folderTab.setCaption($("CartView.foldersTab"));
@@ -340,22 +456,38 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return mainLayout;
 	}
 
-	private RecordListMenuBar buildSelectionPanelMenuBar() {
-		final MenuItemRecordProvider recordProvider = new MenuItemRecordProvider() {
+	private ActionMenuDisplay buildActionMenuDisplay() {
+		ActionMenuDisplay actionMenuDisplay = new ActionMenuDisplay(presenter::getMenuItemActionsForBatch, presenter::getMenuItemRecordProvider, presenter::getActionMenuDisplaySchemaTypecodeForBatch) {
+
+			@NotNull
 			@Override
-			public List<Record> getRecords() {
-				return presenter.getSelectedRecords();
+			public String getMenuBarRootCaption() {
+				return $("ConstellioHeader.selectionActions");
 			}
 
 			@Override
-			public LogicalSearchQuery getQuery() {
-				return null;
+			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+
+				if (currentView.getClass().equals(CartViewImpl.this.getClass())) {
+					refresh();
+				}
+			}
+
+			@Override
+			public boolean isQuickActionsAreVisible() {
+				return false;
+			}
+
+			@Override
+			public boolean isHiddenWhenNoActionOrStateAreAllNotVisible() {
+				return true;
 			}
 		};
 
-		List<String> excludedActionTypes = Arrays.asList(RMRecordsMenuItemActionType.RMRECORDS_ADD_SELECTION.name(), RMRecordsMenuItemActionType.RMRECORDS_ADD_CART.name());
-		RecordListMenuBar recordListMenuBar = new RecordListMenuBar(recordProvider, $("ConstellioHeader.selectionActions"), excludedActionTypes);
-		return recordListMenuBar;
+		actionMenuDisplay.setVisible(true);
+
+		return actionMenuDisplay;
 	}
 
 	private Table buildFolderTable(final String tableId, final RecordVOWithDistinctSchemasDataProvider dataProvider) {
@@ -397,12 +529,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 
 		};
-		table.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				int itemId = (int) event.getItemId();
-				presenter.displayRecordRequested(dataProvider.getRecordVO(itemId));
-			}
+		table.addItemClickListener((ItemClickListener) event -> {
+			RecordVOWithDistinctSchemaItem item = (RecordVOWithDistinctSchemaItem) event.getItem();
+			presenter.displayRecordRequested(item.getBean());
 		});
 		table.setColumnHeader(CommonMetadataBuilder.SUMMARY, $("CartViewImpl.summary"));
 		table.setColumnHeader(CommonMetadataBuilder.TITLE, $("title"));
@@ -411,13 +540,14 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		table.setPageLength(Math.min(15, container.size()));
 		table.setSizeFull();
 
-		SelectionCheckBoxGenerator selectionCheckBoxGenerator = new SelectionCheckBoxGenerator(dataProvider);
+		SelectionCheckBoxGenerator selectionCheckBoxGenerator = new SelectionCheckBoxGenerator(dataProvider, allFoldersCheckBoxes);
 		table = selectionCheckBoxGenerator.attachTo(table);
 
 		return table;
 	}
 
-	private Table buildTable(final String tableId, final RecordVOWithDistinctSchemasDataProvider dataProvider) {
+	private Table buildTable(final String tableId, final RecordVOWithDistinctSchemasDataProvider dataProvider,
+							 FavorisType type) {
 		final Container container = buildContainer(dataProvider);
 		Table table = new RecordVOTable($("CartView.records", container.size()), container) {
 			@Override
@@ -447,8 +577,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		table.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
-				int itemId = (int) event.getItemId();
-				presenter.displayRecordRequested(dataProvider.getRecordVO(itemId));
+				RecordVOWithDistinctSchemaItem item = (RecordVOWithDistinctSchemaItem) event.getItem();
+				presenter.displayRecordRequested(item.getBean());
 			}
 		});
 		table.setColumnHeader(CommonMetadataBuilder.SUMMARY, $("CartViewImpl.summary"));
@@ -457,9 +587,24 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		table.setColumnHeader(CommonMetadataBuilder.TITLE, $("title"));
 		table.setPageLength(Math.min(15, container.size()));
 		table.setSizeFull();
-		SelectionCheckBoxGenerator selectionCheckBoxGenerator = new SelectionCheckBoxGenerator(dataProvider);
+
+		SelectionCheckBoxGenerator selectionCheckBoxGenerator = new SelectionCheckBoxGenerator(dataProvider, getCheckBoxes(type));
 		table = selectionCheckBoxGenerator.attachTo(table);
 		return table;
+	}
+
+	private List<CheckBox> getCheckBoxes(FavorisType type) {
+		switch (type) {
+			case FAVORITE_FOLDERS:
+				return allFoldersCheckBoxes;
+			case FAVORITE_CONTAINER:
+				return allContainersCheckBoxes;
+			case FAVORITE_DOCUMENTS:
+				return allDocumentsCheckBoxes;
+			default:
+				LOGGER.error("Missing case in enum com.constellio.app.modules.rm.ui.pages.cart.CartViewImpl.FavorisType");
+				return new ArrayList<>();
+		}
 	}
 
 	@Override
@@ -481,9 +626,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		} else {
 			dataProvider = presenter.getFilteredFolderRecords(folderFilterField.getValue());
 		}
-		Table newTable = buildTable("CartView.folders", dataProvider);
+		Table newTable = buildTable("CartView.folders", dataProvider, FavorisType.FAVORITE_FOLDERS);
 		folderLayout.replaceComponent(folderTable, newTable);
 		folderTable = newTable;
+		presenter.emptySelectedRecords();
+		refreshSelectionActionMenuBar();
 	}
 
 	@Override
@@ -494,9 +641,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		} else {
 			dataProvider = presenter.getFilteredDocumentRecords(documentFilterField.getValue());
 		}
-		Table newTable = buildTable("CartView.documents", dataProvider);
+		Table newTable = buildTable("CartView.documents", dataProvider, FavorisType.FAVORITE_DOCUMENTS);
 		documentLayout.replaceComponent(documentTable, newTable);
 		documentTable = newTable;
+		presenter.emptySelectedRecords();
+		refreshSelectionActionMenuBar();
 	}
 
 	@Override
@@ -507,9 +656,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		} else {
 			dataProvider = presenter.getFilteredContainerRecords(containerFilterField.getValue());
 		}
-		Table newTable = buildTable("CartView.containers", dataProvider);
+		Table newTable = buildTable("CartView.containers", dataProvider, FavorisType.FAVORITE_CONTAINER);
 		containerLayout.replaceComponent(containerTable, newTable);
 		containerTable = newTable;
+		presenter.emptySelectedRecords();
+		refreshSelectionActionMenuBar();
 	}
 
 	private Container buildContainer(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
@@ -598,18 +749,22 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	public void refreshSelectionActionMenuBar() {
-		folderListMenuBar.buildMenuItems();
-		documentListMenuBar.buildMenuItems();
-		containerListMenuBar.buildMenuItems();
+		folderActionMenu.refresh();
+		documentActionMenu.refresh();
+		containerActionMenu.refresh();
 	}
 
 	private class SelectionCheckBoxGenerator implements ColumnGenerator {
 		public static final String CHECKBOX = "checkbox";
 
 		private RecordVOWithDistinctSchemasDataProvider dataProvider;
+		private List<CheckBox> checkBoxesRef;
 
-		public SelectionCheckBoxGenerator(RecordVOWithDistinctSchemasDataProvider dataProvider) {
+		public SelectionCheckBoxGenerator(RecordVOWithDistinctSchemasDataProvider dataProvider,
+										  List<CheckBox> checkBoxesRef) {
 			this.dataProvider = dataProvider;
+			this.checkBoxesRef = checkBoxesRef;
+			checkBoxesRef.clear();
 		}
 
 		@Override
@@ -639,21 +794,30 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 		private Object buildCheckBox(RecordVO recordVO) {
 			final CheckBox checkBox = new CheckBox();
+			checkBox.setValue(presenter.getSelectedRecords().stream().anyMatch(record -> record.getId().equals(recordVO.getId())));
+
 			checkBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(ValueChangeEvent event) {
-					if (checkBox.getValue()) {
-						presenter.addToSelectedRecords(recordVO.getId());
-						refreshSelectionActionMenuBar();
-					} else {
-						presenter.removeFromSelectedRecords(recordVO.getId());
-						refreshSelectionActionMenuBar();
+
+					if(!allSelected) {
+						if (checkBox.getValue()) {
+							presenter.addToSelectedRecords(recordVO.getId());
+							refreshSelectionActionMenuBar();
+						} else {
+							presenter.removeFromSelectedRecords(recordVO.getId());
+							refreshSelectionActionMenuBar();
+						}
 					}
 				}
 			});
 
+			checkBoxesRef.add(checkBox);
 			return checkBox;
 		}
 	}
 
+	private enum FavorisType {
+		FAVORITE_CONTAINER, FAVORITE_DOCUMENTS, FAVORITE_FOLDERS
+	}
 }

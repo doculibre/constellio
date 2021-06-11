@@ -1,5 +1,9 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
+import com.constellio.app.api.extensions.SchemaRecordFormExtension;
+import com.constellio.app.api.extensions.SchemaRecordFormExtension.SchemaRecordFormExtensionParams;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -25,6 +29,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.ui.Field;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +89,26 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 			setSchemaCode(schemaCode);
 			recordVO = new RecordToVOBuilder().build(record, VIEW_MODE.FORM, view.getSessionContext());
 		}
+	}
+
+	public boolean filterFieldToListenTo(Field<?> field) {
+		for (SchemaRecordFormExtension extension : getSchemaRecordFormExtensions()) {
+			if (extension.getFieldsToListenTo().contains(field.getId())) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public void fieldValueChanged(Field<?> field) {
+		getSchemaRecordFormExtensions().forEach(e -> e.adjustFields(new SchemaRecordFormExtensionParams(field, recordVO, view.getForm())));
+	}
+
+	private List<SchemaRecordFormExtension> getSchemaRecordFormExtensions() {
+		return ConstellioFactories.getInstance().getAppLayerFactory().getExtensions()
+				.forCollection(ConstellioUI.getCurrentSessionContext().getCurrentCollection())
+				.schemaRecordFormExtensions.getExtensions();
 	}
 
 	public void saveButtonClicked(RecordVO recordVO) {

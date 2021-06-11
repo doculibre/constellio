@@ -127,6 +127,8 @@ public class Folder extends RMObject {
 
 	public static final String ABBREVIATION = "abbreviation";
 
+	public static final String CONVERSATION = "conversation";
+
 	public Folder(Record record,
 				  MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -242,8 +244,10 @@ public class Folder extends RMObject {
 		return this;
 	}
 
-	public void removeExternalLink(String link) {
+	public Folder removeExternalLink(String link) {
 		removeExternalLinks(Arrays.asList(link));
+
+		return this;
 	}
 
 	public void removeExternalLinks(List<String> linksToRemove) {
@@ -253,8 +257,9 @@ public class Folder extends RMObject {
 		setExternalLinks(links);
 	}
 
-	public void addExternalLink(String link) {
+	public Folder addExternalLink(String link) {
 		addExternalLinks(Arrays.asList(link));
+		return this;
 	}
 
 	public void addExternalLinks(List<String> linksToAdd) {
@@ -947,6 +952,15 @@ public class Folder extends RMObject {
 
 	public Folder setUniqueKey(String unicity) {
 		set(UNIQUE_KEY, unicity);
+		return this;
+	}
+
+	public String getConversation() {
+		return get(CONVERSATION);
+	}
+
+	public Folder setConversation(String conversation) {
+		set(CONVERSATION, conversation);
 		return this;
 	}
 

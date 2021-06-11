@@ -21,7 +21,6 @@ import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -103,7 +102,7 @@ public class TaskReminderEmailManager implements StatefulService {
 
 	void generateReminderEmails() {
 
-		if (ReindexingServices.getReindexingInfos() == null
+		if (!appLayerFactory.isReindexing()
 			&& appLayerFactory.getModelLayerFactory().getRecordsCaches().areSummaryCachesInitialized()) {
 			LogicalSearchQuery query = new LogicalSearchQuery(
 					from(taskSchemas.userTask.schemaType())

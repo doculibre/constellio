@@ -20,6 +20,7 @@ import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -27,6 +28,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -35,6 +37,7 @@ import java.util.List;
 import static com.constellio.app.api.extensions.GenericRecordPageExtension.DDV_TAB;
 import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
 import static com.constellio.app.api.extensions.GenericRecordPageExtension.TAXONOMY_TAB;
+import static com.constellio.app.services.menu.MenuItemServices.BATCH_ACTIONS_FAKE_SCHEMA_TYPE;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTypeView, ClickListener {
@@ -73,20 +76,26 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 		addTab(DDV_TAB, $("ListSchemaTypeView.ddvTabCaption"));
 		addTab(OTHERS_TAB, $("ListSchemaTypeView.othersTabCaption"));
 
+
+		Button batchActionMenuEditor = buildBatchActionMenuConfigButton();
+		viewLayout.addComponent(batchActionMenuEditor, 0);
+		viewLayout.setComponentAlignment(batchActionMenuEditor, Alignment.BOTTOM_RIGHT);
+
 		viewLayout.addComponents(sheet);
 		return viewLayout;
 	}
 
-	public void addTab(final String id, String caption) {
-		boolean alreadyExists = false;
+	public TabWithTable addTab(final String id, String caption) {
+		TabWithTable returnedTab = null;
+
 		for (TabWithTable tab : tabs) {
 			if (tab.getId().equals(id)) {
-				alreadyExists = true;
+				returnedTab = tab;
 				break;
 			}
 		}
 
-		if (!alreadyExists) {
+		if (returnedTab == null) {
 			TabWithTable tab = new TabWithTable(id) {
 				@Override
 				public Table buildTable() {
@@ -95,7 +104,11 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 			};
 			tabs.add(tab);
 			sheet.addTab(tab.getTabLayout(), caption);
+
+			returnedTab = tab;
 		}
+
+		return returnedTab;
 	}
 
 	private Table buildTable(final SchemaTypeVODataProvider dataProvider) {
@@ -145,6 +158,24 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 			}
 		});
 
+		buttonsContainer.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				Integer index = (Integer) itemId;
+				MetadataSchemaTypeVO entity = dataProvider.getSchemaTypeVO(index);
+				IconButton button = new IconButton(new ThemeResource("images/icons/config/display-config-summary-column.png"),
+						$("MenuDisplayConfigViewImpl.displaySchemaType.menu.caption")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.editActionMenuButtonClicked(entity);
+					}
+				};
+
+				button.setVisible(presenter.editActionMenuButtonIsVisible(entity));
+				return button;
+			}
+		});
+
 		typeContainer = buttonsContainer;
 
 		Table table = new BaseTable(getClass().getName(), $("ListSchemaTypeView.tableTitle", typeContainer.size()), typeContainer);
@@ -183,5 +214,14 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 		StreamResource resource = new StreamResource(streamSource, filename);
 		resource.setMIMEType(mimeType);
 		Page.getCurrent().open(resource, "_blank", false);
+	}
+
+	private Button buildBatchActionMenuConfigButton() {
+		Button batchActionMenuEditor = new Button($("MenuDisplayConfigViewImpl.displaySchemaType.bulkAction.caption"), event -> {
+			navigateTo().menuDisplayForm(BATCH_ACTIONS_FAKE_SCHEMA_TYPE);
+		});
+		batchActionMenuEditor.addStyleName(ValoTheme.BUTTON_LINK);
+
+		return batchActionMenuEditor;
 	}
 }

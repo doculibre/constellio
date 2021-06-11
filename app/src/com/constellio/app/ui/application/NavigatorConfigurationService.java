@@ -1,5 +1,6 @@
 package com.constellio.app.ui.application;
 
+import com.constellio.app.modules.rm.ui.menuBar.MenuDisplayConfigViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.personalspace.PersonnalSpaceViewImpl;
 import com.constellio.app.modules.rm.ui.pages.systemCheck.SystemCheckViewImpl;
@@ -11,6 +12,7 @@ import com.constellio.app.ui.pages.collection.CollectionGroupViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionSecurityManagementImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
 import com.constellio.app.ui.pages.collection.CollectionUserViewImpl;
+import com.constellio.app.ui.pages.conversations.DisplayConversationViewImpl;
 import com.constellio.app.ui.pages.elevations.EditElevationViewImpl;
 import com.constellio.app.ui.pages.events.BaseEventCategoryViewImpl;
 import com.constellio.app.ui.pages.events.EventCategoriesViewImpl;
@@ -109,6 +111,7 @@ import com.constellio.app.ui.pages.user.DisplayUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.ListUsersCredentialsViewImpl;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.Navigator.ClassBasedViewProvider;
+import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewProvider;
 
 import java.io.Serializable;
@@ -169,6 +172,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String SEARCH_DISPLAY_FORM = "searchDisplayForm";
 	public static final String TABLE_DISPLAY_FORM = "tableDisplayForm";
 	public static final String FORM_DISPLAY_FORM = "formDisplayForm";
+	public static final String MENU_DISPLAY_FORM = "menuDisplayForm";
 	public static final String PERMISSION_MANAGEMENT = "permissionManagement";
 	public static final String COLLECTION_MANAGEMENT = "listCollections";
 	public static final String LIST_ONGLET = "listOnglet";
@@ -193,7 +197,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LABEL_VIEW = "viewLabel";
 	public static final String REPORT_VIEW = "viewReport";
 	public static final String PRINTABLE_REPORT_VIEW = "printableReportView";
-	public static final String PRINTABLE_REPORT_ADD = "pritnableReportAdd";
+	public static final String PRINTABLE_REPORT_ADD = "printableReportAdd";
 	public static final String PRINTABLE_REPORT_MANAGE = "printableReportManage";
 	public static final String PUBLISH_DOCUMENT = "publishDocument";
 	public static final String EXCEL_REPORT_MANAGE = "excelReportManage";
@@ -240,6 +244,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR = "FolderUniqueKeyMetadataConfigurator";
 	public static final String DISPLAY_INFOS = "displayInfos";
 	public static final String ADD_EDIT_GROUP = "addEditGroup";
+	public static final String DISPLAY_CONVERSATION = "displayConversation";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -272,6 +277,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_DISPLAY_FORM, SearchDisplayConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(TABLE_DISPLAY_FORM, TableDisplayConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(FORM_DISPLAY_FORM, FormDisplayConfigViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(MENU_DISPLAY_FORM, MenuDisplayConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS,
 				ListPrincipalAccessAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_OBJECT_ACCESS_AUTHORIZATIONS,
@@ -375,6 +381,8 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(SUMMARY_CONFIGURATOR, SummaryConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR, FolderUniqueKeyConfiguratorViewImpl.class));
 
+		viewProviders.add(new ClassBasedViewProvider(DISPLAY_CONVERSATION, DisplayConversationViewImpl.class));
+
 	}
 
 	public void configure(Navigator navigator) {
@@ -389,5 +397,11 @@ public class NavigatorConfigurationService implements Serializable {
 
 	public List<String> getViewProviders() {
 		return viewProviders.stream().map(v -> v.toString()).collect(Collectors.toList());
+	}
+
+	public Class<? extends View> getClassForView(String viewName) {
+
+		return viewProviders.stream().filter(provider -> provider instanceof ClassBasedViewProvider && provider.getViewName(viewName) != null)
+				.map(viewProvider -> ((ClassBasedViewProvider) viewProvider).getViewClass()).findFirst().orElse(null);
 	}
 }

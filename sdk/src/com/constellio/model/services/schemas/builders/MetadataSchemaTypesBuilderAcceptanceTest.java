@@ -23,7 +23,7 @@ public class MetadataSchemaTypesBuilderAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenNewSchemaAndNewSchemaThenIdCorrespond() throws Exception {
-		typesBuilder.createNewSchemaType("type1");
+		typesBuilder.createNewSchemaTypeWithSecurity("type1");
 
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypes metadataSchemaTypes1 = metadataSchemasManager.saveUpdateSchemaTypes(typesBuilder);
@@ -31,7 +31,7 @@ public class MetadataSchemaTypesBuilderAcceptanceTest extends ConstellioTest {
 		int id1 = metadataSchemaTypes1.getSchemaType("type1").getId();
 
 		MetadataSchemaTypesBuilder typesBuilder2 = getMetadataSchemaTypesBuilder();
-		typesBuilder2.createNewSchemaType("type2");
+		typesBuilder2.createNewSchemaTypeWithSecurity("type2");
 		MetadataSchemaTypes metadataSchemaTypes2 = metadataSchemasManager.saveUpdateSchemaTypes(typesBuilder2);
 
 

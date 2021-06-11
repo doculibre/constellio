@@ -3,6 +3,12 @@ package com.constellio.app.ui.pages.base;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemAction.MenuItemActionBuilder;
+import com.constellio.app.services.menu.MenuItemActionConverter;
+import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
@@ -10,23 +16,22 @@ import com.constellio.app.ui.framework.buttons.BackButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.dialogs.ConfirmDialogProperties;
-import com.constellio.app.ui.framework.components.dialogs.ConfirmDialogShowerImpl;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
-import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.pages.home.PartialRefresh;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.Stats.CallStatCompiler;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.event.UIEvents.PollEvent;
 import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
-import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -34,17 +39,11 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.MenuBar.Command;
-import com.vaadin.ui.MenuBar.MenuItem;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,9 +51,13 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.labels.ListLabelViewImpl.TYPE_TABLE;
@@ -82,15 +85,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	private Component mainComponent;
 	protected Component actionMenu;
-	private Component menuBar;
-	private List<Button> actionMenuButtons;
-	private List<Button> quickActionButtons = new ArrayList<>();
-	private Map<Button, MenuItem> actionMenuButtonsAndItems = new HashMap<>();
-//	protected I18NHorizontalLayout actionMenuBarLayout;
-
+	protected ActionMenuDisplay actionMenuDisplay;
 	private List<ViewEnterListener> viewEnterListeners = new ArrayList<>();
 
 	private List<ActionMenuButtonsDecorator> actionMenuButtonsDecorators = new ArrayList<>();
+	private final AppLayerFactory appLayerFactory;
 
 	public BaseViewImpl() {
 		this(ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory());
@@ -104,6 +103,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	public BaseViewImpl(String collection, AppLayerFactory appLayerFactory) {
 		DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
+
+		this.appLayerFactory = appLayerFactory;
 
 		statCompiler().log(() -> {
 			appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewInstanciated(params);
@@ -135,7 +136,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 				appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewAssembledOnViewEntered(params);
 				String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
-				if (collection != null) {
+				if (collection != null && ((ConstellioUI) UI.getCurrent()).getHeader() != null) {
 					((ConstellioUI) UI.getCurrent()).getHeader().setCurrentCollectionQuietly();
 					appLayerFactory.getExtensions().forCollection(collection)
 							.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
@@ -202,7 +203,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				}
 
 				actionMenu = buildActionMenu(event);
-				if ((actionMenu != null && !isActionMenuBar()) || !isFullWidthIfActionMenuAbsent()) {
+				if (!isFullWidthIfActionMenuAbsent()) {
 					addStyleName("action-menu-wrapper");
 				}
 
@@ -210,28 +211,26 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				mainComponent.setId("main-component");
 				mainComponent.addStyleName(mainComponent.getId());
 
-				if (breadcrumbTrail != null) {
-					breadcrumbTrail.setWidth(null);
-					breadcrumbTrailLayout.addComponent(breadcrumbTrail);
-					breadcrumbTrailLayout.setComponentAlignment(breadcrumbTrail, Alignment.MIDDLE_LEFT);
-				} else if (titleLabel != null) {
-					titleLabel.setWidth(null);
-					breadcrumbTrailLayout.addComponent(titleLabel);
-					breadcrumbTrailLayout.setComponentAlignment(titleLabel, Alignment.TOP_LEFT);
+				if (!ConstellioUI.getCurrent().isNested()) {
+					if (breadcrumbTrail != null) {
+						breadcrumbTrail.setWidth(null);
+						breadcrumbTrailLayout.addComponent(breadcrumbTrail);
+						breadcrumbTrailLayout.setComponentAlignment(breadcrumbTrail, Alignment.MIDDLE_LEFT);
+					} else if (titleLabel != null) {
+						titleLabel.setWidth(null);
+						breadcrumbTrailLayout.addComponent(titleLabel);
+						breadcrumbTrailLayout.setComponentAlignment(titleLabel, Alignment.TOP_LEFT);
+					}
+					if (breadcrumbTrailLayout.getComponentCount() != 0) {
+						addComponent(breadcrumbTrailLayout);
+					}
 				}
 
-				if (breadcrumbTrailLayout.getComponentCount() != 0) {
-					addComponent(breadcrumbTrailLayout);
-				}
-
-				if (actionMenu != null && isActionMenuBar()) {
+				if (actionMenu != null) {
 					addComponent(actionMenu);
 				}
 
 				addComponent(mainComponent);
-				if (actionMenu != null && !isActionMenuBar()) {
-					addComponent(actionMenu);
-				}
 
 				if (titleLabel != null || backButton != null) {
 					if (titleLabel != null) {
@@ -244,14 +243,14 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 				setExpandRatio(mainComponent, 1f);
 
-			Label spacer = new Label("");
-			spacer.addStyleName("base-view-footer-spacer");
-			spacer.setHeight("30px");
-			addComponent(spacer);
+				Label spacer = new Label("");
+				spacer.addStyleName("base-view-footer-spacer");
+				spacer.setHeight("30px");
+				addComponent(spacer);
 
-			if (isBackgroundViewMonitor()) {
-				addBackgroundViewMonitor();
-			}
+				if (isBackgroundViewMonitor()) {
+					addBackgroundViewMonitor();
+				}
 
 				appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentAfterViewAssembledOnViewEntered(params);
 				if (collection != null) {
@@ -262,19 +261,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				afterViewAssembled(event);
 				updateActionMenuItems();
 
-				//			StringBuffer js = new StringBuffer();
-				//			js.append("setTimeout(function() {setInterval(function() {\r\n");
-				//			js.append("try {");
-				//			js.append("\r\n");
-				//			js.append("var req = new XMLHttpRequest();");
-				//			js.append("\r\n");
-				//			js.append("req.open('GET', 'http://localhost:7070/constellio/agent/test', false);");
-				//			js.append("\r\n");
-				//			js.append("req.send();");
-				//			js.append("\r\n");
-				//			js.append("} catch (Exception) { window.location='http://localhost:7070/constellio/#!adminModule'; }");
-				//			js.append("}, 10000);}, 1000);");
-				//			if (true) com.vaadin.ui.JavaScript.eval(js.toString());
 			} catch (Exception e) {
 				boolean exceptionHandled = false;
 				if (event != null) {
@@ -303,6 +289,49 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				replaceComponent(placeHolder, this.actionMenu);
 			}
 		});
+	}
+
+	public void updateMenuAction(String type,
+								 Function<MenuItemActionBuilder, MenuItemAction> modifyThisActionThenReturn) {
+		if (actionMenuDisplay != null) {
+			actionMenuDisplay.updateAction(type, modifyThisActionThenReturn);
+		}
+	}
+
+	protected void updateMenuActionBasedOnButton(final Button button) {
+		updateMenuActionBasedOnButton(button, MenuItemActionBuilder::build);
+	}
+
+	protected void updateMenuActionBasedOnButton(final Button button,
+												 final Function<MenuItemActionBuilder, MenuItemAction> lastModificationThenBuild) {
+		if (button != null && button.getId() != null) {
+			updateMenuAction(button.getId(), builder -> {
+
+				builder
+						.caption(button.getCaption())
+						.icon(button.getIcon())
+						.state(new MenuItemActionState(button.isEnabled() ? MenuItemActionStateStatus.VISIBLE : MenuItemActionStateStatus.DISABLED))
+						.command(recordIds -> button.click());
+
+				return lastModificationThenBuild != null ? lastModificationThenBuild.apply(builder) : builder.build();
+			});
+		}
+	}
+
+	public Set<String> getAllActionTypes() {
+		Set<String> states;
+
+		if (actionMenuDisplay != null) {
+			states = actionMenuDisplay.getAllActionTypes();
+		} else {
+			states = Collections.emptySet();
+		}
+
+		return states;
+	}
+
+	public MenuItemAction getMenuItemActionByType(String type) {
+		return actionMenuDisplay != null ? actionMenuDisplay.getMenuItemActionByType(type) : null;
 	}
 
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
@@ -377,10 +406,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return true;
 	}
 
-	protected boolean isActionMenuBar() {
-		return true;
-	}
-
 	protected String getTitle() {
 		return getClass().getSimpleName();
 	}
@@ -389,57 +414,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		return $("actions");
 	}
 
-	protected MenuBar newActionMenuBar() {
-		this.actionMenuButtonsAndItems.clear();
-
-		String menuBarCaption = getActionMenuBarCaption();
-		if (menuBarCaption == null) {
-			menuBarCaption = "";
-		}
-
-		MenuBar menuBar = new BaseMenuBar();
-		menuBar.addStyleName("action-menu-bar");
-		menuBar.setAutoOpen(false);
-		menuBar.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
-		if (StringUtils.isBlank(menuBarCaption)) {
-			menuBar.addStyleName("no-caption-action-menu-bar");
-		}
-
-		MenuItem rootItem = menuBar.addItem("", FontAwesome.ELLIPSIS_V, null);
-		if (StringUtils.isNotBlank(menuBarCaption)) {
-			rootItem.setText(menuBarCaption);
-		}
-
-		for (final Button actionMenuButton : actionMenuButtons) {
-			Resource icon = actionMenuButton.getIcon();
-			String caption = actionMenuButton.getCaption();
-			MenuItem actionMenuItem = rootItem.addItem(caption, icon, new Command() {
-				@Override
-				public void menuSelected(MenuItem selectedItem) {
-					actionMenuButton.click();
-					updateActionMenuItems();
-				}
-			});
-			actionMenuItem.setEnabled(actionMenuButton.isEnabled());
-			actionMenuItem.setVisible(actionMenuButton.isVisible());
-			actionMenuButtonsAndItems.put(actionMenuButton, actionMenuItem);
-		}
-		return menuBar;
-	}
-
-	protected List<Button> getQuickActionMenuButtons() {
-		return Collections.emptyList();
-	}
-
 	protected boolean alwaysUseLayoutForActionMenu() {
 		return false;
-	}
-	
-	private I18NHorizontalLayout newActionMenuBarLayout() {
-		I18NHorizontalLayout actionMenuBarLayout = new I18NHorizontalLayout();
-		actionMenuBarLayout.addStyleName("action-menu-bar-layout");
-		actionMenuBarLayout.setSpacing(true);
-		return actionMenuBarLayout;
 	}
 
 	/**
@@ -450,141 +426,171 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	 */
 	protected Component buildActionMenu(ViewChangeEvent event) {
 		Component result;
-		
-		if (this.menuBar != null) {
-			ComponentTreeUtils.removeFromParent(this.menuBar);
-		}
-		if (this.quickActionButtons != null) {
-			for (Button quickActionButton : this.quickActionButtons) {
-				ComponentTreeUtils.removeFromParent(quickActionButton);
-			}
-		}
-		if (this.actionMenuButtons != null) {
-			for (Button actionMenuButton : this.actionMenuButtons) {
-				ComponentTreeUtils.removeFromParent(actionMenuButton);
-			}
-		}
-		
-		this.actionMenuButtons = buildActionMenuButtons(event);
+
+		final List<MenuItemAction> menuItemActions = buildMenuItemActions(event);
+		List<Button> actionMenuButtons = buildActionMenuButtons(event);
 		for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
 			actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
 		}
 
-		I18NHorizontalLayout actionMenuBarLayout = newActionMenuBarLayout();
-		if (isOnlyQuickMenuActionVisible()) {
-			List<Button> quickActionButtons = getQuickActionMenuButtons();
-			if (quickActionButtons != null && !quickActionButtons.isEmpty()) {
-				int visibleActionButtons = addVisibleQuickActionButtons(actionMenuBarLayout, quickActionButtons);
-
-				if (visibleActionButtons > 0) {
-					result = actionMenuBarLayout;
-				} else {
-					result = null;
-				}
-			} else {
-				result = null;
+		actionMenuDisplay = new ActionMenuDisplay(appLayerFactory, getSessionContext()) {
+			@Override
+			public String getMenuBarRootCaption() {
+				return getActionMenuBarCaption();
 			}
-		} else if (this.actionMenuButtons == null || this.actionMenuButtons.isEmpty()) {
+
+			@Override
+			public boolean isOnlyQuickActionAreVisible() {
+				return isOnlyQuickMenuActionVisible();
+			}
+
+			@Override
+			public Supplier<List<MenuItemAction>> getMenuItemActionsSupplier() {
+				return () -> buildMenuItemActions(event);
+			}
+
+			@Override
+			public Supplier<MenuItemRecordProvider> getMenuItemRecordProviderSupplier() {
+				return () -> new MenuItemRecordProvider() {
+					@Override
+					public LogicalSearchQuery getQuery() {
+						return null;
+					}
+
+					@Override
+					public List<Record> getRecords() {
+						return Collections.emptyList();
+					}
+				};
+			}
+		};
+		actionMenuDisplay.addStyleName("action-menu-bar-layout");
+
+
+		if (actionMenuButtons != null && !actionMenuButtons.isEmpty()) {
+			actionMenuDisplay = new ActionMenuDisplay(actionMenuDisplay) {
+				@Override
+				public Supplier<List<MenuItemAction>> getMenuItemActionsSupplier() {
+					final AtomicInteger priority = new AtomicInteger(100);
+
+					return () -> Stream.concat(menuItemActions.stream(),
+							actionMenuButtons.stream().map(action -> {
+								MenuItemActionBuilder menuItemActionBuilder = MenuItemAction
+										.builder()
+										.type(action.getId())
+										.caption(action.getCaption())
+										.icon(action.getIcon())
+										.priority(priority.getAndAdd(100))
+										.command(recordIds -> {
+											action.click();
+											updateActionMenuItems();
+										});
+
+								if (!action.isVisible()) {
+									menuItemActionBuilder.state(new MenuItemActionState(MenuItemActionStateStatus.HIDDEN));
+								} else if (!action.isEnabled()) {
+									menuItemActionBuilder.state(new MenuItemActionState(MenuItemActionStateStatus.DISABLED));
+								} else {
+									menuItemActionBuilder.state(new MenuItemActionState(MenuItemActionStateStatus.VISIBLE));
+								}
+
+								return menuItemActionBuilder.build();
+							})).collect(Collectors.toList());
+				}
+			};
+		}
+
+		actionMenuDisplay = buildActionMenuDisplay(actionMenuDisplay);
+
+		if (actionMenuDisplay != null) {
+			result = actionMenuDisplay;
+		} else if (isOnlyQuickMenuActionVisible()) {
+			result = null;
+		} else if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
 			result = null;
 		} else {
-			if (isActionMenuBar()) {
-				this.menuBar = newActionMenuBar();
-				this.quickActionButtons = getQuickActionMenuButtons();
-				if (this.quickActionButtons != null && !this.quickActionButtons.isEmpty()) {
-					int quickActionVisibleButtonsCount = addVisibleQuickActionButtons(actionMenuBarLayout, this.quickActionButtons);
+			VerticalLayout actionMenuLayout = new VerticalLayout();
+			actionMenuLayout.addStyleName("action-menu-layout");
+			actionMenuLayout.setSizeUndefined();
 
-					if (quickActionVisibleButtonsCount == 0) {
-						result = menuBar;
-					} else {
-						actionMenuBarLayout.addComponent(menuBar);
-						result = actionMenuBarLayout;
-					}
-				} else {
-					if (!alwaysUseLayoutForActionMenu()) {
-						result = menuBar;
-					} else {
-						actionMenuBarLayout.addComponent(menuBar);
-						result = actionMenuBarLayout;
-					}
-				}
-			} else {
-				VerticalLayout actionMenuLayout = new VerticalLayout();
-				actionMenuLayout.addStyleName("action-menu-layout");
-				actionMenuLayout.setSizeUndefined();
+			int visibleButtons = 0;
+			for (Button actionMenuButton : actionMenuButtons) {
+				if (actionMenuButton.isVisible()) {
+					actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+					actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
+					actionMenuButton.addStyleName("action-menu-button");
+					actionMenuLayout.addComponent(actionMenuButton);
 
-				int visibleButtons = 0;
-				for (Button actionMenuButton : actionMenuButtons) {
-					if (actionMenuButton.isVisible()) {
-						actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-						actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
-						actionMenuButton.addStyleName("action-menu-button");
-						actionMenuLayout.addComponent(actionMenuButton);
-
-						visibleButtons++;
-					}
-				}
-
-				if (visibleButtons == 0) {
-					actionMenuLayout = null;
-				}
-				result = actionMenuLayout;
-				if (result != null) {
-					result.addStyleName("action-menu");
+					visibleButtons++;
 				}
 			}
+
+			if (visibleButtons == 0) {
+				actionMenuLayout = null;
+			}
+			result = actionMenuLayout;
+			if (result != null) {
+				result.addStyleName("action-menu");
+			}
 		}
-		//        if (result != null) {
-		//			result.addStyleName("action-menu");
-		//        }
+
 		return result;
 	}
 
-	private int addVisibleQuickActionButtons(I18NHorizontalLayout actionMenuBarLayout, List<Button> quickActionButtons) {
-		int visibleButtons = 0;
-		for (Button quickActionButton : quickActionButtons) {
-			if (quickActionButton.isVisible()) {
-				quickActionButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-				quickActionButton.addStyleName(ValoTheme.BUTTON_LINK);
-				quickActionButton.addStyleName("action-menu-bar-button");
-				actionMenuBarLayout.addComponent(quickActionButton);
-				visibleButtons++;
-			}
-		}
-		return visibleButtons;
-	}
-
 	public void setQuickActionButtonsVisible(boolean visible) {
-		for (Button quickActionButton : this.quickActionButtons) {
-			quickActionButton.setVisible(visible);
+		if (actionMenuDisplay != null) {
+			actionMenuDisplay = new ActionMenuDisplay(actionMenuDisplay) {
+				@Override
+				public boolean isQuickActionsAreVisible() {
+					return visible;
+				}
+			};
+
+			replaceComponent(actionMenu, actionMenuDisplay);
+			actionMenu = actionMenuDisplay;
 		}
 	}
 
 	protected void actionButtonStateChanged(Button actionMenuButton) {
-		if (isActionMenuBar()) {
-			MenuItem actionMenuItem = actionMenuButtonsAndItems.get(actionMenuButton);
-			if (actionMenuItem != null) {
-				actionMenuItem.setVisible(actionMenuButton.isVisible() && actionMenuButton.isEnabled());
+		boolean isVisible = actionMenuButton.isVisible() && actionMenuButton.isEnabled();
+		updateMenuAction(actionMenuButton.getId(), builder ->
+				builder
+						.state(new MenuItemActionState(isVisible ? MenuItemActionStateStatus.VISIBLE : MenuItemActionStateStatus.HIDDEN))
+						.build());
+	}
+
+	protected void updateActionMenuItems() {
+		if (actionMenuDisplay != null) {
+			boolean lastVisibility = actionMenuDisplay.isHiddenWhenNoActionOrStateAreAllNotVisible();
+			Set<String> allActionTypes = actionMenuDisplay.getAllActionTypes();
+			boolean currentVisibility = !allActionTypes.isEmpty() && allActionTypes.stream()
+					.map(actionMenuDisplay::getMenuItemActionByType)
+					.allMatch(menuItemAction -> menuItemAction.getState().getStatus() != MenuItemActionStateStatus.VISIBLE);
+
+			if (currentVisibility != lastVisibility) {
+				actionMenuDisplay = new ActionMenuDisplay(actionMenuDisplay) {
+					@Override
+					public boolean isHiddenWhenNoActionOrStateAreAllNotVisible() {
+						return currentVisibility;
+					}
+				};
+
+				replaceComponent(actionMenu, actionMenuDisplay);
+				actionMenu = actionMenuDisplay;
 			}
 		}
 	}
 
-	protected void updateActionMenuItems() {
-		boolean hasAtLeastOneActionAvailable = false;
-		for (Button actionMenuButton : actionMenuButtonsAndItems.keySet()) {
-			MenuItem actionMenuItem = actionMenuButtonsAndItems.get(actionMenuButton);
-			boolean isButtonVisible = actionMenuButton.isVisible() && actionMenuButton.isEnabled() && !this.quickActionButtons.contains(actionMenuButton);
-			actionMenuItem.setVisible(isButtonVisible);
-			hasAtLeastOneActionAvailable = hasAtLeastOneActionAvailable || isButtonVisible;
-		}
-
-		if (menuBar != null) {
-			menuBar.setVisible(hasAtLeastOneActionAvailable);
-		}
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		return new ArrayList<>();
 	}
 
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<>();
-		return actionMenuButtons;
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		return new ArrayList<>();
+	}
+
+	protected ActionMenuDisplay buildActionMenuDisplay(final ActionMenuDisplay defaultActionMenuDisplay) {
+		return defaultActionMenuDisplay;
 	}
 
 	@Override
@@ -616,32 +622,27 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	@Override
 	public void showMessage(String message) {
-		Notification notification = new Notification(message, Type.WARNING_MESSAGE);
-		notification.setHtmlContentAllowed(true);
-		notification.show(Page.getCurrent());
+		ConstellioUI.getCurrent().showMessage(message);
 	}
 
 	@Override
 	public void showClickableMessage(String message) {
-		//		Notification notification = new Notification(message, Type.WARNING_MESSAGE);
-		//		notification.setDelayMsec(-1);
-		//		notification.setHtmlContentAllowed(true);
-		//		notification.show(Page.getCurrent());
-		ClickableNotification.show(ConstellioUI.getCurrent(), "", message);
+		ConstellioUI.getCurrent().showClickableMessage(message);
+	}
+
+	@Override
+	public void showClickableMessage(VerticalLayout verticalLayout) {
+		ConstellioUI.getCurrent().showClickableMessage(verticalLayout);
 	}
 
 	@Override
 	public void showConfirmDialog(ConfirmDialogProperties properties) {
-		new ConfirmDialogShowerImpl(UI::getCurrent).showConfirmDialog(properties);
+		ConstellioUI.getCurrent().showConfirmDialog(properties);
 	}
 
 	@Override
 	public void showErrorMessage(String errorMessage) {
-		Notification notification = new Notification(errorMessage.replace("\n", "<br/>") +
-													 "<br/><br/>" + $("clickToClose"), Type.WARNING_MESSAGE);
-		notification.setDelayMsec(3000);
-		notification.setHtmlContentAllowed(true);
-		notification.show(Page.getCurrent());
+		ConstellioUI.getCurrent().showErrorMessage(errorMessage);
 	}
 
 	@Override
@@ -677,11 +678,6 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	protected abstract Component buildMainComponent(ViewChangeEvent event);
 
-	public List<Button> getActionMenuButtons() {
-		return actionMenuButtons;
-	}
-
-
 	protected Button createLink(String caption, final Button.ClickListener listener, String iconName) {
 		Button returnLink = new Button(caption, new ThemeResource("images/icons/" + iconName + ".png"));
 		returnLink.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
@@ -697,6 +693,21 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			return null;
 		}
 		return createLink(caption, listener, iconName);
+	}
+
+	protected void updateMenuActionBasedOnButton(final MenuItemAction menuItemAction, final Button button) {
+
+		if (menuItemAction.getState().getStatus() == MenuItemActionStateStatus.VISIBLE) {
+			if (!button.isVisible()) {
+				menuItemAction.setState(new MenuItemActionState(MenuItemActionStateStatus.HIDDEN));
+			} else if (!button.isEnabled()) {
+				menuItemAction.setState(new MenuItemActionState(MenuItemActionStateStatus.DISABLED));
+			} else {
+				menuItemAction.setState(new MenuItemActionState(MenuItemActionStateStatus.VISIBLE));
+			}
+		}
+
+		menuItemAction.setCommand(recordIds -> button.click());
 	}
 
 	protected Table setTableProperty(Table table, int maxSize) {
@@ -716,12 +727,16 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	@Override
 	public void closeAllWindows() {
-		for (Window window : new ArrayList<Window>(ConstellioUI.getCurrent().getWindows())) {
+		for (Window window : new ArrayList<>(ConstellioUI.getCurrent().getWindows())) {
 			window.close();
 		}
 	}
 
 	protected boolean isBreadcrumbsVisible() {
+		return true;
+	}
+
+	protected boolean isTitleVisible() {
 		return true;
 	}
 

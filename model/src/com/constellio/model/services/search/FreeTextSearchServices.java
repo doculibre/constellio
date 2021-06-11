@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FreeTextSearchServices {
 	Logger LOGGER = LoggerFactory.getLogger(FreeTextSearchServices.class);
@@ -75,15 +77,22 @@ public class FreeTextSearchServices {
 	}
 
 	public boolean isSecurityEnabled(SolrParams params) {
-		String collection = null;
+		List<String> collections = new ArrayList<>();
 		String schemaType = null;
 		if (params.getParams("fq") != null) {
 			for (String filterQuery : params.getParams("fq")) {
 				if (filterQuery.startsWith("schema_s:")) {
 					schemaType = StringUtils.substringBefore(filterQuery.substring("schema_s:".length()), "_");
 				}
-				if (filterQuery.startsWith("collection_s:")) {
-					collection = StringUtils.substringBefore(filterQuery.substring("collection_s:".length()), "_");
+				if (!filterQuery.contains(" AND ") && StringUtils.countMatches(filterQuery, "collection_s:") == (StringUtils.countMatches(filterQuery, " OR ") + 1)) {
+					if (filterQuery.contains(" OR ")) {
+						String[] collectionsSplited = filterQuery.split(" OR ");
+						for (String currentCollectionWithIdentifier : collectionsSplited) {
+							collections.add(StringUtils.substringBefore(currentCollectionWithIdentifier.substring("collection_s:".length()), "_"));
+						}
+					} else if (filterQuery.startsWith("collection_s:")) {
+						collections.add(StringUtils.substringBefore(filterQuery.substring("collection_s:".length()), "_"));
+					}
 				}
 			}
 		}
@@ -93,7 +102,7 @@ public class FreeTextSearchServices {
 			schemaType = q.substring("schema_s:".length());
 		}
 		if (q != null && q.startsWith("collection_s:")) {
-			collection = StringUtils.substringBefore(q.substring("collection_s:".length()), "_");
+			collections.add(StringUtils.substringBefore(q.substring("collection_s:".length()), "_"));
 		}
 
 		if (schemaType != null) {
@@ -102,10 +111,16 @@ public class FreeTextSearchServices {
 		}
 
 		boolean security = true;
-		if (collection != null && schemaType != null && security) {
+		if (collections.size() > 0 && schemaType != null && security) {
 			try {
-				MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
-				security = types.getSchemaType(schemaType).hasSecurity();
+				for (String currentCollection : collections) {
+					MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(currentCollection);
+					security = types.getSchemaType(schemaType).hasSecurity();
+
+					if (security) {
+						break;
+					}
+				}
 			} catch (Exception e) {
 				//OK
 			}

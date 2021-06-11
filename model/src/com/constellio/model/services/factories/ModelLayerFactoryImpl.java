@@ -25,6 +25,7 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.StoredBatchProcessProgressionServices;
 import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.collections.CollectionsListManagerListener;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.configs.UserConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -50,6 +51,8 @@ import com.constellio.model.services.records.StringRecordIdLegacyMemoryMapping;
 import com.constellio.model.services.records.StringRecordIdLegacyPersistedMapping;
 import com.constellio.model.services.records.cache.CachedRecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordContentVersionHashCacheHook;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordContentVersionHashCacheHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHook;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHook;
@@ -97,6 +100,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 
@@ -147,8 +151,15 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private ThesaurusManager thesaurusManager;
 
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
-	private final Map<String, TaxonomyRecordsHookRetriever> taxonomyRecordsHookRetrieverMap = new HashMap<>();
-	private final Map<String, RecordUsageCounterHookRetriever> recordUsageCounterHookRetrieverMap = new HashMap<>();
+
+	Map<String, CollectionAttributes> collectionAttributesMap = new HashMap<>();
+
+	static class CollectionAttributes {
+		TaxonomyRecordsHookRetriever taxonomyRecordsHook;
+		RecordUsageCounterHookRetriever recordUsageCounterHook;
+		RecordContentVersionHashCacheHookRetriever recordContentHashCacheHookRetriever;
+	}
+
 	UserCredentialTokenCacheHookRetriever userCredentialTokenCacheHookRetriever;
 	UserCredentialServiceKeyCacheHookRetriever userCredentialServiceKeyCacheHookRetriever;
 
@@ -159,6 +170,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private SearchServices searchServices;
 	private RecordServices recordServices;
 	private RecordServicesImpl cachelessRecordServices;
+	private Supplier<Boolean> isReindexingSupplier;
 
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 								 ModelLayerConfiguration modelLayerConfiguration,
@@ -166,10 +178,12 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 								 Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
 								 short instanceId,
 								 Factory<ModelLayerFactory> modelLayerFactoryFactory,
-								 Runnable markForReindexingRunnable, Runnable markForCacheRebuild) {
+								 Runnable markForReindexingRunnable, Runnable markForCacheRebuild,
+								 Supplier<Boolean> isReindexingSupplier) {
 
 		super(dataLayerFactory, statefullServiceDecorator, instanceName, instanceId);
 
+		this.isReindexingSupplier = isReindexingSupplier;
 		this.markForReindexingRunnable = markForReindexingRunnable;
 		this.markForCacheRebuild = markForCacheRebuild;
 		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
@@ -196,11 +210,23 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.modelLayerExtensions = new ModelLayerExtensions();
 
 		this.collectionsListManager = add(new CollectionsListManager(this));
+		this.collectionsListManager.registerCollectionsListener(new CollectionsListManagerListener() {
+			@Override
+			public void onCollectionCreated(String collection) {
+				initializeNewCollection(collection);
+			}
+
+			@Override
+			public void onCollectionDeleted(String collection) {
+				collectionAttributesMap.remove(collection);
+			}
+		});
 
 		this.annotationLockManager = new AnnotationLockManager(dataLayerFactory.getConfigManager());
 
 		this.foldersLocator = foldersLocator;
 
+		this.rolesManager = add(new RolesManager(this));
 		this.securityModelCache = new SecurityModelCache(this);
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
@@ -241,13 +267,14 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
 
-		this.rolesManager = add(new RolesManager(this));
 
 		add(new StatefulService() {
 			@Override
 			public void initialize() {
 				new SecurityMigrationService(ModelLayerFactoryImpl.this).migrateIfRequired();
-				configureRecordsCacheHooks();
+				for (String collection : collectionsListManager.getCollections()) {
+					initializeExistingCollection(collection);
+				}
 			}
 
 			@Override
@@ -316,6 +343,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		searchServices = newSearchServices();
 		recordServices = newRecordServices();
 		cachelessRecordServices = newCachelessRecordServices();
+
+		if (FoldersLocator.usingAppWrapper()) {
+			newUserServices().resurrectAdmin();
+		}
 	}
 
 
@@ -341,36 +372,86 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public void configureRecordsCacheHooks() {
-		if (getCollectionsListManager().getCollections().contains(Collection.SYSTEM_COLLECTION)) {
-			userCredentialTokenCacheHookRetriever = new UserCredentialTokenCacheHookRetriever(
-					recordsCaches.registerRecordIdsHook(Collection.SYSTEM_COLLECTION, new UserCredentialTokenCacheHook(this)), this);
-			userCredentialServiceKeyCacheHookRetriever = new UserCredentialServiceKeyCacheHookRetriever(
-					recordsCaches.registerRecordIdsHook(Collection.SYSTEM_COLLECTION, new UserCredentialServiceKeyCacheHook(this)), this);
-		}
+		userCredentialTokenCacheHookRetriever = new UserCredentialTokenCacheHookRetriever(
+				recordsCaches.registerRecordIdsHook(Collection.SYSTEM_COLLECTION, new UserCredentialTokenCacheHook(this)), this);
+		userCredentialServiceKeyCacheHookRetriever = new UserCredentialServiceKeyCacheHookRetriever(
+				recordsCaches.registerRecordIdsHook(Collection.SYSTEM_COLLECTION, new UserCredentialServiceKeyCacheHook(this)), this);
 	}
 
-	public void onCollectionInitialized(String collection) {
+	/**
+	 * Warning : this collection have not runed any migration scripts
+	 * Only register things for later
+	 */
+	public void initializeNewCollection(String collection) {
+		CollectionAttributes collectionAttributes = new CollectionAttributes();
+		collectionAttributesMap.put(collection, collectionAttributes);
 
-		taxonomyRecordsHookRetrieverMap.put(collection, new TaxonomyRecordsHookRetriever(
-				recordsCaches.registerRecordCountHook(collection, new TaxonomyRecordsHook(collection, this)), this));
-
-		recordUsageCounterHookRetrieverMap.put(collection, new RecordUsageCounterHookRetriever(
-				recordsCaches.registerRecordCountHook(collection, new RecordUsageCounterHook(collection, this)), this));
+		//Cache hooks are updated when types changes
+		registerCacheHooks(collection, collectionAttributes);
 
 		if (userCredentialTokenCacheHookRetriever == null && collection.equals(Collection.SYSTEM_COLLECTION)) {
 			configureRecordsCacheHooks();
 		}
 	}
 
+
+	/**
+	 * Warning : this collection may have migration scripts to run
+	 * Only register things for later
+	 */
+	public void initializeExistingCollection(String collection) {
+		CollectionAttributes collectionAttributes = new CollectionAttributes();
+		collectionAttributesMap.put(collection, collectionAttributes);
+
+		//Cache hooks are updated when types changes
+		registerCacheHooks(collection, collectionAttributes);
+
+		if (userCredentialTokenCacheHookRetriever == null && collection.equals(Collection.SYSTEM_COLLECTION)) {
+			configureRecordsCacheHooks();
+		}
+
+	}
+
+	public void onCollectionInitialized(String collection) {
+
+		//		taxonomyRecordsHookRetrieverMap.put(collection, new TaxonomyRecordsHookRetriever(
+		//				recordsCaches.registerRecordCountHook(collection, new TaxonomyRecordsHook(collection, this)), this));
+		//
+		//		recordUsageCounterHookRetrieverMap.put(collection, new RecordUsageCounterHookRetriever(
+		//				recordsCaches.registerRecordCountHook(collection, new RecordUsageCounterHook(collection, this)), this));
+		//
+		//		if (userCredentialTokenCacheHookRetriever == null && collection.equals(Collection.SYSTEM_COLLECTION)) {
+		//			configureRecordsCacheHooks();
+		//		}
+	}
+
+
+	private void registerCacheHooks(String collection, CollectionAttributes collectionAttributes) {
+		collectionAttributes.taxonomyRecordsHook = new TaxonomyRecordsHookRetriever(
+				recordsCaches.registerRecordCountHook(collection, new TaxonomyRecordsHook(collection, this)), this);
+
+		collectionAttributes.recordUsageCounterHook = new RecordUsageCounterHookRetriever(
+				recordsCaches.registerRecordCountHook(collection, new RecordUsageCounterHook(collection, this)), this);
+
+		collectionAttributes.recordContentHashCacheHookRetriever = new RecordContentVersionHashCacheHookRetriever(collection,
+				recordsCaches.registerRecordIdsHook(collection, new RecordContentVersionHashCacheHook(collection, this)), this);
+
+	}
+
 	@Override
 	public TaxonomyRecordsHookRetriever getTaxonomyRecordsHookRetriever(String collection) {
-		return taxonomyRecordsHookRetrieverMap.get(collection);
+		return collectionAttributesMap.get(collection).taxonomyRecordsHook;
+	}
+
+	@Override
+	public RecordContentVersionHashCacheHookRetriever getRecordContentVersionHashCacheHookRetriever(String collection) {
+		return collectionAttributesMap.get(collection).recordContentHashCacheHookRetriever;
 	}
 
 
 	@Override
 	public RecordUsageCounterHookRetriever getRecordUsageCounterHookRetriever(String collection) {
-		return recordUsageCounterHookRetrieverMap.get(collection);
+		return collectionAttributesMap.get(collection).recordUsageCounterHook;
 	}
 
 	public RecordMigrationsManager getRecordMigrationsManager() {
@@ -677,5 +758,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	@Override
 	public UserCredentialServiceKeyCacheHookRetriever getUserCredentialServiceKeyCacheHookRetriever() {
 		return userCredentialServiceKeyCacheHookRetriever;
+	}
+
+	@Override
+	public boolean isReindexing() {
+		return isReindexingSupplier.get();
 	}
 }

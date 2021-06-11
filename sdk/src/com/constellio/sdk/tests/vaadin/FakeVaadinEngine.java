@@ -41,6 +41,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 public class FakeVaadinEngine implements AutoCloseable {
 	private final Map<Class<?>, CurrentInstance> vaadinInstancesBeforeTests;
@@ -56,6 +57,7 @@ public class FakeVaadinEngine implements AutoCloseable {
 	private final Navigator navigator;
 
 	private View currentView;
+	private String currentParameters;
 
 	public FakeVaadinEngine(SessionContext sessionContext) {
 
@@ -82,7 +84,9 @@ public class FakeVaadinEngine implements AutoCloseable {
 		doReturn(webBrowser).when(vaadinSession).getBrowser();
 
 		componentContainer = setupMockedComponentContainer();
-		navigator = createNavigator(ui, componentContainer);
+		navigator = spy(createNavigator(ui, componentContainer));
+		currentParameters = "";
+		doReturn(currentParameters).when(navigator).getState();
 		doReturn(navigator).when(ui).getNavigator();
 
 		doReturn(new ConstellioHeaderImpl()).when(ui).getHeader();
@@ -98,6 +102,7 @@ public class FakeVaadinEngine implements AutoCloseable {
 	public void show(View view, String viewName, String parameters) {
 		view.enter(new ViewChangeEvent(navigator, currentView, view, viewName, parameters));
 		currentView = view;
+		currentParameters = parameters;
 	}
 
 	public void show(AbstractComponent component) {

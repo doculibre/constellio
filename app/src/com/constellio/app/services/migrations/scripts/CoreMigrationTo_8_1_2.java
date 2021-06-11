@@ -5,7 +5,7 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.GroupAncestorsCalculator;
@@ -46,7 +46,7 @@ public class CoreMigrationTo_8_1_2 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA).create(Authorization.NEGATIVE)
+			typesBuilder.getSchema(RecordAuthorization.DEFAULT_SCHEMA).create(RecordAuthorization.NEGATIVE)
 					.setType(BOOLEAN);
 
 			typesBuilder.getSchema(Group.DEFAULT_SCHEMA).create(Group.ANCESTORS)

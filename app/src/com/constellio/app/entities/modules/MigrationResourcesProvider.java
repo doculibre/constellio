@@ -20,24 +20,26 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class MigrationResourcesProvider {
 
 	String module;
-	String version;
+	MigrationScript script;
 	Utf8ResourceBundles bundles;
 	IOServices ioServices;
 	File propertiesFolder;
 	Language language;
 	List<Language> collectionLanguages;
+	ModuleResourcesLocator moduleResourcesLocator;
 
 	public MigrationResourcesProvider(String module, Language language, List<Language> collectionLanguages,
-									  String version,
+									  MigrationScript script,
 									  IOServices ioServices,
 									  ModuleResourcesLocator moduleResourcesLocator) {
 		this.module = module;
-		this.version = version;
+		this.script = script;
 		this.ioServices = ioServices;
 		this.language = language;
 		this.collectionLanguages = collectionLanguages;
-		this.propertiesFolder = moduleResourcesLocator.getModuleMigrationResourcesFolder(module, version);
-		this.bundles = moduleResourcesLocator.getModuleMigrationI18nBundle(module, version);
+		this.propertiesFolder = moduleResourcesLocator.getModuleMigrationResourcesFolder(module, script);
+		this.bundles = moduleResourcesLocator.getModuleMigrationI18nBundle(module, script);
+		this.moduleResourcesLocator = moduleResourcesLocator;
 
 	}
 
@@ -89,14 +91,15 @@ public class MigrationResourcesProvider {
 
 	private void ensureBundles() {
 		if (bundles == null) {
-			throw new MigrationResourcesProviderRuntimeException_NoBundle(version, module);
+			throw new MigrationResourcesProviderRuntimeException_NoBundle(this.moduleResourcesLocator
+					.getI18nBundleFile(module, script ));
 		}
 
 	}
 
 	public InputStream getStream(String key) {
 		File file = new File(propertiesFolder, key);
-		String streamName = "MigrationResourcesProvider-" + module + "-" + version + "-" + key;
+		String streamName = "MigrationResourcesProvider-" + script.getClass().getName() + "-" + key;
 		return ioServices.newBufferedFileInputStreamWithoutExpectableFileNotFoundException(file, streamName);
 	}
 

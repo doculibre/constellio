@@ -2,16 +2,21 @@ package com.constellio.model.services.users;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserFolder;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.SystemWideGroup;
@@ -22,6 +27,7 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialTokenCacheHookRetriever;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices.GroupAddUpdateResponse;
@@ -47,6 +53,7 @@ import com.constellio.model.services.users.UserServicesRuntimeException.UserServ
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserAlreadyExists;
 import com.constellio.sdk.tests.ConstellioTest;
 import lombok.AllArgsConstructor;
+import org.joda.time.Duration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,7 +72,10 @@ import static com.constellio.model.conf.LDAPTestConfig.getUser;
 import static com.constellio.model.conf.LDAPTestConfig.getUserFiler;
 import static com.constellio.model.conf.LDAPTestConfig.getUserFilterGroupsList;
 import static com.constellio.model.conf.LDAPTestConfig.getUsersWithoutGroupsBaseContextList;
+import static com.constellio.model.conf.LDAPTestConfig.isFetchSubGroups;
+import static com.constellio.model.conf.LDAPTestConfig.isIgnoreRegexForSubGroups;
 import static com.constellio.model.conf.LDAPTestConfig.isMembershipAutomaticDerivationActivated;
+import static com.constellio.model.conf.LDAPTestConfig.isSyncUsersOnlyIfInAcceptedGroups;
 import static com.constellio.model.entities.security.global.GlobalGroupStatus.INACTIVE;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static com.constellio.model.entities.security.global.UserCredentialStatus.DISABLED;
@@ -153,13 +163,13 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 				.addToCollection(collection1))
 		).is(instanceOf(UserServicesRuntimeException_EmailRequired.class));
 
-		assertThatException(() -> services.createUser("andregeant", (req) -> req.setLastName("Le géant")
-				.setEmail("andre@constellio.com").addToCollection(collection1))
-		).is(instanceOf(UserServicesRuntimeException_FirstNameRequired.class));
-
-		assertThatException(() -> services.createUser("andregeant", (req) -> req.setFirstName("André")
-				.setEmail("andre@constellio.com").addToCollection(collection1))
-		).is(instanceOf(UserServicesRuntimeException_LastNameRequired.class));
+//		assertThatException(() -> services.createUser("andregeant", (req) -> req.setLastName("Le géant")
+//				.setEmail("andre@constellio.com").addToCollection(collection1))
+//		).is(instanceOf(UserServicesRuntimeException_FirstNameRequired.class));
+//
+//		assertThatException(() -> services.createUser("andregeant", (req) -> req.setFirstName("André")
+//				.setEmail("andre@constellio.com").addToCollection(collection1))
+//		).is(instanceOf(UserServicesRuntimeException_LastNameRequired.class));
 
 		assertThatException(() -> services.createUser("andregeant", (req) -> req.setName("André", "Le géant")
 				.setEmail("andre@constellio.com").addToCollection("inexistingCollection"))
@@ -190,8 +200,42 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		assertThat(services.getUserInfos("andregeant").getEmail()).isEqualTo("andre2@constellio.com");
 		assertThat(user("andregeant", collection1).getEmail()).isEqualTo("andre2@constellio.com");
 		assertThat(user("andregeant", collection2).getEmail()).isEqualTo("andre2@constellio.com");
+	}
 
 
+	@Test
+	public void whenCreatingSyncedUserThenAcceptUsersWithoutNamesOrEmail() throws Exception {
+
+		services.createUser("andregeant", (req)-> req.ldapSyncRequest().addToCollections(collection1, collection2));
+
+		assertThat(userInfos("andregeant").getFirstName()).isEqualTo(null);
+		assertThat(userInfos("andregeant").getLastName()).isEqualTo(null);
+		assertThat(userInfos("andregeant").getEmail()).isEqualTo(null);
+	}
+
+	@Test
+	public void whenCreatingUserThenUsernameCaseInsensitive() throws Exception {
+
+		services.createUser("AnDrEgEaNt", (req) -> req.setName("André", "Le géant")
+				.setEmail("andre@constellio.com").addToCollections(collection1, collection2));
+
+		SystemWideUserInfos userInfos = services.getUserInfos("andregeant");
+		assertThat(userInfos.getUsername()).isEqualTo("andregeant");
+		assertThat(userInfos.getEmail()).isEqualTo("andre@constellio.com");
+
+		assertThatUser("andregeant").hasName("André", "Le géant").isInCollections(collection1, collection2);
+
+		assertThatException(() -> services.createUser("ANDREgeant", (req) -> req.setName("André", "Le géant")
+				.setEmail("andre2@constellio.com").addToCollection(collection1))
+		).is(instanceOf(UserServicesRuntimeException_UserAlreadyExists.class));
+		assertThat(user("andregeant", collection1).getEmail()).isEqualTo("andre@constellio.com");
+
+		//Same request, using execute
+		services.execute("andregeant", (req) -> req.setName("André", "Le géant")
+				.setEmail("andre2@constellio.com").addToCollection(collection1));
+		assertThat(services.getUserInfos("andregeant").getEmail()).isEqualTo("andre2@constellio.com");
+		assertThat(user("andregeant", collection1).getEmail()).isEqualTo("andre2@constellio.com");
+		assertThat(user("andregeant", collection2).getEmail()).isEqualTo("andre2@constellio.com");
 	}
 
 
@@ -213,6 +257,46 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		//TODO Rabab : Tester toutes les métadonnées (ex. jobTitle, phone, etc.) en ajout/modification
 	}
 
+	@Test
+	public void giveUserWithTokensThenTokensKeepCorrectLifeCycle() {
+		services.createUser("bigshow", req -> req.setName("Big", "Show")
+				.setEmail("bigshow@constellio.com").addToCollection(collection1));
+
+		services.generateToken("bigshow", Duration.standardHours(1));
+		services.generateToken("bigshow", Duration.standardHours(-1));
+
+		assertThat(userInfos("bigshow").getAccessTokens().size()).isEqualTo(2);
+		validateUserCredentialTokenCacheHookFindsUserByToken("bigshow");
+		services.removeTimedOutTokens();
+		assertThat(userInfos("bigshow").getAccessTokens().size()).isEqualTo(1);
+		validateUserCredentialTokenCacheHookFindsUserByToken("bigshow");
+
+		services.generateToken("bigshow", Duration.standardDays(1));
+		assertThat(userInfos("bigshow").getAccessTokens().size()).isEqualTo(2);
+		validateUserCredentialTokenCacheHookFindsUserByToken("bigshow");
+		services.removeTimedOutTokens();
+		assertThat(userInfos("bigshow").getAccessTokens().size()).isEqualTo(2);
+		validateUserCredentialTokenCacheHookFindsUserByToken("bigshow");
+
+		givenTimeIs(TimeProvider.getLocalDateTime().plusHours(5));
+		assertThat(userInfos("bigshow").getAccessTokens().size()).isEqualTo(2);
+		validateUserCredentialTokenCacheHookFindsUserByToken("bigshow");
+
+		services.removeToken(userInfos("bigshow").getTokenKeys().iterator().next());
+		assertThat(userInfos("bigshow").getAccessTokens().size()).isEqualTo(1);
+		validateUserCredentialTokenCacheHookFindsUserByToken("bigshow");
+
+		services.execute("bigshow", req -> req.setFirstName("BIG"));
+		assertThat(userInfos("bigshow").getAccessTokens().size()).isEqualTo(1);
+		validateUserCredentialTokenCacheHookFindsUserByToken("bigshow");
+	}
+
+	private void validateUserCredentialTokenCacheHookFindsUserByToken(String username) {
+		UserCredentialTokenCacheHookRetriever userCredentialTokenCacheHookRetriever =
+				getModelLayerFactory().getUserCredentialTokenCacheHookRetriever();
+		userInfos(username).getTokenKeys()
+				.forEach(t -> assertThat(userCredentialTokenCacheHookRetriever.getUserByToken(t)).isNotNull());
+	}
 
 	//	@Test
 	//	public void whenAddUpdatingUserTrivialInfosThenSaved() {
@@ -1242,7 +1326,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		activateLDAPSyncOnCollections(collection1, collection2);
 
-		services.createGroup("g1", req->req.ldapSyncRequest().setName("The group").addCollections(collection1, collection2));
+		services.createGroup("g1", req -> req.ldapSyncRequest().setName("The group").addCollections(collection1, collection2));
 
 		services.createUser("embalmer", (req) -> req.ldapSyncRequest()
 				.setNameEmail("William Alvin", "Moody", "bill@constellio.com")
@@ -1256,15 +1340,15 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 				.addToGroupInCollection("g1", collection2)
 				.addToCollections(collection1, collection2));
 
-		assertThatException(() -> services.execute("embalmer", req->req.removeFromGroupOfCollection("g1", collection1))
+		assertThatException(() -> services.execute("embalmer", req -> req.removeFromGroupOfCollection("g1", collection1))
 		).is(instanceOf(UserServicesRuntimeException_CannotChangeAssignmentOfSyncedUserToSyncedGroup.class));
 		assertThatUser("embalmer").hasGroupsInCollection(collection1, "g1").hasGroupsInCollection(collection2, "g1");
 		assertThatUser("machoman").hasGroupsInCollection(collection1, "g1").hasGroupsInCollection(collection2, "g1");
 
-		services.execute("embalmer", req->req.stopSyncingLDAP()
+		services.execute("embalmer", req -> req.stopSyncingLDAP()
 				.removeFromGroupOfCollection("g1", collection1));
 
-		services.execute("machoman", req->req.ldapSyncRequest()
+		services.execute("machoman", req -> req.ldapSyncRequest()
 				.removeFromGroupOfCollection("g1", collection1).removeFromGroupOfCollection("g1", collection2));
 
 		assertThatUser("embalmer")
@@ -1274,7 +1358,8 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 		assertThatUser("machoman")
 				.hasNoGroupsInCollection(collection1)
 				.hasNoGroupsInCollection(collection2)
-				.hasSyncMode(SYNCED);;
+				.hasSyncMode(SYNCED);
+		;
 
 	}
 
@@ -1283,7 +1368,7 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		activateLDAPSyncOnCollections(collection1, collection2);
 
-		services.createGroup("g1", req->req.ldapSyncRequest().setName("The group").addCollections(collection1, collection2));
+		services.createGroup("g1", req -> req.ldapSyncRequest().setName("The group").addCollections(collection1, collection2));
 
 		services.createUser("embalmer", (req) -> req.ldapSyncRequest()
 				.setNameEmail("William Alvin", "Moody", "bill@constellio.com")
@@ -1293,15 +1378,15 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 				.setNameEmail("Macho", "Man", "machoman@constellio.com")
 				.addToCollections(collection1, collection2));
 
-		assertThatException(() -> services.execute("embalmer", req->req.setStatusForCollection(PENDING, collection1))
+		assertThatException(() -> services.execute("embalmer", req -> req.setStatusForCollection(PENDING, collection1))
 		).is(instanceOf(UserServicesRuntimeException_CannotChangeStatusOfSyncedUser.class));
 		assertThatUser("embalmer").hasStatusIn(ACTIVE, collection1).hasStatusIn(ACTIVE, collection2);
 		assertThatUser("machoman").hasStatusIn(ACTIVE, collection1).hasStatusIn(ACTIVE, collection2);
 
-		services.execute("embalmer", req->req.stopSyncingLDAP()
+		services.execute("embalmer", req -> req.stopSyncingLDAP()
 				.setStatusForCollection(PENDING, collection1));
 
-		services.execute("machoman", req->req.ldapSyncRequest()
+		services.execute("machoman", req -> req.ldapSyncRequest()
 				.setStatusForCollection(PENDING, collection1));
 
 		assertThatUser("embalmer")
@@ -1321,16 +1406,16 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		activateLDAPSyncOnCollections(collection1, collection2);
 
-		services.createGroup("g1", req->req.ldapSyncRequest().setName("The group")
+		services.createGroup("g1", req -> req.ldapSyncRequest().setName("The group")
 				.addCollections(collection1, collection2, collection3));
 
-		services.executeGroupRequest("g1", req->req.removeCollection(collection3));
+		services.executeGroupRequest("g1", req -> req.removeCollection(collection3));
 		assertThatGroup("g1").isActiveInAllItsCollections().isInCollections(collection1, collection2);
 
-		assertThatException(() -> services.executeGroupRequest("g1", req->req.removeCollections(collection1, collection2))
+		assertThatException(() -> services.executeGroupRequest("g1", req -> req.removeCollections(collection1, collection2))
 		).is(instanceOf(UserServicesRuntimeException_CannotRemoveSyncedGroupFromSyncedCollection.class));
 
-		services.executeGroupRequest("g1", req->req.ldapSyncRequest().removeCollections(collection1, collection2));
+		services.executeGroupRequest("g1", req -> req.ldapSyncRequest().removeCollections(collection1, collection2));
 		assertThatGroup("g1").doesNotExist();
 	}
 
@@ -1339,15 +1424,62 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 
 		activateLDAPSyncOnCollections(collection1, collection2);
 
-		services.createGroup("g1", req->req.ldapSyncRequest().setName("The group")
+		services.createGroup("g1", req -> req.ldapSyncRequest().setName("The group")
 				.addCollections(collection1, collection2, collection3));
 
-		assertThatException(() -> services.executeGroupRequest("g1", req->req.setStatusInAllCollections(GlobalGroupStatus.INACTIVE))
+		assertThatException(() -> services.executeGroupRequest("g1", req -> req.setStatusInAllCollections(GlobalGroupStatus.INACTIVE))
 		).is(instanceOf(UserServicesRuntimeException_CannotChangeStatusOfSyncedGroup.class));
 		assertThatGroup("g1").isActiveInAllItsCollections().isInCollections(collection1, collection2, collection3);
 
-		services.executeGroupRequest("g1", req->req.ldapSyncRequest().setStatusInAllCollections(GlobalGroupStatus.INACTIVE));
+		services.executeGroupRequest("g1", req -> req.ldapSyncRequest().setStatusInAllCollections(GlobalGroupStatus.INACTIVE));
 		assertThatGroup("g1").isInactiveInAllItsCollections().isInCollections(collection1, collection2, collection3);
+	}
+
+	@Test
+	public void whenResurrectingAdminThenAddedInAllCollectionsHasEnabled() {
+
+		//At the start of the test, user admin is removed
+		assertThatUser("admin").isInCollections();
+		services.resurrectAdmin();
+		assertThatUser("admin").hasStatusIn(ACTIVE, collection1);
+		assertThatUser("admin").hasStatusIn(ACTIVE, collection2);
+		assertThatUser("admin").hasStatusIn(ACTIVE, collection3);
+
+		updateWithoutValidation(services.getUserInCollection("admin", collection1).set(User.STATUS, DISABLED).set(Schemas.LOGICALLY_DELETED_STATUS, true));
+		updateWithoutValidation(services.getUserInCollection("admin", collection2).set(User.STATUS, DISABLED).set(Schemas.LOGICALLY_DELETED_STATUS, true));
+		updateWithoutValidation(services.getUserInCollection("admin", collection3).set(User.STATUS, DISABLED).set(Schemas.LOGICALLY_DELETED_STATUS, true));
+		assertThatUser("admin").hasStatusIn(DISABLED, collection1);
+		assertThatUser("admin").hasStatusIn(DISABLED, collection2);
+		assertThatUser("admin").hasStatusIn(DISABLED, collection3);
+
+		services.resurrectAdmin();
+		assertThatUser("admin").hasStatusIn(ACTIVE, collection1);
+		assertThatUser("admin").hasStatusIn(ACTIVE, collection2);
+		assertThatUser("admin").hasStatusIn(ACTIVE, collection3);
+
+		updateWithoutValidation(services.getUserInCollection("admin", collection2).set(User.STATUS, DISABLED).set(Schemas.LOGICALLY_DELETED_STATUS, true));
+		assertThatUser("admin").hasStatusIn(ACTIVE, collection1);
+		assertThatUser("admin").hasStatusIn(DISABLED, collection2);
+		assertThatUser("admin").hasStatusIn(ACTIVE, collection3);
+
+		services.resurrectAdmin();
+		assertThatUser("admin").hasStatusIn(ACTIVE, collection1);
+		assertThatUser("admin").hasStatusIn(ACTIVE, collection2);
+		assertThatUser("admin").hasStatusIn(ACTIVE, collection3);
+
+	}
+
+	private void updateWithoutValidation(RecordWrapper record) {
+		Transaction tx = new Transaction();
+
+		tx.add(record);
+		tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+
+		try {
+			recordServices.execute(tx);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 
@@ -1368,7 +1500,10 @@ public class UserServicesRefactAcceptanceTest extends ConstellioTest {
 				getUsersWithoutGroupsBaseContextList(),
 				getUserFilterGroupsList(),
 				isMembershipAutomaticDerivationActivated(),
-				Arrays.asList(collections));
+				Arrays.asList(collections),
+				isFetchSubGroups(),
+				isIgnoreRegexForSubGroups(),
+				isSyncUsersOnlyIfInAcceptedGroups());
 
 		getModelLayerFactory().getLdapConfigurationManager().saveLDAPConfiguration(
 				ldapServerConfiguration, ldapUserSyncConfiguration, false);

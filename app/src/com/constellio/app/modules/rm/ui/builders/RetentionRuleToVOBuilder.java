@@ -95,6 +95,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 			metadataValueVOs.add(categoriesMetadataValueVO);
 			metadataValueVOs.add(uniformSubdivisionsMetadataValueVO);
 		}
+
 		return new RetentionRuleVO(id, metadataValueVOs, viewMode);
 	}
 

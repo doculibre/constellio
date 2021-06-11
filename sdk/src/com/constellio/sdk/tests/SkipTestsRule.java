@@ -55,6 +55,8 @@ public class SkipTestsRule implements TestRule {
 	boolean skipIgnite;
 	private boolean inDevelopmentTest;
 	private boolean mainTest;
+
+	private static boolean ignoredTestsFileHandled;
 	private static List<String> whiteList;
 	private static List<String> blackList;
 	private Class<? extends AbstractConstellioTest> currentTestClass;
@@ -88,16 +90,15 @@ public class SkipTestsRule implements TestRule {
 			this.runPerformance = "true".equals(properties.get("run.performancetests"));
 			this.skipUI = skipAllTests || "true".equals(properties.get("skip.uitests"));
 
-			if (whiteList != null) {
+			if (whiteList == null) {
+				whiteList = getFilterList("tests.whitelist", properties);
+				blackList = getFilterList("tests.blacklist", properties);
+
+			}
+
+			if (!ignoredTestsFileHandled) {
 				try {
 					File excludedTests = new File(new FoldersLocator().getPluginsSDKProject(), "ignored-tests.txt");
-					whiteList = new ArrayList<>();
-					blackList = new ArrayList<>();
-
-
-					this.whiteList = getFilterList("tests.whitelist", properties);
-					this.blackList = getFilterList("tests.blacklist", properties);
-
 					if (excludedTests.exists()) {
 						try {
 							List<String> lines = FileUtils.readLines(excludedTests, "UTF-8");
@@ -110,7 +111,7 @@ public class SkipTestsRule implements TestRule {
 									}
 								}
 							}
-
+							ignoredTestsFileHandled = true;
 						} catch (Throwable t) {
 							LOGGER.warn("Error while reading ignored-tests.txt", t);
 						}

@@ -5,6 +5,7 @@ import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.app.utils.ManualUpdateHandlerView;
+import com.vaadin.ui.ProgressBar;
 
 public interface UpdateManagerView extends BaseView, ManualUpdateHandlerView, AdminViewGroup {
 	void showStandardUpdatePanel();
@@ -19,4 +20,5 @@ public interface UpdateManagerView extends BaseView, ManualUpdateHandlerView, Ad
 
 	void closeProgressPopup();
 
+	ProgressBar getDownloadProgressBar();
 }

@@ -21,6 +21,8 @@ public class PdfFileNamePanel extends VerticalLayout {
 	private TextField pdfFileNameField;
 	@PropertyId("includeMetadatas")
 	private CheckBox includeMetadatasField;
+	@PropertyId("generatePdfA")
+	private CheckBox generatePdfAField;
 
 	private final PdfInfos pdfInfos;
 	private final Window window;
@@ -42,15 +44,17 @@ public class PdfFileNamePanel extends VerticalLayout {
 	}
 
 	public void init() {
-		window.setHeight("220px");
+		window.setHeight("250px");
 
 		pdfFileNameField = new BaseTextField($("PdfFileNamePanel.pdfFileName"));
 		pdfFileNameField.setRequired(true);
 		pdfFileNameField.setRequiredError($("PdfFileNamePanel.pdfFileName.required"));
 
 		includeMetadatasField = new CheckBox($("PdfFileNamePanel.includeMetadatas"));
+		generatePdfAField = new CheckBox($("PdfFileNamePanel.generatePdfA"));
 
-		BaseForm<PdfInfos> baseForm = new BaseForm<PdfInfos>(pdfInfos, this, pdfFileNameField, includeMetadatasField) {
+		BaseForm<PdfInfos> baseForm = new BaseForm<PdfInfos>(pdfInfos, this, pdfFileNameField,
+				includeMetadatasField, generatePdfAField) {
 			@Override
 			protected String getSaveButtonCaption() {
 				return $("PdfFileNamePanel.saveButton");
@@ -111,6 +115,7 @@ public class PdfFileNamePanel extends VerticalLayout {
 	public class PdfInfos {
 		private String pdfFileName;
 		private boolean includeMetadatas;
+		private boolean generatePdfA;
 
 		public String getPdfFileName() {
 			return pdfFileName;
@@ -126,6 +131,14 @@ public class PdfFileNamePanel extends VerticalLayout {
 
 		public void setIncludeMetadatas(boolean includeMetadatas) {
 			this.includeMetadatas = includeMetadatas;
+		}
+
+		public boolean isGeneratePdfA() {
+			return generatePdfA;
+		}
+
+		public void setGeneratePdfA(boolean generatePdfA) {
+			this.generatePdfA = generatePdfA;
 		}
 	}
 

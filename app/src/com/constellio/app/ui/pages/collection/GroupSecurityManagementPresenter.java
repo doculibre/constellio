@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.collection;
 
-import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.ui.builders.GroupToVOBuilder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.GroupVO;
@@ -15,20 +10,15 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
@@ -54,23 +44,16 @@ public class GroupSecurityManagementPresenter extends SingleSchemaBasePresenter<
 	private boolean active = true;
 	private Set<String> allRecordIds;
 	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
-	private Group user;
 
 	private GroupToVOBuilder groupVOBuilder;
 
-	private Map<String, String> params = null;
-
 	private transient ConstellioEIMConfigs eimConfigs;
-	private transient RMConfigs rmConfigs;
-	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
-	private transient BorrowingServices borrowingServices;
-	private transient MetadataSchemasManager metadataSchemasManager;
-	private transient RecordServices recordServices;
-	private transient ModelLayerCollectionExtensions extensions;
-	private transient RMModuleExtensions rmModuleExtensions;
 
 	private Set<String> selectedRecordIds = new HashSet<>();
-	SortOrder sortOrder = SortOrder.ASCENDING;
+	
+	private String searchFilter;
+	
+	private boolean viewAssembled = false;;
 
 	public GroupSecurityManagementPresenter(SecurityManagement view, RecordVO recordVO) {
 		super(view, Group.DEFAULT_SCHEMA);
@@ -81,17 +64,8 @@ public class GroupSecurityManagementPresenter extends SingleSchemaBasePresenter<
 	}
 
 	private void initTransientObjects() {
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
-		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
 		groupVOBuilder = new GroupToVOBuilder();
-		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		recordServices = modelLayerFactory.newRecordServices();
-		extensions = modelLayerFactory.getExtensions().forCollection(collection);
-		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
-		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		user = appLayerFactory.getModelLayerFactory().newUserServices().getGroupInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
-
 	}
 
 	@Override
@@ -104,35 +78,12 @@ public class GroupSecurityManagementPresenter extends SingleSchemaBasePresenter<
 	}
 
 	public void viewAssembled() {
-
-		view.setDataProvider(groupDataProvider);
+		this.viewAssembled = true;
+		view.reloadContent();
 	}
 
 	public void forParams(String params) {
-
-		MetadataSchemaVO groupSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
-		voBuilders.put(groupSchemaVO.getCode(), groupVOBuilder);
-		groupDataProvider = new RecordVODataProvider(Arrays.asList(groupSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
-			@Override
-			public LogicalSearchQuery getQuery() {
-				return getGroupsQuery();
-			}
-
-			@Override
-			public boolean isSearchCache() {
-				return eimConfigs.isOnlySummaryMetadatasDisplayedInTables();
-			}
-		};
-		view.setDataProvider(groupDataProvider);
-
-	}
-
-
-	void recordsDroppedOn(List<RecordVO> droppedRecordVOs, RecordVO targetFolderRecordVO) {
-
-		//TODO
-		//is it useful to drag and drop groups?
+		refreshTable();
 	}
 
 	boolean isAllItemsSelected() {
@@ -147,8 +98,9 @@ public class GroupSecurityManagementPresenter extends SingleSchemaBasePresenter<
 		return allItemsSelected || selectedRecordIds.contains(recordVO.getId());
 	}
 
-	public void setActive(boolean active) {
+	public void activeSelectionChanged(boolean active) {
 		this.active = active;
+		refreshTable();
 	}
 
 	public boolean isActive() {
@@ -203,11 +155,11 @@ public class GroupSecurityManagementPresenter extends SingleSchemaBasePresenter<
 	}
 
 	private LogicalSearchQuery getGroupsQuery() {
-		MetadataSchemaType groupSchemaType = getGroupSchema();
+		MetadataSchema groupDefaultSchema = schema(Group.DEFAULT_SCHEMA);
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 
-		LogicalSearchCondition condition = from(groupSchemaType)
+		LogicalSearchCondition condition = from(groupDefaultSchema)
 				.where(Schemas.COLLECTION).isEqualTo(collection);
 
 		if (this.active) {
@@ -216,13 +168,14 @@ public class GroupSecurityManagementPresenter extends SingleSchemaBasePresenter<
 			condition = condition.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isTrue();
 		}
 
+		if (StringUtils.isBlank(searchFilter)) {
+			condition = condition.andWhere(groupDefaultSchema.getMetadata(Group.PARENT)).isNull();
+		}
+
 		query.setCondition(condition);
+		query.sortAsc(Schemas.TITLE);
 
 		return query;
-	}
-
-	private MetadataSchemaType getGroupSchema() {
-		return schemaType(Group.SCHEMA_TYPE);
 	}
 
 	protected String filterSolrOperators(String expression) {
@@ -236,21 +189,9 @@ public class GroupSecurityManagementPresenter extends SingleSchemaBasePresenter<
 		return groupSearchExpression;
 	}
 
-	public void clearSearch() {
-		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(Group.DEFAULT_SCHEMA);
-
-		MetadataSchemaVO groupSchemaVO = schemaVOBuilder.build(schemaType(schemaTypeCode).getDefaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
-		voBuilders.put(groupSchemaVO.getCode(), groupVOBuilder);
-		groupDataProvider = new RecordVODataProvider(Arrays.asList(groupSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
-			@Override
-			public LogicalSearchQuery getQuery() {
-				return getGroupsQuery();
-			}
-		};
-		view.setDataProvider(groupDataProvider);
-
-		view.reloadContent();
+	public void clearSearchRequested() {
+		this.searchFilter = null;
+		refreshTable();
 	}
 
 	public List<String> getAutocompleteSuggestions(String text) {
@@ -285,18 +226,60 @@ public class GroupSecurityManagementPresenter extends SingleSchemaBasePresenter<
 		return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 	}
 
-	public void changeGroupDataProvider(String value) {
+	public void searchRequested(String value) {
+		this.searchFilter = value;
+		refreshTable();
+	}
+
+	private String getGroupNiceTitle(RecordVO vo) {
+		String path = getGroupPath(vo.getId());
+		if (path.equals(vo.getTitle())) {
+			return vo.getTitle();
+		}
+		return vo.getTitle() + " (" + path + ")";
+	}
+
+	private String getGroupPath(String groupId) {
+		Group group = coreSchemas().getGroup(groupId);
+		if (group.getParent() != null) {
+			return getGroupPath(group.getParent()) + "\\" + group.getTitle();
+		} else {
+			return group.getTitle();
+		}
+	}
+	
+	private void refreshTable() {
 		MetadataSchemaVO groupsSchemaVO = schemaVOBuilder.build(defaultSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
 		voBuilders.put(groupsSchemaVO.getCode(), groupVOBuilder);
 		groupDataProvider = new RecordVODataProvider(Arrays.asList(groupsSchemaVO), voBuilders, modelLayerFactory, view.getSessionContext()) {
 			@Override
+			public RecordVO getRecordVO(int index) {
+				RecordVO vo = super.getRecordVO(index);
+				vo.setTitle(getGroupNiceTitle(vo));
+				return vo;
+			}
+
+			public List<RecordVO> listRecordVOs(int startIndex, int numberOfItems) {
+				List<RecordVO> vos = super.listRecordVOs(startIndex, numberOfItems);
+				for (RecordVO vo : vos) {
+					vo.setTitle(getGroupNiceTitle(vo));
+				}
+				return vos;
+			}
+
+			@Override
 			public LogicalSearchQuery getQuery() {
-				String groupSearchExpression = filterSolrOperators(value);
-				if (!StringUtils.isBlank(value)) {
-					LogicalSearchQuery logicalSearchQuery;
-					logicalSearchQuery = getGroupsQuery().setFreeTextQuery(groupSearchExpression);
-					if (!"*".equals(value)) {
+				if (StringUtils.isNotBlank(searchFilter)) {
+					String groupSearchExpression = filterSolrOperators(searchFilter);
+					if (groupSearchExpression.split(" ").length < 2) {
+						groupSearchExpression = groupSearchExpression + " OR " + groupSearchExpression + "*";
+					}
+
+					LogicalSearchQuery logicalSearchQuery =
+							getGroupsQuery().setFreeTextQuery(groupSearchExpression).setPreferAnalyzedFields(true);
+
+					if (!"*".equals(groupSearchExpression)) {
 						logicalSearchQuery.setHighlighting(true);
 					}
 					return logicalSearchQuery;
@@ -304,12 +287,19 @@ public class GroupSecurityManagementPresenter extends SingleSchemaBasePresenter<
 					return getGroupsQuery();
 				}
 			}
+
+			@Override
+			public boolean isSearchCache() {
+				return eimConfigs.isOnlySummaryMetadatasDisplayedInTables();
+			}
 		};
 		view.setDataProvider(groupDataProvider);
-		view.reloadContent();
+		if (viewAssembled) {
+			view.reloadContent();
+		}
 	}
 
 	public void displayButtonClicked(GroupVO entity) {
-		view.navigate().to().displayCollectionGroup(entity.getId());
+		view.navigate().to().displayGlobalGroup(entity.getCode());
 	}
 }

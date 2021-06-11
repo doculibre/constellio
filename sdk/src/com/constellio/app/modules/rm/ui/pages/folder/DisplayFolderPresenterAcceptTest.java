@@ -22,6 +22,7 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -33,12 +34,14 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -56,8 +59,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.QueryCounter.ON_COLLECTION;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -93,7 +99,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(rmRecords)
-						.withFoldersAndContainersOfEveryStatus().withEvents()
+						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent().withEvents().withDocumentsDecommissioningList()
 		);
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -135,6 +141,63 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		doNothing().when(presenter).navigateToDocument(any(RecordVO.class));
 
 		return presenter;
+	}
+	@Test
+	public void givenDocumentWithContentThenFindDuplicateWithPresenter() throws RecordServicesException {
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), ON_COLLECTION(zeCollection));
+		queryCounter.reset();
+
+		Record recordA19 = recordServices.get(rmRecords.document_A19);
+		Document documentA19 = rmSchemasRecordsServices.wrapDocument(recordA19);
+
+		String hash = documentA19.getContent().getCurrentVersion().getHash();
+
+		List<Record> recordList = presenter.getAllRecordsWithHash(hash);
+
+		Document document1 = rmSchemasRecordsServices.wrapDocument(recordList.get(0));
+		assertThat(recordList).hasSize(1);
+		assertThat(document1.getContent().getCurrentVersion().getHash()).isEqualTo(hash);
+
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+	}
+
+	@Test
+	public void givenDocumentWithContentThenCannotFindWithUserWIthoutAccess() {
+
+		Record recordA19 = recordServices.get(rmRecords.document_A19);
+		Document documentA19 = rmSchemasRecordsServices.wrapDocument(recordA19);
+
+		String hash = documentA19.getContent().getCurrentVersion().getHash();
+
+		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
+		authorizationsServices.add(authorizationForUsers(users.bobIn(zeCollection)).on(recordA19).givingNegativeReadWriteAccess());
+
+		SessionContext sessionContext = FakeSessionContext.forRealUserIncollection(users.bobIn(zeCollection));
+		sessionContext.setCurrentLocale(Locale.FRENCH);
+
+		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
+
+		DisplayFolderPresenter displayFolderPresenter = displayFolderPresenterCreation(displayFolderView, null, false);
+
+		List<Record> recordList = displayFolderPresenter.getAllRecordsWithHash(hash);
+
+		assertThat(recordList).hasSize(0);
+	}
+
+	@Test
+	public void givenFolderWithDocumentsThenFindOtherDocumentsWithSameNameWithoutAnySolrQuery() {
+
+		QueryCounter queryCounter = new QueryCounter(getDataLayerFactory(), ON_COLLECTION(zeCollection));
+		queryCounter.reset();
+
+		SearchResponseIterator<Record> searchResponseIterator = presenter.getExistingDocumentInCurrentFolder("contrat.docx",rmRecords.folder_A01);
+
+		assertThat(searchResponseIterator.getNumFound()).isEqualTo(1);
+		List<Record> recordList = searchResponseIterator.stream().collect(Collectors.toList());
+
+		assertThat(queryCounter.newQueryCalls()).isEqualTo(0);
+		Record record1 = recordList.get(0);
+		assertThat(record1.getId()).isEqualTo(rmRecords.folder_A01 + "_numericContractWithDifferentCopy");
 	}
 
 	@Test
@@ -236,11 +299,11 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 		presenter.forParams(rmRecords.folder_A49);
 		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id").contains(
-				"documentInA49", "documentInA51", "documentInA53", "documentInA54").hasSize(7);
+				"documentInA49", "documentInA51", "documentInA53", "documentInA54").hasSize(14);
 
 		presenter.forParams(rmRecords.folder_A51);
 		assertThat(searchServices.search(presenter.getDocumentsQuery())).extracting("id").contains(
-				"documentInA51").hasSize(3);
+				"documentInA51").hasSize(9);
 	}
 
 	@Test
@@ -353,6 +416,11 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		folder3.setExternalLinks(asList(link3.getId(), link4.getId()));
 		folder4.setExternalLinks(asList(link1.getId(), link2.getId(), link3.getId(), link4.getId()));
 
+		link1.setLinkedto(folder4);
+		link2.setLinkedto(folder4);
+		link3.setLinkedto(folder4);
+		link4.setLinkedto(folder4);
+
 		recordServices.execute(new Transaction(
 				folder1,
 				folder2,
@@ -442,7 +510,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
 	@Test
 	public void givenExternalLinkDraggedAndDroppedInSubFolderThenParentUpdated() throws Exception {
-		ExternalLink externalLink = rmSchemasRecordsServices.newExternalLinkWithId("link1").setTitle("link1");
+		ExternalLink externalLink = rmSchemasRecordsServices.newExternalLinkWithId("link1").setTitle("link1").setLinkedto(rmRecords.getFolder_A01());
 		Folder parentFolder = rmRecords.getFolder_A01().setExternalLinks(Collections.singletonList(externalLink.getId()));
 		Folder subFolder = rmSchemasRecordsServices.newFolderWithId("abeille2")
 				.setParentFolder(rmRecords.folder_A01).setTitle("Abeille2").setOpenDate(TimeProvider.getLocalDate());
@@ -460,6 +528,122 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(subFolder.getExternalLinks()).containsExactly(externalLink.getId());
 		parentFolder = rmSchemasRecordsServices.getFolder(parentFolder.getId());
 		assertThat(parentFolder.getExternalLinks()).isEmpty();
+	}
+
+	@Test
+	public void givenSearchingInFolderWithDeepHierarchyThenChildrenFound() throws RecordServicesException {
+		recordServices.execute(new Transaction(
+				rmRecords.getFolder_A04().setParentFolder(rmRecords.folder_A03),
+				rmRecords.getFolder_A03().setParentFolder(rmRecords.folder_A02),
+				rmRecords.getFolder_A02().setParentFolder(rmRecords.folder_A01)
+		));
+
+		FolderVO folderVO = new FolderToVOBuilder().build(rmRecords.getFolder_A01().getWrappedRecord(), VIEW_MODE.FORM, sessionContext);
+		presenter.forParams(rmRecords.folder_A01);
+		doReturn(folderVO).when(presenter).getLazyFullFolderVO();
+
+		presenter.changeFolderContentDataProvider("abeille", false);
+		assertThat(getFolderContentTitle()).contains("Abeille - Document analogique avec le même exemplaire",
+				"Abeille - Document contrat analogique avec un autre exemplaire",
+				"Abeille - Document contrat numérique avec un autre exemplaire",
+				"Abeille - Document numérique avec le même exemplaire",
+				"Abeille - Document procès verbal analogique avec un autre exemplaire",
+				"Abeille - Document procès verbal numérique avec un autre exemplaire",
+				"Abeille - Histoire", "Abeille - Livre de recettes", "Abeille - Petit guide",
+				"Abeille - Typologie");
+
+		presenter.changeFolderContentDataProvider("abeille", true);
+		assertThat(getFolderContentTitle()).contains("Abeille - Document analogique avec le même exemplaire",
+				"Abeille - Document contrat analogique avec un autre exemplaire",
+				"Abeille - Document contrat numérique avec un autre exemplaire",
+				"Abeille - Document numérique avec le même exemplaire",
+				"Abeille - Document procès verbal analogique avec un autre exemplaire",
+				"Abeille - Document procès verbal numérique avec un autre exemplaire",
+				"Abeille - Histoire", "Abeille - Livre de recettes", "Abeille - Petit guide",
+				"Abeille - Typologie");
+
+		presenter.changeFolderContentDataProvider("baleine", false);
+		assertThat(getFolderContentTitle()).isEmpty();
+
+		presenter.changeFolderContentDataProvider("bale*", false);
+		assertThat(getFolderContentTitle()).isEmpty();
+
+		presenter.changeFolderContentDataProvider("bale*", true);
+		assertThat(getFolderContentTitle()).contains("Baleine",
+				"Baleine - Document analogique avec le même exemplaire",
+				"Baleine - Document contrat analogique avec un autre exemplaire",
+				"Baleine - Document contrat numérique avec un autre exemplaire",
+				"Baleine - Document numérique avec le même exemplaire",
+				"Baleine - Document procès verbal analogique avec un autre exemplaire",
+				"Baleine - Document procès verbal numérique avec un autre exemplaire",
+				"Baleine - Livre de recettes", "Baleine - Petit guide", "Baleine - Typologie");
+
+		presenter.changeFolderContentDataProvider("baleine", true);
+		assertThat(getFolderContentTitle()).contains("Baleine",
+				"Baleine - Document analogique avec le même exemplaire",
+				"Baleine - Document contrat analogique avec un autre exemplaire",
+				"Baleine - Document contrat numérique avec un autre exemplaire",
+				"Baleine - Document numérique avec le même exemplaire",
+				"Baleine - Document procès verbal analogique avec un autre exemplaire",
+				"Baleine - Document procès verbal numérique avec un autre exemplaire",
+				"Baleine - Livre de recettes", "Baleine - Petit guide", "Baleine - Typologie");
+
+		presenter.changeFolderContentDataProvider("*", false);
+		assertThat(getFolderContentTitle()).contains("Abeille - Document analogique avec le même exemplaire",
+				"Abeille - Document contrat analogique avec un autre exemplaire",
+				"Abeille - Document contrat numérique avec un autre exemplaire",
+				"Abeille - Document numérique avec le même exemplaire",
+				"Abeille - Document procès verbal analogique avec un autre exemplaire",
+				"Abeille - Document procès verbal numérique avec un autre exemplaire",
+				"Abeille - Histoire", "Abeille - Livre de recettes", "Abeille - Petit guide",
+				"Abeille - Typologie");
+
+		presenter.changeFolderContentDataProvider("*", true);
+		assertThat(getFolderContentTitle()).contains("Aigle", "Alouette", "Baleine",
+				"Abeille - Document analogique avec le même exemplaire",
+				"Abeille - Document contrat analogique avec un autre exemplaire",
+				"Abeille - Document contrat numérique avec un autre exemplaire",
+				"Abeille - Document numérique avec le même exemplaire",
+				"Abeille - Document procès verbal analogique avec un autre exemplaire",
+				"Abeille - Document procès verbal numérique avec un autre exemplaire",
+				"Abeille - Histoire",
+				"Abeille - Livre de recettes",
+				"Abeille - Petit guide",
+				"Abeille - Typologie",
+				"Aigle - Document analogique avec le même exemplaire",
+				"Aigle - Document contrat analogique avec un autre exemplaire",
+				"Aigle - Document contrat numérique avec un autre exemplaire",
+				"Aigle - Document numérique avec le même exemplaire",
+				"Aigle - Document procès verbal analogique avec un autre exemplaire",
+				"Aigle - Document procès verbal numérique avec un autre exemplaire",
+				"Aigle - Histoire",
+				"Aigle - Livre de recettes",
+				"Aigle - Petit guide",
+				"Aigle - Typologie",
+				"Alouette - Document analogique avec le même exemplaire",
+				"Alouette - Document contrat analogique avec un autre exemplaire",
+				"Alouette - Document contrat numérique avec un autre exemplaire",
+				"Alouette - Document numérique avec le même exemplaire",
+				"Alouette - Document procès verbal analogique avec un autre exemplaire",
+				"Alouette - Document procès verbal numérique avec un autre exemplaire",
+				"Alouette - Histoire", "Alouette - Livre de recettes",
+				"Alouette - Petit guide",
+				"Alouette - Typologie",
+				"Baleine - Document analogique avec le même exemplaire",
+				"Baleine - Document contrat analogique avec un autre exemplaire",
+				"Baleine - Document contrat numérique avec un autre exemplaire",
+				"Baleine - Document numérique avec le même exemplaire",
+				"Baleine - Document procès verbal analogique avec un autre exemplaire",
+				"Baleine - Document procès verbal numérique avec un autre exemplaire",
+				"Baleine - Livre de recettes",
+				"Baleine - Petit guide",
+				"Baleine - Typologie");
+	}
+
+	private List<String> getFolderContentTitle() {
+		return searchServices.search(presenter.folderContentDataProvider.getQuery()).stream()
+				.map(Record::getTitle)
+				.collect(Collectors.toList());
 	}
 
 	private MetadataSchemaTypes getSchemaTypes() {

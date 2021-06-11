@@ -81,18 +81,16 @@ public class LabelTemplateManager {
 		List<LabelTemplate> labelTemplates = new ArrayList<>();
 		List<String> templateCodes = new ArrayList<>(configManager.list(LABELS_TEMPLATES_FOLDER));
 
-		if (labelTemplates.isEmpty()) {
-			for (String templateCode : templateCodes) {
-				if (templateCode.toLowerCase().endsWith("xml")) {
-					LabelTemplate labelTemplate = getLabelTemplate(templateCode);
-					if (labelTemplate.getSchemaType().equals(schemaType)) {
-						labelTemplates.add(labelTemplate);
-					}
+		for (String templateCode : templateCodes) {
+			if (templateCode.toLowerCase().endsWith("xml")) {
+				LabelTemplate labelTemplate = getLabelTemplate(templateCode);
+				if (labelTemplate.getSchemaType().equals(schemaType)) {
+					labelTemplates.add(labelTemplate);
 				}
 			}
-
-			addDefaultLabelTemplates(schemaType, labelTemplates);
 		}
+
+		addDefaultLabelTemplates(schemaType, labelTemplates);
 
 		addToCache(labelTemplates);
 		Collections.sort(labelTemplates, new AbstractTextComparator<LabelTemplate>() {
@@ -115,8 +113,6 @@ public class LabelTemplateManager {
 			addDefaultFolderLabelTemplates(labelTemplates);
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
 			addDefaultContainerLabelTemplates(labelTemplates);
-		} else {
-			labelTemplates.add(new LabelTemplate());
 		}
 	}
 

@@ -25,8 +25,8 @@ public class TransactionRuntimeException extends RuntimeException {
 
 	public static class DifferentCollectionsInRecords extends TransactionRuntimeException {
 
-		public DifferentCollectionsInRecords(String collection, String otherCollection) {
-			super("Differents collections in transaction's records: \"" + collection + "\" != \"" + otherCollection + "\"");
+		public DifferentCollectionsInRecords(String collection, String otherCollection, String recordId) {
+			super("Different collections in transaction's records with ID "+recordId+": \"" + collection + "\" != \"" + otherCollection + "\"");
 		}
 	}
 

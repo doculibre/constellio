@@ -19,8 +19,10 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -101,12 +103,46 @@ public class PublishDocumentPresenter extends BasePresenter<PublishDocumentView>
 			throws RecordServicesException {
 		Document document = getRmService().wrapDocument(recordServices().getDocumentById(recordId));
 		document.setPublished(true);
-		document.setPublishingStartDate(new LocalDate(publishStartDate));
-		document.setPublishingEndDate(new LocalDate(publishEndDate));
 
+		if (publishStartDate == null) {
+			publishStartDate = new Date();
+		}
+		document.setPublishingStartDate((new LocalDateTime(publishStartDate)).withHourOfDay(0).withMinuteOfHour(0).withSecondOfMinute(0).toLocalDate());
+		if (publishEndDate != null) {
+			document.setPublishingEndDate((new LocalDateTime(publishEndDate)).withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59).toLocalDate());
+		}
 		recordServices().update(document);
 
 		return document;
+	}
+
+	public boolean validatePublishingDates(Date publishStartDate, Date publishEndDate) {
+
+		Date today = resetTimeOfDay(new Date());
+		if (publishStartDate != null && today.after(publishStartDate)) {
+			return false;
+		}
+		if (publishEndDate != null && today.after(publishEndDate)) {
+			return false;
+		}
+		if (publishStartDate != null && publishEndDate != null) {
+			if (publishStartDate.after(publishEndDate)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public Date resetTimeOfDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.MILLISECOND, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.HOUR, 0);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+
+		return calendar.getTime();
 	}
 
 	protected boolean isDateFieldValuesRequired() {

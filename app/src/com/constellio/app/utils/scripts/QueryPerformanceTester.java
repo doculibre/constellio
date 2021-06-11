@@ -92,7 +92,7 @@ public class QueryPerformanceTester {
 		List<MetadataSchemaType> types = asList(rm.folder.schemaType(), rm.documentSchemaType(), rm.containerRecord.schemaType());
 		LogicalSearchQuery query = new LogicalSearchQuery(from(types).returnAll())
 				.setFreeTextQuery("agence rap")
-				.filteredWithUser(user)
+				.filteredWithUserRead(user)
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setPreferAnalyzedFields(true)
 				.setNumberOfRows(10)
@@ -106,7 +106,7 @@ public class QueryPerformanceTester {
 
 		LogicalSearchQuery facetQuery = new LogicalSearchQuery(from(types).returnAll())
 				.setFreeTextQuery("agence rap")
-				.filteredWithUser(user)
+				.filteredWithUserRead(user)
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setPreferAnalyzedFields(true)
 				.setNumberOfRows(0);

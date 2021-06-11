@@ -100,12 +100,12 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
 				return new DeleteButton() {
 					@Override
 					protected void confirmButtonClick(ConfirmDialog dialog) {
-						presenter.deleteButtonClick(itemId + "", currentSchema);
+						presenter.deleteButtonClick(itemId + "", provider.getSchema().getCode());
 					}
 
 					@Override
 					public boolean isVisible() {
-						return presenter.isVisible(itemId + "", currentSchema);
+						return presenter.isVisible(itemId + "", provider.getSchema().getCode());
 					}
 				};
 			}

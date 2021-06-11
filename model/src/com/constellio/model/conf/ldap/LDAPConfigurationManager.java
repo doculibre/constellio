@@ -9,6 +9,7 @@ import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.config.UserNameType;
 import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -106,6 +107,10 @@ public class LDAPConfigurationManager implements StatefulService {
 					properties.put("ldap.serverConfiguration.clientId", ldapServerConfiguration.getClientId());
 					properties.put("ldap.syncConfiguration.clientId", ldapUserSyncConfiguration.getClientId());
 					properties.put("ldap.syncConfiguration.applicationKey", ldapUserSyncConfiguration.getClientSecret());
+					properties.put("ldap.syncConfiguration.usernameType", ldapUserSyncConfiguration.getUsernameType());
+					properties.put("ldap.syncConfiguration.fetchSubGroups", "" + ldapUserSyncConfiguration.isFetchSubGroups());
+					properties.put("ldap.syncConfiguration.ignoreRegexForSubGroups", "" + ldapUserSyncConfiguration.isIgnoreRegexForSubGroups());
+					properties.put("ldap.syncConfiguration.syncUsersOnlyIfInAcceptedGroups", "" + ldapUserSyncConfiguration.isSyncUsersOnlyIfInAcceptedGroups());
 					if (ldapUserSyncConfiguration.getGroupsFilter() != null) {
 						properties.put("ldap.syncConfiguration.groupsFilter", ldapUserSyncConfiguration.getGroupsFilter());
 					}
@@ -118,8 +123,10 @@ public class LDAPConfigurationManager implements StatefulService {
 					}
 				} else {
 					properties.put("ldap.serverConfiguration.urls.sharpSV", joinWithSharp(ldapServerConfiguration.getUrls()));
-					properties
-							.put("ldap.serverConfiguration.domains.sharpSV", joinWithSharp(ldapServerConfiguration.getDomains()));
+					properties.put("ldap.serverConfiguration.domains.sharpSV", joinWithSharp(ldapServerConfiguration.getDomains()));
+					properties.put("ldap.syncConfiguration.fetchSubGroups", "" + ldapUserSyncConfiguration.isFetchSubGroups());
+					properties.put("ldap.syncConfiguration.ignoreRegexForSubGroups", "" + ldapUserSyncConfiguration.isIgnoreRegexForSubGroups());
+					properties.put("ldap.syncConfiguration.syncUsersOnlyIfInAcceptedGroups", "" + ldapUserSyncConfiguration.isSyncUsersOnlyIfInAcceptedGroups());
 					if (ldapServerConfiguration.getFollowReferences() != null && ldapServerConfiguration.getFollowReferences()) {
 						properties.put("ldap.serverConfiguration.followReferences", "" + true);
 					} else {
@@ -341,12 +348,16 @@ public class LDAPConfigurationManager implements StatefulService {
 				"ldap.syncConfiguration.selectedCollectionsCodes.sharpSV", new ArrayList<String>());
 		boolean membershipAutomaticDerivationActivated = getBooleanValue(configs,
 				"ldap.syncConfiguration.membershipAutomaticDerivationActivated", true);
+		boolean fetchSubGroups = getBooleanValue(configs, "ldap.syncConfiguration.fetchSubGroups", false);
+		boolean ignoreRegexForSubGroups = getBooleanValue(configs, "ldap.syncConfiguration.ignoreRegexForSubGroups", false);
+		boolean syncUsersOnlyIfInAcceptedGroups = getBooleanValue(configs, "ldap.syncConfiguration.syncUsersOnlyIfInAcceptedGroups", false);
 		LDAPDirectoryType directoryType = getLDAPDirectoryType(configs);
 		if (directoryType == LDAPDirectoryType.AZURE_AD) {
 			String applicationKey = getString(configs, "ldap.syncConfiguration.applicationKey", null);
 			String synchClientId = getString(configs, "ldap.syncConfiguration.clientId", null);
 			String groupsFilter = getString(configs, "ldap.syncConfiguration.groupsFilter", null);
 			String usersFilter = getString(configs, "ldap.syncConfiguration.usersFilter", null);
+			String usernameType = getString(configs, "ldap.syncConfiguration.usernameType", UserNameType.MAIL_NICKNAME.getCode());
 			List<String> userGroups = getSharpSeparatedValuesWithoutBlanks(configs, "ldap.syncConfiguration.userGroups.sharpSV",
 					null);
 			AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig()
@@ -354,9 +365,10 @@ public class LDAPConfigurationManager implements StatefulService {
 					.setClientId(synchClientId)
 					.setGroupsFilter(groupsFilter)
 					.setUsersFilter(usersFilter)
+					.setUserNameType(usernameType)
 					.setUserGroups(userGroups);
 			return new LDAPUserSyncConfiguration(azurConf, userFilter, groupFilter, durationBetweenExecution, scheduleTimeList,
-					selectedCollections);
+					selectedCollections, fetchSubGroups, ignoreRegexForSubGroups, syncUsersOnlyIfInAcceptedGroups);
 		} else {
 			String user = getString(configs, "ldap.syncConfiguration.user.login", null);
 			List<String> groupBaseContextList = getSharpSeparatedValuesWithoutBlanks(configs,
@@ -377,7 +389,7 @@ public class LDAPConfigurationManager implements StatefulService {
 			return new LDAPUserSyncConfiguration(user, password, userFilter, groupFilter, durationBetweenExecution,
 					scheduleTimeList,
 					groupBaseContextList, usersWithoutGroupsBaseContextList, userFilterGroupsList,
-					membershipAutomaticDerivationActivated, selectedCollections);
+					membershipAutomaticDerivationActivated, selectedCollections, fetchSubGroups, ignoreRegexForSubGroups, syncUsersOnlyIfInAcceptedGroups);
 		}
 	}
 
@@ -471,7 +483,7 @@ public class LDAPConfigurationManager implements StatefulService {
 		}
 	}
 
-	public Boolean idUsersSynchActivated() {
+	public Boolean isUsersSynchActivated() {
 		LDAPUserSyncConfiguration config = getLDAPUserSyncConfiguration(false);
 		return config != null && !(config.getDurationBetweenExecution() == null && CollectionUtils
 				.isEmpty(config.getScheduleTime()));

@@ -28,7 +28,8 @@ public class IsContainingTextCriterion extends LogicalSearchValueCondition {
 	@Override
 	public boolean isValidFor(DataStoreField dataStoreField) {
 
-		return dataStoreField.getType() == STRING || dataStoreField.getType() == CONTENT || dataStoreField.getType() == STRUCTURE;
+		return dataStoreField.getType() == STRING || dataStoreField.getType() == CONTENT || dataStoreField.getType()
+				 == STRUCTURE;
 	}
 
 	@Override

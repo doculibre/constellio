@@ -110,13 +110,17 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_3_22;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_0_42_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_0;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_12;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_13;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_1_20;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2_0_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2_11;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2_12;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2_13;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2_20;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_9_2_900;
+import com.constellio.app.services.migrations.scripts.*;
+import com.constellio.app.servlet.ConstellioSignInSuccessServlet;
+import com.constellio.app.servlet.userSecurity.UserSecurityInfoWebServlet;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -225,13 +229,23 @@ public class ConstellioEIM {
 		scripts.add(new CoreMigrationTo_9_0_42_2());
 		scripts.add(new CoreMigrationTo_9_0_3());
 		scripts.add(new CoreMigrationTo_9_1_0());
-		scripts.add(new CoreMigrationTo_9_1_12());
-		scripts.add(new CoreMigrationTo_9_1_13());
 		scripts.add(new CoreMigrationTo_9_1_20());
 		scripts.add(new CoreMigrationTo_9_2());
 		scripts.add(new CoreMigrationTo_9_2_0_1());
 		scripts.add(new CoreMigrationTo_9_2_11());
 		scripts.add(new CoreMigrationTo_9_2_12());
+		scripts.add(new CoreMigrationTo_9_2_13());
+		scripts.add(new CoreMigrationTo_9_2_20());
+		scripts.add(new CoreMigrationTo_9_2_21());
+		scripts.add(new CoreMigrationTo_9_2_42());
+		scripts.add(new CoreMigrationTo_9_2_900());
+		scripts.add(new CoreMigrationTo_9_3_0());
+		scripts.add(new CoreMigrationTo_9_3_1());
+		scripts.add(new CoreMigrationFrom_9_4_updateServerPing());
+		scripts.add(new CoreMigrationFrom9_4_AddMenuDisplayManagerToAppLayerFactory());
+		scripts.add(new CoreMigrationFrom9_4_AddMetadataHasSeenMessageAtLogin());
+		scripts.add(new CoreMigrationFrom10_0_FixReportsI18n());
+
 		return scripts;
 	}
 
@@ -256,6 +270,14 @@ public class ConstellioEIM {
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
 		ApplicationStarter.registerFilter("/systemInfo", filterHolder);
 
+		ApplicationStarter.registerServlet("/userSecurityInfo", new UserSecurityInfoWebServlet());
+		filterHolder = new FilterHolder(new CrossOriginFilter());
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "OPTIONS,GET");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM, "content-type,access-control-allow-origin,authorization");
+		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+		ApplicationStarter.registerFilter("/userSecurityInfo", filterHolder);
+
 		ApplicationStarter.registerServlet("/getRecordContent", new GetRecordContentServlet());
 
 		ApplicationStarter.registerServlet(CertifyPdfJSSignaturesServlet.PATH, new CertifyPdfJSSignaturesServlet());
@@ -265,6 +287,7 @@ public class ConstellioEIM {
 		ApplicationStarter.registerServlet(RemovePdfJSSignatureServlet.PATH, new RemovePdfJSSignatureServlet());
 		ApplicationStarter.registerServlet(SavePdfJSAnnotationsServlet.PATH, new SavePdfJSAnnotationsServlet());
 		ApplicationStarter.registerServlet(SavePdfJSSignatureServlet.PATH, new SavePdfJSSignatureServlet());
+		ApplicationStarter.registerServlet(ConstellioSignInSuccessServlet.PATH, new ConstellioSignInSuccessServlet());
 
 		setupAppLayerSystemExtensions(appLayerFactory);
 	}

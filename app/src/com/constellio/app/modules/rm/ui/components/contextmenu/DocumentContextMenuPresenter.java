@@ -78,4 +78,8 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 	public boolean openForRequested(RecordVO recordVO) {
 		return openForRequested(recordVO.getId());
 	}
+
+	public String getCollection() {
+		return presenterUtils.getCollection();
+	}
 }

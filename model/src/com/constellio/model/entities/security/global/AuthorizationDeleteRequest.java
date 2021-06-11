@@ -11,26 +11,18 @@ public class AuthorizationDeleteRequest {
 
 	final String authId;
 
-	final boolean reattachIfLastAuthDeleted;
-
-	public AuthorizationDeleteRequest(String authId, String collection, User executedBy,
-									  boolean reattachIfLastAuthDeleted) {
+	public AuthorizationDeleteRequest(String authId, String collection, User executedBy) {
 		this.collection = collection;
 		this.authId = authId;
 		this.executedBy = executedBy;
-		this.reattachIfLastAuthDeleted = reattachIfLastAuthDeleted;
-	}
-
-	public AuthorizationDeleteRequest setReattachIfLastAuthDeleted(boolean reattachIfLastAuthDeleted) {
-		return new AuthorizationDeleteRequest(authId, collection, executedBy, reattachIfLastAuthDeleted);
 	}
 
 	public AuthorizationDeleteRequest setExecutedBy(User executedBy) {
-		return new AuthorizationDeleteRequest(authId, collection, executedBy, reattachIfLastAuthDeleted);
+		return new AuthorizationDeleteRequest(authId, collection, executedBy);
 	}
 
 	public static AuthorizationDeleteRequest authorizationDeleteRequest(String authId, String collection) {
-		return new AuthorizationDeleteRequest(authId, collection, null, true);
+		return new AuthorizationDeleteRequest(authId, collection, null);
 	}
 
 	public static AuthorizationDeleteRequest authorizationDeleteRequest(Authorization authorizationDetails) {
@@ -47,9 +39,5 @@ public class AuthorizationDeleteRequest {
 
 	public String getAuthId() {
 		return authId;
-	}
-
-	public boolean isReattachIfLastAuthDeleted() {
-		return reattachIfLastAuthDeleted;
 	}
 }

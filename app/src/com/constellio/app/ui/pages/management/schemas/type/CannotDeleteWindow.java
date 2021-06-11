@@ -1,7 +1,11 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
@@ -17,6 +21,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class CannotDeleteWindow extends VerticalLayout {
 
 	private static final String RECORD_ID = "CannotDeleteWindow.recordId";
+	private static final String RECORD_TYPE = "CannotDeleteWindow.recordType";
 	private static final String RECORD_TITLE = "CannotDeleteWindow.recordTitle";
 	private static final String IS_IN_TRASH_QUESTION = "CannotDeleteWindow.isInTrashQuestion";
 
@@ -75,12 +80,18 @@ public class CannotDeleteWindow extends VerticalLayout {
 	private Table buildRecodsTable(List<Record> records) {
 		Table table = new Table();
 		table.addContainerProperty($(RECORD_ID), String.class, null);
+		table.addContainerProperty($(RECORD_TYPE), String.class, null);
 		table.addContainerProperty($(RECORD_TITLE), String.class, null);
 		table.addContainerProperty($(IS_IN_TRASH_QUESTION), String.class, null);
 
+		MetadataSchemasManager schemasManager = ConstellioFactories.getInstance().getModelLayerFactory().getMetadataSchemasManager();
+		Language language = Language.withLocale(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+
 		int numberOfRecords = 0;
 		for (Record record : records) {
-			table.addItem(new String[]{record.getId(), record.getTitle(), record.isActive() ? $("CannotDeleteWindow.isActive") : $("CannotDeleteWindow.isInactive")}, numberOfRecords);
+			String schemaTypeCaption = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode()).getLabel(language);
+			String inTrashCaption = record.isActive() ? $("CannotDeleteWindow.isActive") : $("CannotDeleteWindow.isInactive");
+			table.addItem(new String[]{record.getId(), schemaTypeCaption, record.getTitle(), inTrashCaption}, numberOfRecords);
 			numberOfRecords++;
 		}
 

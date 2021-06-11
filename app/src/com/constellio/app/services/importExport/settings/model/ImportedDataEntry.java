@@ -11,6 +11,7 @@ public class ImportedDataEntry {
 	private String calculator;
 	private String fixedSequenceCode;
 	private String metadataProvidingSequenceCode;
+	private String advancedSequenceCalculatorClass;
 	private String pattern;
 	private String referencedMetadata;
 	private String copiedMetadata;
@@ -28,6 +29,10 @@ public class ImportedDataEntry {
 
 	public static ImportedDataEntry asMetadataProvidingSequence(String metadataProvidingSequenceCode) {
 		return new ImportedDataEntry().withType("sequence").withMetadataProvidingSequenceCode(metadataProvidingSequenceCode);
+	}
+
+	public static ImportedDataEntry asAdvancedSequence(String advancedSequenceCalculatorClass) {
+		return new ImportedDataEntry().withType("advancedSequence").withAdvancedSequenceCalculatorClass(advancedSequenceCalculatorClass);
 	}
 
 	public static ImportedDataEntry asJEXLScript(String pattern) {
@@ -76,6 +81,15 @@ public class ImportedDataEntry {
 
 	public ImportedDataEntry withMetadataProvidingSequenceCode(String metadataProvidingSequenceCode) {
 		this.metadataProvidingSequenceCode = metadataProvidingSequenceCode;
+		return this;
+	}
+
+	public String getAdvancedSequenceCalculatorClass() {
+		return advancedSequenceCalculatorClass;
+	}
+
+	public ImportedDataEntry withAdvancedSequenceCalculatorClass(String advancedSequenceCalculatorClass) {
+		this.advancedSequenceCalculatorClass = advancedSequenceCalculatorClass;
 		return this;
 	}
 

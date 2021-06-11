@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<license>
+  <name>dev</name>
+  <plan>S</plan>
+  <date>2022-04-23</date>
+  <vault>2000</vault>
+  <users>1000</users>
+  <servers>1</servers>
+  <plugins>
+    <plugin id="agent" number="007">Agent</plugin>
+  </plugins>
+  <additionalInfo />
+  <signature>jcgNwtiBgWitLwaTyQnWk0-sFNAaLCvWY5n_P93NgorI5ctyL6eaqK-jbQ7F-6wc9Zq415YoD2qs-DGUPMS2hw25BgTjgLRecCCs-HdsMwBWlKQdNoc3HYZFZ5aDBjZEAL3clVO6G3DXx88NS6emaQMEHNjt6XkbpxL4hgYfDjP4HjhQDeXodsCXvXbIWlbtCIqXRamarlE9gHVT3nyL9fYhVYaxnSDGnfitLmwxTX1RuJPgbJ6JH8ZwrJsPur4rHk4RtNJw95gZZQMnIOSkZ7jaRd5fm8GLjDNbkHQUIQ8hQbsRZzXZ0is8GQ47wzO7Dn-8jBb20I9BKv-qB1rDC5ZTl9hq9zl1F1gL_dnSnGtnYpPQKZWU7qbvZcfivn0RMJXv9DNmI8hMDX14Fqrbfh2OccPu9BTueqsfUTh5jvhaLDTtICwkinrZ2aQHXkAmXrPSmvLE6yV2IoWwWSYYHsyOEgtWzAwjaVgy1S1SdZ3NnOAiYwhfFuA_zghGpYO3-bnw_J8T_-ypU96HWSi_j8lOxH67C6mXBVE5KE6f8B7ZuiNPFHd4umG-vStqkL2k6cqX5Q8fToqLDelqRlPRXo0YwGcn4B8MDR1qbfYI5mqJqzEf5k94uXOf3whUK3W-G856qm70PuACkcUBZagYp0uCx8YPhAbw8gr1ru5igq4</signature>
+</license>

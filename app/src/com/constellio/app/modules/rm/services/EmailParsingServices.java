@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-@Deprecated
 public class EmailParsingServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmailParsingServices.class);
@@ -55,7 +54,6 @@ public class EmailParsingServices {
 		this.rm = rm;
 	}
 
-	//KEEP
 	@SuppressWarnings("unchecked")
 	public Email newEmail(String fileName, InputStream messageInputStream) {
 		Map<String, Object> parsedEmail = parseEmail(fileName, messageInputStream);
@@ -88,7 +86,6 @@ public class EmailParsingServices {
 		return email;
 	}
 
-	//KEEP
 	private Map<String, Object> parseEml(InputStream messageInputStream) {
 		Map<String, Object> parsed = new HashMap<String, Object>();
 
@@ -163,7 +160,6 @@ public class EmailParsingServices {
 		return parsed;
 	}
 
-	//KEEP
 	private static List<String> addressesAsStringList(Address[] addresses) {
 		List<String> addressesStr = new ArrayList<>();
 		if (addresses != null) {
@@ -174,7 +170,6 @@ public class EmailParsingServices {
 		return addressesStr;
 	}
 
-	//KEEP
 	public Map<String, Object> parseMsg(InputStream messageInputStream) {
 		Map<String, Object> parsed = new HashMap<String, Object>();
 		try {
@@ -280,17 +275,14 @@ public class EmailParsingServices {
 		return parsed;
 	}
 
-	//KEEP
 	private String getValue(StringChunk chunk) {
 		return chunk == null ? null : chunk.getValue();
 	}
 
-	//KEEP
 	private static List<String> splitAddresses(String addresses) {
 		return Arrays.asList(StringUtils.split(addresses, ";"));
 	}
 
-	//KEEP
 	private static void insertMsgAttachments(Map<String, Object> parsed, Message msg) {
 		Map<String, InputStream> attachments = new HashMap<String, InputStream>();
 		parsed.put(EMAIL_ATTACHMENTS, attachments);
@@ -313,7 +305,6 @@ public class EmailParsingServices {
 		}
 	}
 
-	//KEEP
 	public Map<String, Object> parseEmail(String fileName, InputStream messageInputStream) {
 		Map<String, Object> parsedMessage;
 		String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));

@@ -5,6 +5,7 @@ import java.io.File;
 public class ApplicationStarterParams {
 
 	boolean joinServerThread;
+	boolean isHttpsViaProxy;
 	File webContentDir;
 	int port;
 
@@ -48,5 +49,13 @@ public class ApplicationStarterParams {
 	public ApplicationStarterParams setSSLWithKeystorePassword(String keystorePassword) {
 		this.keystorePassword = keystorePassword;
 		return this;
+	}
+
+	public void setIsHttpsViaProxy(boolean isHttpsViaProxy) {
+		this.isHttpsViaProxy = isHttpsViaProxy;
+	}
+
+	public boolean isHttpsViaProxy() {
+		return isHttpsViaProxy;
 	}
 }

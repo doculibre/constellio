@@ -170,7 +170,7 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 				List<Record> borrowedDocumentsThatUserCanDelete = getBorrowedDocumentsThatUserCanDelete(user, event.getRecord());
 				long countForBorrowedDocumentsThatCurrentUserCanDelete = borrowedDocumentsThatUserCanDelete.size();
 				if (countForBorrowedDocumentsThatCurrentUserCanDelete != countForBorrowedDocuments) {
-					LogicalSearchQuery query = buildBorrowedDocumentsQuery(event).filteredWithUser(user, RMPermissionsTo.DELETE_BORROWED_DOCUMENT);
+					LogicalSearchQuery query = buildBorrowedDocumentsQuery(event).filteredWithUserRead(user, RMPermissionsTo.DELETE_BORROWED_DOCUMENT);
 					List<Record> checkedOutDocument = searchServices.search(query);
 					validationErrors.add(RMSchemasLogicalDeleteExtension.class, "folderWithCheckoutDocuments", toRecordsParameter(checkedOutDocument));
 				}

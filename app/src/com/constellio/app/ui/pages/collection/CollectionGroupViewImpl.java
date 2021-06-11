@@ -1,5 +1,8 @@
 package com.constellio.app.ui.pages.collection;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AuthorizationsButton;
@@ -7,6 +10,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.RolesButton;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -17,8 +21,10 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -44,6 +50,7 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		presenter.forRequestParams(event.getParameters());
+		buildActionMenuButtons();
 	}
 
 	@Override
@@ -51,19 +58,14 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 		return $("CollectionGroupView.viewTitle");
 	}
 
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> buttons = super.buildActionMenuButtons(event);
-
-		if (presenter.isRMModuleEnabled()) {
-			authorizations = new AuthorizationsButton(false) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.authorizationsButtonClicked();
-				}
-			};
-			buttons.add(authorizations);
-		}
+	private void buildActionMenuButtons() {
+		authorizations = new AuthorizationsButton(false) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.authorizationsButtonClicked();
+			}
+		};
+		authorizations.setEnabled(presenter.isRMModuleEnabled());
 
 		roles = new RolesButton(false) {
 			@Override
@@ -71,7 +73,6 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 				presenter.rolesButtonClicked();
 			}
 		};
-		buttons.add(roles);
 
 		delete = new DeleteButton(false) {
 			@Override
@@ -80,33 +81,29 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 				presenter.deleteButtonClicked(code);
 			}
 		};
-		buttons.add(delete);
-
-		return buttons;
 	}
 
 	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		List<Button> quickActionMenuButtons = new ArrayList<>();
-
-		if (roles != null) {
-			quickActionMenuButtons.add(roles);
-		}
-		if (authorizations != null) {
-			quickActionMenuButtons.add(authorizations);
-		}
-
-		return quickActionMenuButtons;
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				Stream.of(roles, authorizations, delete).map(MenuItemActionConverter::toMenuItemAction).collect(Collectors.toList())
+		);
 	}
 
 	@Override
-	protected boolean isActionMenuBar() {
-		return true;
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay) {
+			@Override
+			public Supplier<String> getSchemaTypeCodeSupplier() {
+				return presenter.getGroup().getSchema()::getTypeCode;
+			}
+		};
 	}
 
 	@Override
 	protected String getActionMenuBarCaption() {
-		return getQuickActionMenuButtons().isEmpty() ? super.getActionMenuBarCaption() : null;
+		return super.getActionMenuBarCaption();
 	}
 
 	@Override

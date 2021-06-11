@@ -11,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
+// Use XMLDataSourceGeneratorFactory instead
+@Deprecated
 public class RMXmlGeneratorExtension extends XmlGeneratorExtension {
 	private String collection;
 	private AppLayerFactory appLayerFactory;

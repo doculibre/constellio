@@ -6,11 +6,13 @@ import com.constellio.app.extensions.api.scripts.ScriptParameterValues;
 import com.constellio.app.extensions.api.scripts.StringBuilderActionLogger;
 import com.constellio.app.extensions.impl.VaultVerificationScript;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.enums.TemplateVersionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.data.conf.DigitSeparatorMode;
@@ -139,6 +141,7 @@ public class VaultMigrationAcceptTest extends ConstellioTest {
 			file = newTempFileWithContent("printable" + index + ".jasper", "This is content of printable " + index);
 			content = contentManager.createMajor(records.getAdmin(), file.getName(), contentManager.upload(file));
 			printable.setJasperFile(content);
+			printable.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 			recordsList.add(printable.getWrappedRecord());
 		}
 		Transaction transaction = new Transaction();

@@ -71,7 +71,7 @@ public class MetadataSchemaXMLReader2 {
 											   DataStoreTypesFactory typesFactory,
 											   ModelLayerFactory modelLayerFactory) {
 		String code = getCodeValue(element);
-		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false);
+		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaTypeWithSecurity(code, false);
 
 		for (Language language : typesBuilder.getLanguages()) {
 			schemaTypeBuilder = schemaTypeBuilder.addLabel(language, getLabelValue(element));

@@ -6,8 +6,8 @@ import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
-import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.SelectionPanelReportPresenter;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.util.MessageUtils;
@@ -36,8 +36,8 @@ public class StorageSpaceMenuItemActionBehaviors {
 	}
 
 	public void generateReport(StorageSpace storageSpace, MenuItemActionBehaviorParams params) {
-		RMSelectionPanelReportPresenter reportPresenter =
-				new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
+		SelectionPanelReportPresenter reportPresenter =
+				new SelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
 					@Override
 					public String getSelectedSchemaType() {
 						return StorageSpace.SCHEMA_TYPE;
@@ -50,7 +50,7 @@ public class StorageSpaceMenuItemActionBehaviors {
 				};
 
 		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory,
-				params.getView().getCollection(), false, false, reportPresenter, params.getView().getSessionContext()) {
+				params.getView().getCollection(), reportPresenter, params.getView().getSessionContext()) {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				setRecordVoList(params.getRecordVO());

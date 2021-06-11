@@ -1,13 +1,13 @@
 package com.constellio.model.entities.structures;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.StringTokenizer;
 
-public class EmailAddressFactory implements StructureFactory {
+public class EmailAddressFactory implements CombinedStructureFactory {
 
 	private static final String NULL = "~null~";
 	private static final String DELIMITER = ":";

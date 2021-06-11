@@ -12,8 +12,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -21,11 +19,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class LabelViewer extends VerticalLayout {
 
-	public LabelViewer(File PDF, String filename, IOServices ioServices) {
+	public LabelViewer(InputStream inputStream, String filename, IOServices ioServices) {
 		addStyleName("no-scroll");
-		InputStream inputStream = null;
 		try {
-			inputStream = new FileInputStream(PDF);
 			byte[] PDFbytes = IOUtils.toByteArray(inputStream);
 			StreamSource source = buildSource(PDFbytes);
 			BrowserFrame viewer = new BrowserFrame();
@@ -50,7 +46,6 @@ public class LabelViewer extends VerticalLayout {
 			e.printStackTrace();
 		} finally {
 			ioServices.closeQuietly(inputStream);
-			ioServices.deleteQuietly(PDF);
 		}
 	}
 
@@ -63,6 +58,9 @@ public class LabelViewer extends VerticalLayout {
 			return DownloadStreamResource.PDF_MIMETYPE;
 		}
 		extension = extension.toLowerCase();
+		if (extension.equals("doc") || extension.equals("docx")) {
+			return DownloadStreamResource.WORD_MIMETYPE;
+		}
 		if (extension.equals("xls") || extension.equals("xlsx")) {
 			return DownloadStreamResource.EXCEL_MIMETYPE;
 		}
@@ -90,6 +88,7 @@ public class LabelViewer extends VerticalLayout {
 		public static String PDF_MIMETYPE = "application/pdf";
 		public static String ZIP_MIMETYPE = "application/zip";
 		public static String EXCEL_MIMETYPE = "application/vnd.ms-excel";
+		public static String WORD_MIMETYPE = "application/msword";
 
 		public DownloadStreamResource(StreamSource source, String filename) {
 			this(source, filename, getMimeTypeFromFileName(filename));

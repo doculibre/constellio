@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.base;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.CoreViews;
@@ -11,6 +12,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -125,7 +127,7 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				MetadataSchemaTypeBuilder justeadmin = types.createNewSchemaType("justeadmin");
+				MetadataSchemaTypeBuilder justeadmin = types.createNewSchemaTypeWithSecurity("justeadmin");
 				justeadmin.getDefaultSchema().create("code").setType(MetadataValueType.STRING);
 			}
 		});
@@ -238,8 +240,122 @@ public class ConstellioHeaderPresenterAcceptanceTest extends ConstellioTest {
 				.setRetentionRuleEntered(rmRecords.ruleId_1);
 		recordServices.add(record);
 		assertThat(record.getSchema().getCode()).isEqualTo("folder_mySchema");
+		presenterConnectedWithAdmin().schemaSelected("folder_mySchema");
 		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
+		assertThat(allowedMetadatas).extracting("code").contains("folder_mySchema_myMetadata");
+	}
+
+	@Test
+	public void givenMetadataIsEnabledInCustomSchemaButNotInAdvancedSearchAndDisabledInDefaultSchemaButInAdvanceSearchThenDoNotDisplayInHeaderOnDefaultChosen()
+			throws RecordServicesException {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getDefaultSchema(Folder.SCHEMA_TYPE).create("myMetadata").setType(MetadataValueType.STRING)
+						.setSearchable(true);
+			}
+		});
+		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+		manager.saveMetadata(
+				manager.getMetadata(zeCollection, "folder_default_myMetadata").withVisibleInAdvancedSearchStatus(true));
+		List<MetadataVO> allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
 		assertThat(allowedMetadatas).extracting("code").contains("folder_default_myMetadata");
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getDefaultSchema(Folder.SCHEMA_TYPE).get("myMetadata").setEnabled(false);
+			}
+		});
+		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
+		assertThat(allowedMetadatas).extracting("code").doesNotContain("folder_default_myMetadata");
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder mySchema = types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("mySchema");
+				mySchema.get("myMetadata").setEnabled(true);
+			}
+		});
+		manager.saveMetadata(
+				manager.getMetadata(zeCollection, "folder_mySchema_myMetadata").withVisibleInAdvancedSearchStatus(false));
+		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
+		assertThat(allowedMetadatas).extracting("code").doesNotContain("folder_default_myMetadata");
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		Transaction transaction = new Transaction();
+		transaction.add(rm.newFolderType().setCode("newType").setTitle("newType")
+				.setLinkedSchema("folder_mySchema"));
+		recordServices.execute(transaction);
+		Folder record = rm.newFolderWithType(rm.getFolderTypeWithCode("newType")).setTitle("test")
+				.setAdministrativeUnitEntered(rmRecords.unitId_10).setCategoryEntered(rmRecords.categoryId_X)
+				.setOpenDate(LocalDate.now())
+				.setRetentionRuleEntered(rmRecords.ruleId_1);
+		recordServices.add(record);
+		assertThat(record.getSchema().getCode()).isEqualTo("folder_mySchema");
+		presenterConnectedWithAdmin().schemaSelected("folder_default");
+		allowedMetadatas = presenterConnectedWithAdmin().getMetadataAllowedInCriteria();
+		assertThat(allowedMetadatas).extracting("code").doesNotContain("folder_default_myMetadata");
+	}
+
+	@Test
+	public void givenMetadataIsCopiedAndSchemaTypeHasNoSecurityThenDoShow()
+			throws RecordServicesException {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.createNewSchemaTypeWithoutSecurity("newSchemaType").setSecurity(false);
+				types.getSchemaType("newSchemaType").getDefaultSchema().create("category").setType(MetadataValueType.REFERENCE).defineReferencesTo(types.getDefaultSchema(Category.SCHEMA_TYPE));
+				types.getSchemaType("newSchemaType").getDefaultSchema().create("myMetadata").setType(MetadataValueType.STRING)
+						.setSearchable(true).defineDataEntry()
+						.asCopied(types.getDefaultSchema("newSchemaType").getMetadata("category"), types.getDefaultSchema(Category.SCHEMA_TYPE).getMetadata(Category.TITLE));
+			}
+		});
+
+		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+		manager.saveMetadata(
+				manager.getMetadata(zeCollection, "newSchemaType_default_category").withVisibleInAdvancedSearchStatus(true));
+		manager.saveMetadata(
+				manager.getMetadata(zeCollection, "newSchemaType_default_myMetadata").withVisibleInAdvancedSearchStatus(true));
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		Transaction transaction = new Transaction();
+		transaction.add(rm.create(types.getDefaultSchema("newSchemaType")).set(types.getMetadata("newSchemaType_default_category"), rmRecords.categoryId_X));
+		recordServices.execute(transaction);
+
+		ConstellioHeaderPresenter presenter = presenterConnectedWithAdmin();
+		presenter.schemaTypeSelected("newSchemaType");
+		List<MetadataVO> allowedMetadatas = presenter.getCopiedMetadataAllowedInCriteria("newSchemaType_default_category");
+		assertThat(allowedMetadatas).extracting("code").containsExactly("newSchemaType_default_myMetadata");
+	}
+
+	@Test
+	public void givenMetadataIsNotCopiedAndSchemaTypeHasNoSecurityThenDoNotShow()
+			throws RecordServicesException {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.createNewSchemaTypeWithoutSecurity("newSchemaType").setSecurity(false);
+				types.getSchemaType("newSchemaType").getDefaultSchema().create("category").setType(MetadataValueType.REFERENCE).defineReferencesTo(types.getDefaultSchema(Category.SCHEMA_TYPE));
+				types.getSchemaType("newSchemaType").getDefaultSchema().create("myMetadata").setType(MetadataValueType.STRING).setSearchable(true);
+			}
+		});
+
+		SchemasDisplayManager manager = getAppLayerFactory().getMetadataSchemasDisplayManager();
+		manager.saveMetadata(
+				manager.getMetadata(zeCollection, "newSchemaType_default_category").withVisibleInAdvancedSearchStatus(true));
+		manager.saveMetadata(
+				manager.getMetadata(zeCollection, "newSchemaType_default_myMetadata").withVisibleInAdvancedSearchStatus(true));
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
+		Transaction transaction = new Transaction();
+		transaction.add(rm.create(types.getDefaultSchema("newSchemaType")).set(types.getMetadata("newSchemaType_default_category"), rmRecords.categoryId_X));
+		recordServices.execute(transaction);
+
+		ConstellioHeaderPresenter presenter = presenterConnectedWithAdmin();
+		presenter.schemaTypeSelected("newSchemaType");
+		List<MetadataVO> allowedMetadatas = presenter.getCopiedMetadataAllowedInCriteria("newSchemaType_default_category");
+		assertThat(allowedMetadatas).isEmpty();
 	}
 
 	private ConstellioHeaderPresenter presenterConnectedWithAdmin() {

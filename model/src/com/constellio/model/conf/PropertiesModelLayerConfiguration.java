@@ -259,6 +259,11 @@ public class PropertiesModelLayerConfiguration extends PropertiesConfiguration i
 		return getBoolean("dao.stringRecordIds.persistLegacyMapping", true);
 	}
 
+	@Override
+	public boolean isContentConversionAvailable() {
+		return getBoolean("content.conversion.available", true);
+	}
+
 
 	@Override
 	public Factory<EncryptionServices> getEncryptionServicesFactory() {

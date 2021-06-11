@@ -73,6 +73,8 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 				.mockManualMultivalueMetadata("type_default_multivalueValue", MetadataValueType.CONTENT);
 		when(singleValueContentMetadata.getDataStoreCode()).thenReturn("singleValue_s");
 		when(multiValueContentMetadata.getDataStoreCode()).thenReturn("multivalueValue_ss");
+		when(singleValueContentMetadata.isCombinedStructure()).thenReturn(true);
+		when(multiValueContentMetadata.isCombinedStructure()).thenReturn(true);
 		when(types.getSchema(schemaCode)).thenReturn(schema);
 		when(types.getSchemaOf(any(Record.class))).thenReturn(schema);
 		MetadataList metadatas = new MetadataList(textMetadata, singleValueContentMetadata, multiValueContentMetadata);

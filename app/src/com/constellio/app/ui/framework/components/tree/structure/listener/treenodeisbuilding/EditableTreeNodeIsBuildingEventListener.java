@@ -1,0 +1,6 @@
+package com.constellio.app.ui.framework.components.tree.structure.listener.treenodeisbuilding;
+
+import com.constellio.app.ui.framework.components.tree.structure.listener.EditableTreeNodeEventListener;
+
+public interface EditableTreeNodeIsBuildingEventListener extends EditableTreeNodeEventListener<EditableTreeNodeIsBuildingEvent> {
+}

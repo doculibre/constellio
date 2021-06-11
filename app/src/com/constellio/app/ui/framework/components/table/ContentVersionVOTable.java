@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateTimeConverter;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
+import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.data.conf.ContentDaoType;
@@ -16,9 +17,11 @@ import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Table;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -149,6 +152,10 @@ public class ContentVersionVOTable extends BaseTable {
 		return contentVersionVOs;
 	}
 
+	@Override
+	protected TableColumnsManager newColumnsManager() {
+		return new ContentVersionVOTableColumnsManager();
+	}
 
 	@SuppressWarnings("unchecked")
 	public void setContentVersions(List<ContentVersionVO> contentVersions) {
@@ -222,5 +229,26 @@ public class ContentVersionVOTable extends BaseTable {
 
 	protected void selectionUpdated() {
 
+	}
+
+	public class ContentVersionVOTableColumnsManager extends TableColumnsManager {
+
+		public ContentVersionVOTableColumnsManager() {
+			super();
+		}
+
+		public ContentVersionVOTableColumnsManager(RecordVOTable table, String tableId) {
+			super(table, tableId);
+		}
+
+		@Override
+		protected List<String> getDefaultVisibleColumnIds(Table table) {
+			List<String> defaultVisibleColumns = new ArrayList<>(super.getDefaultVisibleColumnIds(table));
+
+			defaultVisibleColumns.remove(COMMENT);
+			defaultVisibleColumns.remove(SYSTEM_FILE_NAME);
+
+			return defaultVisibleColumns;
+		}
 	}
 }

@@ -749,7 +749,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder setupRetentionRules(MetadataSchemaTypeBuilder administrativeUnitSchemaType,
 														  MetadataSchemaTypeBuilder documentType) {
-		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(RetentionRule.SCHEMA_TYPE).setSecurity(false);
+		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaTypeWithSecurity(RetentionRule.SCHEMA_TYPE).setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
@@ -801,7 +801,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder setupUniformSubdivisionSchemaType(
 			MetadataSchemaTypeBuilder retentionRuleSchemaType) {
-		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(UniformSubdivision.SCHEMA_TYPE).setSecurity(false);
+		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaTypeWithSecurity(UniformSubdivision.SCHEMA_TYPE).setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
 		defaultSchema.createUndeletable(UniformSubdivision.CODE).setType(STRING).setDefaultRequirement(true).setSearchable(true);
@@ -817,7 +817,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder setupAdministrativeUnitSchemaType(
 			MetadataSchemaTypeBuilder filingSpaceSchemaType) {
-		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(AdministrativeUnit.SCHEMA_TYPE).setSecurity(false);
+		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaTypeWithSecurity(AdministrativeUnit.SCHEMA_TYPE).setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 		defaultSchema.createUndeletable(AdministrativeUnit.CODE).setType(STRING).setDefaultRequirement(true).setSearchable(
@@ -840,7 +840,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder setupFilingSpaceSchemaType(MetadataSchemaTypeBuilder userSchemaType) {
-		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(FilingSpace.SCHEMA_TYPE).setSecurity(false);
+		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaTypeWithSecurity(FilingSpace.SCHEMA_TYPE).setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
@@ -858,7 +858,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 															   MetadataSchemaTypeBuilder administrativeUnitSchemaType,
 															   MetadataSchemaTypeBuilder userSchemaType,
 															   MetadataSchemaTypeBuilder filingSpaceSchemaType) {
-		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(ContainerRecord.SCHEMA_TYPE).setSecurity(true);
+		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaTypeWithSecurity(ContainerRecord.SCHEMA_TYPE).setSecurity(true);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
@@ -891,7 +891,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder setupStorageSpaceSchemaType(MetadataSchemaTypeBuilder storageSpaceTypeSchema) {
-		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(StorageSpace.SCHEMA_TYPE).setSecurity(false);
+		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaTypeWithSecurity(StorageSpace.SCHEMA_TYPE).setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
@@ -909,7 +909,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder setupCategoriesSchemaType(MetadataSchemaTypeBuilder retentionRuleSchemaType) {
-		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(Category.SCHEMA_TYPE).setSecurity(false);
+		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaTypeWithSecurity(Category.SCHEMA_TYPE).setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 		defaultSchema.getMetadata(TITLE_CODE).setSchemaAutocomplete(true);
@@ -938,7 +938,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 												  MetadataSchemaTypeBuilder mediumTypeSchemaType,
 												  MetadataSchemaTypeBuilder containerSchemaType,
 												  MetadataSchemaTypeBuilder uniformSubdivisionSchemaType) {
-		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(Folder.SCHEMA_TYPE).setSecurity(true);
+		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaTypeWithSecurity(Folder.SCHEMA_TYPE).setSecurity(true);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 		defaultSchema.get(Schemas.TITLE_CODE).setDefaultRequirement(true);
@@ -1073,7 +1073,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 															   MetadataSchemaTypeBuilder categorySchemaType,
 															   MetadataSchemaTypeBuilder retentionRuleSchemaType,
 															   MetadataSchemaTypeBuilder mediumTypeSchemaType) {
-		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(DecommissioningList.SCHEMA_TYPE).setSecurity(false);
+		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaTypeWithSecurity(DecommissioningList.SCHEMA_TYPE).setSecurity(false);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 		defaultSchema.getMetadata(Schemas.TITLE_CODE).setDefaultRequirement(true);
@@ -1162,7 +1162,7 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder setupDocument(MetadataSchemaTypeBuilder folderSchemaType,
 													MetadataSchemaTypeBuilder documentTypeSchema) {
-		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(Document.SCHEMA_TYPE).setSecurity(true);
+		MetadataSchemaTypeBuilder schemaType = types().createNewSchemaTypeWithSecurity(Document.SCHEMA_TYPE).setSecurity(true);
 		MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 		defaultSchema.getMetadata(Schemas.TITLE_CODE).setDefaultRequirement(true);

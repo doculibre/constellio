@@ -269,6 +269,12 @@ public class MetadataSchema implements Serializable {
 		return metadatas.onlyNonParentReferences();
 	}
 
+	public List<Metadata> getAllReferences() {
+		List<Metadata> allReferences = new ArrayList<>(metadatas.onlyParentReferences());
+		allReferences.addAll(metadatas.onlyNonParentReferences());
+		return allReferences;
+	}
+
 	public List<Metadata> getOnlyNonHerited() {
 		return metadatas.onlyNonHerited();
 	}

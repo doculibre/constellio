@@ -401,7 +401,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 			//-
 			//Create ConnectorType schema type
-			MetadataSchemaTypeBuilder connectorTypeSchemaType = types.createNewSchemaType(ConnectorType.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder connectorTypeSchemaType = types.createNewSchemaTypeWithSecurity(ConnectorType.SCHEMA_TYPE);
 			connectorTypeSchema = connectorTypeSchemaType.getDefaultSchema();
 			connectorTypeSchema.createUniqueCodeMetadata();
 			connectorTypeSchema.get(Schemas.TITLE_CODE).setMultiLingual(true);
@@ -414,7 +414,7 @@ public class ESMigrationTo5_1_6 extends MigrationHelper implements MigrationScri
 
 			//-
 			//Create Connector schema type
-			connectorSchema = types.createNewSchemaType(ConnectorInstance.SCHEMA_TYPE).getDefaultSchema();
+			connectorSchema = types.createNewSchemaTypeWithSecurity(ConnectorInstance.SCHEMA_TYPE).getDefaultSchema();
 			connectorSchema.getMetadata(Schemas.TITLE_CODE).setDefaultRequirement(true).setMultiLingual(true);
 			connectorSchema.createUniqueCodeMetadata();
 			connectorSchema.createUndeletable(ConnectorInstance.CONNECTOR_TYPE)

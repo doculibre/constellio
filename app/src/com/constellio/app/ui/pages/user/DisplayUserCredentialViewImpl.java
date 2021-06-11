@@ -1,5 +1,8 @@
 package com.constellio.app.ui.pages.user;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -10,6 +13,7 @@ import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.TableStringFilter;
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -36,6 +40,8 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_CONSULT;
 import static com.constellio.app.services.menu.UserCollectionMenuItemServices.UserRecordMenuItemActionType.USER_EDIT;
@@ -186,7 +192,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		collectionsCaptionLabel = new Label($("UserCredentialView.collections"));
 		collectionsCaptionLabel.setId("collections");
 		collectionsCaptionLabel.addStyleName("collections");
-		collectionsDisplayComponent = new Label(userCredentialVO.getStringCollections());
+		collectionsDisplayComponent = new Label(presenter.getStringCollections(userCredentialVO.getCollections()));
 
 		List<BaseDisplay.CaptionAndComponent> captionsAndComponents = new ArrayList<>();
 		captionsAndComponents.add(new CaptionAndComponent(usernameCaptionLabel, usernameDisplayComponent));
@@ -210,7 +216,9 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		availableGlobalGroupTable = buildAvailableGlobalGroupTable();
 
 		tableFilterUserGlobalGroups = new TableStringFilter(userGlobalGroupTable);
+		tableFilterUserGlobalGroups.setWidth("50%");
 		tableFilterAvailableGlobalGroups = new TableStringFilter(availableGlobalGroupTable);
+		tableFilterAvailableGlobalGroups.setWidth("50%");
 
 		viewLayout.addComponents(userCredentialDisplay, filterAndAddButtonLayoutUserGlobalGroups, userGlobalGroupTable,
 				filterAndAddButtonLayoutAvailableGlobalGroups, availableGlobalGroupTable);
@@ -343,11 +351,6 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 	}
 
 	@Override
-	protected boolean isActionMenuBar() {
-		return true;
-	}
-
-	@Override
 	protected String getActionMenuBarCaption() {
 		return null;
 	}
@@ -356,7 +359,23 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		return true;
 	}
 
-	protected List<Button> getQuickActionMenuButtons() {
+	@Override
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		return ListUtils.flatMapFilteringNull(super.buildMenuItemActions(event),
+				getMenuButtons().stream().map(MenuItemActionConverter::toMenuItemAction).collect(Collectors.toList()));
+	}
+
+	@Override
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay) {
+			@Override
+			public Supplier<String> getSchemaTypeCodeSupplier() {
+				return presenter.getPageUserVO().getSchema()::getTypeCode;
+			}
+		};
+	}
+
+	protected List<Button> getMenuButtons() {
 		Button editFolderButton = new EditButton($("edit")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -377,7 +396,9 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		availableGlobalGroupTable = newAvailableGlobalGroupTable;
 
 		TableStringFilter newTableFilterUserGlobalGroups = new TableStringFilter(userGlobalGroupTable);
+		newTableFilterUserGlobalGroups.setWidth("50%");
 		TableStringFilter newTableFilterAvailableGlobalGroups = new TableStringFilter(availableGlobalGroupTable);
+		newTableFilterAvailableGlobalGroups.setWidth("50%");
 		filterAndAddButtonLayoutUserGlobalGroups.replaceComponent(tableFilterUserGlobalGroups, newTableFilterUserGlobalGroups);
 		filterAndAddButtonLayoutAvailableGlobalGroups
 				.replaceComponent(tableFilterAvailableGlobalGroups, newTableFilterAvailableGlobalGroups);

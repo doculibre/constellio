@@ -9,6 +9,7 @@ public class ListAddRemoveDoubleField extends ListAddRemoveField<Double, BaseDou
 	public ListAddRemoveDoubleField() {
 		super();
 		setItemConverter(new BaseStringToDoubleConverter());
+
 	}
 
 	@Override

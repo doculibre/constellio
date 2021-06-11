@@ -1,8 +1,8 @@
 package com.constellio.app.conf;
 
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.PropertiesConfiguration;
 import com.constellio.data.utils.Factory;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.encrypt.EncryptionServices;
@@ -53,6 +53,10 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 			setFile("pluginsToMoveOnStartup.file", value);
 		}
 
+		public void setSignatureKey(File value) {
+			setFile("signatureKey.file", value);
+		}
+
 		public void setFastMigrationsEnabled(boolean value) {
 			setBoolean("fastMigrations.enabled", value);
 		}
@@ -96,6 +100,11 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 	@Override
 	public File getSetupProperties() {
 		return getFile("setupProperties.file", foldersLocator.getConstellioSetupProperties());
+	}
+
+	@Override
+	public File getSignatureKey() {
+		return getFile("signatureKey.file", null);
 	}
 
 	@Override

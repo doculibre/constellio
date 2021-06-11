@@ -90,7 +90,7 @@ public class BatchProcessControllerAcceptanceTest extends ConstellioTest {
 		recordIds = addAnotherSchemaAndThirdSchemaRecords(zeSchemaRecord);
 
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		doReturn(new AddToBatchProcessImpactHandler(batchProcessManager, searchServices)).when(recordServices)
+		doReturn(new AddToBatchProcessImpactHandler(batchProcessManager, searchServices, recordServices)).when(recordServices)
 				.addToBatchProcessModificationImpactHandler();
 
 		givenWaitForBatchProcessAfterTestIsDisabled();

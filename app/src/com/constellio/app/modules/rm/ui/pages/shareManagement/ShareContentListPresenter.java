@@ -14,7 +14,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -90,7 +90,7 @@ public class ShareContentListPresenter extends BasePresenter<ShareContentListVie
 
 	private LogicalSearchQuery getSharedAuthorization(String schemaType) {
 		return new LogicalSearchQuery((LogicalSearchQueryOperators.from(schemasRecordsServices.authorizationDetails.schemaType())
-				.where(schemasRecordsServices.authorizationDetails.schema().getMetadata(Authorization.SHARED_BY)).isNotNull()
+				.where(schemasRecordsServices.authorizationDetails.schema().getMetadata(RecordAuthorization.SHARED_BY)).isNotNull()
 				.andWhere(schemasRecordsServices.authorizationDetails.targetSchemaType()).isEqualTo(schemaType)));
 	}
 

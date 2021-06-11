@@ -40,12 +40,18 @@ public class DecommissioningListQueryFactory {
 	}
 
 	public LogicalSearchQuery getGeneratedListsQuery(User user) {
+		LogicalSearchCondition superUserCondition = from(rm.decommissioningList.schemaType())
+				.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.GENERATED)
+				.andWhere(rm.decommissioningList.superUser()).isEqualTo(user.getId());
+
 		if (hasProcessOrCreateDecomissioningPerm(user)) {
 			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.GENERATED);
-			return newQueryWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(condition, user);
+			condition = conditionWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(condition, user);
+
+			return wrapQuery(from(rm.decommissioningList.schemaType()).whereAnyCondition(condition, superUserCondition));
 		} else {
-			return LogicalSearchQuery.returningNoResults();
+			return wrapQuery(superUserCondition);
 		}
 	}
 
@@ -59,15 +65,25 @@ public class DecommissioningListQueryFactory {
 							where(rm.decommissioningList.analogicalMedium()).isTrue(),
 							where(rm.decommissioningList.electronicMedium()).isFalse()
 					);
-			return newQueryWithAdministrativeUnitFilter(condition, user, asList(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST,
-					RMPermissionsTo.CREATE_DECOMMISSIONING_LIST,
-					RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST));
+
+			LogicalSearchCondition superUserCondition = from(rm.decommissioningList.schemaType())
+					.whereAllConditions(condition, where(rm.decommissioningList.superUser()).isEqualTo(user.getId()));
+
+			condition = conditionWithAdministrativeUnitFilter(condition, user,
+					asList(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST,
+							RMPermissionsTo.EDIT_TRANSFER_DECOMMISSIONING_LIST));
+
+			return wrapQuery(from(rm.decommissioningList.schemaType()).whereAnyCondition(condition, superUserCondition));
 		} else {
 			return getGeneratedListsQuery(user);
 		}
 	}
 
 	public LogicalSearchQuery getListsPendingValidationQuery(User user) {
+		LogicalSearchCondition superUserCondition = from(rm.decommissioningList.schemaType())
+				.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.IN_VALIDATION)
+				.andWhere(rm.decommissioningList.superUser()).isEqualTo(user.getId());
+
 		if (hasProcessOrCreateDecomissioningPerm(user) ||
 			user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).onSomething()) {
 
@@ -91,7 +107,7 @@ public class DecommissioningListQueryFactory {
 						authorizationsServices.getConceptsForWhichUserHasPermission(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, user);
 			}
 
-			return new LogicalSearchQuery(from(rm.decommissioningList.schemaType()).whereAllConditions(
+			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType()).whereAllConditions(
 					where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.IN_VALIDATION),
 					where(rm.decommissioningList.pendingValidations()).isNotEqual(user),
 
@@ -113,9 +129,11 @@ public class DecommissioningListQueryFactory {
 									)
 							)
 					)
-			));
+			);
+
+			return wrapQuery(from(rm.decommissioningList.schemaType()).whereAnyCondition(condition, superUserCondition));
 		} else {
-			return LogicalSearchQuery.returningNoResults();
+			return wrapQuery(superUserCondition);
 		}
 	}
 
@@ -127,28 +145,42 @@ public class DecommissioningListQueryFactory {
 	public LogicalSearchQuery getListsToValidateQuery(User user) {
 		LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 				.where(rm.decommissioningList.pendingValidations()).isEqualTo(user);
-		return new LogicalSearchQuery(condition).sortAsc(Schemas.TITLE);
+
+		return wrapQuery(condition);
 	}
 
 	public LogicalSearchQuery getValidatedListsQuery(User user) {
+		LogicalSearchCondition superUserCondition = from(rm.decommissioningList.schemaType())
+				.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.VALIDATED)
+				.andWhere(rm.decommissioningList.superUser()).isEqualTo(user.getId());
+
 		if (hasProcessOrCreateDecomissioningPerm(user)) {
 			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.VALIDATED);
-			return newQueryWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(condition, user);
+			condition = conditionWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(condition, user);
+
+			return wrapQuery(from(rm.decommissioningList.schemaType()).whereAnyCondition(condition, superUserCondition));
 		} else {
-			return LogicalSearchQuery.returningNoResults();
+			return wrapQuery(superUserCondition);
 		}
 	}
 
 	public LogicalSearchQuery getListsPendingApprovalQuery(User user) {
+		LogicalSearchCondition superUserCondition = from(rm.decommissioningList.schemaType())
+				.where(rm.decommissioningList.status()).isIn(asList(DecomListStatus.IN_APPROVAL, DecomListStatus.IN_VALIDATION))
+				.andWhere(rm.decommissioningList.approvalRequest()).isNotNull()
+				.andWhere(rm.decommissioningList.superUser()).isEqualTo(user.getId());
+
 		if (hasProcessOrCreateDecomissioningPerm(user)) {
 			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isIn(
 							asList(DecomListStatus.IN_APPROVAL, DecomListStatus.IN_VALIDATION))
 					.andWhere(rm.decommissioningList.approvalRequest()).isNotNull();
-			return newQueryWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(condition, user);
+			condition = conditionWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(condition, user);
+
+			return wrapQuery(from(rm.decommissioningList.schemaType()).whereAnyCondition(condition, superUserCondition));
 		} else {
-			return LogicalSearchQuery.returningNoResults();
+			return wrapQuery(superUserCondition);
 		}
 	}
 
@@ -157,64 +189,80 @@ public class DecommissioningListQueryFactory {
 			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.IN_APPROVAL)
 					.andWhere(rm.decommissioningList.approvalRequest()).isNotEqual(user);
-			return newQueryWithAdministrativeUnitFilter(condition, user, RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST);
+			condition = conditionWithAdministrativeUnitFilter(condition, user, RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST);
+
+			return wrapQuery(condition);
 		} else {
 			return LogicalSearchQuery.returningNoResults();
 		}
 	}
 
 	public LogicalSearchQuery getApprovedListsQuery(User user) {
+		LogicalSearchCondition superUserCondition = from(rm.decommissioningList.schemaType())
+				.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.APPROVED)
+				.andWhere(rm.decommissioningList.superUser()).isEqualTo(user.getId());
+
 		if (hasProcessOrCreateDecomissioningPerm(user)) {
 			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.APPROVED);
-			return newQueryWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(condition, user);
+			condition = conditionWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(condition, user);
+
+			return wrapQuery(from(rm.decommissioningList.schemaType()).whereAnyCondition(condition, superUserCondition));
 		} else {
-			return LogicalSearchQuery.returningNoResults();
+			return wrapQuery(superUserCondition);
 		}
 	}
 
 	public LogicalSearchQuery getProcessedListsQuery(User user) {
+		LogicalSearchCondition superUserCondition = from(rm.decommissioningList.schemaType())
+				.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.PROCESSED)
+				.andWhere(rm.decommissioningList.superUser()).isEqualTo(user.getId());
+
 		if (hasProcessOrCreateDecomissioningPerm(user)) {
 			LogicalSearchCondition condition = from(rm.decommissioningList.schemaType())
 					.where(rm.decommissioningList.status()).isEqualTo(DecomListStatus.PROCESSED);
-			return newQueryWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(condition, user);
+			condition = conditionWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(condition, user);
+
+			return wrapQuery(from(rm.decommissioningList.schemaType()).whereAnyCondition(condition, superUserCondition));
 		} else {
-			return LogicalSearchQuery.returningNoResults();
+			return wrapQuery(superUserCondition);
 		}
 	}
 
-	private LogicalSearchQuery newQueryWithAdministrativeUnitFilter(LogicalSearchCondition condition, User user) {
-		return newQueryWithAdministrativeUnitFilter(condition, user, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
+	private LogicalSearchCondition conditionWithAdministrativeUnitFilter(LogicalSearchCondition condition, User user) {
+		return conditionWithAdministrativeUnitFilter(condition, user, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST);
 	}
 
-	private LogicalSearchQuery newQueryWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(
+	private LogicalSearchCondition conditionWithProcessAndCreateDecomissioningPermWithAdministrativeUnitFilter(
 			LogicalSearchCondition condition, User user) {
-		return newQueryWithAdministrativeUnitFilter(condition, user, asList(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST));
+		return conditionWithAdministrativeUnitFilter(condition, user, asList(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, RMPermissionsTo.CREATE_DECOMMISSIONING_LIST));
 	}
 
-
-	private LogicalSearchQuery newQueryWithAdministrativeUnitFilter(
-			LogicalSearchCondition condition, User user, String permission) {
+	private LogicalSearchCondition conditionWithAdministrativeUnitFilter(LogicalSearchCondition condition, User user,
+																		 String permission) {
 		if (user.has(permission).globally()) {
-			return new LogicalSearchQuery(condition).sortAsc(Schemas.TITLE);
+			return condition;
 		} else {
 			List<String> administrativeUnits = authorizationsServices.getConceptsForWhichUserHasPermission(permission, user);
-			return new LogicalSearchQuery(condition.andWhere(rm.decommissioningList.administrativeUnit()).isIn(administrativeUnits))
-					.sortAsc(Schemas.TITLE);
+			return condition.andWhere(rm.decommissioningList.administrativeUnit()).isIn(administrativeUnits);
 		}
 	}
 
-	private LogicalSearchQuery newQueryWithAdministrativeUnitFilter(
-			LogicalSearchCondition condition, User user, List<String> permissionList) {
+	private LogicalSearchCondition conditionWithAdministrativeUnitFilter(LogicalSearchCondition condition, User user,
+																		 List<String> permissionList) {
 		if (user.hasAny(permissionList).globally()) {
-			return new LogicalSearchQuery(condition).sortAsc(Schemas.TITLE);
+			return condition;
 		} else {
 			Set<String> administrativeUnits = new HashSet<>();
 			for (String permission : permissionList) {
 				administrativeUnits.addAll(authorizationsServices.getConceptsForWhichUserHasPermission(permission, user));
 			}
-			return new LogicalSearchQuery(condition.andWhere(rm.decommissioningList.administrativeUnit()).isIn(new ArrayList<Object>(administrativeUnits)))
-					.sortAsc(Schemas.TITLE);
+			return condition.andWhere(rm.decommissioningList.administrativeUnit())
+					.isIn(new ArrayList<Object>(administrativeUnits));
 		}
+	}
+
+	private LogicalSearchQuery wrapQuery(LogicalSearchCondition condition) {
+		return new LogicalSearchQuery(condition).sortAsc(Schemas.TITLE);
 	}
 }

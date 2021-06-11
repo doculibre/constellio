@@ -1,10 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.decommissioning;
 
 import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.CHECKBOX;
-import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.FOLDER;
-import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.FOLDER_ID;
-import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.ORDER;
-import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.VALIDATION_CHECKBOX;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +15,7 @@ import com.vaadin.ui.Table;
 
 public class FolderDetailTable extends BaseTable {
 	
-	private List<String> generatedColumnIds = new ArrayList<>();
+	private List<String> defaultGeneratedColumnIds = new ArrayList<>();
 
 	public FolderDetailTable(String tableId, String caption, Container container) {
 		super(tableId, caption, container);
@@ -29,9 +25,13 @@ public class FolderDetailTable extends BaseTable {
 
 	@Override
 	public void addGeneratedColumn(Object id, ColumnGenerator generatedColumn) {
+		addGeneratedColumn(id, generatedColumn, true);
+	}
+	
+	public void addGeneratedColumn(Object id, ColumnGenerator generatedColumn, boolean defaultGeneratedColumn) {
 		super.addGeneratedColumn(id, generatedColumn);
-		if (id instanceof String && !generatedColumnIds.contains((String) id)) {
-			generatedColumnIds.add((String) id);
+		if (defaultGeneratedColumn && id instanceof String && !defaultGeneratedColumnIds.contains((String) id)) {
+			defaultGeneratedColumnIds.add((String) id);
 		}
 	}
 
@@ -46,15 +46,15 @@ public class FolderDetailTable extends BaseTable {
 				if (userVisibleColumns != null) {
 					defaultVisibleColumnIds.addAll(userVisibleColumns);
 				} else {
-					defaultVisibleColumnIds.addAll(generatedColumnIds);
+					defaultVisibleColumnIds.addAll(defaultGeneratedColumnIds);
 				}
 				table.setColumnCollapsible(CHECKBOX, false);
 				return defaultVisibleColumnIds;
 			}
 
 			@Override
-			public void manage(Table table, String tableId) {
-				super.manage(table, tableId);
+			public void manage(Table table, String tableId, boolean doSort) {
+				super.manage(table, tableId, doSort);
 				List<String> visibleIds = getDefaultVisibleColumnIds(table);
 				Collection<?> propertyIds = Arrays.asList(table.getVisibleColumns());
 				for (Object propertyId : propertyIds) {

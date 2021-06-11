@@ -654,6 +654,17 @@ public class FoldersLocator {
 		}
 	}
 
+	public File getWarPreparationFolder() {
+		File warPreparation = new File(getWorkFolder(), "warPreparation");
+		warPreparation.mkdirs();
+
+		return warPreparation;
+	}
+
+	public File getVerificationKey() {
+		return new File(getConfFolder(), "verification-key.pub");
+	}
+
 	public File getLocalConfigsFile() {
 		return new File(getConfFolder(), "local-configs.properties");
 	}

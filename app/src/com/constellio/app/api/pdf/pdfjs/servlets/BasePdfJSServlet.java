@@ -77,39 +77,41 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 		String localeCode = request.getParameter("locale");
 		String accessId = request.getParameter("accessId");
 
-		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		Record record = recordServices.getDocumentById(recordId);
-		MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
-		Metadata metadata = schema.get(metadataCode);
-		String collection = record.getCollection();
+		if (recordId != null && metadataCode != null) {
+			ModelLayerFactory modelLayerFactory = getModelLayerFactory();
+			RecordServices recordServices = modelLayerFactory.newRecordServices();
+			Record record = recordServices.getDocumentById(recordId);
+			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record);
+			Metadata metadata = schema.get(metadataCode);
+			String collection = record.getCollection();
 
-		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory);
-		SystemWideUserInfos userCredentials = authenticator.authenticate(request);
-		User user;
-		if (userCredentials != null) {
-			user = getUser(userCredentials.getUsername(), collection);
-		} else if (accessId != null) {
-			MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-			RolesManager rolesManager = modelLayerFactory.getRolesManager();
+			HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory);
+			SystemWideUserInfos userCredentials = authenticator.authenticate(request);
+			User user;
+			if (userCredentials != null) {
+				user = getUser(userCredentials.getUsername(), collection);
+			} else if (accessId != null) {
+				MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+				RolesManager rolesManager = modelLayerFactory.getRolesManager();
 
-			MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
-			MetadataSchema userSchema = types.getDefaultSchema(User.SCHEMA_TYPE);
-			Record tempUserRecord = recordServices.newRecordWithSchema(userSchema, UUID.randomUUID().toString());
-			Roles roles = rolesManager.getCollectionRoles(collection);
-			ExternalAccessUrl externalAccessUrl = new ExternalAccessUrl(recordServices.getDocumentById(accessId), types);
-			String ipAddress = request.getRemoteAddr();
-			user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl, ipAddress);
-		} else {
-//			HttpSessionContext httpSessionContext = new HttpSessionContext(request);
-//			UserVO userVO = httpSessionContext.getCurrentUser();
-//			user = userVO != null ? getUser(userVO.getUsername(), collection) : null;
-			user = null;
-		}
-		if (user != null) {
-			doService(record, metadata, user, localeCode, request, response);
-		} else {
-			throw new ServletException("Null user");
+				MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
+				MetadataSchema userSchema = types.getDefaultSchema(User.SCHEMA_TYPE);
+				Record tempUserRecord = recordServices.newRecordWithSchema(userSchema, UUID.randomUUID().toString());
+				Roles roles = rolesManager.getCollectionRoles(collection);
+				ExternalAccessUrl externalAccessUrl = new ExternalAccessUrl(recordServices.getDocumentById(accessId), types);
+				String ipAddress = request.getRemoteAddr();
+				user = new ExternalAccessUser(tempUserRecord, types, roles, externalAccessUrl, ipAddress);
+			} else {
+				//			HttpSessionContext httpSessionContext = new HttpSessionContext(request);
+				//			UserVO userVO = httpSessionContext.getCurrentUser();
+				//			user = userVO != null ? getUser(userVO.getUsername(), collection) : null;
+				user = null;
+			}
+			if (user != null) {
+				doService(record, metadata, user, localeCode, request, response);
+			} else {
+				throw new ServletException("Null user");
+			}
 		}
 	}
 
@@ -137,6 +139,13 @@ public abstract class BasePdfJSServlet extends HttpServlet {
 
 	protected PdfJSServices newPdfJSServices() {
 		return new PdfJSServices(getAppLayerFactory());
+	}
+	
+	protected void preventCache(HttpServletRequest request, HttpServletResponse response) {
+		// Set standard HTTP/1.1 no-cache headers.
+		response.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
+		// Set standard HTTP/1.0 no-cache header.
+		response.setHeader("Pragma", "no-cache");
 	}
 
 	protected String readRequestInputStream(HttpServletRequest request) throws IOException {

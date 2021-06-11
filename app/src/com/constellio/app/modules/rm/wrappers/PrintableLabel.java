@@ -1,14 +1,10 @@
 package com.constellio.app.modules.rm.wrappers;
 
+import com.constellio.app.modules.rm.enums.TemplateVersionType;
 import com.constellio.app.modules.rm.ui.components.Dimensionnable;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
-/**
- * Classe RM pour les Rapports.
- *
- * @author Nicolas D'Amours & Charles Blanchette.
- */
 public class PrintableLabel extends Printable implements Dimensionnable {
 
 	public PrintableLabel(Record record, MetadataSchemaTypes type) {
@@ -44,6 +40,15 @@ public class PrintableLabel extends Printable implements Dimensionnable {
 
 	public PrintableLabel setColonne(int colonne) {
 		set(COLONNE, colonne);
+		return this;
+	}
+
+	public TemplateVersionType getTemplateVersion() {
+		return get(TEMPLATE_VERSION);
+	}
+
+	public PrintableLabel setTemplateVersion(TemplateVersionType templateVersion) {
+		set(TEMPLATE_VERSION, templateVersion);
 		return this;
 	}
 

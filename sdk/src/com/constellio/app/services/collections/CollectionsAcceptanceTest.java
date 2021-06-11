@@ -248,7 +248,7 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		MetadataSchema folderSchema = metadataSchemasManager.getSchemaTypes(user.getCollection()).getSchema("zefolder_default");
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(folderSchema).returnAll();
 		LogicalSearchQuery query = new LogicalSearchQuery(condition);
-		query.filteredWithUser(user);
+		query.filteredWithUserRead(user);
 		return searchServices.searchRecordIds(query).size();
 	}
 

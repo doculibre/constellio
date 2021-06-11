@@ -1,5 +1,21 @@
 package com.constellio.app.modules.rm.ui.buttons;
 
+import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
+import static com.constellio.app.ui.framework.components.BaseForm.SAVE_BUTTON;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.modules.rm.ui.field.CollectionSelectOptionField;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -20,21 +36,10 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
-import org.apache.commons.collections.CollectionUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
-import static com.constellio.app.ui.framework.components.BaseForm.SAVE_BUTTON;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
 
 public class ChangeUsersStatusWindowButton extends WindowButton {
+
+	private final static Logger LOGGER = LoggerFactory.getLogger(ChangeUsersStatusWindowButton.class);
 
 	private List<User> users;
 	private MenuItemActionBehaviorParams params;
@@ -204,11 +209,16 @@ public class ChangeUsersStatusWindowButton extends WindowButton {
 	}
 
 	private void executeAction(boolean stopSync) {
-		updateUserStatus((String) statusField.getValue(), collectionsField.getSelectedValues(), stopSync);
+		try {
+			updateUserStatus((String) statusField.getValue(), collectionsField.getSelectedValues(), stopSync);
 
-		params.getView().navigate().to().collectionSecurity();
-		params.getView().showMessage($("CollectionSecurityManagement.changedStatus"));
-		getWindow().close();
+			params.getView().navigate().to().collectionSecurity();
+			params.getView().showMessage($("CollectionSecurityManagement.changedStatus"));
+			getWindow().close();
+		} catch (Throwable t) {
+			LOGGER.error(t.getMessage(), t);
+			ConstellioUI.getCurrent().showErrorMessage(t.getMessage());
+		}
 	}
 
 	private void updateUserStatus(String status, List<String> collections, boolean stopSync) {

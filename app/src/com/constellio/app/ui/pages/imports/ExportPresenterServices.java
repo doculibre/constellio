@@ -1,10 +1,15 @@
 package com.constellio.app.ui.pages.imports;
 
+import com.constellio.app.api.extensions.ExportServicesExtension;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.LegalReference;
+import com.constellio.app.modules.rm.wrappers.LegalRequirement;
+import com.constellio.app.modules.rm.wrappers.LegalRequirementReference;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.RetentionRuleDocumentType;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -97,9 +102,7 @@ public class ExportPresenterServices {
 		options.setForSameSystem(isSameCollection);
 		List<Taxonomy> enabledTaxonomies = new ArrayList<>(modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection));
 		removeUnwantedTaxonomiesForExportation(enabledTaxonomies, appCollectionExtentions);
-		List<String> exportedSchemaTypes = new ArrayList<>(
-				asList(AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE,
-						StorageSpace.SCHEMA_TYPE));
+		List<String> exportedSchemaTypes = getExportedSchemaTypes();
 		for (Taxonomy taxonomy : enabledTaxonomies) {
 			List<String> linkedSchemaTypes = taxonomy.getSchemaTypes();
 			for (String schemaType : linkedSchemaTypes) {
@@ -114,6 +117,21 @@ public class ExportPresenterServices {
 		options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(modelLayerFactory, collection, exportedSchemaTypes));
 		options.setIncludeAuthorizations(includeAuthorizations);
 		return options;
+	}
+
+	private List<String> getExportedSchemaTypes() {
+		List<String> exportedSchemaTypes = new ArrayList<>(asList(AdministrativeUnit.SCHEMA_TYPE, Category.SCHEMA_TYPE,
+				RetentionRule.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE, LegalReference.SCHEMA_TYPE,
+				LegalRequirement.SCHEMA_TYPE, LegalRequirementReference.SCHEMA_TYPE,
+				RetentionRuleDocumentType.SCHEMA_TYPE));
+
+		List<ExportServicesExtension> extensions = appLayerFactory.getExtensions().forCollection(collection)
+				.exportServicesExtensions.getExtensions();
+		for (ExportServicesExtension extension : extensions) {
+			exportedSchemaTypes.addAll(extension.getExportedSchemaTypes());
+		}
+
+		return exportedSchemaTypes;
 	}
 
 	private void removeUnwantedTaxonomiesForExportation(List<Taxonomy> taxonomies,

@@ -74,7 +74,7 @@ public class RMMigrationTo7_6_9 extends MigrationHelper implements MigrationScri
 			if (typesBuilder.hasSchemaType(BagInfo.SCHEMA_TYPE)) {
 				defaultSchemaBuilder = typesBuilder.getSchemaType(BagInfo.SCHEMA_TYPE).getDefaultSchema();
 			} else {
-				MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(BagInfo.SCHEMA_TYPE);
+				MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaTypeWithSecurity(BagInfo.SCHEMA_TYPE);
 				defaultSchemaBuilder = builder.getDefaultSchema();
 			}
 

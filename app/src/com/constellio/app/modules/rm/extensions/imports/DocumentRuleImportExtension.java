@@ -3,9 +3,12 @@ package com.constellio.app.modules.rm.extensions.imports;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMObject;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
+import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
+import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.joda.time.LocalDateTime;
 
@@ -53,5 +56,29 @@ public class DocumentRuleImportExtension extends RecordImportExtension {
 		if (modifiedOn != null && !fields.containsKey(RMObject.FORM_MODIFIED_ON)) {
 			document.setFormModifiedOn(modifiedOn);
 		}
+	}
+
+	@Override
+	public ExtensionBooleanResult skipPrevalidation(PrevalidationParams event) {
+		Map<String, Object> fields = event.getImportRecord().getFields();
+		Object isModel = fields.get(Document.IS_MODEL);
+		if (isModel != null) {
+			return skipValidations((String) isModel);
+		}
+		return super.skipPrevalidation(event);
+	}
+
+	@Override
+	public ExtensionBooleanResult skipValidation(ValidationParams event) {
+		Map<String, Object> fields = event.getImportRecord().getFields();
+		Object isModel = fields.get(Document.IS_MODEL);
+		if (isModel != null) {
+			return skipValidations((String) isModel);
+		}
+		return super.skipValidation(event);
+	}
+
+	private ExtensionBooleanResult skipValidations(String isModel) {
+		return "true".equals(isModel) ? ExtensionBooleanResult.FORCE_TRUE : ExtensionBooleanResult.FALSE;
 	}
 }

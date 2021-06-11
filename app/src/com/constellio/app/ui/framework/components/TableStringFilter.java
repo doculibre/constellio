@@ -26,6 +26,7 @@ public class TableStringFilter extends HorizontalLayout {
 		this.table = table;
 
 		filterField = new BaseTextField();
+		filterField.setSizeFull();
 		new OnEnterKeyHandler() {
 			@Override
 			public void onEnterKeyPressed() {
@@ -39,7 +40,9 @@ public class TableStringFilter extends HorizontalLayout {
 				addFilter();
 			}
 		};
+
 		addComponents(filterField, filterButton);
+		setExpandRatio(filterField, 1);
 	}
 
 	private void addFilter() {

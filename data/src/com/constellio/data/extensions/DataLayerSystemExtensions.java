@@ -8,8 +8,8 @@ import com.constellio.data.events.SentEventParams;
 import com.constellio.data.extensions.ReplicationFactorManagerExtension.TransactionReplayed;
 import com.constellio.data.extensions.ReplicationFactorManagerExtension.TransactionsReplayedParams;
 import com.constellio.data.extensions.contentDao.ContentDaoExtension;
-import com.constellio.data.extensions.contentDao.ContentDaoInputStreamOpenedParams;
-import com.constellio.data.extensions.contentDao.ContentDaoUploadParams;
+import com.constellio.data.extensions.contentDao.ContentDaoReadEvent;
+import com.constellio.data.extensions.contentDao.ContentDaoWriteEvent;
 import com.constellio.data.extensions.extensions.configManager.AddUpdateConfigParams;
 import com.constellio.data.extensions.extensions.configManager.ConfigManagerExtension;
 import com.constellio.data.extensions.extensions.configManager.DeleteConfigParams;
@@ -49,12 +49,12 @@ public class DataLayerSystemExtensions {
 
 	//----------------- Callers ---------------
 
-	public void onVaultInputStreamOpened(ContentDaoInputStreamOpenedParams params) {
-		contentDaoExtensions.forEach(e -> e.onInputStreamOpened(params));
+	public void onVaultInputStreamOpened(ContentDaoReadEvent params) {
+		contentDaoExtensions.forEach(e -> e.onReadOperation(params));
 	}
 
-	public void onVaultUpload(ContentDaoUploadParams params) {
-		contentDaoExtensions.forEach(e -> e.onUpload(params));
+	public void onVaultUpload(ContentDaoWriteEvent params) {
+		contentDaoExtensions.forEach(e -> e.onWriteOperation(params));
 	}
 
 

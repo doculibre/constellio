@@ -48,6 +48,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -65,12 +66,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.ENSURE_INDEXED_METADATA_USED;
 import static java.util.Arrays.asList;
 
 public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
@@ -257,6 +261,10 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	//KEEP
 	public String getRecordIdForEmailSchema() {
+		return getEmailDocumentSchema().getId();
+	}
+
+	public DocumentType getEmailDocumentSchema() {
 		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		MetadataSchemaTypes types = getTypes();
@@ -267,7 +275,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				.isEqualTo(Email.SCHEMA);
 		DocumentType emailDocumentType = new DocumentType(
 				searchServices.search(new LogicalSearchQuery().setCondition(condition)).get(0), types);
-		return emailDocumentType.getId();
+		return emailDocumentType;
 	}
 
 	//KEEP
@@ -453,6 +461,18 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				}
 			}
 		};
+	}
+
+	public void visitFoldersInHierarchy(Folder root, Consumer<Folder> condition) {
+		LogicalSearchCondition subFoldersCondition = from(folder.schema()).where(folder.parentFolder()).isEqualTo(root.getId());
+		List<Folder> subFolders = searchFolders(new LogicalSearchQuery(subFoldersCondition)
+				.setQueryExecutionMethod(ENSURE_INDEXED_METADATA_USED)
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlySummaryFields()));
+
+		for (Folder subFolder : subFolders) {
+			condition.accept(subFolder);
+			visitFoldersInHierarchy(subFolder, condition);
+		}
 	}
 
 	//Folder type
@@ -854,7 +874,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 
 	//KEEP
-	public AuthorizationAddRequest newAuthorization() {
+	public AuthorizationAddRequest newAuthorizationAddRequest() {
 		return authorizationInCollection(getCollection());
 	}
 
@@ -1033,7 +1053,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 					.where(Schemas.SCHEMA).<T>isNot(LogicalSearchQueryOperators.<T>startingWithText(Category.SCHEMA_TYPE + "_"))
 					.andWhere(VISIBLE_IN_TREES).isTrueOrNull());
 
-			query.filteredWithUser(user);
+			query.filteredWithUserRead(user);
 			query.setFieldFacetLimit(100_000);
 			query.addFieldFacet(folder.category().getDataStoreCode());
 			query.setNumberOfRows(0);
@@ -1057,5 +1077,9 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 			}
 
 		}
+	}
+
+	public Stream<MediumType> mediumTypeStream() {
+		return streamFromCache(mediumTypeSchemaType(), this::wrapMediumType);
 	}
 }

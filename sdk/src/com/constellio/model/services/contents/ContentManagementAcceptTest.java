@@ -1572,6 +1572,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 	@Test
 	public void givenTheRequireConversionFlagIsActivatedWhenCheckContentsToConvertThenConvertAndGenerateThumbnail()
 			throws Exception {
+		assumeContentConversionAvailable();
 		givenConfig(ConstellioEIMConfigs.ENABLE_THUMBNAIL_GENERATION, true);
 
 		ContentVersionDataSummary zeContent = uploadDocx1InputStream();

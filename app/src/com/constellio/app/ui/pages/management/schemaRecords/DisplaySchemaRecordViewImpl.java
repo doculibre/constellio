@@ -1,7 +1,9 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.rm.ui.pages.extrabehavior.ProvideSecurityWithNoUrlParamSupport;
 import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlParamSupport;
+import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -12,6 +14,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -28,10 +31,10 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -83,6 +86,13 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 		} else if (recordVO != null) {
 			presenter.forParams(recordVO.getId());
 		}
+
+		editButton = new EditButton(false) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.editButtonClicked();
+			}
+		};
 	}
 
 	public boolean isViewRecordMode() {
@@ -189,11 +199,6 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 	}
 
 	@Override
-	protected boolean isActionMenuBar() {
-		return true;
-	}
-
-	@Override
 	protected boolean isBreadcrumbsVisible() {
 		return !nestedView && !isInWindow;
 	}
@@ -204,25 +209,31 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		return new RecordVOActionButtonFactory(recordVO, this, Collections.emptyList()).build();
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		editButton.setVisible(presenter.isEditButtonVisible() && !nestedView);
+
+		List<MenuItemAction> menuItemActions = buildRecordVOActionButtonFactory().buildMenuItemActions();
+		menuItemActions.stream().filter(menuItemAction -> menuItemAction.getType() != null && menuItemAction.getType().contains("EDIT"))
+				.forEach(menuItemAction -> updateMenuActionBasedOnButton(menuItemAction, editButton));
+
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				menuItemActions
+		);
 	}
 
 	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		List<Button> quickActionMenuButtons = new ArrayList<>();
-		if (presenter.isEditButtonVisible()) {
-			editButton = new EditButton(false) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.editButtonClicked();
-				}
-			};
-			if (nestedView) {
-				quickActionMenuButtons.add(editButton);
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay) {
+			@Override
+			public Supplier<String> getSchemaTypeCodeSupplier() {
+				return recordVO != null ? recordVO.getSchema()::getTypeCode : super.getSchemaTypeCodeSupplier();
 			}
-		}
-		return quickActionMenuButtons;
+		};
+	}
+
+	private RecordVOActionButtonFactory buildRecordVOActionButtonFactory() {
+		return new RecordVOActionButtonFactory(recordVO, this, Collections.emptyList());
 	}
 
 	@Override

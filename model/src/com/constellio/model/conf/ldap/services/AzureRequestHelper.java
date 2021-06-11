@@ -3,9 +3,11 @@ package com.constellio.model.conf.ldap.services;
 import com.constellio.model.conf.ldap.services.AzureAdClient.AzureAdClientException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.microsoft.aad.adal4j.AuthenticationContext;
-import com.microsoft.aad.adal4j.AuthenticationResult;
-import com.microsoft.aad.adal4j.ClientCredential;
+import com.microsoft.aad.msal4j.ClientCredentialFactory;
+import com.microsoft.aad.msal4j.ClientCredentialParameters;
+import com.microsoft.aad.msal4j.ConfidentialClientApplication;
+import com.microsoft.aad.msal4j.IAuthenticationResult;
+import com.microsoft.aad.msal4j.SilentParameters;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.StringUtils;
@@ -25,12 +27,13 @@ import javax.ws.rs.core.Response;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class AzureRequestHelper {
@@ -43,6 +46,8 @@ public class AzureRequestHelper {
 	private static final String GRAPH_API_VERSION = "1.6";
 
 	private static final String AUTHORITY_BASE_URL = "https://login.microsoftonline.com/";
+
+	private static final Set<String> SCOPE = Collections.singleton("https://graph.windows.net/.default");
 
 	@VisibleForTesting
 	static int maxResults = 150;
@@ -79,7 +84,8 @@ public class AzureRequestHelper {
 
 	private WebTarget webTarget;
 
-	private AuthenticationResult authenticationResult;
+	private IAuthenticationResult authenticationResult;
+	private String tokenCache;
 
 	public AzureRequestHelper(final String tenantName, final String clientId, final String clientSecret) {
 		this.tenantName = tenantName;
@@ -96,61 +102,60 @@ public class AzureRequestHelper {
 	}
 
 	private void acquireAccessToken() {
-		acquireAccessToken(authenticationResult == null || authenticationResult.getAccessToken() == null);
+		acquireAccessToken(authenticationResult == null || authenticationResult.accessToken() == null);
 	}
 
 	private void acquireAccessToken(boolean ignoreCurrent) {
 		if (ignoreCurrent) {
 			String authority = AUTHORITY_BASE_URL + tenantName;
-			ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 			try {
-				AuthenticationContext authenticationContext = new AuthenticationContext(authority, true, executorService);
+				ConfidentialClientApplication clientApplication =
+						ConfidentialClientApplication.builder(clientId, ClientCredentialFactory.createFromSecret(clientSecret))
+								.authority(authority).build();
 
-				Future<AuthenticationResult> authenticationResultFuture = authenticationContext.acquireToken(
-						GRAPH_API_URL,
-						new ClientCredential(clientId, clientSecret),
-						null
+				Future<IAuthenticationResult> authenticationResultFuture = clientApplication.acquireToken(
+						ClientCredentialParameters.builder(SCOPE).build()
 				);
 
 				authenticationResult = authenticationResultFuture.get();
+				tokenCache = clientApplication.tokenCache().serialize();
 			} catch (MalformedURLException mue) {
 				throw new AzureAdClientException("Malformed Azure AD authority URL " + authority);
 			} catch (ExecutionException ee) {
 				throw new AzureAdClientException(
 						"Can't acquire an Azure AD token for client " + clientId + " with the provided secret key", ee);
 			} catch (InterruptedException ignored) {
-			} finally {
-				executorService.shutdown();
 			}
 		}
 	}
 
 	private void refreshAccessToken() {
-		if (authenticationResult == null || authenticationResult.getRefreshToken() == null) {
+		if (authenticationResult == null) {
 			acquireAccessToken(true);
 		} else {
 			String authority = AUTHORITY_BASE_URL + tenantName;
-			ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 			try {
-				AuthenticationContext authenticationContext = new AuthenticationContext(authority, true, executorService);
+				ConfidentialClientApplication clientApplication =
+						ConfidentialClientApplication.builder(clientId, ClientCredentialFactory.createFromSecret(clientSecret))
+								.authority(authority).build();
 
-				Future<AuthenticationResult> authenticationResultFuture = authenticationContext.acquireTokenByRefreshToken(
-						authenticationResult.getRefreshToken(),
-						new ClientCredential(clientId, clientSecret),
-						null
-				);
+				if (tokenCache != null) {
+					clientApplication.tokenCache().deserialize(tokenCache);
+				}
 
-				authenticationResult = authenticationResultFuture.get();
+				SilentParameters parameters = SilentParameters.builder(SCOPE, authenticationResult.account()).build();
+				CompletableFuture<IAuthenticationResult> future = clientApplication.acquireTokenSilently(parameters);
+
+				authenticationResult = future.get();
+				tokenCache = clientApplication.tokenCache().serialize();
 			} catch (MalformedURLException mue) {
 				throw new AzureAdClientException("Malformed Azure AD authority URL " + authority);
 			} catch (ExecutionException ee) {
 				throw new AzureAdClientException(
 						"Can't acquire an Azure AD token for client " + clientId + " with the provided secret key", ee);
 			} catch (InterruptedException ignored) {
-			} finally {
-				executorService.shutdown();
 			}
 		}
 	}
@@ -162,12 +167,12 @@ public class AzureRequestHelper {
 			return newWebTarget
 					.queryParam("$filter", filter)
 					.request(MediaType.APPLICATION_JSON)
-					.header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
+					.header(HttpHeaders.AUTHORIZATION, authenticationResult.accessToken());
 		}
 
 		return newWebTarget
 				.request(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
+				.header(HttpHeaders.AUTHORIZATION, authenticationResult.accessToken());
 	}
 
 	private Invocation.Builder completeQueryBuilding(WebTarget webTarget, String filter, String skipToken) {
@@ -180,13 +185,13 @@ public class AzureRequestHelper {
 		if (skipToken == null) {
 			return newWebTarget
 					.request(MediaType.APPLICATION_JSON)
-					.header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
+					.header(HttpHeaders.AUTHORIZATION, authenticationResult.accessToken());
 		}
 
 		return newWebTarget
 				.queryParam("$skiptoken", skipToken)
 				.request(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, authenticationResult.getAccessToken());
+				.header(HttpHeaders.AUTHORIZATION, authenticationResult.accessToken());
 	}
 
 	private JSONArray submitQueryWithoutPagination(WebTarget webTarget, String filter) {

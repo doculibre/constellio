@@ -17,6 +17,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.AdvancedSequenceDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
@@ -300,6 +301,12 @@ public class MetadataSchemaXMLWriter3 {
 		}
 		if (metadata.isMarkedForDeletion()) {
 			metadataElement.setAttribute("markedForDeletion", writeBoolean(metadata.isMarkedForDeletion()));
+		}
+		if (metadata.getMarkedForMigrationToType() != null) {
+			metadataElement.setAttribute("markedMigrationToType", metadata.getMarkedForMigrationToType().name());
+		}
+		if (metadata.isMarkedForMigrationToMultivalue() != null) {
+			metadataElement.setAttribute("markedMigrationToMultivalue", writeBoolean(Boolean.TRUE.equals(metadata.isMarkedForMigrationToMultivalue())));
 		}
 		if (metadata.isUnmodifiable()) {
 			metadataElement.setAttribute("unmodifiable", writeBoolean(metadata.isUnmodifiable()));
@@ -736,6 +743,10 @@ public class MetadataSchemaXMLWriter3 {
 			} else {
 				dataEntry.setAttribute("metadataProvidingSequenceCode", sequenceDataEntry.getMetadataProvidingSequenceCode());
 			}
+
+		} else if (dataEntryValue.getType() == DataEntryType.ADVANCED_SEQUENCE) {
+			AdvancedSequenceDataEntry advancedSequenceDataEntry = (AdvancedSequenceDataEntry) dataEntryValue;
+			dataEntry.setAttribute("advancedSequenceCalculator", advancedSequenceDataEntry.getCalculator().getClass().getName());
 
 		} else if (dataEntryValue.getType() == DataEntryType.AGGREGATED) {
 			AggregatedDataEntry agregatedDataEntry = (AggregatedDataEntry) dataEntryValue;

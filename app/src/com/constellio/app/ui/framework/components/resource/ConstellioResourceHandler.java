@@ -1,9 +1,13 @@
 package com.constellio.app.ui.framework.components.resource;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioVaadinServlet;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.pages.base.HttpSessionContext;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImageUtils;
 import com.constellio.model.entities.records.Content;
@@ -14,7 +18,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentManager;
-import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -36,9 +39,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
@@ -68,7 +74,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 			String jpegConversion = paramsMap.get("jpegConversion");
 			String annotation = paramsMap.get("annotation");
 			String contentId = paramsMap.get("contentId");
-			String filePath = paramsMap.get("file");
+			String fileId = paramsMap.get("file");
 			String hashParam = paramsMap.get("hash");
 			String filenameParam = paramsMap.get("z-filename");
 
@@ -163,10 +169,25 @@ public class ConstellioResourceHandler implements RequestHandler {
 						in = null;
 					}
 				}
-			} else if (filePath != null) {
-				File file = new File(filePath);
-				filename = file.getName();
-				in = new FileInputStream(file);
+			} else if (fileId != null) {
+				String filePath = getFilePathMappedToId(fileId);
+
+				if (filePath != null) {
+					File file = new File(filePath);
+					if (file.exists()) {
+
+						ensureCanAccessFile(file);
+
+						filename = file.getName();
+						in = new FileInputStream(file);
+					} else {
+						filename = null;
+						in = null;
+					}
+				} else {
+					filename = null;
+					in = null;
+				}
 			} else {
 				filename = null;
 				in = null;
@@ -188,6 +209,62 @@ public class ConstellioResourceHandler implements RequestHandler {
 			return true;
 		}
 		return false;
+	}
+
+
+	private static String getFilePathMappedToId(String fileId) {
+		String filePath;
+
+		HttpSessionContext sessionContext = new HttpSessionContext(ConstellioVaadinServlet.getCurrentHttpServletRequest());
+		if (sessionContext != null) {
+			Object potentialFilePath = sessionContext.getAttribute(fileId);
+
+			if (potentialFilePath instanceof String) {
+				filePath = (String) potentialFilePath;
+			} else {
+				filePath = null;
+			}
+
+			if (potentialFilePath != null) {
+				sessionContext.setAttribute(fileId, null);
+			}
+		} else {
+			filePath = null;
+		}
+
+		return filePath;
+	}
+
+	private static String setFilePathMappedToId(String filePath) {
+		String fileId = UUID.randomUUID().toString();
+
+		HttpSessionContext sessionContext = new HttpSessionContext(ConstellioVaadinServlet.getCurrentHttpServletRequest());
+		sessionContext.setAttribute(fileId, filePath);
+
+		return fileId;
+	}
+
+	private static void ensureCanAccessFile(File file) {
+		/*
+			TODO
+			Gestion des folderLocations où on accepte pas d'url (webinf) Voir avec francis, comme identifier et authorizer les emplacement
+			Tout authorize et refuser ou tout refuser et auhorizer
+		 */
+
+		FoldersLocator foldersLocator = new FoldersLocator();
+		File webInfFolder = foldersLocator.getConstellioWebinfFolder();
+		IOServicesFactory ioServicesFactory = ConstellioFactories.getInstance().getDataLayerFactory().getIOServicesFactory();
+
+		String fileAbsolutePath = file.getAbsolutePath();
+
+		Optional<String> optionalNotAllowLocation = Arrays.asList(webInfFolder.getAbsolutePath()).stream()
+				.filter(Objects::nonNull)
+				.filter(fileAbsolutePath::contains)
+				.findFirst();
+
+		if (optionalNotAllowLocation.isPresent()) {
+			throw new RuntimeException("Access to Resource at " + optionalNotAllowLocation.get() + " is not allowed");
+		}
 	}
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename) {
@@ -252,8 +329,10 @@ public class ConstellioResourceHandler implements RequestHandler {
 	}
 
 	public static Resource createResource(File file) {
+		String fileId = setFilePathMappedToId(file.getAbsolutePath());
+
 		Map<String, String> params = new LinkedHashMap<>();
-		params.put("file", file.getAbsolutePath());
+		params.put("file", fileId);
 		String resourcePath = ParamUtils.addParams(PATH, params);
 		return new ExternalResource(resourcePath);
 	}
@@ -308,7 +387,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 				ParsedContent parsedContent = ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
 						.getParsedContent(hash);
 				return ImageUtils.isImageOversized(Double.parseDouble((String) parsedContent.getProperties().get(org.apache.tika.metadata.Metadata.IMAGE_LENGTH.getName())));
-			} catch (ContentManagerException_ContentNotParsed contentManagerException_contentNotParsed) {
+			} catch (Throwable t) {
 				return false;
 			}
 		}
@@ -333,7 +412,12 @@ public class ConstellioResourceHandler implements RequestHandler {
 		if (user.hasReadAccess().on(record)) {
 			String schemaCode = record.getSchemaCode();
 			Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
-			return record.get(metadata);
+			if (metadata.isStoredInSummaryCache()) {
+				return record.get(metadata);
+			} else {
+				record = recordServices.realtimeGetRecordById(recordId);
+				return record.get(metadata);
+			}
 
 		}
 		return null;

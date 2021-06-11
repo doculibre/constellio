@@ -47,7 +47,7 @@ subprojects {
         compile "com.cybozu.labs:langdetect:1.1-20120112"
         compile "com.eaio.uuid:uuid:3.2"
         compile "org.jdom:jdom:2.0.2"
-        compile "org.eclipse.jetty.aggregate:jetty-all:9.4.12.v20180830"
+        compile "org.eclipse.jetty.aggregate:jetty-all:9.4.35.v20201120"
         compile "org.slf4j:slf4j-api:1.7.7"
         compile "jspf:jspf.core:1.0.0"
         compile "commons-io:commons-io:2.4"
@@ -76,9 +76,11 @@ subprojects {
         compile "com.google.code.gson:gson:2.8.1"
         compile "jaxen:jaxen:1.1.6"
         compile "jdom:jdom:1.0"
-        compile "org.apache.pdfbox:pdfbox:2.0.11"
-        compile "org.apache.pdfbox:pdfbox-debugger:2.0.11"
-        compile "org.apache.pdfbox:pdfbox-tools:2.0.11"
+        compile "org.apache.pdfbox:pdfbox:2.0.22"
+        compile "org.apache.pdfbox:pdfbox-debugger:2.0.22"
+        compile "org.apache.pdfbox:pdfbox-tools:2.0.22"
+        compile "org.apache.pdfbox:preflight:2.0.22"
+        compile "org.apache.pdfbox:xmpbox:2.0.22"
         compile 'org.camunda.bpm.model:camunda-bpmn-model:7.7.0'
         compile 'org.apache.tomcat:tomcat-el-api:9.0.7'
         compile 'org.apache.tomcat:tomcat-jasper-el:9.0.7'
@@ -97,9 +99,8 @@ subprojects {
         compile 'com.fasterxml.uuid:java-uuid-generator:3.1.5'
         compile 'com.sun.xml.messaging.saaj:saaj-impl:1.4.0'
         compile 'com.sun.mail:javax.mail:1.6.2'
-        compile 'com.microsoft.azure:adal4j:1.6.3'
-        compile 'com.nimbusds:oauth2-oidc-sdk:4.5'
-        compile 'com.microsoft.graph:microsoft-graph-core:1.0.0'
+        compile 'com.nimbusds:oauth2-oidc-sdk:7.4'
+        compile 'com.microsoft.graph:microsoft-graph:2.10.0'
         compile group: 'com.github.bbottema', name: 'emailaddress-rfc2822', version: '1.1.2'
         compile group: 'net.markenwerk', name: 'utils-mail-dkim', version: '1.1.10'
         compile group: 'org.mapdb', name: 'mapdb', version: '3.0.7'
@@ -108,17 +109,17 @@ subprojects {
         compile 'com.ithit.webdav:webdav-server:4.2.2812'
         compile 'com.ithit.webdav.integration:servlet-integration:4.2.2812'
         compile 'de.jollyday:jollyday:0.5.10'
-        compile "msgraph-sdk-java:msgraph-sdk-java"
         compile 'com.auth0:java-jwt:3.9.0'
         compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.13.3'
         compile group: 'org.apache.logging.log4j', name: 'log4j-jcl', version: '2.13.3'
         compile group: 'org.apache.logging.log4j', name: 'log4j-jul', version: '2.13.3'
-        compile 'com.azure:azure-storage-blob:12.4.0'
-        
+        compile 'com.azure:azure-storage-blob:12.11.1'
+        compile 'org.apache.xmlgraphics:batik-bridge:1.14'
+        compile 'com.graphql-java:graphql-java:15.0'
+
         testCompile 'nl.jqno.equalsverifier:equalsverifier:1.4.1'
         testCompile group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.13.3'
         compile 'org.apache.logging.log4j:log4j-api:2.13.3'
-
     }
 
     configurations {
@@ -127,22 +128,29 @@ subprojects {
     }
 
     jar {
-        version = project.constellioVersion
+        version = project.hasProperty("teamcity") ? project.teamcity["build.number"] : project.constellioVersion
     }
 }
 
 ext {
-    // Open the Git repository
-    gitConstellio = org.ajoberstar.grgit.Grgit.open(dir: project(":").projectDir)
-    revisionConstellio = gitConstellio.head().abbreviatedId
-    branchConstellio = gitConstellio.branch.current().fullName
+    if (project.hasProperty("teamcity")) {
+        revisionConstellio = project.teamcity["build.vcs.number"].toString().substring(0, 7)
+        branchConstellio = project.gitBranch
+        constellioVersion = project.teamcity["build.number"]
+    } else {
+        // Open the Git repository
+        gitConstellio = org.ajoberstar.grgit.Grgit.open(dir: project(":").projectDir)
+        revisionConstellio = gitConstellio.head().abbreviatedId
+        branchConstellio = gitConstellio.branch.current().fullName
+        constellioVersion = project.constellioVersion
+    }
 }
 
 war {
     doFirst {
         manifest {
             attributes("Implementation-Title": project.name,
-                    "Implementation-Version": project.constellioVersion,
+                    "Implementation-Version": constellioVersion,
                     "Implementation-Timestamp": new Date(),
                     "Implementation-Revision-Constellio": revisionConstellio,
                     "Implementation-Branch-Constellio": branchConstellio)
@@ -150,11 +158,14 @@ war {
     }
 
     baseName = "constellio"
-    version = project.constellioVersion
+    version = constellioVersion
 
     webInf {
         from("resources_i18n/") {
             into("resources_i18n")
+        }
+        from("modules-resources/") {
+            into("modules-resources")
         }
         from("reportsRecource/") {
             into("resources/reports")
@@ -174,7 +185,8 @@ war {
                              ":constellio-plugins:plugin036", ":constellio-plugins:plugin038", ":constellio-plugins:plugin039", ":constellio-plugins:plugin040",
                              ":constellio-plugins:plugin041", ":constellio-plugins:plugin042", ":constellio-plugins:plugin044", ":constellio-plugins:plugin045",
                              ":constellio-plugins:plugin046", ":constellio-plugins:plugin047", ":constellio-plugins:plugin048", ":constellio-plugins:plugin051",
-                             ":constellio-plugins:plugin052"]
+                             ":constellio-plugins:plugin052", ":constellio-plugins:plugin053", ":constellio-plugins:plugin054", ":constellio-plugins:plugin055",
+                             ":constellio-plugins:plugin056"]
 
         def installPlugins = [":constellio-plugins:plugin023", ":constellio-plugins:plugin025"]
 

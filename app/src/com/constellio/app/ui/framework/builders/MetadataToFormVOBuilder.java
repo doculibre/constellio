@@ -19,6 +19,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -108,14 +109,47 @@ public class MetadataToFormVOBuilder implements Serializable {
 		}
 
 
-		FormMetadataVO formMetadataVO = new FormMetadataVO(metadata.getId(), code, type, required, schemaVO, reference, newLabels, searchable,
-				multivalue, sortable,
-				advancedSearch, facet, entry, displayType, sortingType, highlight, autocomplete, availableInSummary, enabled, metadataGroup, defaultValue,
-				inputMask,
-				duplicable, uniqueValue,
-				metadata.getCustomAttributes(),
-				sessionContext, isMultiLingual, metadata.getMaxLength(), metadata.getMeasurementUnit(), newHelpMessages,
-				dataEntryType, dataEntryRef, dataEntrySource);
+		String localCodeParsed = SchemaUtils.underscoreSplitWithCache(code)[2];
+		if (localCodeParsed.contains("USR")) {
+			localCodeParsed = localCodeParsed.split("USR", 2)[1];
+		}
+
+		FormMetadataVO formMetadataVO = FormMetadataVO.builder().id(metadata.getId()).code(code).localcode(localCodeParsed).valueType(type)
+				.required(required).schema(schemaVO).reference(reference).labels(new HashMap<>(newLabels)).searchable(searchable)
+				.multivalue(multivalue).sortable(sortable).advancedSearch(advancedSearch).facet(facet).input(entry)
+				.displayType(displayType).sortingType(sortingType).highlight(highlight).autocomplete(autocomplete)
+				.availableInSummary(availableInSummary).enabled(enabled).metadataGroup(metadataGroup)
+				.defaultValue(defaultValue).inputMask(inputMask).duplicable(duplicable).uniqueValue(uniqueValue)
+				.customAttributes(new HashSet<>(metadata.getCustomAttributes())).inheritance(null)
+				.currentLanguageCode(sessionContext.getCurrentLocale().getLanguage())
+				.isMultiLingual(isMultiLingual).maxLength(metadata.getMaxLength())
+				.measurementUnit(metadata.getMeasurementUnit()).helpMessages(newHelpMessages)
+				.dataEntryType(dataEntryType).dataEntryReference(dataEntryRef).dataEntrySource(dataEntrySource)
+				.separatedStructure(metadata.isSeparatedStructure()).build();
+
+		//		public FormMetadataVO(short id, String code, MetadataValueType valueType, boolean required, MetadataSchemaVO schema,
+		//				String reference,
+		//				Map<String, String> labels, boolean searchable, boolean multivalue, boolean sortable,
+		//		boolean advancedSearch,
+		//		boolean facet,
+		//		MetadataInputType input, MetadataDisplayType displayType, MetadataSortingType sortingType,
+		//		boolean highlight,
+		//		boolean autocomplete, boolean availableInSummary, boolean enabled,
+		//		String metadataGroup,
+		//		Object defaultValue, String inputMask, boolean duplicable, boolean uniqueValue,
+		//		Set<String> customAttributes, SessionContext sessionContext, boolean isMultiLingual,
+		//		Integer maxLength, String measurementUnit,
+		//				Map<String, String> helpMessages,
+		//				DataEntryType dataEntryType, String dataEntryReference, String dataEntrySource) {
+
+		//		FormMetadataVO formMetadataVO = new FormMetadataVO(metadata.getId(), code, type, required, schemaVO, reference, newLabels, searchable,
+		//				multivalue, sortable,
+		//				advancedSearch, facet, entry, displayType, sortingType, highlight, autocomplete, availableInSummary, enabled, metadataGroup, defaultValue,
+		//				inputMask,
+		//				duplicable, uniqueValue,
+		//				metadata.getCustomAttributes(),
+		//				sessionContext, isMultiLingual, metadata.getMaxLength(), metadata.getMeasurementUnit(), newHelpMessages,
+		//				dataEntryType, dataEntryRef, dataEntrySource);
 
 		if (metadata.getInheritance() != null) {
 			formMetadataVO.setInheritance(

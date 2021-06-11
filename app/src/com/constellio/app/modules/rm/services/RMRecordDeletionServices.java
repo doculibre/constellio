@@ -61,7 +61,7 @@ public class RMRecordDeletionServices {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		AdministrativeUnit administrativeUnit = rm.wrapAdministrativeUnit(searchServices.
-				searchSingleResult(from(rm.administrativeUnit.schema()).where(Schemas.IDENTIFIER)
+				searchSingleResult(from(rm.administrativeUnit.schemaType()).where(Schemas.IDENTIFIER)
 						.isEqualTo(administrativeUnitID)));
 		cleanAdministrativeUnit(collection, administrativeUnit, appLayerFactory);
 	}
@@ -75,11 +75,11 @@ public class RMRecordDeletionServices {
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 
-		SearchResponseIterator<Record> documentIterator = searchServices.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.document.schema())
+		SearchResponseIterator<Record> documentIterator = searchServices.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.document.schemaType())
 				.where(Schemas.PRINCIPAL_PATH).isContainingText(administrativeUnit.getId())).sortDesc(Schemas.PRINCIPAL_PATH));
-		SearchResponseIterator<Record> folderIterator = searchServices.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.folder.schema())
+		SearchResponseIterator<Record> folderIterator = searchServices.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.folder.schemaType())
 				.where(Schemas.PRINCIPAL_PATH).isContainingText(administrativeUnit.getId())).sortDesc(Schemas.PRINCIPAL_PATH));
-		List<Record> taskList = searchServices.search(new LogicalSearchQuery().setCondition(from(taskSchemas.userTask.schema())
+		List<Record> taskList = searchServices.search(new LogicalSearchQuery().setCondition(from(taskSchemas.userTask.schemaType())
 				.where(Schemas.PRINCIPAL_PATH).isNot(containingText(administrativeUnit.getId()))).sortDesc(Schemas.PRINCIPAL_PATH));
 
 		Set<String> recordIDs = new HashSet<>();
@@ -119,7 +119,7 @@ public class RMRecordDeletionServices {
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
-		SearchResponseIterator<Record> containerIterator = searchServices.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.containerRecord.schema())
+		SearchResponseIterator<Record> containerIterator = searchServices.recordsIterator(new LogicalSearchQuery().setCondition(from(rm.containerRecord.schemaType())
 				.where(Schemas.PRINCIPAL_PATH).isContainingText(administrativeUnit.getId())).sortDesc(Schemas.PRINCIPAL_PATH));
 
 		Set<String> recordIDs = new HashSet<>();
@@ -144,7 +144,7 @@ public class RMRecordDeletionServices {
 		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		TasksSchemasRecordsServices schemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(schemas.userTask.schema())
+		LogicalSearchQuery query = new LogicalSearchQuery().setCondition(from(schemas.userTask.schemaType())
 				.where(Schemas.PRINCIPAL_PATH).isContainingText(administrativeUnit.getId())).sortDesc(Schemas.PRINCIPAL_PATH);
 
 		SearchResponseIterator<Record> userTaskIterator = searchServices.recordsIterator(query);

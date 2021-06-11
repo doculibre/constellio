@@ -12,6 +12,7 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
@@ -25,6 +26,7 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -76,6 +78,12 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 	}
 
 	public void signInAttempt(String enteredUsername, String password, boolean rememberMe) {
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		if (appLayerFactory.isReindexing() && !"admin".equals(enteredUsername)) {
+			view.showSystemCurrentlyReindexing();
+			return;
+		}
+
 		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		AuthenticationService authenticationService = modelLayerFactory.newAuthenticationService();
@@ -124,14 +132,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 						LOGGER.error("Unable to update user : " + username, e);
 					}
 					*/
-					UserCredential userCredential = userServices.getUser(username);
-					if (!userCredential.hasAgreedToPrivacyPolicy() && getPrivacyPolicyConfigValue() != null) {
-						view.popPrivacyPolicyWindow(modelLayerFactory, userInLastCollection, lastCollection);
-					} else if (hasLastAlertPermission(userInLastCollection) && !userCredential.hasReadLastAlert() && getLastAlertConfigValue() != null) {
-						view.popLastAlertWindow(modelLayerFactory, userInLastCollection, lastCollection);
-					} else {
-						signInValidated(userInLastCollection, lastCollection);
-					}
+					showMessageToUserBeforeSignIn(userInLastCollection, userServices.getUser(username), lastCollection, modelLayerFactory);
 				}
 			} else {
 				view.showUserHasNoCollectionMessage();
@@ -147,19 +148,56 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		}
 	}
 
+	private void showMessageToUserBeforeSignIn(final User userInLastCollection, final UserCredential userCredential,
+											   final String lastCollection, final ModelLayerFactory modelLayerFactory) {
+
+		final List<Runnable> signingSteps = new ArrayList<>();
+		final Runnable executeNextStep = () -> {
+			if (!signingSteps.isEmpty()) {
+				signingSteps.remove(0).run();
+			}
+		};
+
+		if (!userCredential.hasAgreedToPrivacyPolicy() && getPrivacyPolicyConfigValue() != null) {
+			signingSteps.add(() -> view.popPrivacyPolicyWindow(modelLayerFactory, userInLastCollection, lastCollection, executeNextStep));
+		}
+
+		if (hasLastAlertPermission(userInLastCollection) && !userCredential.hasReadLastAlert() && getLastAlertConfigValue() != null) {
+			signingSteps.add(() -> view.popLastAlertWindow(modelLayerFactory, userInLastCollection, lastCollection, executeNextStep));
+		}
+
+		final Object messageToShowAtLoginConfigValue = getMessageToShowAtLoginConfigValue();
+		if (!userCredential.hasSeenLatestMessageAtLogin() && messageToShowAtLoginConfigValue != null) {
+			signingSteps.add(() -> view.popShowMessageToUserWindow(modelLayerFactory, userInLastCollection, lastCollection, executeNextStep));
+		}
+
+		signingSteps.add(() -> signInValidated(userInLastCollection, lastCollection));
+
+		signingSteps.remove(0).run();
+	}
+
 	public void signInValidated(User userInLastCollection, String lastCollection) {
 		SessionContext sessionContext = view.getSessionContext();
-		userInLastCollection.setLastIPAddress(sessionContext.getCurrentUserIPAddress());
-		modelLayerFactory.newLoggingServices().login(userInLastCollection);
-		Locale userLocale = getSessionLanguage(userInLastCollection);
 
+		try {
+			modelLayerFactory.newRecordServices().update(userInLastCollection
+					.setLastLogin(TimeProvider.getLocalDateTime())
+					.setLastIPAddress(sessionContext.getCurrentUserIPAddress()));
+			modelLayerFactory.newLoggingServices().login(userInLastCollection);
+			
+			Locale userLanguage = getSessionLanguage(userInLastCollection);
+			sessionContext.setCurrentLocale(userLanguage);
+			i18n.setLocale(userLanguage);
+
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+		
 		UserVO currentUser = voBuilder
 				.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
 		sessionContext.setCurrentUser(currentUser);
 		sessionContext.setCurrentCollection(userInLastCollection.getCollection());
 		sessionContext.setForcedSignOut(false);
-		i18n.setLocale(userLocale);
-		sessionContext.setCurrentLocale(userLocale);
 
 		view.updateUIContent();
 		String currentState = view.navigateTo().getState();
@@ -232,9 +270,20 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		return policy;
 	}
 
+	public File getMessageToShowAtLoginFile() {
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+
+		return manager.getFileFromValue(ConstellioEIMConfigs.SHOW_MESSAGE_TO_USER_AT_LOGIN, "messageToUser_eimUSR");
+	}
+
 	public Object getPrivacyPolicyConfigValue() {
 		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
 		return manager.getValue(ConstellioEIMConfigs.PRIVACY_POLICY);
+	}
+
+	public Object getMessageToShowAtLoginConfigValue() {
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		return manager.getValue(ConstellioEIMConfigs.SHOW_MESSAGE_TO_USER_AT_LOGIN);
 	}
 
 	public File getLastAlertFile() {

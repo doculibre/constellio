@@ -16,6 +16,8 @@ public interface LoginView extends BaseView {
 
 	void showUserHasNoCollectionMessage();
 
+	void showSystemCurrentlyReindexing();
+
 	void showBadLoginMessage();
 
 	void setUsername(String username);
@@ -25,9 +27,12 @@ public interface LoginView extends BaseView {
 	void setUsernameCookie(String username);
 
 	void popPrivacyPolicyWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
-								final String lastCollection);
+								final String lastCollection, Runnable signInStepFinishedCallback);
 
 	void popLastAlertWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
-							final String lastCollection);
+							final String lastCollection, Runnable signInStepFinishedCallback);
+
+	void popShowMessageToUserWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
+									final String lastCollection, Runnable signInStepFinishedCallback);
 
 }

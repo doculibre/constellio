@@ -1,33 +1,27 @@
 package com.constellio.app.utils;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
-import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
-import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
-import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator;
+import com.constellio.app.modules.rm.services.reports.JasperReportServices;
+import com.constellio.app.modules.rm.services.reports.printable.PrintableExtension;
+import com.constellio.app.modules.rm.services.reports.printable.PrintableGeneratorParams;
+import com.constellio.app.modules.rm.services.reports.xml.XMLDataSourceType;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
-import com.constellio.data.io.IOServicesFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
-import net.sf.jasperreports.engine.JRException;
-import org.apache.commons.io.FileUtils;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.ISODateTimeFormat;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,41 +33,31 @@ public class ReportGeneratorUtils {
 	public static Component saveButtonClick(AppLayerFactory factory, String collection, String schemaType,
 											PrintableReportTemplate selectedTemplate, int numberOfCopies,
 											List<String> ids, LogicalSearchQuery query,
-											Locale locale, UserVO user) {
-		InputStream selectedJasperFileContentInputStream = null;
-		File temporaryJasperFile = null;
+											Locale locale, UserVO user, PrintableExtension printableExtension) {
 		try {
-			IOServicesFactory ioServicesFactory = factory.getModelLayerFactory().getIOServicesFactory();
-			ContentManager contentManager = factory.getModelLayerFactory().getContentManager();
-			XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(
-					numberOfCopies);
-			xmlGeneratorParameters.setQuery(query);
-			xmlGeneratorParameters.setElementWithIds(schemaType, ids);
-			PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(factory, collection,
-					xmlGeneratorParameters, locale, user);
-			JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(printableReportXmlGenerator);
-			selectedJasperFileContentInputStream = contentManager
-					.getContentInputStream(selectedTemplate.getJasperFile().getCurrentVersion().getHash(),
-							"ReportGeneratorButtonReport.GeneratorButtonForm#saveButtonClick");
-			temporaryJasperFile = ioServicesFactory.newIOServices().newTemporaryFile("jasper.jasper");
-			FileUtils.copyInputStreamToFile(selectedJasperFileContentInputStream, temporaryJasperFile);
-			String title =
-					selectedTemplate.getTitle() + ISODateTimeFormat.dateTime().print(new LocalDateTime())
-					+ ".pdf";
-			File generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(temporaryJasperFile);
+			JasperReportServices jasperReportServices = new JasperReportServices(collection, factory);
+			PrintableGeneratorParams printableGeneratorParams = PrintableGeneratorParams.builder()
+					.XMLDataSourceType(XMLDataSourceType.REPORT)
+					.printableId(selectedTemplate.getId())
+					.printableExtension(printableExtension)
+					.numberOfCopies(numberOfCopies)
+					.schemaType(schemaType)
+					.recordIds(ids)
+					.query(query)
+					.locale(locale)
+					.username(user.getUsername())
+					.build();
+			InputStream reportInputStream = jasperReportServices.generatePrintable(printableGeneratorParams);
+
 			VerticalLayout newLayout = new VerticalLayout();
-			newLayout.addComponents(new LabelViewer(generatedJasperFile, title,
+			String title = selectedTemplate.getTitle() + ISODateTimeFormat.dateTime().print(new LocalDateTime()) + printableExtension.getExtension();
+			newLayout.addComponents(new LabelViewer(reportInputStream, title,
 					factory.getModelLayerFactory().getIOServicesFactory().newIOServices()));
 			newLayout.setWidth("100%");
 			return newLayout;
-		} catch (JRException | IOException e) {
+		} catch (Exception e) {
 			//JRException check what it is.
 			e.printStackTrace();
-		} finally {
-			factory.getModelLayerFactory().getIOServicesFactory().newIOServices()
-					.closeQuietly(selectedJasperFileContentInputStream);
-			factory.getModelLayerFactory().getIOServicesFactory().newIOServices().deleteQuietly(temporaryJasperFile);
-			factory.getModelLayerFactory().getIOServicesFactory().newIOServices().deleteQuietly(temporaryJasperFile);
 		}
 		return null;
 	}
@@ -91,10 +75,14 @@ public class ReportGeneratorUtils {
 		LogicalSearchCondition conditionSchemaType = from(printableReportSchemaType)
 				.where(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_TYPE))
 				.isEqualTo(currentSchema.getSchemaType());
-		LogicalSearchCondition schemaCondition = from(printableReportSchemaType).where(Schemas.SCHEMA)
+		LogicalSearchCondition schemaCondition = from(printableReportSchemaType)
+				.where(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.RECORD_TYPE))
 				.isEqualTo(PrintableReport.SCHEMA_NAME);
+		LogicalSearchCondition notDisabledCondition = from(printableReportSchemaType)
+				.where(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE).get(PrintableReport.DISABLED))
+				.isFalseOrNull();
 		List<Record> records = factory.getModelLayerFactory().newSearchServices().cachedSearch(new LogicalSearchQuery(
-				from(printableReportSchemaType).whereAllConditions(schemaCondition, conditionCustomSchema, conditionSchemaType)));
+				from(printableReportSchemaType).whereAllConditions(schemaCondition, conditionCustomSchema, conditionSchemaType, notDisabledCondition)));
 		for (Record record : records) {
 			printableReportTemplateList.add(new PrintableReportTemplate(record.getId(), record.getTitle(),
 					record.<Content>get(printableReportSchemaType.getCustomSchema(PrintableReport.SCHEMA_TYPE)

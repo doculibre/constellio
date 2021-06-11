@@ -5,7 +5,6 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.services.menu.MenuItemFactory;
-import com.constellio.app.services.menu.MenuItemFactory.CommandCallback;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -13,6 +12,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.navigator.View;
@@ -25,6 +25,7 @@ import java.util.Map;
 
 public class RecordListMenuBar extends BaseMenuBar {
 
+	private AppLayerFactory appLayerFactory;
 	private SessionContext sessionContext;
 	private String collection;
 
@@ -53,7 +54,7 @@ public class RecordListMenuBar extends BaseMenuBar {
 		sessionContext = ConstellioUI.getCurrentSessionContext();
 		collection = sessionContext.getCurrentCollection();
 
-		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		menuItemServices = new MenuItemServices(collection, appLayerFactory);
 		menuItemFactory = new MenuItemFactory();
@@ -74,7 +75,8 @@ public class RecordListMenuBar extends BaseMenuBar {
 
 		MenuItem rootItem = addItem(rootItemCaption, FontAwesome.ELLIPSIS_V, null);
 
-		boolean hasResults = !recordProvider.getRecords().isEmpty();
+		List<Record> records = recordProvider.getRecords();
+		boolean hasResults = !records.isEmpty();
 		List<MenuItemAction> queryMenuItemActions = menuItemServices.getActionsForRecords(recordProvider.getQuery(),
 				excludedActionTypes,
 				new MenuItemActionBehaviorParams() {
@@ -94,7 +96,7 @@ public class RecordListMenuBar extends BaseMenuBar {
 					}
 				}, hasResults);
 
-		List<MenuItemAction> recordsMenuItemActions = menuItemServices.getActionsForRecords(recordProvider.getRecords(), excludedActionTypes,
+		List<MenuItemAction> recordsMenuItemActions = menuItemServices.getActionsForRecords(records, excludedActionTypes,
 				new MenuItemActionBehaviorParams() {
 					@Override
 					public BaseView getView() {
@@ -119,20 +121,16 @@ public class RecordListMenuBar extends BaseMenuBar {
 		final View originalView = ConstellioUI.getCurrent().getCurrentView();
 
 		if (isAtLeastOneActionVisible(menuItemActions)) {
-			menuItemFactory.buildMenuBar(rootItem, menuItemActions, recordProvider, new CommandCallback() {
-				@Override
-				public void actionExecuted(MenuItemAction menuItemAction, Object component) {
-					View currentView = ConstellioUI.getCurrent().getCurrentView();
-					// No point in refreshing menu if we left the original page
-					if (currentView == originalView) {
-						// Recursive call
-						buildMenuItems();
-					}
-
-					RecordListMenuBar.this.actionExecuted(menuItemAction);
+			menuItemFactory.buildMenuBar(rootItem, menuItemActions, recordProvider, (menuItemAction, component) -> {
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				// No point in refreshing menu if we left the original page
+				if (currentView.getClass().equals(originalView.getClass())) {
+					// Recursive call
+					buildMenuItems();
 				}
 
-			});
+				RecordListMenuBar.this.actionExecuted(menuItemAction);
+			}, appLayerFactory.getMenusDisplayManager().getMenuDisplayList(collection).getActionDisplayList(MenuItemServices.BATCH_ACTIONS_FAKE_SCHEMA_TYPE), null);
 			this.setVisible(true);
 		} else {
 			this.setVisible(false);

@@ -11,7 +11,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -70,7 +70,7 @@ public class CoreMigrationTo_7_6_6 implements MigrationScript {
 					tx.setOptions(validationExceptionSafeOptions().setOptimisticLockingResolution(EXCEPTION));
 
 					for (Record record : records) {
-						Authorization auth = schemas.wrapSolrAuthorizationDetails(record);
+						RecordAuthorization auth = (RecordAuthorization) schemas.wrapAuthorization(record);
 
 						try {
 							Record targetRecord = recordServices.getDocumentById(auth.getTarget());
@@ -102,12 +102,12 @@ public class CoreMigrationTo_7_6_6 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaBuilder authorizationSchema = typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA);
-			if (!authorizationSchema.hasMetadata(Authorization.TARGET_SCHEMA_TYPE)) {
-				authorizationSchema.createUndeletable(Authorization.TARGET_SCHEMA_TYPE).setType(STRING);
-				authorizationSchema.createUndeletable(Authorization.LAST_TOKEN_RECALCULATE).setType(DATE);
+			MetadataSchemaBuilder authorizationSchema = typesBuilder.getSchema(RecordAuthorization.DEFAULT_SCHEMA);
+			if (!authorizationSchema.hasMetadata(RecordAuthorization.TARGET_SCHEMA_TYPE)) {
+				authorizationSchema.createUndeletable(RecordAuthorization.TARGET_SCHEMA_TYPE).setType(STRING);
+				authorizationSchema.createUndeletable(RecordAuthorization.LAST_TOKEN_RECALCULATE).setType(DATE);
 			}
-			typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA).create(Authorization.PRINCIPALS)
+			typesBuilder.getSchema(RecordAuthorization.DEFAULT_SCHEMA).create(RecordAuthorization.PRINCIPALS)
 					.setType(STRING).setMultivalue(true);
 
 		}

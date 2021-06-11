@@ -16,7 +16,6 @@ import com.constellio.model.services.search.SearchServicesRuntimeException.TooMa
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.api.ListAssert;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,10 +71,10 @@ public class SearchServiceCacheAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 
-				MetadataSchemaBuilder typeSchema1 = types.createNewSchemaType("type1")
+				MetadataSchemaBuilder typeSchema1 = types.createNewSchemaTypeWithSecurity("type1")
 						.setRecordCacheType(fullyCached ? FULLY_CACHED : SUMMARY_CACHED_WITHOUT_VOLATILE).getDefaultSchema();
 
-				MetadataSchemaBuilder typeSchema2 = types.createNewSchemaType("type2")
+				MetadataSchemaBuilder typeSchema2 = types.createNewSchemaTypeWithSecurity("type2")
 						.setRecordCacheType(fullyCached ? FULLY_CACHED : SUMMARY_CACHED_WITHOUT_VOLATILE).getDefaultSchema();
 
 

@@ -22,6 +22,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.CollectionFilters;
 import com.constellio.model.services.search.query.logical.condition.DataStoreFilters;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.SchemaTypesFilters;
@@ -49,6 +50,8 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	private List<MetadataSchemaVO> extraSchemas = new ArrayList<>();
 
 	private String statName;
+
+	private List<Record> records;
 
 	@Deprecated
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
@@ -82,10 +85,18 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	public RecordVODataProvider(List<MetadataSchemaVO> schemas, Map<String, RecordToVOBuilder> voBuilders,
 								ModelLayerFactory modelLayerFactory,
 								SessionContext sessionContext) {
+		this(schemas, voBuilders, modelLayerFactory, sessionContext, null);
+	}
+
+	public RecordVODataProvider(List<MetadataSchemaVO> schemas, Map<String, RecordToVOBuilder> voBuilders,
+								ModelLayerFactory modelLayerFactory,
+								SessionContext sessionContext,
+								List<Record> records) {
 		this.defaultSchema = schemas.get(0);
 		this.voBuilders = voBuilders;
 		this.sessionContext = sessionContext;
 		this.statName = Stats.getCurrentName();
+		this.records = records;
 
 		for (int i = 0; i < schemas.size(); i++) {
 			MetadataSchemaVO schema = schemas.get(i);
@@ -114,7 +125,10 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 
 		query = getQuery();
 
-		query.setLanguage(sessionContext.getCurrentLocale());
+		if(query != null){
+			query.setLanguage(sessionContext.getCurrentLocale());
+		}
+
 		cache = new HashMap<>();
 	}
 
@@ -147,7 +161,10 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 
 	protected void initializeQuery() {
 		query = getFilteredQuery();
-		query.setLanguage(sessionContext.getCurrentLocale());
+		if(query != null){
+			query.setLanguage(sessionContext.getCurrentLocale());
+		}
+
 		size = null;
 		cache.clear();
 		queryCache.clear();
@@ -161,7 +178,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		return extraSchemas;
 	}
 
-	private MetadataSchemaVO getSchema(String code) {
+	protected MetadataSchemaVO getSchema(String code) {
 		MetadataSchemaVO match = null;
 		if (defaultSchema.getCode().equals(code)) {
 			match = defaultSchema;
@@ -217,7 +234,10 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 
 	protected List<Record> doSearch() {
 		List<Record> recordList;
-		if (query == null) {
+
+		if(this.records != null){
+			recordList = this.records;
+		} else if (query == null) {
 			recordList = new ArrayList<>();
 		} else if (isSearchCache()) {
 			query.setNumberOfRows(LogicalSearchQuery.DEFAULT_NUMBER_OF_ROWS);
@@ -233,9 +253,16 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	public SearchResponseIterator<Record> getIterator() {
-		query.setLanguage(sessionContext.getCurrentLocale());
-		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIterator(query, batchSize);
+		SearchResponseIterator<Record> searchResponseIterator;
+
+		if(query != null){
+			query.setLanguage(sessionContext.getCurrentLocale());
+			SearchServices searchServices = getModelLayerFactory().newSearchServices();
+			searchResponseIterator = searchServices.recordsIterator(query, batchSize);
+		}else{
+			searchResponseIterator = null;
+		}
+
 		return searchResponseIterator;
 	}
 
@@ -256,7 +283,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		return recordVOs;
 	}
 
-	private RecordToVOBuilder getVOBuilder(Record record) {
+	protected RecordToVOBuilder getVOBuilder(Record record) {
 		String schemaCode = record.getSchemaCode();
 		String typeCode = record.getTypeCode();
 		RecordToVOBuilder voBuilder = voBuilders.get(schemaCode);
@@ -278,7 +305,11 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 				DataStoreFilters filters = query.getCondition().getFilters();
 				if (filters instanceof SchemaFilters) {
 					schema = ((SchemaFilters) filters).getSchema();
-				} else {
+				}
+				else if(filters instanceof CollectionFilters){
+					return;
+				}
+				else {
 					schema = ((SchemaTypesFilters) filters).getSchemaTypes().get(0).getDefaultSchema();
 				}
 				MetadataVO metadataVO = propertyId[i];

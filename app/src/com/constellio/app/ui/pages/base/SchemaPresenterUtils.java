@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -35,6 +36,7 @@ import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.GetRecordOptions;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServicesException;
@@ -45,6 +47,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -92,6 +96,10 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 
 	public final Record getRecord(String id) {
 		return recordServices().getDocumentById(id);
+	}
+
+	public final Record getSummaryRecord(String id) {
+		return recordServices().get(id, GetRecordOptions.RETURNING_SUMMARY);
 	}
 
 	public final Metadata getMetadata(String code) {
@@ -179,8 +187,12 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 			RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions();
 			//Validations are already done
 			options.setSkipValidations(true);
-			if (!Toggle.PERFORMANCE_TESTING.isEnabled() && waitInSeconds > 0) {
-				options.setRecordsFlushing(RecordsFlushing.WITHIN_SECONDS(waitInSeconds));
+			if (!Toggle.PERFORMANCE_TESTING.isEnabled()) {
+				if (waitInSeconds > 0) {
+					options.setRecordsFlushing(RecordsFlushing.WITHIN_SECONDS(waitInSeconds));
+				} else {
+					options.setRecordsFlushing(RecordsFlushing.NOW());
+				}
 			}
 
 			recordServices().logicallyDelete(record, user, options);
@@ -266,7 +278,8 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				continue;
 			}
 
-			boolean systemReserved = metadata.isSystemReserved() && !metadata.hasSameCode(Schemas.LEGACY_ID);
+			boolean systemReserved = metadata.isSystemReserved()
+									 && !metadata.hasSameCode(Schemas.LEGACY_ID) && !localMetadataCode.equals(Folder.IS_MODEL);
 			if (!systemReserved && metadata.isEnabled() && isMetadataManuallyFilled(metadata)) {
 				Object metadataValue;
 				if (metadataVO.isMultiLingual() && metadataVO.getLocale() != null) {
@@ -374,7 +387,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		User currentUser = userServices.getUserInCollection(username, collection);
 
 		String hash = contentVersionVO.getHash();
-		String fileName = contentVersionVO.getFileName();
+		String fileNameNormalized = Normalizer.normalize(contentVersionVO.getFileName(), Form.NFC);
 		Boolean majorVersion = contentVersionVO.isMajorVersion();
 		InputStreamProvider inputStreamProvider = contentVersionVO.getInputStreamProvider();
 
@@ -382,7 +395,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		ContentVersionDataSummary contentVersionDataSummary;
 		try {
 			inputStream = inputStreamProvider.getInputStream(VERSION_INPUT_STREAM_NAME);
-			UploadOptions options = new UploadOptions().setFileName(fileName);
+			UploadOptions options = new UploadOptions().setFileName(fileNameNormalized);
 			ContentManager.ContentVersionDataSummaryResponse uploadResponse = uploadContent(inputStream, options);
 			contentVersionDataSummary = uploadResponse.getContentVersionDataSummary();
 			contentVersionVO.setHasFoundDuplicate(uploadResponse.hasFoundDuplicate())
@@ -403,16 +416,16 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 				// TODO Use the right kind of exception
 				throw new RuntimeException("Must specify if the version is minor or major");
 			} else {
-				content = contentManager.createMajor(currentUser, fileName, contentVersionDataSummary);
+				content = contentManager.createMajor(currentUser, fileNameNormalized, contentVersionDataSummary);
 			}
 		} else if (majorVersion) {
-			content = contentManager.createMajor(currentUser, fileName, contentVersionDataSummary);
+			content = contentManager.createMajor(currentUser, fileNameNormalized, contentVersionDataSummary);
 		} else if (newMinorEmpty && rmConfigs.isMajorVersionForNewFile()) {
-			content = contentManager.createEmptyMajor(currentUser, fileName, contentVersionDataSummary);
+			content = contentManager.createEmptyMajor(currentUser, fileNameNormalized, contentVersionDataSummary);
 		} else if (newMinorEmpty) {
-			content = contentManager.createEmptyMinor(currentUser, fileName, contentVersionDataSummary);
+			content = contentManager.createEmptyMinor(currentUser, fileNameNormalized, contentVersionDataSummary);
 		} else {
-			content = contentManager.createMinor(currentUser, fileName, contentVersionDataSummary);
+			content = contentManager.createMinor(currentUser, fileNameNormalized, contentVersionDataSummary);
 		}
 		contentVersionVO.setContentId(content.getId());
 		return content;

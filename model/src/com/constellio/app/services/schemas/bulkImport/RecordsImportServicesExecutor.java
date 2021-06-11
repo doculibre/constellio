@@ -8,6 +8,7 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.sequence.SequencesManager;
@@ -25,9 +26,9 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -37,17 +38,24 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
+import com.constellio.model.entities.schemas.StructureInstanciationParams;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.entities.structures.EmailAddressFactory;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.entities.structures.MapStringStringStructureFactory;
+import com.constellio.model.entities.structures.UrlsStructure;
+import com.constellio.model.entities.structures.UrlsStructureFactory;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
@@ -77,14 +85,20 @@ import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.TransactionRecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_EmailRequired;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_FirstNameRequired;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUsername;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_LastNameRequired;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jetbrains.annotations.Nullable;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -94,6 +108,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -105,6 +120,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
 import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
@@ -128,6 +144,8 @@ public class RecordsImportServicesExecutor {
 
 	public static StringReplacer IMPORTED_FILEPATH_CLEANER = replacingLiteral("/", separator).replacingLiteral("\\", "/");
 	public static final String INVALID_SCHEMA_TYPE_CODE = "invalidSchemaTypeCode";
+	public static final String NO_SCHEMA_FOUND = "noSchemaFoundException";
+
 	public static final String LEGACY_ID_LOCAL_CODE = LEGACY_ID.getLocalCode();
 	static final List<String> ALL_BOOLEAN_YES = asList("o", "y", "t", "oui", "vrai", "yes", "true", "1");
 	static final List<String> ALL_BOOLEAN_NO = asList("n", "f", "non", "faux", "no", "false", "0");
@@ -147,11 +165,11 @@ public class RecordsImportServicesExecutor {
 	private static final String ID_MUST_BE_LOWER_THAN_SEQUENCE_TABLE = "idMustBeLowerThanSequenceTable";
 	private static final String ID_ALREADY_USED_BY_RECORD_OF_OTHER_TYPE = "idAlreadyUsedByRecordsOfOtherType";
 	private static final String ID_ALREADY_USED_BY_RECORD_OF_OTHER_COLLECTION = "idAlreadyUsedByRecordsOfOtherCollection";
+	private static final String LEGACY_ID_ALREADY_USED = "legacyIdAlreadyUsed";
 
 	private static final String AUTHORIZATION_TARGET_ID_CANNOT_BE_NULL = "authorizationTargetIdCannotBeNull";
 	private static final String PRINCIPALS_USER_CANNOT_BE_NULL = "principalsUserCannotBeNull";
 	private static final String PRINCIPALS_GROUP_CANNOT_BE_NULL = "principalsGroupCannotBeNull";
-
 
 	public static final String RECORD_SERVICE_EXEPTION = "recordServiceException";
 
@@ -317,7 +335,7 @@ public class RecordsImportServicesExecutor {
 			return;
 		}
 		ContentManager contentManager = modelLayerFactory.getContentManager();
-		for(File file: importedContents){
+		for (File file : importedContents) {
 			try {
 				contentManager.upload(file);
 			} catch (FileNotFoundException e) {
@@ -344,6 +362,8 @@ public class RecordsImportServicesExecutor {
 		while (!typeImportFinished) {
 
 			ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
+			importDataIterator.getOptions().setMergeExistingRecordWithSameLegacyId(params.mergeExistingRecordWithSameLegacyId);
+
 			try {
 				BulkImportReturnValue bulkImportReturnValue;
 				if (params.getThreads() == 1) {
@@ -598,36 +618,15 @@ public class RecordsImportServicesExecutor {
 							params.isWarningsForInvalidFacultativeMetadatas()));
 
 			try {
-				Record record = buildRecord(typeImportContext, typeBatchImportContext, toImport, errors);
 
-				if (record != null) {
-					typeBatchImportContext.transaction.add(record);
+				Record record;
+				if (typeImportContext.schemaType.equals(User.SCHEMA_TYPE)) {
+					record = buildUserRecordInSeparateTransaction(typeImportContext, typeBatchImportContext, toImport, errors);
+				} else {
+					record = buildRecordAndToTransaction(typeImportContext, typeBatchImportContext, toImport, errors);
 				}
+
 				typeImportContext.addUpdateCount.incrementAndGet();
-
-				if (record != null) {
-					try {
-						recordServices.validateRecordInTransaction(record, typeBatchImportContext.transaction);
-
-					} catch (ContentManagerRuntimeException_NoSuchContent e) {
-						e.printStackTrace();
-						Map<String, Object> params = new HashMap<>();
-						params.put("hash", e.getId());
-						errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, params);
-					} catch (RecordServicesException.ValidationException e) {
-						for (ValidationError error : e.getErrors().getValidationErrors()) {
-							errors.add(error, error.getParameters());
-						}
-
-					} catch (Throwable t) {
-						String stack = ExceptionUtils.getStackTrace(t);
-						Map<String, Object> params = new HashMap<>();
-						params.put("message", t.getMessage());
-						params.put("stacktrace", stack);
-						errors.add(RecordsImportServices.class, RECORD_PREPARATION_ERROR, params);
-
-					}
-				}
 
 				if (errors.hasDecoratedErrors() || record == null) {
 					if (params.getImportErrorsBehavior() == ImportErrorsBehavior.STOP_ON_FIRST_ERROR) {
@@ -649,9 +648,16 @@ public class RecordsImportServicesExecutor {
 					}
 
 					for (String uniqueMetadata : typeImportContext.uniqueMetadatas) {
-						String value = (String) toImport.getFields().get(uniqueMetadata);
+						Object value = toImport.getFields().get(uniqueMetadata);
+
 						if (value != null) {
-							resolverCache.mapIds(typeImportContext.schemaType, uniqueMetadata, value, record.getId());
+							List<String> uniqueValues = value instanceof List<?> ? (List<String>) value : Collections.singletonList((String) value);
+
+							uniqueValues.forEach(uniqueValue -> {
+								if (uniqueValue != null) {
+									resolverCache.mapIds(typeImportContext.schemaType, uniqueMetadata, uniqueValue, record.getId());
+								}
+							});
 						}
 					}
 
@@ -664,6 +670,146 @@ public class RecordsImportServicesExecutor {
 			}
 			progressionHandler.incrementProgression();
 		}
+	}
+
+	private Record buildUserRecordInSeparateTransaction(TypeImportContext typeImportContext,
+														TypeBatchImportContext typeBatchImportContext, ImportData toImport,
+														DecoratedValidationsErrors errors) {
+
+		UserServices userServices = modelLayerFactory.newUserServices();
+
+		String username = toImport.getValue(User.USERNAME);
+		String password = toImport.getValue("password");
+
+		final boolean userWasExistingOnSystem  = userServices.getNullableUserInfos(username) != null;
+		final boolean userWasExistingOnCollection  = userWasExistingOnSystem
+											   && userServices.getUserInfos(username).getCollections().contains(collection);
+
+		//TODO Hakim : test both creation and modification
+		try {
+			userServices.execute(username, (req) -> {
+				List<String> groups = toImport.getList(User.GROUPS);
+				List<String> groupCodes = convertResolverStatementsToGroupCodes(groups, errors);
+				req.setFirstName(toImport.getValue(User.FIRSTNAME));
+				req.setLastName(toImport.getValue(User.LASTNAME));
+				req.setEmail(toImport.getValue(User.EMAIL));
+				req.addToCollections(collection);
+				req.addToGroupsInCollection(groupCodes, collection);
+
+				UserCredentialStatus newUserStatus = UserCredentialStatus.fastConvert(toImport.getValue(User.STATUS));
+				if (newUserStatus != null) {
+					req.setStatusForCollection(newUserStatus, collection);
+
+				} else if (!userWasExistingOnCollection) {
+					req.setStatusForCollection(UserCredentialStatus.DISABLED, collection);
+				}
+
+				if (!userWasExistingOnSystem) {
+					req.setStatusForAllCollections(UserCredentialStatus.ACTIVE);
+				}
+			});
+
+		} catch(UserServicesRuntimeException_InvalidUsername e) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("username", toImport.getValue(User.USERNAME));
+			errors.add(RecordsImportServices.class, "User: username is required!", parameters);
+
+		} catch(UserServicesRuntimeException_FirstNameRequired e) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("firstname", toImport.getValue(User.FIRSTNAME));
+			errors.add(RecordsImportServices.class, "User: firstname is required!", parameters);
+
+		} catch(UserServicesRuntimeException_LastNameRequired e) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("lastname", toImport.getValue(User.LASTNAME));
+			errors.add(RecordsImportServices.class, "User: lastname is required!", parameters);
+		} catch(UserServicesRuntimeException_EmailRequired e) {
+			Map<String, Object> parameters = new HashMap<>();
+			parameters.put("email", toImport.getValue(User.EMAIL));
+			errors.add(RecordsImportServices.class, "User: email is required!", parameters);
+		}
+		//We don't need to support all exceptions in UserServicesRuntimeException,
+		// only those that could happens depending on the data received
+
+		if (password != null) {
+			if (userWasExistingOnSystem) {
+				Map<String, Object> parameters = new HashMap<>();
+				parameters.put("password", password);
+				errors.addWarning(RecordsImportServices.class, "User: the password was not changed because the user already exists! (this is not an error)", parameters);
+
+			} else if (userServices.getUserInfos(username).getSyncMode() != UserSyncMode.LOCALLY_CREATED) {
+				Map<String, Object> parameters = new HashMap<>();
+				parameters.put("password", password);
+				errors.addWarning(RecordsImportServices.class, "User: the password was not changed because the user is synced with LDAP/Azure AD (this is not an error)", parameters);
+			} else {
+				modelLayerFactory.getPasswordFileAuthenticationService().changePassword(username, password);
+			}
+		}
+
+		Record record = userServices.getUserInCollection(username, collection).getWrappedRecord();
+		record.set(LEGACY_ID, toImport.getLegacyId());
+		typeBatchImportContext.transaction.add(record);
+
+		return record;
+	}
+
+	private List<String> convertResolverStatementsToGroupCodes(List<String> statements, ValidationErrors errors) {
+
+		List<String> codes = new ArrayList<>();
+
+		for(String statement : statements) {
+			String groupId = resolverCache.resolve(Group.SCHEMA_TYPE, statement);
+			if (groupId == null) {
+				Map params = new HashMap();
+				params.put("referencedSchemaTypeLabel", "Group");
+				params.put("value", StringUtils.substringAfter(statement, ":"));
+				params.put("metadataLabel", StringUtils.substringBefore(statement, ":"));
+				errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, params);
+			} else {
+				codes.add(schemasRecordsServices.getGroup(groupId).getCode());
+			}
+		}
+
+		return codes;
+
+	}
+
+	@Nullable
+	private Record buildRecordAndToTransaction(TypeImportContext typeImportContext,
+											   TypeBatchImportContext typeBatchImportContext, ImportData toImport,
+											   DecoratedValidationsErrors errors)
+			throws PostponedRecordException, SkippedBecauseOfFailedDependency {
+		Record record = buildRecord(typeImportContext, typeBatchImportContext, toImport, errors);
+
+		if (record != null) {
+			typeBatchImportContext.transaction.add(record);
+			try {
+				if (extensions.isSkipValidation(typeImportContext.schemaType,
+						new ValidationParams(errors, toImport, typeBatchImportContext.options, params.isWarningsForInvalidFacultativeMetadatas()))) {
+					typeBatchImportContext.transaction.setSkippingRequiredValuesValidation(true);
+				}
+				recordServices.validateRecordInTransaction(record, typeBatchImportContext.transaction);
+
+			} catch (ContentManagerRuntimeException_NoSuchContent e) {
+				e.printStackTrace();
+				Map<String, Object> params = new HashMap<>();
+				params.put("hash", e.getId());
+				errors.add(RecordsImportServices.class, HASH_NOT_FOUND_IN_VAULT, params);
+			} catch (RecordServicesException.ValidationException e) {
+				for (ValidationError error : e.getErrors().getValidationErrors()) {
+					errors.add(error, error.getParameters());
+				}
+
+			} catch (Throwable t) {
+				String stack = ExceptionUtils.getStackTrace(t);
+				Map<String, Object> params = new HashMap<>();
+				params.put("message", t.getMessage());
+				params.put("stacktrace", stack);
+				errors.add(RecordsImportServices.class, RECORD_PREPARATION_ERROR, params);
+
+			}
+		}
+		return record;
 	}
 
 	private void findHigherSequenceValues(TypeImportContext typeImportContext,
@@ -754,6 +900,11 @@ public class RecordsImportServicesExecutor {
 			if (importAsLegacyId) {
 				record = modelLayerFactory.newSearchServices()
 						.searchSingleResult(from(schemaType).where(LEGACY_ID).isEqualTo(legacyId));
+				if (!typeBatchImportContext.options.isMergeExistingRecordWithSameLegacyId() && record != null) {
+					Map<String, Object> params = LangUtils.<String, Object>asMap("id", legacyId);
+					errors.add(RecordsImportServices.class, LEGACY_ID_ALREADY_USED, params);
+					return null;
+				}
 			} else {
 				record = modelLayerFactory.newSearchServices()
 						.searchSingleResult(from(schemaType).where(Schemas.IDENTIFIER).isEqualTo(legacyId));
@@ -795,8 +946,6 @@ public class RecordsImportServicesExecutor {
 							errors.add(RecordsImportServices.class, ID_ALREADY_USED_BY_RECORD_OF_OTHER_TYPE, params);
 							return null;
 						}
-
-
 					} catch (NoSuchRecordWithId e) {
 
 						if (!RecordUtils.isZeroPaddingId(legacyId)) {
@@ -882,6 +1031,10 @@ public class RecordsImportServicesExecutor {
 					validator.validate(new RecordMetadataValidatorParams(metadata, convertedValue, configProvider, decoratedErrors, false));
 				}
 
+				if (metadata.getLocalCode().equals("linkedSchema")) {
+					convertedValue = validateAndCorrectLinkedSchemaValue(decoratedErrors, (String) convertedValue, metadata);
+				}
+
 				if (metadata.getInputMask() != null) {
 					validateMask(metadata, convertedValue, decoratedErrors);
 				}
@@ -906,21 +1059,25 @@ public class RecordsImportServicesExecutor {
 					manageMapStringListStringStructureFactory(record, metadata, field);
 				} else if (metadata.getStructureFactory().getClass().equals(MapStringStringStructureFactory.class)) {
 					manageMapStringStringStructureFactory(record, metadata, field);
+				} else if (metadata.getStructureFactory().getClass().equals(UrlsStructureFactory.class)) {
+					manageUrlsStructureFactory(record, metadata, field);
 				} else if (metadata.getStructureFactory().getClass().equals(CommentFactory.class)) {
 					manageCommentFactory(record, metadata, field);
 				} else if (metadata.getStructureFactory().getClass().equals(EmailAddressFactory.class)) {
 					manageEmailAddressFactory(record, metadata, field);
+				} else if (metadata.getStructureFactory() instanceof SeparatedStructureFactory) {
+					manageSeparatedStructureFactory(record, metadata, field);
 				}
 			}
 		}
 
-		if (Authorization.SCHEMA_TYPE.equals(typeImportContext.schemaType)) {
-			String target = toImport.getValue(Authorization.TARGET);
-			List<String> principals = toImport.getValue(Authorization.PRINCIPALS);
+		if (RecordAuthorization.SCHEMA_TYPE.equals(typeImportContext.schemaType)) {
+			String target = toImport.getValue(RecordAuthorization.TARGET);
+			List<String> principals = toImport.getValue(RecordAuthorization.PRINCIPALS);
 
 			if (target != null) {
 				if (typeBatchImportContext.options.isImportAsLegacyId()) {
-					String targetSchemaType = toImport.getValue(Authorization.TARGET_SCHEMA_TYPE);
+					String targetSchemaType = toImport.getValue(RecordAuthorization.TARGET_SCHEMA_TYPE);
 					String id = resolverCache.resolve(targetSchemaType, target);
 					if (id == null) {
 						Map<String, Object> parameters = new HashMap<>();
@@ -928,7 +1085,7 @@ public class RecordsImportServicesExecutor {
 						errors.add(RecordsImportServices.class, AUTHORIZATION_TARGET_ID_CANNOT_BE_NULL, parameters);
 						//TODO Charles! Lancer une erreur et ajouter un test dans RecordsImportServicesRealTest
 					} else {
-						record.set(defaultSchema.get(Authorization.TARGET), id);
+						record.set(defaultSchema.get(RecordAuthorization.TARGET), id);
 					}
 				}
 			}
@@ -967,7 +1124,7 @@ public class RecordsImportServicesExecutor {
 
 				}
 
-				record.set(defaultSchema.get(Authorization.PRINCIPALS), convertedPrincipals);
+				record.set(defaultSchema.get(RecordAuthorization.PRINCIPALS), convertedPrincipals);
 			}
 
 
@@ -978,6 +1135,115 @@ public class RecordsImportServicesExecutor {
 						params.isAllowingReferencesToNonExistingUsers()));
 
 		return record;
+	}
+
+	private void manageSeparatedStructureFactory(Record record, Metadata metadata, Entry<String, Object> field) {
+
+		Map<String, Object> mapWithDataStoreCode = (Map<String, Object>) field.getValue();
+		if (mapWithDataStoreCode.size() > 0) {
+			Map<String, Object> mapWithCorrectedValues = new HashMap<>(mapWithDataStoreCode.size());
+			mapWithDataStoreCode.forEach((code, value) -> {
+				mapWithCorrectedValues.put(code.indexOf("_") != -1 ? code.substring(0, code.lastIndexOf("_")) : code,
+						convertStructureAttributeValueBackToInitialType(code, value));
+			});
+			StructureInstanciationParams params = new StructureInstanciationParams(record.getRecordId(), record.getTypeCode(), record.getCollection());
+			ModifiableStructure structure = ((SeparatedStructureFactory) metadata.getStructureFactory()).build(mapWithCorrectedValues, params);
+			record.set(metadata, structure);
+		}
+	}
+
+	private Object convertStructureAttributeValueBackToInitialType(String metadataWithDataStoreCode, Object value) {
+		if (value == null || (value instanceof List && ((List<?>) value).isEmpty())) {
+			throw new ImpossibleRuntimeException("Cannot convert null or empty value");
+		}
+
+		boolean multivalue = SolrUtils.isMultivalue(metadataWithDataStoreCode);
+		Object valueToConvert = multivalue ? Arrays.asList(((String) value).split(",")) : (String) value;
+
+		Object convertedValues = valueToConvert;
+		if (metadataWithDataStoreCode.endsWith("_s") || metadataWithDataStoreCode.endsWith("_ss")) {
+			if (multivalue) {
+				if (((List<String>) convertedValues).contains("__TRUE__") || ((List<String>) convertedValues).contains("__FALSE__")) {
+					convertedValues = ((List<String>) convertedValues).stream()
+							.map(v -> "__TRUE__".equals(v) ? Boolean.TRUE : "__FALSE__".equals(v) ? Boolean.FALSE : null)
+							.collect(Collectors.toList());
+				}
+			}
+		} else if (metadataWithDataStoreCode.endsWith("_i") || metadataWithDataStoreCode.endsWith("_is")) {
+			if (multivalue) {
+				convertedValues = ((List<String>) valueToConvert).stream().map(Integer::valueOf).collect(Collectors.toList());
+			} else {
+				convertedValues = Integer.valueOf((String) valueToConvert);
+			}
+		} else if (metadataWithDataStoreCode.endsWith("_d") || metadataWithDataStoreCode.endsWith("_ds")) {
+			if (multivalue) {
+				convertedValues = ((List<String>) valueToConvert).stream().map(Double::valueOf).collect(Collectors.toList());
+			} else {
+				convertedValues = Double.valueOf((String) valueToConvert);
+			}
+		}
+
+		return convertedValues;
+	}
+
+
+	private String validateAndCorrectLinkedSchemaValue(ValidationErrors errors, String metadataValue,
+													   Metadata metadata) {
+		if (StringUtils.isNotBlank(metadataValue)) {
+			MetadataSchemaType typeAllowed = getAllowedLinkedSchemaType(metadata.getCode());
+			List<String> allowedLinkedSchemaValues = getAllowedLinkedSchemaValues(typeAllowed);
+			metadataValue = correctLinkedSchemaValue(metadataValue, typeAllowed);
+
+			if (!isLinkedSchemaValueValid(metadataValue, typeAllowed, allowedLinkedSchemaValues)) {
+				Map params = new HashMap();
+				params.put("referencedSchemaTypeLabel", typeAllowed.getLabel(language));
+				params.put("value", metadataValue);
+				params.put("metadataLabel", metadata.getLabel(language));
+				errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, params);
+			}
+		}
+
+		return metadataValue;
+	}
+
+	private String correctLinkedSchemaValue(String metadataValue, MetadataSchemaType typeAllowed) {
+		String typeAllowedCode = typeAllowed.getCode();
+		if (!metadataValue.startsWith(typeAllowedCode + "_")) {
+			metadataValue = typeAllowedCode + "_" + metadataValue;
+		}
+
+		return metadataValue;
+	}
+
+	private boolean isLinkedSchemaValueValid(String metadataValue, MetadataSchemaType typeAllowed,
+											 List<String> allowedLinkedSchemaValues) {
+		return !allowedLinkedSchemaValues.isEmpty() && allowedLinkedSchemaValues.contains(metadataValue);
+	}
+
+	private List<String> getAllowedLinkedSchemaValues(MetadataSchemaType type) {
+		if (type == null) {
+			return Collections.emptyList();
+		}
+
+		return type.getCustomSchemas()
+				.stream().filter(schema -> schema.isActive())
+				.map(MetadataSchema::getCode).collect(Collectors.toList());
+	}
+
+	private MetadataSchemaType getAllowedLinkedSchemaType(String metadataCode) {
+		String ddvTypeCode = SchemaUtils.getSchemaTypeCode(metadataCode);
+		for (MetadataSchemaType type : types.getSchemaTypes()) {
+			MetadataSchema defaultSchema = type.getDefaultSchema();
+			if (defaultSchema.hasMetadataWithCode("type")) {
+				Metadata metadata = defaultSchema.getMetadata("type");
+				if (metadata.getType() == MetadataValueType.REFERENCE
+					&& ddvTypeCode.equals(metadata.getAllowedReferences().getTypeWithAllowedSchemas())) {
+					return type;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	private void manageEmailAddressFactory(Record record, Metadata metadata, Entry<String, Object> field) {
@@ -1061,7 +1327,27 @@ public class RecordsImportServicesExecutor {
 			record.set(metadata, listMapStringListStringStructure);
 		} else {
 			Map<String, String> listHashMap = (Map<String, String>) field.getValue();
+			listHashMap.remove("type");
 			record.set(metadata, new MapStringStringStructure(listHashMap));
+		}
+
+	}
+
+	private void manageUrlsStructureFactory(Record record, Metadata metadata, Entry<String, Object> field) {
+
+		if (metadata.isMultivalue()) {
+			List<Map<String, String>> listHashMap = (List<Map<String, String>>) field.getValue();
+			List<UrlsStructure> listUrlsStringStructure = new ArrayList<>();
+
+			for (Map<String, String> map : listHashMap) {
+				UrlsStructure urlsStructure = new UrlsStructure(map);
+				listUrlsStringStructure.add(urlsStructure);
+			}
+			record.set(metadata, listUrlsStringStructure);
+		} else {
+			Map<String, String> listHashMap = (Map<String, String>) field.getValue();
+			listHashMap.remove("type");
+			record.set(metadata, new UrlsStructure(listHashMap));
 		}
 
 	}
@@ -1111,7 +1397,10 @@ public class RecordsImportServicesExecutor {
 		switch (metadata.getType()) {
 
 			case NUMBER:
-				return Double.valueOf((String) value);
+				return Double.valueOf(((String) value).replace(",", "."));
+
+			case INTEGER:
+				return Integer.valueOf((String) value);
 
 			case BOOLEAN:
 				return value == null ? null : ALL_BOOLEAN_YES.contains(((String) value).toLowerCase());
@@ -1200,7 +1489,7 @@ public class RecordsImportServicesExecutor {
 							version.getUrl().substring("imported://".length()));
 
 					try {
-						contentVersionDataSummary  = importedFilesMap.get(importedFilePath);
+						contentVersionDataSummary = importedFilesMap.get(importedFilePath);
 
 						if (contentVersionDataSummary == null) {
 							Map<String, Object> parameters = new HashMap<>();
@@ -1431,11 +1720,19 @@ public class RecordsImportServicesExecutor {
 		List<String> importedSchemaTypes = new ArrayList<>();
 		List<String> availableSchemaTypes = importDataProvider.getAvailableSchemaTypes();
 
-		validateAvailableSchemaTypes(availableSchemaTypes);
+		boolean hasDataFolder = importDataProvider.getImportedContents() != null;
+		validateAvailableSchemaTypes(availableSchemaTypes, hasDataFolder);
 
 		for (String schemaType : types.getSchemaTypesCodesSortedByDependency()) {
 			if (availableSchemaTypes.contains(schemaType)) {
-				importedSchemaTypes.add(schemaType);
+				//FIXME: "workflowScriptParameters" doit venir avant "userTask" par défaut sans le forcer
+				//Test a rouler com.constellio.workflows.model.service.WorkflowExporterAcceptanceTest.givenWorkflowWithFolderScriptParameterWhenExportingToZipThenCanBeImportedWithBulkImport
+				if ("userTask".equals(schemaType) && availableSchemaTypes.contains("workflowScriptParameters")) {
+					importedSchemaTypes.add("workflowScriptParameters");
+				}
+				if (!importedSchemaTypes.contains(schemaType)) {
+					importedSchemaTypes.add(schemaType);
+				}
 			}
 		}
 
@@ -1444,17 +1741,26 @@ public class RecordsImportServicesExecutor {
 			importedSchemaTypes.add(Event.SCHEMA_TYPE);
 		}
 
-		if (importedSchemaTypes.contains(Authorization.SCHEMA_TYPE)) {
-			importedSchemaTypes.remove(Authorization.SCHEMA_TYPE);
-			importedSchemaTypes.add(Authorization.SCHEMA_TYPE);
+		if (importedSchemaTypes.contains(RecordAuthorization.SCHEMA_TYPE)) {
+			importedSchemaTypes.remove(RecordAuthorization.SCHEMA_TYPE);
+			importedSchemaTypes.add(RecordAuthorization.SCHEMA_TYPE);
 		}
 
 		return importedSchemaTypes;
 	}
 
-	private void validateAvailableSchemaTypes(List<String> availableSchemaTypes)
+	private void validateAvailableSchemaTypes(List<String> availableSchemaTypes) throws ValidationException {
+		validateAvailableSchemaTypes(availableSchemaTypes, false);
+	}
+
+
+	private void validateAvailableSchemaTypes(List<String> availableSchemaTypes, boolean hasDataFolder)
 			throws ValidationException {
 		ValidationErrors errors = new ValidationErrors();
+
+		if (availableSchemaTypes.size() == 0 && !hasDataFolder) {
+			errors.add(RecordsImportServicesExecutor.class, NO_SCHEMA_FOUND);
+		}
 
 		for (String availableSchemaType : availableSchemaTypes) {
 			try {
@@ -1478,7 +1784,6 @@ public class RecordsImportServicesExecutor {
 		for (String schemaType : importedSchemaTypes) {
 			new RecordsImportValidator(schemaType, progressionHandler, importDataProvider, types, resolverCache, extensions,
 					language, skippedRecordsImport, params).validate(errors);
-
 			if (params.getImportValidationErrorsBehavior() == ImportValidationErrorsBehavior.STOP_IMPORT) {
 				errors.throwIfNonEmpty();
 			}

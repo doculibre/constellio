@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -136,6 +137,29 @@ public class DecommissionerAcceptanceTest extends ConstellioTest {
 		waitForBatchProcess();
 
 		assertThat(records.getFolder_A22().getCloseDateEntered()).isNotEqualTo(now);
+	}
+
+	@Test
+	public void givenDecommissioningListWithFolderDetailStatusSelectedThenFolderWithSelectedStatusNotProcessed()
+			throws Exception {
+		givenConfig(RMConfigs.DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS, true);
+		givenConfig(RMConfigs.REQUIRE_APPROVAL_FOR_TRANSFER, false);
+
+		DecommissioningList list16 = records.getList16();
+		list16.getFolderDetail(records.folder_A22).setFolderDetailStatus(FolderDetailStatus.INCLUDED);
+		list16.getFolderDetail(records.folder_A24).setFolderDetailStatus(FolderDetailStatus.SELECTED);
+
+		TransferringDecommissioner transferringDecommissioner =
+				new TransferringDecommissioner(new DecommissioningService(zeCollection, getAppLayerFactory()), getAppLayerFactory());
+		LocalDate now = LocalDate.now();
+
+		assertThat(list16.getFolderDetail(records.folder_A24).getFolderDetailStatus()).isEqualTo(FolderDetailStatus.SELECTED);
+		try {
+			transferringDecommissioner.process(list16, records.getAdmin(), now);
+			fail("Process should fail in com.constellio.app.modules.rm.services.decommissioning.Decommissioner.validate");
+		} catch (RuntimeException re) {
+			assertThat(re.getMessage()).isEqualTo("The decommissioning list cannot be processed");
+		}
 	}
 
 	@Test

@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.collections;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
@@ -71,7 +72,7 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		code = new TextField($("AddEditCollectionView.code"));
+		code = new BaseTextField($("AddEditCollectionView.code"));
 		code.addStyleName(CODE_FIELD_STYLE);
 		code.setRequired(true);
 		code.setNullRepresentation("");
@@ -89,19 +90,19 @@ public class AddEditCollectionViewImpl extends BaseViewImpl implements AddEditCo
 			}
 		});
 
-		name = new TextField($("AddEditCollectionView.name"));
+		name = new BaseTextField($("AddEditCollectionView.name"));
 		name.addStyleName(NAME_FIELD_STYLE);
 		name.setNullRepresentation("");
 		name.setId("name");
 		name.addStyleName("name");
 		name.addStyleName("name-" + collectionVO.getName());
 
-		organizationNumber = new TextField($("AddEditCollectionView.organizationNumber"));
+		organizationNumber = new BaseTextField($("AddEditCollectionView.organizationNumber"));
 		organizationNumber.setNullRepresentation("");
 		organizationNumber.setId("organizationNumber");
 		organizationNumber.setVisible(collectionVO.getModules() != null && collectionVO.getModules().contains(ConstellioRMModule.ID));
 
-		conservationCalendarNumber = new TextField($("AddEditCollectionView.conservationCalendarNumber"));
+		conservationCalendarNumber = new BaseTextField($("AddEditCollectionView.conservationCalendarNumber"));
 		conservationCalendarNumber.setNullRepresentation("");
 		conservationCalendarNumber.setId("conservationCalendarNumber");
 		conservationCalendarNumber.setVisible(collectionVO.getModules() != null && collectionVO.getModules().contains(ConstellioRMModule.ID));

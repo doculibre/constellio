@@ -41,6 +41,30 @@
             </Policies>
             <DefaultRolloverStrategy max="4"/>
         </RollingFile>
+        <RollingFile name="emptyDocuments" fileName="logs/${ctx:tenant.id}/emptyDocuments.log"
+                     filePattern="logs/${ctx:tenant.id}/emptyDocuments.log.%i">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="4"/>
+        </RollingFile>
+        <RollingFile name="webdavFilter" fileName="logs/${ctx:tenant.id}/webdavFilter.log"
+                     filePattern="logs/${ctx:tenant.id}/webdavFilter.log.%i">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="4"/>
+        </RollingFile>
+        <RollingFile name="webdav" fileName="logs/${ctx:tenant.id}/webdav.log"
+                     filePattern="logs/${ctx:tenant.id}/webdav.log.%i">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="4"/>
+        </RollingFile>
         <RollingFile name="cmis" fileName="logs/${ctx:tenant.id}/cmisapi.log"
                      filePattern="logs/${ctx:tenant.id}/cmisapi.log.%i">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
@@ -120,6 +144,16 @@
         <Logger name="com.constellio.app.modules.restapi" level="info" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="restapi"/>
+        </Logger>
+        <Logger name="com.constellio.app.modules.webdav.background.DetectEmptyDocumentBackgroundAction" level="info"
+                additivity="false">
+            <AppenderRef ref="emptyDocuments"/>
+        </Logger>
+        <Logger name="com.constellio.app.modules.webdav.WebdavFilter" level="info" additivity="false">
+            <AppenderRef ref="webdavFilter"/>
+        </Logger>
+        <Logger name="com.constellio.app.modules.webdav" level="info" additivity="false">
+            <AppenderRef ref="webdav"/>
         </Logger>
         <Logger name="com.constellio.app.api.cmis" level="info" additivity="false">
             <AppenderRef ref="Console"/>

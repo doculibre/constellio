@@ -24,7 +24,6 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +41,7 @@ import static com.vaadin.server.FontAwesome.FOLDER_O;
 import static java.util.Arrays.asList;
 
 public class MenuItemServices {
+	public static final String BATCH_ACTIONS_FAKE_SCHEMA_TYPE = "batch_action";
 
 	private List<MenuItemActionsExtension> menuItemActionsExtensions;
 
@@ -77,8 +77,10 @@ public class MenuItemServices {
 		return getActionsForRecord(record, Collections.emptyList(), params);
 	}
 
+
 	public List<MenuItemAction> getActionsForRecord(Record record, List<String> excludedActionTypes,
 													MenuItemActionBehaviorParams params) {
+
 		if (params.getView() == null) {
 			return Collections.emptyList();
 		}
@@ -133,15 +135,6 @@ public class MenuItemServices {
 		return menuItemActions;
 	}
 
-	private String getSchemaType(Record record) {
-		return record.getSchemaCode().substring(0, record.getSchemaCode().indexOf("_"));
-	}
-
-	private long getRecordWithSupportedSchemaTypeCount(List<Record> records, RecordsMenuItemActionType type) {
-		return records.stream()
-				.filter(r -> type.getSchemaTypes().contains(getSchemaType(r)))
-				.count();
-	}
 
 	public MenuItemActionState getMenuItemActionStateForRecords(RecordsMenuItemActionType menuItemActionType,
 																List<Record> records, User user,
@@ -151,21 +144,10 @@ public class MenuItemServices {
 
 	private MenuItemActionState computeActionState(RecordsMenuItemActionType menuItemActionType, List<Record> records,
 												   User user, MenuItemActionBehaviorParams params) {
-		if (records.isEmpty()) {
-			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.noRecordSelected"));
-		}
+		MenuItemActionState menuItemAction = MenuItemUtil.testLimitAndSchemaType(menuItemActionType.getSchemaTypes(), menuItemActionType.getRecordsLimit(), records);
 
-		int limit = getRecordsLimit(menuItemActionType);
-		if (records.size() > limit) {
-			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.recordsLimitReached", String.valueOf(limit)));
-		}
-
-		long recordWithSupportedSchemaTypeCount = getRecordWithSupportedSchemaTypeCount(records, menuItemActionType);
-		if (recordWithSupportedSchemaTypeCount == 0) {
-			return new MenuItemActionState(HIDDEN);
-		} else if (recordWithSupportedSchemaTypeCount != records.size()) {
-			return new MenuItemActionState(DISABLED, $("RMRecordsMenuItemServices.unsupportedSchema",
-					StringUtils.join(menuItemActionType.getSchemaTypes(), ",")));
+		if (menuItemAction != null) {
+			return menuItemAction;
 		}
 
 		int possibleCount = 0;

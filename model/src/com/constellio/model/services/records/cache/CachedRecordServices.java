@@ -12,7 +12,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -20,15 +19,12 @@ import com.constellio.model.services.records.BaseRecordServices;
 import com.constellio.model.services.records.GetRecordOptions;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
-import com.constellio.model.services.records.RecordModificationImpactHandler;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.records.TransactionResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -201,10 +197,6 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	@Deprecated
-	/**
-	 * Version is never used
-	 */
 	public Record realtimeGetById(String dataStore, String id, Long version, boolean callExtensions) {
 		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
 			if (callExtensions) {
@@ -221,7 +213,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public Record realtimeGetRecordSummaryById(String id, boolean callExtensions) {
+	public Record realtimeGetRecordSummaryById(String id, Long version, boolean callExtensions) {
 		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
 			if (callExtensions) {
 				return get(id, RETURNING_SUMMARY);
@@ -231,8 +223,8 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		}
 
 		Record record = getRecordsCache().getRecordSummary(id);
-		if (record == null) {
-			record = recordServices.realtimeGetRecordSummaryById(id, callExtensions);
+		if (record == null || (version != null && record.getVersion() < version)) {
+			record = recordServices.realtimeGetRecordSummaryById(id, version, callExtensions);
 		}
 		return record;
 	}
@@ -265,9 +257,9 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 		if (Toggle.NEW_GET_SERVICES.isEnabled()) {
 			if (callExtensions) {
-				return get(id, IN_COLLECTION(collection));
+				return get(id, IN_COLLECTION(collection), RETURNING_SUMMARY);
 			} else {
-				return get(id, IN_COLLECTION(collection), DO_NOT_CALL_EXTENSIONS);
+				return get(id, IN_COLLECTION(collection), RETURNING_SUMMARY, DO_NOT_CALL_EXTENSIONS);
 			}
 		}
 
@@ -348,9 +340,9 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public void execute(Transaction transaction)
+	public TransactionResponse execute(Transaction transaction)
 			throws RecordServicesException {
-		recordServices.execute(transaction);
+		return recordServices.execute(transaction);
 	}
 
 	@Override
@@ -362,13 +354,6 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public void executeWithoutImpactHandling(Transaction transaction)
 			throws RecordServicesException {
 		recordServices.executeWithoutImpactHandling(transaction);
-	}
-
-	@Override
-	public void executeWithImpactHandler(Transaction transaction,
-										 RecordModificationImpactHandler handler)
-			throws RecordServicesException {
-		recordServices.executeWithImpactHandler(transaction, handler);
 	}
 
 	@Override
@@ -442,16 +427,6 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public Record newRecordWithSchema(
 			MetadataSchema schema) {
 		return recordServices.newRecordWithSchema(schema);
-	}
-
-	@Override
-	public ModificationImpactCalculatorResponse calculateImpactOfModification(
-			Transaction transaction,
-			TaxonomiesManager taxonomiesManager,
-			SearchServices searchServices,
-			MetadataSchemaTypes metadataSchemaTypes, boolean executedAfterTransaction) {
-		return recordServices.calculateImpactOfModification(transaction, taxonomiesManager, searchServices, metadataSchemaTypes,
-				executedAfterTransaction);
 	}
 
 	@Override

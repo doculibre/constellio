@@ -5,6 +5,8 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyBooleanImpl;
@@ -59,6 +61,9 @@ public class PropertiesBuilder {
 
 		} else if (metadata.getType() == MetadataValueType.CONTENT) {
 			addPropertyString(propertyCode, ((Content) value).getId());
+
+		} else if (metadata.isSeparatedStructure()) {
+			addPropertySeparatedStructure(propertyCode, metadata, (ModifiableStructure) value);
 		}
 	}
 
@@ -112,6 +117,17 @@ public class PropertiesBuilder {
 		}
 
 		builtProperties.addProperty(new PropertyStringImpl(id, value));
+	}
+
+	public void addPropertySeparatedStructure(String id, Metadata metadata, ModifiableStructure value) {
+		if (!checkAddProperty(id)) {
+			return;
+		}
+
+		SeparatedStructureFactory factory = (SeparatedStructureFactory) metadata.getStructureFactory();
+		Object mainValue = factory.toFields(value).get(factory.getMainValueFieldName());
+
+		builtProperties.addProperty(new PropertyStringImpl(id, "" + mainValue));
 	}
 
 	public void addPropertyEnum(String id, EnumWithSmallCode value) {

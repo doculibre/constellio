@@ -18,13 +18,18 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.ExternalLink;
+import com.constellio.app.modules.rm.wrappers.ExternalUploadLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.LegalReference;
+import com.constellio.app.modules.rm.wrappers.LegalRequirement;
+import com.constellio.app.modules.rm.wrappers.LegalRequirementReference;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.RetentionRuleDocumentType;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.modules.rm.wrappers.SignatureExternalAccessUrl;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -37,6 +42,7 @@ import com.constellio.app.modules.rm.wrappers.triggers.TriggerType;
 import com.constellio.app.modules.rm.wrappers.triggers.actions.MoveInFolderTriggerAction;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.modules.rm.wrappers.type.RequirementType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
@@ -48,7 +54,6 @@ import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.CapsuleLanguage;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -59,9 +64,11 @@ import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.records.wrappers.Source;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
@@ -124,7 +131,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(EmailToSend.DEFAULT_SCHEMA, EmailToSend.class);
 		wrappers.put(Facet.DEFAULT_SCHEMA, Facet.class);
 		wrappers.put(UserDocument.DEFAULT_SCHEMA, UserDocument.class);
-		wrappers.put(Authorization.DEFAULT_SCHEMA, Authorization.class);
+		wrappers.put(RecordAuthorization.DEFAULT_SCHEMA, RecordAuthorization.class);
 		wrappers.put(Report.DEFAULT_SCHEMA, Report.class);
 		wrappers.put(Printable.DEFAULT_SCHEMA, Printable.class);
 		wrappers.put(UserFolder.DEFAULT_SCHEMA, UserFolder.class);
@@ -137,6 +144,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(CapsuleLanguage.DEFAULT_SCHEMA, CapsuleLanguage.class);
 		//wrappers.put(SavedSearch.DEFAULT_SCHEMA, SavedSearch.class);
 		wrappers.put(ExternalAccessUrl.DEFAULT_SCHEMA, ExternalAccessUrl.class);
+		wrappers.put(Source.DEFAULT_SCHEMA, Source.class);
 
 		System.out.println(header());
 
@@ -186,6 +194,13 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(ExternalLink.DEFAULT_SCHEMA, ExternalLink.class);
 		wrappers.put(ExternalLinkType.DEFAULT_SCHEMA, ExternalLinkType.class);
 		wrappers.put(SignatureExternalAccessUrl.FULL_SCHEMA, SignatureExternalAccessUrl.class);
+		wrappers.put(ExternalUploadLink.FULL_SCHEMA, ExternalUploadLink.class);
+
+		wrappers.put(RequirementType.DEFAULT_SCHEMA, RequirementType.class);
+		wrappers.put(LegalReference.DEFAULT_SCHEMA, LegalReference.class);
+		wrappers.put(LegalRequirementReference.DEFAULT_SCHEMA, LegalRequirementReference.class);
+		wrappers.put(LegalRequirement.DEFAULT_SCHEMA, LegalRequirement.class);
+		wrappers.put(RetentionRuleDocumentType.DEFAULT_SCHEMA, RetentionRuleDocumentType.class);
 
 
 		System.out.println(header());

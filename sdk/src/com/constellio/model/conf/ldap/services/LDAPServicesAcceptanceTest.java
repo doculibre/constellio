@@ -1,6 +1,16 @@
 package com.constellio.model.conf.ldap.services;
 
-import com.constellio.data.utils.dev.Toggle;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
+import javax.naming.ldap.LdapContext;
+
+import org.junit.Test;
+
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
@@ -8,15 +18,6 @@ import com.constellio.model.conf.ldap.user.LDAPUser;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
-import org.junit.Test;
-
-import javax.naming.ldap.LdapContext;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @InternetTest
 public class LDAPServicesAcceptanceTest extends ConstellioTest {
@@ -38,11 +39,12 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 	@InDevelopmentTest
 	public void whenSearchingGroupThenReturnValidGroupAttributes()
 			throws Exception {
+		boolean fetchSubGroupsEnabled = false;
 		LdapContext ldapContext = getValidContext();
 		String ouWithGroup1AndGroup2 = "OU=ouWithGroup1AndGroup2,OU=testSynchronization,DC=test,DC=doculibre,DC=ca";
 		String ouWithGroup3AndGroup4 = "OU=ouWithGroup3AndGroup4,OU=testSynchronization,DC=test,DC=doculibre,DC=ca";
 		Set<LDAPGroup> groups = new LDAPServicesImpl()
-				.getAllGroups(ldapContext, Arrays.asList(new String[]{ouWithGroup1AndGroup2, ouWithGroup3AndGroup4}));
+				.getAllGroups(ldapContext, Arrays.asList(new String[]{ouWithGroup1AndGroup2, ouWithGroup3AndGroup4}), fetchSubGroupsEnabled);
 		assertThat(groups.size()).isEqualTo(4);
 		List<String> groupsNames = new ArrayList<>();
 		for (LDAPGroup group : groups) {
@@ -64,9 +66,10 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 	@InDevelopmentTest
 	public void whenSearchingMoreThan1000GroupsThenReturnAllGroups()
 			throws Exception {
+		boolean fetchSubGroupsEnabled = false;
 		LdapContext ldapContext = getValidContext();
 		String ouWith2997groups = "OU=Departement2,OU=doculibre,DC=test,DC=doculibre,DC=ca";
-		Set<LDAPGroup> groups = new LDAPServicesImpl().getAllGroups(ldapContext, Arrays.asList(new String[]{ouWith2997groups}));
+		Set<LDAPGroup> groups = new LDAPServicesImpl().getAllGroups(ldapContext, Arrays.asList(new String[]{ouWith2997groups}), fetchSubGroupsEnabled);
 		assertThat(groups.size()).isEqualTo(2997);
 	}
 
@@ -74,7 +77,7 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 	@InDevelopmentTest
 	public void whenSearchingMoreThan1000UsersThenReturnAllUsers()
 			throws Exception {
-		Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.enable();
+		boolean fetchSubGroupsEnabled = true;
 		LdapContext ldapContext = getValidContext();
 		String ouWith3001Users = "OU=Departement1,OU=doculibre,DC=test,DC=doculibre,DC=ca";
 		List<String> users = new LDAPServicesImpl()
@@ -86,10 +89,10 @@ public class LDAPServicesAcceptanceTest extends ConstellioTest {
 	@InDevelopmentTest
 	public void whenSearchingGroupsFromTwoContextsThenReturnAllGroupsFromBothContexts()
 			throws Exception {
-		Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.enable();
+		boolean fetchSubGroupsEnabled = true;
 		LdapContext ldapContext = getValidContext();
 		String allTestGroupsOU = "OU=testSynchronization,DC=test,DC=doculibre,DC=ca";
-		Set<LDAPGroup> groups = new LDAPServicesImpl().getAllGroups(ldapContext, Arrays.asList(new String[]{allTestGroupsOU}));
+		Set<LDAPGroup> groups = new LDAPServicesImpl().getAllGroups(ldapContext, Arrays.asList(new String[]{allTestGroupsOU}), fetchSubGroupsEnabled);
 		LDAPGroup subgroupLevel1 = null;
 		for (LDAPGroup group : groups) {
 

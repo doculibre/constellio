@@ -3,11 +3,14 @@ package com.constellio.model.services.appManagement;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.sdk.tests.ConstellioTest;
 import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class WrapperConfigurationServiceAcceptanceTest extends ConstellioTest {
 
@@ -48,6 +51,25 @@ public class WrapperConfigurationServiceAcceptanceTest extends ConstellioTest {
 													+ WrapperConfigurationService.ASSIGNING_VALUE + WrapperConfigurationService.CONDITION_SCRIPT_ARGS_VALUE));
 		TestCase.assertTrue(modifiedConfig.contains(WrapperConfigurationService.CONDITION_SCRIPT_CYCLE
 													+ WrapperConfigurationService.ASSIGNING_VALUE + WrapperConfigurationService.CONDITION_SCRIPT_CYCLE_VALUE));
+	}
+
+	@Test
+	public void whenUpdatingWrapperConfToFixCapriciousSortsThenConfigApplied()
+			throws IOException {
+
+		File configurationFile = new File(newTempFolder(), "wrapper.conf");
+		FileUtils.copyFile(getTestResourceFile("wrapper.conf.withoutSortConfigAndEphemeral"), configurationFile);
+		WrapperConfigurationService service = new WrapperConfigurationService();
+		service.addJavaAdditionnalProperty(configurationFile,
+				"java.util.Arrays.useLegacyMergeSort", "true");
+		assertThat(FileUtils.readFileToString(configurationFile,"UTF-8")).isEqualTo(getTestResourceContent("wrapper.conf.withoutSortConfigAndEphemeral.expected"));
+
+		configurationFile = new File(newTempFolder(), "wrapper.conf");
+		FileUtils.copyFile(getTestResourceFile("wrapper.conf.withoutSortConfig"), configurationFile);
+		service.addJavaAdditionnalProperty(configurationFile,
+				"java.util.Arrays.useLegacyMergeSort", "true");
+		assertThat(FileUtils.readFileToString(configurationFile,"UTF-8")).isEqualTo(getTestResourceContent("wrapper.conf.withoutSortConfig.expected"));
+
 	}
 
 }

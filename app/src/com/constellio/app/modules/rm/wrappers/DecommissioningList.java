@@ -60,6 +60,9 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String FOLDERS_REPORT_CONTENT = "foldersReportContent";
 	public static final String CONTENTS = "contents";
 	public static final String CURRENT_BATCH_PROCESS_ID = "currentBatchProcess";
+	public static final String SUPER_USER = "superUser";
+	public static final String REQUESTER = "requester";
+	public static final String EXTERNAL_LINK_DISPOSAL_MODE = "externalLinkDisposalMode";
 
 	// Disabled fields
 	public static final String VALIDATION_DATE = "validationDate";    // never used, disabled in 5.1.0
@@ -247,6 +250,43 @@ public class DecommissioningList extends RecordWrapper {
 
 	public DecommissioningList setApprovalUser(User approvalUser) {
 		set(APPROVAL_USER, approvalUser);
+		return this;
+	}
+
+	public String getSuperUser() {
+		return get(SUPER_USER);
+	}
+
+	public DecommissioningList setSuperUser(String user) {
+		set(SUPER_USER, user);
+		return this;
+	}
+
+	public DecommissioningList setSuperUser(User user) {
+		set(SUPER_USER, user);
+		return this;
+	}
+
+	public String getRequester() {
+		return get(REQUESTER);
+	}
+
+	public DecommissioningList setRequester(String user) {
+		set(REQUESTER, user);
+		return this;
+	}
+
+	public DecommissioningList setRequester(User user) {
+		set(REQUESTER, user);
+		return this;
+	}
+
+	public String getExternalLinkDisposalMode() {
+		return get(EXTERNAL_LINK_DISPOSAL_MODE);
+	}
+
+	public DecommissioningList setExternalLinkDisposalMode(DisposalMode disposalMode) {
+		set(EXTERNAL_LINK_DISPOSAL_MODE, disposalMode);
 		return this;
 	}
 
@@ -567,7 +607,7 @@ public class DecommissioningList extends RecordWrapper {
 		List<DecomListFolderDetail> details = getFolderDetails();
 		List<FolderMediaType> types = getFoldersMediaTypes();
 		List<FolderDetailWithType> result = new ArrayList<>();
-		for (int i = 0; i < details.size(); i++) {
+		for (int i = 0; i < details.size() && i < types.size(); i++) {
 			result.add(new FolderDetailWithType(details.get(i), types.get(i), getDecommissioningListType()));
 		}
 		return result;

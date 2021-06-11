@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -328,7 +329,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		LocalDate endDate = new LocalDate();
 		SchemasRecordsServices schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
 
-		Authorization detail = schemas.newSolrAuthorizationDetails().setRoles(roles).setStartDate(startDate)
+		RecordAuthorization detail = ((RecordAuthorization) schemas.newAuthorization()).setRoles(roles).setStartDate(startDate)
 				.setEndDate(endDate).setTarget(record.getId());
 		List<String> grantedToPrincipals = new ArrayList<>();
 		for (User user : users) {

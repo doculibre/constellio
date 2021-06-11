@@ -6,6 +6,7 @@ import com.constellio.data.io.concurrent.filesystem.ZookeeperAtomicFileSystem;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.io.SolrClientCache;
 import org.apache.solr.client.solrj.io.stream.CloudSolrStream;
 import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
@@ -32,6 +33,7 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 	private static final String CONFIGS = "/configs";
 	private final String zkHost;
 	private static final int defaultTimeout = 6000;
+	protected SolrClientCache clientCache = new SolrClientCache();
 
 	public CloudSolrServerFactory(String zkHost) {
 		super();
@@ -56,6 +58,7 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 
 	@Override
 	public synchronized void clear() {
+		clientCache.close();
 		for (AtomicFileSystem atomicFileSystem : atomicFileSystems) {
 			atomicFileSystem.close();
 		}
@@ -67,6 +70,11 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 				LOGGER.error("Error while closing solr client", ioe);
 			}
 		}
+	}
+
+	@Override
+	public SolrClientCache getSolrClientCache() {
+		return clientCache;
 	}
 
 	@Override

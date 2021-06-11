@@ -1,19 +1,26 @@
 package com.constellio.app.modules.tasks.ui.pages;
 
-import com.constellio.app.modules.tasks.ui.components.TaskTable;
-import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskDetailsComponentFactory;
+import com.constellio.app.modules.tasks.ui.components.ExpandableTaskTable;
+import com.constellio.app.modules.tasks.ui.components.ExpandableTaskTable.TaskDetailsComponentFactory;
+import com.constellio.app.modules.tasks.ui.components.FilterTableAdapter;
+import com.constellio.app.modules.tasks.ui.components.LegacyTaskTable;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
+import com.constellio.app.ui.framework.components.table.TaskTableFilterDecorator;
+import com.constellio.app.ui.framework.components.table.TaskTableFilterGenerator;
 import com.constellio.app.ui.framework.components.tabs.IdTabSheet;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
@@ -33,6 +40,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -48,7 +56,8 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 
 	private boolean tasksInSubTabSheet;
 
-	private I18NHorizontalLayout actionButtonsLayout;
+	private I18NHorizontalLayout actionButtonsLayout = new I18NHorizontalLayout();
+	;
 
 	private List<String> tasksTabs;
 	// Key: primary tab, value: sub tabs
@@ -96,7 +105,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
 		addStyleName("task-management-view");
 
-		actionButtonsLayout = new I18NHorizontalLayout();
+
 		actionButtonsLayout.setSpacing(true);
 		actionButtonsLayout.addStyleName("task-action-buttons");
 
@@ -152,9 +161,7 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		delegatedTasksAlert.addStyleName(ValoTheme.LABEL_COLORED);
 		delegatedTasksAlert.addStyleName(ValoTheme.LABEL_BOLD);
 
-		mainLayout.addComponent(actionButtonsLayout);
 		mainLayout.addComponent(delegatedTasksAlert);
-		mainLayout.setComponentAlignment(actionButtonsLayout, Alignment.TOP_RIGHT);
 		mainLayout.addComponents(primaryTabSheet);
 
 		previousSelectedTab = presenter.getPreviousSelectedTab();
@@ -240,33 +247,31 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		}
 
 		VerticalLayout layout = getEmptiedSelectedTab(tabSheet);
-		TaskTable taskTable = new TaskTable(provider, presenter);
-		taskTable.setFilterGenerator(filterGenerator);
-		taskTable.setTaskDetailsComponentFactory(taskDetailsComponentFactory);
+		Component taskTable = null;
+		if (Toggle.SHOW_LEGACY_TASK_TABLE.isEnabled()) {
+			LegacyTaskTable unfilteredTable = new LegacyTaskTable(provider, presenter);
+			unfilteredTable.setTaskDetailsComponentFactory(taskDetailsComponentFactory);
 
-		//		FilterTableAdapter tableAdapter = new FilterTableAdapter(taskTable.getTable(), new DemoFilterDecorator(), new DemoFilterGenerator());
-		//
-		//		// cas uniquement pour l'exemple
-		//		tableAdapter.setFilterFieldVisible("menuBar", false);
-		//		tableAdapter.setFilterBarVisible(true);
+			FilterTableAdapter tableAdapter;
+			if (filterGenerator == null) {
+				tableAdapter = new FilterTableAdapter(unfilteredTable, new TaskTableFilterDecorator(), new TaskTableFilterGenerator());
+			} else {
+				tableAdapter = new FilterTableAdapter(unfilteredTable, new TaskTableFilterDecorator(), filterGenerator);
+			}
 
+			// cas uniquement pour l'exemple
+			tableAdapter.setFilterFieldVisible("menuBar", false);
+			tableAdapter.setFilterBarVisible(true);
 
-		//		String starredByUserCode = Task.DEFAULT_SCHEMA + "_" + Task.STARRED_BY_USERS;
-		//		String workflouwExecutionCode = Task.DEFAULT_SCHEMA + "_" + "linkedWorkflowExecution";
-		//		String titleCode = Task.DEFAULT_SCHEMA + "_" + Task.TITLE;
-		//		for(Object visibleColumn : taskTable.getVisibleColumns()){
-		//			if (visibleColumn instanceof MetadataVO) {
-		//				if (starredByUserCode.equals(((MetadataVO) visibleColumn).getCode()) || workflouwExecutionCode.equals(((MetadataVO) visibleColumn).getCode())) {
-		//					tableAdapter.setColumnExpandRatio(visibleColumn, 1);
-		//				}
-		//				if(titleCode.equals(((MetadataVO)visibleColumn).getCode())){
-		//					tableAdapter.setColumnExpandRatio(visibleColumn, 0);
-		//				}
-		//			}
-		//		}
+			taskTable = tableAdapter;
+		} else {
+			ExpandableTaskTable expandableTaskTable = new ExpandableTaskTable(provider, presenter);
+			expandableTaskTable.setFilterGenerator(filterGenerator);
+
+			taskTable = expandableTaskTable;
+		}
 
 		layout.addComponent(taskTable);
-		//layout.addComponent(new BaseFilteringTable());
 	}
 
 	//	@Override
@@ -378,6 +383,26 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 		}
 	}
 
+	@Override
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay) {
+			@Override
+			public Supplier<List<MenuItemAction>> getUseTheseActionsInQuickActionInsteadSupplier() {
+				return () -> {
+					List<MenuItemAction> menuItemActions = new ArrayList<>();
+					for (Iterator<Component> it = actionButtonsLayout.iterator(); it.hasNext(); ) {
+						MenuItemAction menuItemAction = MenuItemActionConverter.toMenuItemAction(it.next());
+						if (menuItemAction != null) {
+							menuItemActions.add(menuItemAction);
+						}
+					}
+
+					return menuItemActions;
+				};
+			}
+		};
+	}
+
 	public List<Button> getActionButtons() {
 		List<Button> actionButtons = new ArrayList<>();
 		for (Iterator<Component> it = actionButtonsLayout.iterator(); it.hasNext(); ) {
@@ -396,14 +421,28 @@ public class TaskManagementViewImpl extends BaseViewImpl implements TaskManageme
 			actionButtonsLayout.addComponent(actionButton);
 		}
 		actionButtonsLayout.setVisible(actionButtonsLayout.getComponentCount() > 0);
+
+		if (isAttached()) {
+			refreshActionMenu();
+		}
 	}
 
-	public List<? extends Button> getExtraActionButtons() {
+	public List<? extends BaseButton> getExtraActionButtons() {
 		return extraActionButtons;
+	}
+
+	public void addExtraButton(BaseButton baseButton) {
+		List<BaseButton> lExtraButtons = new ArrayList<>(extraActionButtons);
+		lExtraButtons.add(baseButton);
+		this.extraActionButtons = lExtraButtons;
 	}
 
 	public void setExtraActionButtons(List<? extends BaseButton> extraActionButtons) {
 		this.extraActionButtons = extraActionButtons;
+
+		if (isAttached()) {
+			refreshActionMenu();
+		}
 	}
 
 	@Override

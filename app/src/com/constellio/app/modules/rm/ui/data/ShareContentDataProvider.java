@@ -50,11 +50,11 @@ public abstract class ShareContentDataProvider extends RecordVODataProvider {
 		init();
 
 		SearchServices searchServices = getSearchServices();
-		List<Authorization> recordList = schemasRecordsServices.wrapSolrAuthorizationDetailss(searchServices.search(getAuthorizationQuery()));
+		List<Authorization> recordList = schemasRecordsServices.wrapAuthorizations(searchServices.search(getAuthorizationQuery()));
 		List<String> id = recordList.stream().map(authorization -> authorization.getTarget()).collect(Collectors.toList());
 		LogicalSearchQuery queryOnRecord = new LogicalSearchQuery(LogicalSearchQueryOperators.from(metadataSchemasManager
 				.getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(getSchema().getTypeCode())).where(Schemas.IDENTIFIER).isIn(id));
-		queryOnRecord.filteredWithUser(user);
+		queryOnRecord.filteredWithUserRead(user);
 		queryOnRecord.setLanguage(sessionContext.getCurrentLocale());
 
 		return queryOnRecord;

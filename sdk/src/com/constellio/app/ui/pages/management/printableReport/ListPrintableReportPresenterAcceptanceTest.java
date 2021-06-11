@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.management.printableReport;
 
+import com.constellio.app.modules.rm.enums.TemplateVersionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.reports.printable.PrintableExtension;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
@@ -30,6 +32,7 @@ import org.mockito.Mock;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 
 import static junit.framework.TestCase.fail;
@@ -100,19 +103,25 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			report1.setTitle(titleForFolder1)
 					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
 					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			PrintableReport report2 = rm.newPrintableReport();
 			report2.setTitle(titleForFolder2)
 					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
 					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			PrintableReport report3 = rm.newPrintableReport();
 			report3.setTitle(titleForFolder3)
 					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
 					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			transaction.addAll(report1, report2, report3);
 			getModelLayerFactory().newRecordServices().execute(transaction);
@@ -180,19 +189,25 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			report1.setTitle(titleForFolder1)
 					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
 					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			PrintableReport report2 = rm.newPrintableReport();
 			report2.setTitle(titleForFolder2)
 					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
 					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			PrintableReport report3 = rm.newPrintableReport();
 			report3.setTitle(titleForFolder3)
 					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
 					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			transaction.addAll(report1, report2, report3);
 			getModelLayerFactory().newRecordServices().execute(transaction);
@@ -266,19 +281,25 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			report1.setTitle(titleForFolder1)
 					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder1)
 					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder1)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			PrintableReport report2 = rm.newPrintableReport();
 			report2.setTitle(titleForFolder2)
 					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder2)
 					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder2)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			PrintableReport report3 = rm.newPrintableReport();
 			report3.setTitle(titleForFolder3)
 					.set(PrintableReport.RECORD_TYPE, reportTypeForFolder3)
 					.set(PrintableReport.RECORD_SCHEMA, schemaForFolder3)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			transaction.addAll(report1, report2, report3);
 			getModelLayerFactory().newRecordServices().execute(transaction);
@@ -331,13 +352,17 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 			reportToRemoveByIndex.setTitle("testToRemoveByIndex")
 					.set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
 					.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			PrintableReport reportToRemoveById = rm.newPrintableReport();
 			reportToRemoveById.setTitle("testToRemoveById")
 					.set(PrintableReport.RECORD_TYPE, PrintableReportListPossibleType.FOLDER.getSchemaType())
 					.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			transaction.addAll(reportToRemoveById, reportToRemoveByIndex);
 			getModelLayerFactory().newRecordServices().execute(transaction);

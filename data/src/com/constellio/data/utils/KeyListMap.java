@@ -35,7 +35,7 @@ public class KeyListMap<K, V> implements Serializable {
 		values.add(0, value);
 	}
 
-	public void remove(V key) {
+	public void remove(K key) {
 		map.remove(key);
 	}
 

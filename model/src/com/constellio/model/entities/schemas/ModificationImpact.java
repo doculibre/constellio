@@ -1,95 +1,33 @@
 package com.constellio.model.entities.schemas;
 
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.List;
-import java.util.Set;
 
-public class ModificationImpact {
+public interface ModificationImpact {
 
-	final MetadataSchemaType impactedSchemaType;
-	final List<Metadata> metadataToReindex;
-	final LogicalSearchCondition logicalSearchCondition;
-	final Set<String> markForReindexingInsteadOfBatchProcess;
-	final int potentialImpactsCount;
-	final String transactionTitle;
+	String getCollection();
 
-	public ModificationImpact(MetadataSchemaType impactedSchemaType, List<Metadata> metadataToReindex,
-							  LogicalSearchCondition logicalSearchCondition, int potentialImpactsCount,
-							  String transactionTitle) {
-		this.impactedSchemaType = impactedSchemaType;
-		this.metadataToReindex = metadataToReindex;
-		this.logicalSearchCondition = logicalSearchCondition;
-		this.markForReindexingInsteadOfBatchProcess = null;
-		this.potentialImpactsCount = potentialImpactsCount;
-		this.transactionTitle = transactionTitle;
+	List<Metadata> getMetadataToReindex();
 
-		if (logicalSearchCondition == null) {
-			throw new RuntimeException("logicalSearchCondition required");
-		}
-	}
+	/**
+	 * This method should only be used when necessary (reporting), since it can cause extra compuation
+	 *
+	 * @return
+	 */
+	List<ModificationImpactDetail> getDetails();
 
-	public ModificationImpact(MetadataSchemaType impactedSchemaType, List<Metadata> metadataToReindex,
-							  LogicalSearchCondition logicalSearchCondition,
-							  Set<String> markForReindexingInsteadOfBatchProcess, int potentialImpactsCount,
-							  String transactionTitle) {
-		this.impactedSchemaType = impactedSchemaType;
-		this.metadataToReindex = metadataToReindex;
-		this.logicalSearchCondition = logicalSearchCondition;
-		this.markForReindexingInsteadOfBatchProcess = markForReindexingInsteadOfBatchProcess;
-		this.potentialImpactsCount = potentialImpactsCount;
-		this.transactionTitle = transactionTitle;
+	boolean isHandledNow();
 
-		if (logicalSearchCondition == null) {
-			throw new RuntimeException("logicalSearchCondition required");
-		}
-	}
+	@AllArgsConstructor
+	class ModificationImpactDetail {
 
+		@Getter
+		MetadataSchemaType getImpactedSchemaType;
 
+		@Getter
+		int getPotentialImpactCount;
 
-	public List<Metadata> getMetadataToReindex() {
-		return metadataToReindex;
-	}
-
-	public LogicalSearchCondition getLogicalSearchCondition() {
-		return logicalSearchCondition;
-	}
-
-	@Override
-	public int hashCode() {
-		return HashCodeBuilder.reflectionHashCode(this);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		return EqualsBuilder.reflectionEquals(this, obj);
-	}
-
-	public MetadataSchemaType getImpactedSchemaType() {
-		return impactedSchemaType;
-	}
-
-	public int getPotentialImpactsCount() {
-		return potentialImpactsCount;
-	}
-
-	public String getTransactionTitle() {
-		return transactionTitle;
-	}
-
-	public Set<String> getMarkForReindexingInsteadOfBatchProcess() {
-		return markForReindexingInsteadOfBatchProcess;
-	}
-
-	@Override
-	public String toString() {
-		return "ModificationImpact{" +
-			   "impactedSchemaType=" + impactedSchemaType +
-			   ", metadataToReindex=" + metadataToReindex +
-			   ", logicalSearchCondition=" + logicalSearchCondition +
-			   ", potentialImpactsCount=" + potentialImpactsCount +
-			   '}';
 	}
 }

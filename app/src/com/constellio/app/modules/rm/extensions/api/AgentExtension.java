@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.extensions.api;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +21,8 @@ public class AgentExtension {
 	private VaultBehaviorsList<AgentClientConfigExtension> agentClientConfigExtensions = new VaultBehaviorsList<>();
 
 	public abstract static class AgentUrlExtension {
+		
+		public static final String FORCE_NULL_VALUE = "NULL_VALUE";
 
 		public abstract String getAgentUrl(GetAgentUrlParams params);
 

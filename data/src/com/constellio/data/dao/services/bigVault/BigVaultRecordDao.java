@@ -730,7 +730,9 @@ public class BigVaultRecordDao implements RecordDao {
 	Object convertBigVaultValueToSolrValue(String fieldName, Object fieldValue) {
 		Object convertedFieldValue = fieldValue;
 		if (fieldValue != null) {
-			if (fieldName.endsWith("_dt")) {
+			if (fieldName.endsWith("_i") && fieldValue instanceof Double) {
+				convertedFieldValue = ((Double) fieldValue).intValue();
+			} else if (fieldName.endsWith("_dt")) {
 				convertedFieldValue = convertLocalDateTimeToSolrDate((LocalDateTime) fieldValue);
 			} else if (fieldName.endsWith("_dts") && fieldValue instanceof List) {
 				List<LocalDateTime> localDateTimes = (List<LocalDateTime>) fieldValue;

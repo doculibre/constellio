@@ -21,6 +21,7 @@ import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
 import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.es.migrations.ESMigrationCombo;
+import com.constellio.app.modules.es.migrations.ESMigrationFrom9_4_ConnectorInstanceSecurity;
 import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
 import com.constellio.app.modules.es.migrations.ESMigrationTo6_1;
 import com.constellio.app.modules.es.migrations.ESMigrationTo6_2;
@@ -124,6 +125,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new ESMigrationTo9_0());
 		scripts.add(new ESMigrationTo9_0_3());
 		scripts.add(new ESMigrationTo9_2_0());
+		scripts.add(new ESMigrationFrom9_4_ConnectorInstanceSecurity());
 
 		return scripts;
 	}

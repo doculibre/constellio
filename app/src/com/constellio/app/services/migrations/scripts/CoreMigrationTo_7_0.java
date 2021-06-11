@@ -6,7 +6,7 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Facet;
-import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -19,11 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static com.constellio.model.entities.records.wrappers.Authorization.END_DATE;
-import static com.constellio.model.entities.records.wrappers.Authorization.ROLES;
-import static com.constellio.model.entities.records.wrappers.Authorization.START_DATE;
-import static com.constellio.model.entities.records.wrappers.Authorization.SYNCED;
-import static com.constellio.model.entities.records.wrappers.Authorization.TARGET;
+import static com.constellio.model.entities.records.wrappers.RecordAuthorization.END_DATE;
+import static com.constellio.model.entities.records.wrappers.RecordAuthorization.ROLES;
+import static com.constellio.model.entities.records.wrappers.RecordAuthorization.START_DATE;
+import static com.constellio.model.entities.records.wrappers.RecordAuthorization.SYNCED;
+import static com.constellio.model.entities.records.wrappers.RecordAuthorization.TARGET;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -86,7 +86,7 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 		}
 
 		private MetadataSchemaTypeBuilder createReportSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(Authorization.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaTypeWithSecurity(RecordAuthorization.SCHEMA_TYPE);
 			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
 
 			defaultSchema.createUndeletable(ROLES).setType(STRING).setMultivalue(true).setDefaultRequirement(true);

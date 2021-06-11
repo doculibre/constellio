@@ -256,7 +256,7 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 				new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators
 						.from(asList(es.connectorSmbDocument.schemaType(), es.connectorSmbFolder.schemaType()))
 						.where(es.connectorSmbFolder.parentConnectorUrl()).isNull())
-						.filteredWithUser(user));
+						.filteredWithUserRead(user));
 		return assertThat(records)
 				.extracting("id");
 	}
@@ -274,7 +274,7 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 					new LogicalSearchQuery().setCondition(LogicalSearchQueryOperators
 							.from(asList(es.connectorSmbDocument.schemaType(), es.connectorSmbFolder.schemaType()))
 							.where(es.connectorSmbFolder.parentConnectorUrl()).isEqualTo(connectorSmbFolder.getConnectorUrl()))
-							.filteredWithUser(user));
+							.filteredWithUserRead(user));
 			return assertThat(records)
 					.extracting("id");
 		}

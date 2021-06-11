@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.BeanItemContainer;
@@ -40,7 +41,16 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 
 	private static final String HALF_HOUR_ROUNDED_SUFFIX = ":30";
 
-	private static final List<String> options = Arrays.asList(new String[]{"ldap.syncConfiguration.schedule.time", "ldap.syncConfiguration.durationBetweenExecution", "ldap.syncConfiguration.deactivateSynchroSchedule"});
+	private static final String OPTION_SCHEDULE_TIME = "ldap.syncConfiguration.schedule.time";
+
+	private static final String OPTION_DURATION = "ldap.syncConfiguration.durationBetweenExecution";
+
+	private static final String OPTION_DEACTIVATE = "ldap.syncConfiguration.deactivateSynchroSchedule";
+
+	private static final List<String> options = Arrays.asList(new String[]{
+			OPTION_SCHEDULE_TIME, OPTION_DURATION, OPTION_DEACTIVATE});
+
+	private final OptionGroup scheduleOptions;
 
 	private BeanItemContainer<TimeBean> timeBeanContainer = new BeanItemContainer<>(TimeBean.class);
 
@@ -58,9 +68,10 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 
 	public ScheduleComponent(final List<String> timeList, final Duration period) {
 		setSizeFull();
+		setSpacing(true);
 		addStyleName(ValoTheme.PANEL_BORDERLESS);
 
-		final OptionGroup scheduleOptions = buildOptionsComponent();
+		scheduleOptions = buildOptionsComponent();
 
 		scheduleTimeLayout = buildTimeListTableComponent(timeList);
 		addComponent(scheduleTimeLayout);
@@ -71,20 +82,18 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 		deactivateSynchroLayout = buildDeactivateSchedule(period);
 		addComponent(deactivateSynchroLayout);
 
-		if (CollectionUtils.isEmpty(timeList)) {
-			scheduleOptions.select(options.get(2));
+		if (CollectionUtils.isNotEmpty(timeList)) {
+			scheduleOptions.select(OPTION_SCHEDULE_TIME);
+			scheduleTimeLayout.setVisible(true);
+			periodLayout.setVisible(false);
+		} else if (period != null) {
+			scheduleOptions.select(OPTION_DURATION);
+			scheduleTimeLayout.setVisible(false);
+			periodLayout.setVisible(true);
+		} else {
+			scheduleOptions.select(OPTION_DEACTIVATE);
 			scheduleTimeLayout.setVisible(false);
 			periodLayout.setVisible(false);
-		} else {
-			scheduleOptions.select(options.get(0));
-		}
-
-		if (period == null) {
-			scheduleOptions.select(options.get(2));
-			scheduleTimeLayout.setVisible(false);
-			periodLayout.setVisible(false);
-		} else {
-			scheduleOptions.select(options.get(1));
 		}
 	}
 
@@ -105,8 +114,7 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 	}
 
 	private Layout buildTimeListTableComponent(final List<String> timeList) {
-		final Layout horizontalLayout = new HorizontalLayout();
-
+		final HorizontalLayout horizontalLayout = new HorizontalLayout();
 		horizontalLayout.setSizeFull();
 
 		final Table table = new BaseTable(getClass().getName());
@@ -183,17 +191,18 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 	}
 
 	private Layout buildPeriodComponent(final Duration period) {
-		final Layout horizontalLayout = new HorizontalLayout();
+		final HorizontalLayout horizontalLayout = new HorizontalLayout();
+		horizontalLayout.setSpacing(true);
 
-		daysComponent = new TextField($("days"));
+		daysComponent = new BaseTextField($("days"));
 		//daysComponent.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator_withMinValue"), 0, 100));
 		horizontalLayout.addComponent(daysComponent);
 
-		hoursComponent = new TextField($("hours"));
+		hoursComponent = new BaseTextField($("hours"));
 		//hoursComponent.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator"), 0, 23));
 		horizontalLayout.addComponent(hoursComponent);
 
-		minComponent = new TextField($("mns"));
+		minComponent = new BaseTextField($("mns"));
 		//minComponent.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator"), 0, 59));
 		horizontalLayout.addComponent(minComponent);
 
@@ -213,6 +222,23 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 		return horizontalLayout;
 	}
 
+	public Duration getPeriod() {
+		Integer days = 0, hours = 0, mns = 0;
+		if (OPTION_DURATION.equals(scheduleOptions.getValue())) {
+			if (StringUtils.isNotBlank(daysComponent.getValue())) {
+				days = Integer.valueOf(daysComponent.getValue());
+			}
+			if (StringUtils.isNotBlank(hoursComponent.getValue())) {
+				hours = Integer.valueOf(hoursComponent.getValue());
+			}
+			if (StringUtils.isNotBlank(minComponent.getValue())) {
+				mns = Integer.valueOf(minComponent.getValue());
+			}
+		}
+		long durationInMilliSeconds = ((((days * 24) + hours) * 60) + mns) * 60 * 1000;
+		return new Duration(durationInMilliSeconds);
+	}
+
 	public void setPeriod(Duration period) {
 		long days = 0, hours = 0, mns = 0;
 
@@ -229,57 +255,35 @@ public class ScheduleComponent extends HorizontalLayout implements Property.Valu
 
 	@Override
 	public void valueChange(Property.ValueChangeEvent event) {
-		if (options.get(0).equals(event.getProperty().getValue())) {
+		if (OPTION_SCHEDULE_TIME.equals(event.getProperty().getValue())) {
 			deactivateSynchroLayout.setVisible(false);
 			scheduleTimeLayout.setVisible(true);
-
 			periodLayout.setVisible(false);
-			setPeriod(null);
-		} else if (options.get(1).equals(event.getProperty().getValue())) {
+		} else if (OPTION_DURATION.equals(event.getProperty().getValue())) {
 			deactivateSynchroLayout.setVisible(false);
 			scheduleTimeLayout.setVisible(false);
-			setTimeList(null);
-
 			periodLayout.setVisible(true);
 		} else {
 			scheduleTimeLayout.setVisible(false);
 			periodLayout.setVisible(false);
-			setTimeList(null);
-			setPeriod(null);
-
 			deactivateSynchroLayout.setVisible(true);
 		}
 	}
 
 	public List<String> getTimeList() {
 		final List<String> timeList = new ArrayList<>(timeBeanContainer.size());
+		if (OPTION_SCHEDULE_TIME.equals(scheduleOptions.getValue())) {
+			for (final TimeBean timeBean : timeBeanContainer.getItemIds()) {
+				if ((timeBean == null) || (timeBean.getTime() == null) || (timeBean.getTime().isEmpty()) || (timeList.contains(timeBean.getTime()))) {
+					continue;
+				}
 
-		for (final TimeBean timeBean : timeBeanContainer.getItemIds()) {
-			if ((timeBean == null) || (timeBean.getTime() == null) || (timeBean.getTime().isEmpty()) || (timeList.contains(timeBean.getTime()))) {
-				continue;
+				timeList.add(timeBean.getTime());
 			}
 
-			timeList.add(timeBean.getTime());
+			Collections.sort(timeList);
 		}
-
-		Collections.sort(timeList);
-
 		return timeList;
-	}
-
-	public Duration getPeriod() {
-		Integer days = 0, hours = 0, mns = 0;
-		if (StringUtils.isNotBlank(daysComponent.getValue())) {
-			days = Integer.valueOf(daysComponent.getValue());
-		}
-		if (StringUtils.isNotBlank(hoursComponent.getValue())) {
-			hours = Integer.valueOf(hoursComponent.getValue());
-		}
-		if (StringUtils.isNotBlank(minComponent.getValue())) {
-			mns = Integer.valueOf(minComponent.getValue());
-		}
-		long durationInMilliSeconds = ((((days * 24) + hours) * 60) + mns) * 60 * 1000;
-		return new Duration(durationInMilliSeconds);
 	}
 
 	protected static class TimeBean {

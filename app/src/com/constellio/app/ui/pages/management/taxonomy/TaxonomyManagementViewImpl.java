@@ -114,7 +114,9 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 			tabComponents.put(classifiedType.getSchemaType().getCode(), new CustomComponent());
 		}
 
-		VerticalLayout taxonomyDisplayLayout = new VerticalLayout(buildRootConceptsTables());
+		VerticalLayout taxonomyDisplayLayout = new VerticalLayout();
+
+		taxonomyDisplayLayout.addComponent(buildRootConceptsTables());
 		taxonomyDisplayLayout.setSizeFull();
 		taxonomyDisplayLayout.setSpacing(true);
 

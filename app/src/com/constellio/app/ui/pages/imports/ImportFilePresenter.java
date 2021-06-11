@@ -105,6 +105,8 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 					params.setAllowingReferencesToNonExistingUsers(view.isAllowingReferencesToNonExistingUsers());
 					//					params = params.setThreads(1);
 
+					params.setMergeExistingRecordWithSameLegacyId(view.isMergeExistingRecordWithSameLegacyId());
+
 					BulkImportResults errors = importServices
 							.bulkImport(importDataProvider, progressionListener, currentUser, view.getSelectedCollections(), params);
 					List<String> formattedErrors = new ArrayList<>();

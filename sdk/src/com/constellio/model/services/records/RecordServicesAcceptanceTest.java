@@ -2,6 +2,7 @@ package com.constellio.model.services.records;
 
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.dao.services.records.RecordDao;
@@ -15,10 +16,17 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAuthorization;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizationsStructureFactory;
+import com.constellio.model.entities.schemas.AbstractMapBasedSeparatedStructureFactory;
+import com.constellio.model.entities.schemas.AbstractMapBasedSeparatedStructureFactory.MapBasedStructure;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.StructureInstanciationParams;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
@@ -57,6 +65,7 @@ import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
+import org.assertj.core.groups.Tuple;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -70,11 +79,14 @@ import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.model.entities.records.Record.GetMetadataOption.ONLY_MAIN_STRUCTURE_VALUE;
+import static com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAccessType.R;
+import static com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAccessType.RD;
+import static com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAccessType.RWD;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
@@ -112,7 +124,6 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -165,7 +176,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 		schemas = new RecordServicesTestSchemaSetup();
 
-		getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(zeCollection, Arrays.asList("fr"));
+		getAppLayerFactory().getCollectionsManager().createCollection(zeCollection, asList("fr"));
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 
 		MetadataSchemaTypes types = manager.getSchemaTypes(zeCollection);
@@ -789,7 +800,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		recordServices.add(record);
 
-		assertThat(record.<List<String>>get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(Arrays.asList("Banana", "Apple"));
+		assertThat(record.<List<String>>get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(asList("Banana", "Apple"));
 	}
 
 	@Test()
@@ -928,7 +939,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withATitle().withABooleanMetadata(whichIsMultivalue));
 		Record record = new TestRecord(zeSchema, "zeUltimateRecord");
 		record.set(zeSchema.title(), "aValue");
-		record.set(zeSchema.booleanMetadata(), Arrays.asList(true, false, true));
+		record.set(zeSchema.booleanMetadata(), asList(true, false, true));
 		recordServices.add(record);
 		long initialVersion = record.getVersion();
 
@@ -936,7 +947,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(record);
 
 		assertThat(record.<String>get(zeSchema.title())).isEqualTo("anOtherValue");
-		assertThat(record.<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(Arrays.asList(true, false, true));
+		assertThat(record.<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false, true));
 		assertThat(record.getVersion()).isNotEqualTo(initialVersion);
 	}
 
@@ -963,15 +974,15 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		Record record = new TestRecord(zeSchema, "zeUltimateRecord");
 		record.set(zeSchema.title(), "aValue");
-		record.set(zeSchema.booleanMetadata(), Arrays.asList(true, false, true));
+		record.set(zeSchema.booleanMetadata(), asList(true, false, true));
 		recordServices.add(record);
 		long initialVersion = record.getVersion();
 
-		record.set(zeSchema.booleanMetadata(), Arrays.asList(false, true, false));
+		record.set(zeSchema.booleanMetadata(), asList(false, true, false));
 		recordServices.update(record);
 
 		assertThat(record.<String>get(zeSchema.title())).isEqualTo("aValue");
-		assertThat(record.<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(Arrays.asList(false, true, false));
+		assertThat(record.<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(asList(false, true, false));
 		assertThat(record.getVersion()).isNotEqualTo(initialVersion);
 	}
 
@@ -982,14 +993,14 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		Record record = new TestRecord(zeSchema, "zeUltimateRecord");
 		record.set(zeSchema.title(), "aValue");
-		record.set(zeSchema.booleanMetadata(), Arrays.asList(true, false, true));
+		record.set(zeSchema.booleanMetadata(), asList(true, false, true));
 		recordServices.add(record);
 		long initialVersion = record.getVersion();
 
 		recordServices.update(record);
 
 		assertThat(record.<String>get(zeSchema.title())).isEqualTo("aValue");
-		assertThat(record.<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(Arrays.asList(true, false, true));
+		assertThat(record.<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(asList(true, false, true));
 		assertThat(record.getVersion()).isEqualTo(initialVersion);
 	}
 
@@ -1069,7 +1080,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(zeSchemaRecord);
 
 		verify(recordServices, times(1)).saveContentsAndRecords(any(Transaction.class),
-				any(RecordModificationImpactHandler.class), anyInt());
+				any(AddToBatchProcessImpactHandler.class), anyInt());
 
 		assertThat(anotherSchemaRecord.<String>get(anotherSchema.metadataWithCopiedEntry())).isEqualTo("a");
 		assertThat(thirdSchemaRecord.<String>get(thirdSchema.metadataWithCopiedEntry())).isEqualTo("a");
@@ -1163,7 +1174,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		assertThat(anotherThirdSchemaRecord.<String>get(thirdSchema.metadataWithCopiedEntry())).isEqualTo("b");
 
 		verify(recordServices, times(1)).saveContentsAndRecords(savedTransaction.capture(),
-				(RecordModificationImpactHandler) isNull(), anyInt());
+				(AddToBatchProcessImpactHandler) any(), anyInt());
 	}
 
 	@Test
@@ -1298,7 +1309,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices = spy(recordServices);
 		doNothing().when(recordServices)
-				.saveContentsAndRecords(any(Transaction.class), any(RecordModificationImpactHandler.class), anyInt());
+				.saveContentsAndRecords(any(Transaction.class), any(AddToBatchProcessImpactHandler.class), anyInt());
 
 		recordServices.execute(
 				newTransactionWithNRecords(1000).setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE));
@@ -1344,8 +1355,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(schemas.withATitle().withAStringMetadata());
 		recordServices = spy(recordServices);
-		doNothing().when(recordServices)
-				.executeWithImpactHandler(any(Transaction.class), any(RecordModificationImpactHandler.class));
+
 
 		recordServices.executeHandlingImpactsAsync(
 				newTransactionWithNRecords(1000).setOptimisticLockingResolution(
@@ -2654,12 +2664,12 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			b.getDefaultSchema("zeSchemaType").create("zeStringMetadata2Id").setType(STRING);
 		}));
 
-		recordServices.execute(tx->{
-			tx.add(new TestRecord(schemas.anotherDefaultSchema(), "ref1" ).set(TITLE, "A"));
+		recordServices.execute(tx -> {
+			tx.add(new TestRecord(schemas.anotherDefaultSchema(), "ref1").set(TITLE, "A"));
 			tx.add(new TestRecord(schemas.anotherDefaultSchema(), "ref2").set(TITLE, "B"));
 		});
 
-		Record record = new TestRecord(schemas.zeDefaultSchema(), "record" )
+		Record record = new TestRecord(schemas.zeDefaultSchema(), "record")
 				.set(zeSchema.metadata("USRzeRefMetadata"), "ref1")
 				.set(zeSchema.metadata("USRzeStringMetadata1PId"), "v1")
 				.set(zeSchema.metadata("USRzeStringMetadata2Id"), "v2")
@@ -2695,6 +2705,305 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
+	public static class TestSeparatedStructureFactory extends AbstractMapBasedSeparatedStructureFactory<TestSeparatedStructure> {
+
+		@Override
+		protected TestSeparatedStructure newEmptyStructure(StructureInstanciationParams params) {
+			return new TestSeparatedStructure();
+		}
+
+		@Override
+		public String getMainValueFieldName() {
+			return "zeMainValue";
+		}
+	}
+
+	public static class TestSeparatedStructure extends MapBasedStructure {
+
+		public String getExtraValue() {
+			return get("zeExtraValue");
+		}
+
+		public Integer getValueLength() {
+			return get("valueLength");
+		}
+
+		public List<Integer> getMagicNumbers() {
+			return getList("magicNumbers");
+		}
+
+		public String getMainValue() {
+			return get("zeMainValue");
+		}
+
+		public TestSeparatedStructure setValueLength(Integer valueLength) {
+			set("valueLength", valueLength);
+			return this;
+		}
+
+
+		public TestSeparatedStructure setMagicNumbers(List<Integer> numbers) {
+			set("magicNumbers", numbers);
+			return this;
+		}
+
+
+		public TestSeparatedStructure setExtraValue(String value) {
+			set("zeExtraValue", value);
+			return this;
+		}
+
+		public TestSeparatedStructure setMainValue(String value) {
+			set("zeMainValue", value);
+			return this;
+		}
+	}
+
+	@Test
+	public void givenNotCachedSeparatedStructureMetadatasWhenSetValuesThenRetrievableWithGet() throws Exception {
+		defineSchemasManager().using(schemas.with((MetadataSchemaTypesBuilder b) -> {
+			b.getSchemaType("zeSchemaType").setRecordCacheType(RecordCacheType.NOT_CACHED);
+			b.getDefaultSchema("zeSchemaType").create("structureMetadata")
+					.defineStructureFactory(TestSeparatedStructureFactory.class);
+		}));
+		Metadata metadata = zeSchema.metadata("structureMetadata");
+		assertThat(metadata.getDataStoreCode()).isEqualTo("structureMetadata_s");
+		assertThat(metadata.getDataStoreType()).isEqualTo("s");
+
+		//Creating a record with a structure
+		Record record = recordServices.newRecordWithSchema(schemas.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Dakota").setMainValue("Indien")
+						.setMagicNumbers(asList(1, 2, 3)).setValueLength(6));
+		recordServices.add(record);
+		record = recordServices.get(record.getId());
+		TestSeparatedStructure structure = recordServices.get(record.getId()).get(metadata);
+		assertThat(structure.getExtraValue()).isEqualTo("Dakota");
+		assertThat(structure.getMainValue()).isEqualTo("Indien");
+		assertThat(structure.getMagicNumbers()).containsExactly(1, 2, 3);
+		assertThat(structure.getValueLength()).isEqualTo(6);
+		assertThat(record.<String>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).isEqualTo("Indien");
+
+		//Setting a new structure object
+		record = record(record.getId()).set(metadata, new TestSeparatedStructure().setExtraValue("Ric").setMainValue("Flair")
+				.setMagicNumbers(asList(4, 5)).setValueLength(5));
+		recordServices.update(record);
+		structure = recordServices.get(record.getId()).get(metadata);
+		assertThat(structure.getExtraValue()).isEqualTo("Ric");
+		assertThat(structure.getMainValue()).isEqualTo("Flair");
+		assertThat(structure.getMagicNumbers()).containsExactly(4, 5);
+		assertThat(structure.getValueLength()).isEqualTo(5);
+		assertThat(recordServices.get(record.getId()).<String>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).isEqualTo("Flair");
+
+		//Setting new values in the same structure object
+		record = record(record.getId());
+		record.<TestSeparatedStructure>get(metadata).setExtraValue("The").setMainValue("Embalmer").setValueLength(null);
+		recordServices.update(record);
+		structure = recordServices.get(record.getId()).get(metadata);
+		assertThat(structure.getExtraValue()).isEqualTo("The");
+		assertThat(structure.getMainValue()).isEqualTo("Embalmer");
+		assertThat(structure.getMagicNumbers()).containsExactly(4, 5);
+		assertThat(structure.getValueLength()).isNull();
+		assertThat(record.<String>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).isEqualTo("Embalmer");
+
+		//Setting new main value without saving
+		record = record(record.getId());
+		record.<TestSeparatedStructure>get(metadata).setMainValue("Undertaker").setMagicNumbers(asList(100, 101, 102)).setValueLength(10);
+		structure = record.get(metadata);
+		assertThat(structure.getExtraValue()).isEqualTo("The");
+		assertThat(structure.getMainValue()).isEqualTo("Undertaker");
+		assertThat(structure.getMagicNumbers()).containsExactly(100, 101, 102);
+		assertThat(structure.getValueLength()).isEqualTo(10);
+		assertThat(record.<String>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).isEqualTo("Undertaker");
+
+		//Setting extra value without saving
+		record = record(record.getId());
+		record.<TestSeparatedStructure>get(metadata).setExtraValue("Ze").setMagicNumbers(asList(1337)).setValueLength(null);
+		structure = record.get(metadata);
+		assertThat(structure.getExtraValue()).isEqualTo("Ze");
+		assertThat(structure.getMainValue()).isEqualTo("Embalmer");
+		assertThat(structure.getMagicNumbers()).containsExactly(1337);
+		assertThat(structure.getValueLength()).isNull();
+		assertThat(record.<String>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).isEqualTo("Embalmer");
+
+	}
+
+	@Test
+	public void givenFullyCachedSeparatedStructureMetadatasWhenSetValuesThenRetrievableWithGet() throws Exception {
+		defineSchemasManager().using(schemas.with((MetadataSchemaTypesBuilder b) -> {
+			b.getSchemaType("zeSchemaType").setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			b.getDefaultSchema("zeSchemaType").create("structureMetadata")
+					.defineStructureFactory(TestSeparatedStructureFactory.class);
+		}));
+		Metadata metadata = zeSchema.metadata("structureMetadata");
+		assertThat(metadata.getDataStoreCode()).isEqualTo("structureMetadata_s");
+		assertThat(metadata.getDataStoreType()).isEqualTo("s");
+
+		//Creating a record with a structure
+		Record record = recordServices.newRecordWithSchema(schemas.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Dakota").setMainValue("Indien")
+						.setMagicNumbers(asList(42, 41, 40)).setValueLength(6));
+		recordServices.add(record);
+		record = recordServices.get(record.getId());
+		TestSeparatedStructure structure = recordServices.get(record.getId()).get(metadata);
+		assertThat(structure.getExtraValue()).isEqualTo("Dakota");
+		assertThat(structure.getMainValue()).isEqualTo("Indien");
+		assertThat(structure.getMagicNumbers()).containsExactly(42, 41, 40);
+		assertThat(structure.getValueLength()).isEqualTo(6);
+		assertThat(record.<String>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).isEqualTo("Indien");
+
+		//Setting a new structure object
+		record = record(record.getId()).set(metadata, new TestSeparatedStructure().setExtraValue("Ric").setMainValue("Flair")
+				.setMagicNumbers(asList(6, 1, 9)).setValueLength(5));
+		recordServices.update(record);
+		structure = recordServices.get(record.getId()).get(metadata);
+		assertThat(structure.getExtraValue()).isEqualTo("Ric");
+		assertThat(structure.getMainValue()).isEqualTo("Flair");
+		assertThat(structure.getMagicNumbers()).containsExactly(6, 1, 9);
+		assertThat(structure.getValueLength()).isEqualTo(5);
+		assertThat(recordServices.get(record.getId()).<String>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).isEqualTo("Flair");
+
+		//Setting new values in the same structure object
+		record = record(record.getId());
+		record.<TestSeparatedStructure>get(metadata).setExtraValue("The").setMainValue("Embalmer").setMagicNumbers(null);
+		recordServices.update(record);
+		structure = recordServices.get(record.getId()).get(metadata);
+		assertThat(structure.getExtraValue()).isEqualTo("The");
+		assertThat(structure.getMainValue()).isEqualTo("Embalmer");
+		assertThat(structure.getMagicNumbers()).isEmpty();
+		assertThat(structure.getValueLength()).isEqualTo(5);
+		assertThat(record.<String>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).isEqualTo("Embalmer");
+
+		//Setting new main value without saving
+		record = record(record.getId());
+		record.<TestSeparatedStructure>get(metadata).setMainValue("Undertaker").setMagicNumbers(asList(666)).setValueLength(10);
+		structure = record.get(metadata);
+		assertThat(structure.getExtraValue()).isEqualTo("The");
+		assertThat(structure.getMainValue()).isEqualTo("Undertaker");
+		assertThat(structure.getMagicNumbers()).containsExactly(666);
+		assertThat(structure.getValueLength()).isEqualTo(10);
+		assertThat(record.<String>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).isEqualTo("Undertaker");
+
+		//Setting extra value without saving
+		record = record(record.getId());
+		record.<TestSeparatedStructure>get(metadata).setExtraValue("Ze").setMagicNumbers(asList(999)).setValueLength(null);
+		structure = record.get(metadata);
+		assertThat(structure.getExtraValue()).isEqualTo("Ze");
+		assertThat(structure.getMainValue()).isEqualTo("Embalmer");
+		assertThat(structure.getMagicNumbers()).containsExactly(999);
+		assertThat(structure.getValueLength()).isNull();
+		assertThat(record.<String>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).isEqualTo("Embalmer");
+	}
+
+	@Test
+	public void givenNotCachedNestedRecordAuthorizationsMetadatasWhenSetValuesThenRetrievableWithGet()
+			throws Exception {
+		defineSchemasManager().using(schemas.with((MetadataSchemaTypesBuilder b) -> {
+			b.getSchemaType("zeSchemaType").setRecordCacheType(RecordCacheType.NOT_CACHED);
+			b.getDefaultSchema("zeSchemaType").create("structureMetadata")
+					.defineStructureFactory(NestedRecordAuthorizationsStructureFactory.class);
+		}));
+		Metadata metadata = zeSchema.metadata("structureMetadata");
+		assertThat(metadata.getDataStoreCode()).isEqualTo("structureMetadata_is");
+		assertThat(metadata.getDataStoreType()).isEqualTo("is");
+
+		//Creating a record with a structure
+		NestedRecordAuthorization firstStructure = NestedRecordAuthorization.builder()
+				.principals(asList(RecordId.toId(44)))
+				.accessType(R).source(RecordId.toId(1)).negative(false).cascading(true).build();
+		Record record = recordServices.newRecordWithSchema(schemas.zeDefaultSchema())
+				.set(metadata, new NestedRecordAuthorizations().addAll(asList(firstStructure)));
+		recordServices.add(record);
+		record = recordServices.get(record.getId());
+		NestedRecordAuthorizations structure = recordServices.get(record.getId()).get(metadata);
+		assertThat(structure.getAuthorizations())
+				.extracting("principalsIds", "accessType", "source", "negative", "cascading")
+				.containsExactly(new Tuple(asList(RecordId.toId(44)), R, RecordId.toId(1), false, true));
+		assertThat(record.<List<Integer>>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).containsExactly(44);
+
+		//Setting a new structure object
+		NestedRecordAuthorization secondStructure = NestedRecordAuthorization.builder()
+				.principals(RecordId.toIds(asList(21, 63)))
+				.accessType(RWD).negative(false).build();
+		record = record(record.getId()).set(metadata, new NestedRecordAuthorizations().addAll(asList(firstStructure, secondStructure)));
+		recordServices.update(record);
+		structure = recordServices.get(record.getId()).get(metadata);
+		assertThat(structure.getAuthorizations())
+				.extracting("principalsIds", "accessType", "source", "negative", "cascading")
+				.containsExactly(new Tuple(asList(RecordId.toId(44)), R, RecordId.toId(1), false, true),
+						new Tuple(RecordId.toIds(asList(21, 63)), RWD, null, false, false));
+		assertThat(recordServices.get(record.getId()).<List<Integer>>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).containsExactly(44, 21, 63);
+
+		//Setting new main value without saving
+		NestedRecordAuthorization thirdStructure = NestedRecordAuthorization.builder()
+				.principals(asList(RecordId.toId(9000)))
+				.accessType(RD).negative(false).build();
+		record = record(record.getId());
+		record.<NestedRecordAuthorizations>get(metadata).addAll(asList(thirdStructure));
+		structure = record.get(metadata);
+		assertThat(structure.getAuthorizations())
+				.extracting("principalsIds", "accessType", "source", "negative", "cascading")
+				.containsExactly(
+						new Tuple(asList(RecordId.toId(44)), R, RecordId.toId(1), false, true),
+						new Tuple(RecordId.toIds(asList(21, 63)), RWD, null, false, false),
+						new Tuple(RecordId.toIds(asList(9000)), RD, null, false, false));
+		assertThat(recordServices.get(record.getId()).<List<Integer>>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).containsExactly(44, 21, 63, 9000);
+	}
+
+	@Test
+	public void givenFullyCachedNestedRecordAuthorizationsMetadatasWhenSetValuesThenRetrievableWithGet()
+			throws Exception {
+		defineSchemasManager().using(schemas.with((MetadataSchemaTypesBuilder b) -> {
+			b.getSchemaType("zeSchemaType").setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			b.getDefaultSchema("zeSchemaType").create("structureMetadata")
+					.defineStructureFactory(NestedRecordAuthorizationsStructureFactory.class);
+		}));
+		Metadata metadata = zeSchema.metadata("structureMetadata");
+		assertThat(metadata.getDataStoreCode()).isEqualTo("structureMetadata_is");
+		assertThat(metadata.getDataStoreType()).isEqualTo("is");
+
+		//Creating a record with a structure
+		NestedRecordAuthorization firstStructure = NestedRecordAuthorization.builder()
+				.principals(asList(RecordId.toId(44)))
+				.accessType(R).source(RecordId.toId(1)).negative(false).cascading(true).build();
+		Record record = recordServices.newRecordWithSchema(schemas.zeDefaultSchema())
+				.set(metadata, new NestedRecordAuthorizations().addAll(asList(firstStructure)));
+		recordServices.add(record);
+		record = recordServices.get(record.getId());
+		NestedRecordAuthorizations structure = recordServices.get(record.getId()).get(metadata);
+		assertThat(structure.getAuthorizations())
+				.extracting("principalsIds", "accessType", "source", "negative", "cascading")
+				.containsExactly(new Tuple(asList(RecordId.toId(44)), R, RecordId.toId(1), false, true));
+		assertThat(record.<List<Integer>>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).containsExactly(44);
+
+		//Setting a new structure object
+		NestedRecordAuthorization secondStructure = NestedRecordAuthorization.builder()
+				.principals(RecordId.toIds(asList(21, 63)))
+				.accessType(RWD).negative(false).build();
+		record = record(record.getId()).set(metadata, new NestedRecordAuthorizations().addAll(asList(firstStructure, secondStructure)));
+		recordServices.update(record);
+		structure = recordServices.get(record.getId()).get(metadata);
+		assertThat(structure.getAuthorizations())
+				.extracting("principalsIds", "accessType", "source", "negative", "cascading")
+				.containsExactly(new Tuple(asList(RecordId.toId(44)), R, RecordId.toId(1), false, true),
+						new Tuple(RecordId.toIds(asList(21, 63)), RWD, null, false, false));
+		assertThat(recordServices.get(record.getId()).<List<Integer>>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).containsExactly(44, 21, 63);
+
+		//Setting new main value without saving
+		NestedRecordAuthorization thirdStructure = NestedRecordAuthorization.builder()
+				.principals(asList(RecordId.toId(9000)))
+				.accessType(RD).negative(false).build();
+		record = record(record.getId());
+		record.<NestedRecordAuthorizations>get(metadata).addAll(asList(thirdStructure));
+		structure = record.get(metadata);
+		assertThat(structure.getAuthorizations())
+				.extracting("principalsIds", "accessType", "source", "negative", "cascading")
+				.containsExactly(
+						new Tuple(asList(RecordId.toId(44)), R, RecordId.toId(1), false, true),
+						new Tuple(RecordId.toIds(asList(21, 63)), RWD, null, false, false),
+						new Tuple(RecordId.toIds(asList(9000)), RD, null, false, false));
+		assertThat(recordServices.get(record.getId()).<List<Integer>>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).containsExactly(44, 21, 63, 9000);
+	}
+
 	private MetadataSchemaTypesConfigurator aMetadataInAnotherSchemaContainingAReferenceToZeSchemaAndACalculatorRetreivingIt() {
 		return new MetadataSchemaTypesConfigurator() {
 
@@ -2719,7 +3028,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		@Override
 		public List<String> calculate(CalculatorParameters parameters) {
 			String aStringMetadata = parameters.get(aStringMetadataParam);
-			return aStringMetadata == null ? null : Arrays.asList(aStringMetadata);
+			return aStringMetadata == null ? null : asList(aStringMetadata);
 		}
 
 		@Override
@@ -2765,7 +3074,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		Record recordReference = new TestRecord(anotherSchema);
 		if (multivalue) {
-			recordReference.set(anotherSchema.stringMetadata(), Arrays.asList("Banana", "Apple"));
+			recordReference.set(anotherSchema.stringMetadata(), asList("Banana", "Apple"));
 		} else {
 			recordReference.set(anotherSchema.stringMetadata(), "Banana");
 		}

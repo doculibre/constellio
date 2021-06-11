@@ -231,7 +231,7 @@ public class RecordPopulateServices {
 
 		private Object populate(Record record, List<Metadata> contentMetadatas) {
 
-			if (metadata.isSameLocalCode(Schemas.TITLE)) {
+			if (metadata.isSameLocalCode(Schemas.TITLE) && modelLayerExtensions.forCollection(record.getCollection()).isRecordTitleShouldBeCalculatedFromContent(record)) {
 				return populateTitleUsingPropertiesAndStyles(record, contentMetadatas);
 			} else {
 				Object value = null;

@@ -8,6 +8,8 @@ import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
+
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,7 @@ public class HttpServletRequestAuthenticator {
 		String userServiceKey = request.getHeader(USER_SERVICE_KEY);
 		if (userServiceKey == null) {
 			userServiceKey = request.getParameter(USER_SERVICE_KEY);
+			userServiceKey = StringUtils.replace(userServiceKey, " ", "+");
 		}
 		if (userServiceKey != null) {
 			userServiceKey = userServiceKey.trim();
@@ -51,6 +54,7 @@ public class HttpServletRequestAuthenticator {
 		String userToken = request.getHeader(USER_TOKEN);
 		if (userToken == null) {
 			userToken = request.getParameter(USER_TOKEN);
+			userToken = StringUtils.replace(userToken, " ", "+");
 		}
 		if (userToken != null) {
 			userToken = userToken.trim();
@@ -130,7 +134,7 @@ public class HttpServletRequestAuthenticator {
 
 	public SystemWideUserInfos authenticateUsingUsername(HttpServletRequest request) {
 		String username = request.getHeader(USERNAME);
-		String userToken = request.getHeader(USER_TOKEN);
+		String userToken = getUserToken(request);
 
 		UserServices userServices = modelLayerFactory.newUserServices();
 		try {

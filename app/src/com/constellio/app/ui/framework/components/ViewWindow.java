@@ -3,8 +3,11 @@ package com.constellio.app.ui.framework.components;
 import com.constellio.app.modules.rm.ui.pages.extrabehavior.ProvideSecurityWithNoUrlParamSupport;
 import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.util.ResponsiveUtils;
+import com.vaadin.event.dd.DropHandler;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 
@@ -46,7 +49,13 @@ public abstract class ViewWindow extends BaseWindow {
 		if (content != null) {
 			content.addStyleName(WINDOW_CONTENT_STYLE_NAME);
 			
-			BaseViewImpl view = (BaseViewImpl) content;
+			BaseViewImpl view;
+			if (content instanceof BaseViewImpl) {
+				view = (BaseViewImpl) content;
+			} else {
+				DragAndDropWrapper dragAndDropWrapper = (DragAndDropWrapper) content;
+				view = (BaseViewImpl) dragAndDropWrapper.getDropHandler();
+			}
 			this.view = view;
 			
 			view.enter(null);
@@ -69,7 +78,22 @@ public abstract class ViewWindow extends BaseWindow {
 
 			viewWindowPresenter.hasPageAccess(baseView);
 		}
-		setContent(baseView);
+		
+		if (baseView instanceof DropHandler) {
+			DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(baseView) {
+				@Override
+				public void setDropHandler(DropHandler dropHandler) {
+					if (ResponsiveUtils.isFileDropSupported()) {
+						super.setDropHandler(dropHandler);
+					}
+				}
+			};
+			dragAndDropWrapper.setSizeFull();
+			dragAndDropWrapper.setDropHandler((DropHandler) baseView);		
+			setContent(dragAndDropWrapper);
+		} else {
+			setContent(baseView);
+		}
 	}
 
 	public BaseViewImpl getView() {

@@ -10,8 +10,8 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.util.MessageUtils;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -49,7 +49,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -77,18 +81,18 @@ public class DecommissioningAsyncTask implements AsyncTask {
 	private User currentUser;
 
 	private String collection;
-	private String username;
+	private String currentUsersUsername;
 	private String decommissioningListId;
 
-	public DecommissioningAsyncTask(String collection, String username, String decommissioningListId) {
+	public DecommissioningAsyncTask(String collection, String currentUsersUsername, String decommissioningListId) {
 		this.collection = collection;
-		this.username = username;
+		this.currentUsersUsername = currentUsersUsername;
 		this.decommissioningListId = decommissioningListId;
 	}
 
 	@Override
 	public Object[] getInstanceParameters() {
-		return new Object[]{collection, username, decommissioningListId};
+		return new Object[]{collection, currentUsersUsername, decommissioningListId};
 	}
 
 	@Override
@@ -101,7 +105,7 @@ public class DecommissioningAsyncTask implements AsyncTask {
 		searchServices = modelLayerFactory.newSearchServices();
 		userServices = modelLayerFactory.newUserServices();
 		recordServices = modelLayerFactory.newRecordServices();
-		externalLinkServices = new ExternalLinkServices(collection, appLayerFactory);
+		externalLinkServices = createExternalLinkServices();
 
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
@@ -109,10 +113,11 @@ public class DecommissioningAsyncTask implements AsyncTask {
 
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		schemaTypes = schemasManager.getSchemaTypes(collection);
-		currentUser = userServices.getUserInCollection(username, collection);
+		currentUser = userServices.getUserInCollection(currentUsersUsername, collection);
+		String requester = rm.getDecommissioningList(decommissioningListId).getRequester();
 
 		try {
-			externalLinkServices.beforeExternalLinkImport(username);
+			externalLinkServices.setupExternalLinkImport(currentUsersUsername, requester);
 			process(params, 1);
 			sendEndMail(null, 1);
 		} catch (Exception e) {
@@ -159,11 +164,22 @@ public class DecommissioningAsyncTask implements AsyncTask {
 			throws Exception {
 		for (String folderId : decommissioningList.getFolders()) {
 			Folder folder = rm.getFolder(folderId);
-			List<String> externalLinks = folder.getExternalLinks();
-			for (String externalLinkId : externalLinks) {
-				externalLinkServices.importExternalLink(externalLinkId, folderId);
+
+			Map<String, List<String>> externalLinksInSubFolders = new HashMap<>();
+			externalLinksInSubFolders.put(folderId, folder.getExternalLinks());
+			rm.visitFoldersInHierarchy(folder, sf -> externalLinksInSubFolders.put(sf.getId(), sf.getExternalLinks()));
+
+			List<String> willBeImportedExternalLinks = externalLinksInSubFolders.values().stream()
+					.flatMap(links -> links.stream())
+					.collect(Collectors.toList());
+			externalLinkServices.beforeExternalLinkImport(willBeImportedExternalLinks);
+
+			for (Entry<String, List<String>> externalLinksInSubFolder : externalLinksInSubFolders.entrySet()) {
+				for (String externalLinkId : externalLinksInSubFolder.getValue()) {
+					externalLinkServices.importExternalLink(externalLinkId, externalLinksInSubFolder.getKey());
+				}
+				params.incrementProgression(1);
 			}
-			params.incrementProgression(1);
 		}
 	}
 
@@ -306,5 +322,9 @@ public class DecommissioningAsyncTask implements AsyncTask {
 			}
 		}
 		return report;
+	}
+
+	public ExternalLinkServices createExternalLinkServices() {
+		return new ExternalLinkServices(collection, appLayerFactory);
 	}
 }

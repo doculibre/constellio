@@ -48,17 +48,19 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
 	private final String pdfFileName;
 	private final List<String> documentIds;
 	private final boolean withMetadata;
+	private final boolean asPdfA;
 
 	private PdfStatusMessageProvider dataProvider;
 	private Timer timer;
 
 	public PdfStatusViewPresenter(final PdfStatusView view, String pdfFileName, List<String> documentIds,
-								  boolean withMetadata) {
+								  boolean withMetadata, boolean asPdfA) {
 		super(view);
 
 		this.pdfFileName = pdfFileName;
 		this.documentIds = documentIds;
 		this.withMetadata = withMetadata;
+		this.asPdfA = asPdfA;
 
 		this.dataProvider = new PdfStatusMessageProvider();
 
@@ -82,7 +84,7 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
 		consolidatedPdfId = username + String.valueOf(System.currentTimeMillis());
 
 		PdfGeneratorAsyncTask asyncTask = new PdfGeneratorAsyncTask(documentIds, consolidatedPdfId,
-				pdfFileName, pdfFileName, username, withMetadata, view.getSessionContext().getCurrentLocale().getLanguage());
+				pdfFileName, pdfFileName, username, withMetadata, asPdfA, view.getSessionContext().getCurrentLocale().getLanguage());
 
 		AsyncTaskCreationRequest request = new AsyncTaskCreationRequest(asyncTask, view.getCollection(), PDF_GENERATION);
 		request.setUsername(username);

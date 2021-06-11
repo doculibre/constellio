@@ -11,8 +11,10 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAuthorization;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -117,9 +119,12 @@ public class AuthorizationToVOBuilder extends RecordToVOBuilder implements Seria
 		String recordCaption = receivedFromValue == null ? null : getCaptionForRecord(receivedFromValue,
 				sessionContext.getCurrentLocale(), true);
 		String authorizationType = authorization.isNegative() ? $(DISABLE) : $(ENABLE);
+		String source = authorization.getSource() == null ? null : authorization.getSource().stringValue();
+		boolean nested = authorization instanceof NestedRecordAuthorization;
+
 		AuthorizationVO authorizationVO = new AuthorizationVO(users, groups, records, accessRoles, userRoles, userRolesTitles,
-				authorization.getId(), authorization.getStartDate(),
-				authorization.getEndDate(), authorization.getSharedBy(), authorization.isSynced(), metadataLabel, recordCaption, authorizationType);
+				authorization.getId(), authorization.getStartDate(), authorization.getEndDate(), authorization.getSharedBy(),
+				authorization.isSynced(), metadataLabel, recordCaption, authorizationType, source, nested);
 
 		return authorizationVO;
 	}
@@ -151,7 +156,7 @@ public class AuthorizationToVOBuilder extends RecordToVOBuilder implements Seria
 			List<Group> groups = modelLayerFactory.newUserServices().getAllGroupsInCollections(collection);
 
 			Object recordVOValue = getValue(record, metadata);
-			if ((Authorization.DEFAULT_SCHEMA + "_" + Authorization.PRINCIPALS).equals(metadataCode)) {
+			if ((RecordAuthorization.DEFAULT_SCHEMA + "_" + RecordAuthorization.PRINCIPALS).equals(metadataCode)) {
 				List<Object> listRecordVOValue = new ArrayList<Object>();
 				List<Object> listRecordValue = (List<Object>) recordVOValue;
 				recordVOValue = listRecordVOValue;
@@ -171,7 +176,7 @@ public class AuthorizationToVOBuilder extends RecordToVOBuilder implements Seria
 						}
 					}
 				}
-			} else if ((Authorization.DEFAULT_SCHEMA + "_" + Authorization.SHARED_BY).equals(metadataCode)) {
+			} else if ((RecordAuthorization.DEFAULT_SCHEMA + "_" + RecordAuthorization.SHARED_BY).equals(metadataCode)) {
 				if (recordVOValue != null) {
 					String userId = (String) recordVOValue;
 					Optional<User> user = users.stream().filter(x -> x.getId().equals((String) userId))

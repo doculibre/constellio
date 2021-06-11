@@ -1,0 +1,156 @@
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="email"
+
+samuel.blais@constellio.com
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="subject"
+
+Test de Michael
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="description"
+
+This is a test, don't panic!
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="status"
+
+2
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="type"
+
+Panne
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="priority"
+
+4
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="custom_fields[version_de_constellio]"
+
+no version file
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="custom_fields[type_denvironnement]"
+
+Environnement de production
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="custom_fields[tape_de_reproduction]"
+
+1- Run test
+2- Enjoy (or hate)!
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="custom_fields[suggestion_de_comportement_souhait]"
+
+Just work :)
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="custom_fields[cf_informations_du_systme]"
+
+Aucun log ou savestate d'associé.
+Url de Constellio: http://localhost:7070/constellio/
+Version de Constellio: no version file
+Version de Solr: Non disponible
+Nom du client: test
+Date d'expiration de la licence: 2100-01-01
+Flag de réindexation: false
+Dernière réindexation échouée: false
+Mémoire totale du système: 28701132 KB
+Mémoire réservée à Constellio: Non disponible
+Mémoire réservée à Solr: Non disponible
+Mémoire réservée : Non disponible
+Espace utilisée par Opt: Non disponible
+Espace utilisée par Solr: Non disponible
+Version du Kernel: Non disponible
+Version Java du wrapper: Non disponible
+Version Java de Linux: Non disponible
+Nombre total d'enregistrements: 986
+
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="attachments[]"; filename="empty.txt"
+Content-Type: text/plain; charset=UTF-8
+
+not empty
+
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM
+Content-Disposition: form-data; name="attachments[]"; filename="collectionInfos.txt"
+Content-Type: text/plain; charset=UTF-8
+
+
+Collection: _system_
+    Nombre d'enregistrements pour cette collection: 13
+        authorizationDetailsNombre d'enregistrements : 0
+        capsuleNombre d'enregistrements : 0
+        collectionNombre d'enregistrements : 1
+        conversationNombre d'enregistrements : 0
+        ddvSourceNombre d'enregistrements : 0
+        emailToSendNombre d'enregistrements : 0
+        eventNombre d'enregistrements : 0
+        externalAccessUrlNombre d'enregistrements : 0
+        facetNombre d'enregistrements : 2
+        globalGroupNombre d'enregistrements : 0
+        groupNombre d'enregistrements : 0
+        messageNombre d'enregistrements : 0
+        printableNombre d'enregistrements : 0
+        reportNombre d'enregistrements : 0
+        savedSearchNombre d'enregistrements : 0
+        searchEventNombre d'enregistrements : 0
+        taskNombre d'enregistrements : 0
+        temporaryRecordNombre d'enregistrements : 0
+        thesaurusConfigNombre d'enregistrements : 0
+        userNombre d'enregistrements : 0
+        userCredentialNombre d'enregistrements : 10
+        userDocumentNombre d'enregistrements : 0
+        userFolderNombre d'enregistrements : 0
+Collection: zeCollection
+    Nombre d'enregistrements pour cette collection: 973
+        administrativeUnitNombre d'enregistrements : 12
+        authorizationDetailsNombre d'enregistrements : 16
+        bagInfoNombre d'enregistrements : 0
+        capsuleNombre d'enregistrements : 0
+        cartNombre d'enregistrements : 0
+        categoryNombre d'enregistrements : 14
+        collectionNombre d'enregistrements : 1
+        containerRecordNombre d'enregistrements : 19
+        conversationNombre d'enregistrements : 0
+        ddvCapsuleLanguageNombre d'enregistrements : 2
+        ddvClientNombre d'enregistrements : 1
+        ddvContainerRecordTypeNombre d'enregistrements : 1
+        ddvDocumentTypeNombre d'enregistrements : 14
+        ddvFolderTypeNombre d'enregistrements : 4
+        ddvMediumTypeNombre d'enregistrements : 3
+        ddvSourceNombre d'enregistrements : 0
+        ddvStorageSpaceTypeNombre d'enregistrements : 0
+        ddvTaskStatusNombre d'enregistrements : 4
+        ddvTaskTypeNombre d'enregistrements : 7
+        ddvUserFunctionNombre d'enregistrements : 0
+        ddvVariablePeriodNombre d'enregistrements : 4
+        ddvYearTypeNombre d'enregistrements : 0
+        decommissioningListNombre d'enregistrements : 31
+        documentNombre d'enregistrements : 651
+        emailToSendNombre d'enregistrements : 31
+        eventNombre d'enregistrements : 2
+        externalAccessUrlNombre d'enregistrements : 0
+        externalLinkNombre d'enregistrements : 0
+        externalLinkTypeNombre d'enregistrements : 0
+        facetNombre d'enregistrements : 8
+        filingSpaceNombre d'enregistrements : 0
+        folderNombre d'enregistrements : 105
+        groupNombre d'enregistrements : 4
+        messageNombre d'enregistrements : 0
+        printableNombre d'enregistrements : 12
+        reportNombre d'enregistrements : 0
+        retentionRuleNombre d'enregistrements : 6
+        savedSearchNombre d'enregistrements : 0
+        searchEventNombre d'enregistrements : 0
+        storageSpaceNombre d'enregistrements : 6
+        taskNombre d'enregistrements : 0
+        temporaryRecordNombre d'enregistrements : 0
+        thesaurusConfigNombre d'enregistrements : 0
+        triggerNombre d'enregistrements : 0
+        triggerActionNombre d'enregistrements : 0
+        triggerActionTypeNombre d'enregistrements : 1
+        triggerTypeNombre d'enregistrements : 1
+        uniformSubdivisionNombre d'enregistrements : 3
+        userNombre d'enregistrements : 10
+        userDocumentNombre d'enregistrements : 0
+        userFolderNombre d'enregistrements : 0
+        userTaskNombre d'enregistrements : 0
+        workflowNombre d'enregistrements : 0
+        workflowInstanceNombre d'enregistrements : 0
+--xadDhFk5ipmZTjYfdzbF0K5v0ampiW8kQM--

@@ -162,8 +162,9 @@ public class ImportRecordOfSameTypeWriter {
 					!escapedAttributeName.isEmpty() because old records from schema ddvExternalSystemList_default
 					may contain empty attribute (ex: AG with code R0901COM)
 				*/
-				if (entry.getValue() != null && !escapedAttributeName.isEmpty() && entry.getValue() instanceof String) {
-					writer.writeAttribute(escapedAttributeName, (String) entry.getValue());
+				if (entry.getValue() != null && !escapedAttributeName.isEmpty() &&
+					(entry.getValue() instanceof String || entry.getValue() instanceof Integer || entry.getValue() instanceof Double)) {
+					writer.writeAttribute(escapedAttributeName, String.valueOf(entry.getValue()));
 				} else if (entry.getValue() != null && entry.getValue() instanceof Collection) {
 					String valueToWrite = "";
 					for (Object collectionElement : (Collection) entry.getValue()) {

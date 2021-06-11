@@ -14,12 +14,14 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -40,6 +42,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.services.records.GetRecordOptions.GET_BY_QUERY;
 import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
@@ -139,6 +142,69 @@ public class ReindexingServicesOneSchemaAcceptanceTest extends ConstellioTest {
 
 		reindexingServices.reindexCollection(zeCollection, ReindexationMode.RECALCULATE);
 		assertThat(getModelLayerFactory().newCachelessRecordServices().getDocumentById("000666").<String>get(zeSchema.metadata("referenceToZeSchema"))).isNull();
+	}
+
+	@Test
+	public void givenManualMetadataMarkedForTypeAndMultivalueMigrationWhenReindexingThenValueTypeAndMultivalueMigrated()
+			throws RecordServicesException {
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).create("textMetadata").setType(TEXT);
+			}
+		});
+
+		ModifiableSolrParams paramsBeforeMigration = new ModifiableSolrParams();
+		paramsBeforeMigration.set("q", "textMetadata_t:*");
+		ModifiableSolrParams paramsAfterMigration = new ModifiableSolrParams();
+		paramsAfterMigration.set("q", "textMetadata_ss:*");
+
+		givenTimeIs(shishOClock);
+		Transaction transaction = new Transaction();
+		transaction.setUser(users.dakotaLIndienIn(zeCollection));
+		transaction.add(new TestRecord(zeSchema, "069420"))
+				.set(zeSchema.metadata("textMetadata"), "txt1");
+
+		transaction.add(new TestRecord(zeSchema, "000666"))
+				.set(zeSchema.metadata("textMetadata"), "txt2");
+		recordServices.execute(transaction);
+
+		RecordDao recordDao = getDataLayerFactory().newRecordDao();
+		assertThat(recordDao.query(paramsBeforeMigration).getNumFound()).isNotEqualTo(0);
+		assertThat(recordDao.query(paramsAfterMigration).getNumFound()).isEqualTo(0);
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).getMetadata("textMetadata")
+						.setMarkedForMigrationToType(STRING)
+						.setMarkedForMigrationToMultivalue(Boolean.TRUE);
+			}
+		});
+
+		assertThat(zeSchema.metadata("textMetadata").getMarkedForMigrationToType()).isEqualTo(STRING);
+		assertThat(zeSchema.metadata("textMetadata").isMarkedForMigrationToMultivalue()).isEqualTo(Boolean.TRUE);
+		assertThat(recordDao.query(paramsBeforeMigration).getNumFound()).isNotEqualTo(0);
+		assertThat(recordDao.query(paramsAfterMigration).getNumFound()).isEqualTo(0);
+
+		reindexingServices.reindexCollections(RECALCULATE_AND_REWRITE);
+
+		schemas.refresh();
+		assertThat(recordDao.query(paramsBeforeMigration).getNumFound()).isEqualTo(0);
+		assertThat(recordDao.query(paramsAfterMigration).getNumFound()).isNotEqualTo(0);
+
+		assertThatRecord(withId("069420"))
+				.hasMetadataValue(zeSchema.metadata("textMetadata"), asList("txt1"));
+		assertThatRecord(withId("000666"))
+				.hasMetadataValue(zeSchema.metadata("textMetadata"), asList("txt2"));
+
+		assertThat(zeSchema.instance().hasMetadataWithCode("textMetadata")).isTrue();
+		Metadata textMetadata = zeSchema.instance().getMetadata("textMetadata");
+		assertThat(textMetadata.getMarkedForMigrationToType()).isNull();
+		assertThat(textMetadata.getType()).isEqualTo(STRING);
+
+		assertThat(textMetadata.isMarkedForMigrationToMultivalue()).isNull();
+		assertThat(textMetadata.isMultivalue()).isTrue();
 	}
 
 	@Test

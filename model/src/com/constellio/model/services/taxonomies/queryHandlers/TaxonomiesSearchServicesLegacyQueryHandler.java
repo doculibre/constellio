@@ -82,7 +82,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 
 			String cacheMode = HasChildrenQueryHandler
 					.getCacheMode(ctx.getTaxonomy().getSchemaTypes().get(0), ctx.getOptions().getRequiredAccess(),
-							ctx.getOptions().isShowInvisibleRecordsInLinkingMode(),
+							ctx.getOptions().isShowInvisibleRecords(true),
 							ctx.getOptions().isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable());
 			List<Record> children;
 			options.setRows(10000);
@@ -97,7 +97,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 			LogicalSearchCondition condition = fromAllSchemasIn(ctx.getTaxonomy().getCollection())
 					.where(schemaTypeIsIn(ctx.getTaxonomy().getSchemaTypes()));
 			LogicalSearchQuery query = new LogicalSearchQuery(condition)
-					.filteredWithUser(ctx.getUser(), options.getRequiredAccess())
+					.filteredWithUserRead(ctx.getUser(), options.getRequiredAccess())
 					.filteredByStatus(options.getIncludeStatus())
 					.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
 			//conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(ctx.getTaxonomy().getCollection(), options));
@@ -303,7 +303,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 				}
 				LogicalSearchCondition condition = from(schemaTypes, ctx.getCollection()).returnAll();
 
-				if (!ctx.options.isShowInvisibleRecordsInLinkingMode()) {
+				if (!ctx.options.isShowInvisibleRecords(true)) {
 					condition = condition.andWhere(VISIBLE_IN_TREES).isTrueOrNull();
 				}
 				LogicalSearchQuery facetQuery = newQueryForFacets(condition, ctx.user, ctx.options);
@@ -793,7 +793,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 		} else {
 			condition = from(ctx.forSelectionOfSchemaType).where(directChildOf(ctx.record));
 
-			if (!ctx.options.isShowInvisibleRecordsInLinkingMode()) {
+			if (!ctx.options.isShowInvisibleRecords(ctx.forSelectionOfSchemaType != null)) {
 				condition = condition.andWhere(VISIBLE_IN_TREES).isTrueOrNull();
 			}
 		}
@@ -806,7 +806,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 			public String buildFQ(SecurityTokenManager securityTokenManager, LogicalSearchQuery query) {
 
 				return FilterUtils.userHierarchyFilter(ctx.user, securityTokenManager, ctx.options.getRequiredAccess(),
-						ctx.forSelectionOfSchemaType, ctx.options.isShowInvisibleRecordsInLinkingMode());
+						ctx.forSelectionOfSchemaType, ctx.options.isShowInvisibleRecords(ctx.forSelectionOfSchemaType != null));
 			}
 
 			@Override
@@ -849,7 +849,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 						.andWhere(notDirectChildOf(context.record))
 						.andWhere(Schemas.LINKABLE).isTrueOrNull();
 
-				if (!context.options.isShowInvisibleRecordsInLinkingMode()) {
+				if (!context.options.isShowInvisibleRecords(context.forSelectionOfSchemaType != null)) {
 					queryCondition = queryCondition.andWhere(visibleInTrees);
 				}
 
@@ -917,7 +917,7 @@ public class TaxonomiesSearchServicesLegacyQueryHandler
 				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema());
 
 		if (user != null) {
-			query.filteredWithUser(user, options.getRequiredAccess());
+			query.filteredWithUserRead(user, options.getRequiredAccess());
 		}
 		return query;
 	}

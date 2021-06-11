@@ -31,18 +31,21 @@ public class MaxMetadataAggregationHandler extends SolrStatMetadataAggregationHa
 
 			if (valueType == MetadataValueType.NUMBER) {
 				if (value instanceof Number
-					&& (max == null || ((Double) max).doubleValue() < ((Number) value).doubleValue())) {
+					&& (max == null || (Double) max < ((Number) value).doubleValue())) {
 					max = ((Number) value).doubleValue();
+				}
+			} else if (valueType == MetadataValueType.INTEGER) {
+				if (value instanceof Number
+					&& (max == null || (Integer) max < ((Number) value).intValue())) {
+					max = ((Number) value).intValue();
 				}
 			} else if (valueType == MetadataValueType.DATE) {
 				if (value instanceof LocalDate
 					&& (max == null || ((LocalDate) max).isBefore((LocalDate) value))) {
 					max = value;
-
 				} else if (value instanceof LocalDateTime
 						   && (max == null || ((LocalDate) max).isBefore(((LocalDateTime) value).toLocalDate()))) {
 					max = ((LocalDateTime) value).toLocalDate();
-
 				}
 
 			} else if (valueType == MetadataValueType.DATE_TIME) {

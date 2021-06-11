@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.actions;
 
+import com.constellio.app.api.pdf.signature.config.ESignatureConfigs;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -20,7 +21,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.io.FilenameUtils;
@@ -44,6 +44,7 @@ public class DocumentRecordActionsServices {
 	private transient ModelLayerCollectionExtensions modelLayerCollectionExtensions;
 	private EmailConfigurationsManager emailConfigurationsManager;
 	private SystemConfigurationsManager systemConfigurationsManager;
+	private ModelLayerCollectionExtensions extensions;
 
 	public static final String MSG_FILE_EXT = "msg";
 	public static final String EML_FILE_EXT = "eml";
@@ -59,6 +60,7 @@ public class DocumentRecordActionsServices {
 		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		this.emailConfigurationsManager = appLayerFactory.getModelLayerFactory().getEmailConfigurationsManager();
 		this.systemConfigurationsManager = appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager();
+		this.extensions = appLayerFactory.getModelLayerFactory().getExtensions().forCollection(collection);
 	}
 
 	public String getBorrowedMessage(Record record, User user) {
@@ -102,13 +104,13 @@ public class DocumentRecordActionsServices {
 	public boolean isEditActionPossible(Record record, User user) {
 		return hasUserWriteAccess(record, user) &&
 			   !record.isLogicallyDeleted() &&
-			   rmModuleExtensions.isEditActionPossibleOnDocument(rm.wrapDocument(record), user);
+			   rmModuleExtensions.isEditActionPossibleOnDocument(rm.wrapDocument(record), user) &&
+			   extensions.isRecordModifiableBy(record, user);
 	}
 
 	public boolean isRenameContentActionPossible(Record record, User user) {
-		return user.hasReadAccess().on(record) &&
-			   rm.wrapDocument(record).hasContent() &&
-			   !record.isLogicallyDeleted() &&
+		return rm.wrapDocument(record).hasContent() &&
+			   this.isEditActionPossible(record, user) &&
 			   rmModuleExtensions.isRenameContentActionPossibleOnDocument(rm.wrapDocument(record), user);
 	}
 
@@ -230,12 +232,34 @@ public class DocumentRecordActionsServices {
 
 		if ((!isCheckOutPossible(document) && !isEmailConvertibleToPDF(document)) ||
 			document.getContent() == null ||
-			!isEditActionPossible(record, user) ||
 			record.isLogicallyDeleted()) {
 			return false;
 		}
 
-		return rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(document, user);
+		return hasUserWriteAccess(record, user) &&
+			   rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(document, user) &&
+			   hasCreatePdfActionPermission(document, user);
+	}
+
+	private boolean hasCreatePdfActionPermission(Document document, User user) {
+		if (document.getContent() != null && document.getContent().isCheckedOut()) {
+			return false;
+		}
+
+		Folder parentFolder = rm.getFolderSummary(document.getFolder());
+		if (parentFolder.getBorrowed() != null && parentFolder.getBorrowed()) {
+			return false;
+		}
+
+		if (document.getArchivisticStatus().isActive()) {
+			return (user.has(RMPermissionsTo.GENERATE_PDFA_DOCUMENTS).on(document));
+		} else if (document.getArchivisticStatus().isInactive()) {
+			return user.has(RMPermissionsTo.GENERATE_PDFA_INACTIVE_DOCUMENTS).on(document);
+		} else if (document.getArchivisticStatus().isSemiActive()) {
+			return (user.has(RMPermissionsTo.GENERATE_PDFA_SEMIACTIVE_DOCUMENTS).on(document));
+		}
+
+		return false;
 	}
 
 	private boolean isEmailConvertibleToPDF(Document document) {
@@ -277,10 +301,9 @@ public class DocumentRecordActionsServices {
 	}
 
 	private boolean isUploadPossible(Document document, User user) {
-		boolean email = isEmail(document);
 		boolean checkedOut = isContentCheckedOut(document);
 		boolean borrower = isCurrentUserBorrower(user, document.getContent());
-		return !email && (!checkedOut || borrower);
+		return (!checkedOut || borrower);
 	}
 
 	protected boolean isCurrentUserBorrower(User currentUser, Content content) {
@@ -333,17 +356,19 @@ public class DocumentRecordActionsServices {
 		}
 	}
 
-	public boolean isGenerateExternalSignatureUrlActionPossible(Record record, User user) {
+	public boolean isSendSignatureRequestActionPossible(Record record, User user) {
+		ESignatureConfigs eSignatureConfigs = new ESignatureConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
+		
 		Document document = rm.wrapDocument(record);
 		List<String> supportedExtensions = new ArrayList<>(Arrays.asList(conversionManager.getAllSupportedExtensions()));
 		supportedExtensions.add("pdf");
 
 		EmailServerConfiguration emailConfiguration = emailConfigurationsManager.getEmailConfiguration(collection, false);
 		return user.hasWriteAccess().on(record) &&
-			   user.has(RMPermissionsTo.GENERATE_EXTERNAL_SIGNATURE_URL).globally() &&
+			   user.has(RMPermissionsTo.SEND_SIGNATURE_REQUEST).globally() &&
 			   document.hasContent() &&
 			   emailConfiguration != null && emailConfiguration.isEnabled() &&
-			   systemConfigurationsManager.getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE) != null &&
+			   eSignatureConfigs.getKeystore() != null &&
 			   FilenameUtils.isExtension(document.getContent().getCurrentVersion().getFilename(), supportedExtensions);
 	}
 
@@ -519,6 +544,6 @@ public class DocumentRecordActionsServices {
 	}
 
 	public boolean isCreateTaskActionPossible(Record record, User user) {
-		return hasUserReadAccess(record, user);
+		return hasUserReadAccess(record, user) && !record.isLogicallyDeleted();
 	}
 }

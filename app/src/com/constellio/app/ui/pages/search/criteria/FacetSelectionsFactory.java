@@ -1,13 +1,13 @@
 package com.constellio.app.ui.pages.search.criteria;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-public class FacetSelectionsFactory implements StructureFactory {
+public class FacetSelectionsFactory implements CombinedStructureFactory {
 	private static final String NULL = "~null~";
 
 	@Override

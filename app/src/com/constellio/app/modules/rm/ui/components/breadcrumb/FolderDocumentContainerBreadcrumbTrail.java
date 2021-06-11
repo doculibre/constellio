@@ -5,6 +5,8 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentCont
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrailPresenter.TaxonomyElementBreadcrumbItem;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrailPresenter.TriggerFormBreadcrumbItem;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrailPresenter.TriggerManagerBreadcrumbItem;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
@@ -18,6 +20,8 @@ import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrai
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.base.UIContextProvider;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.records.GetRecordOptions;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 
@@ -39,45 +43,55 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 	@Override
 	protected Button newButton(BreadcrumbItem item) {
 		Button button = super.newButton(item);
-		String recordId;
+		Record record;
 		if (item instanceof FolderBreadCrumbItem) {
-			recordId = ((FolderBreadCrumbItem) item).getFolderId();
+			record = getSummaryRecord(((FolderBreadCrumbItem) item).getFolderId());
 		} else if (item instanceof DocumentBreadCrumbItem) {
-			recordId = ((DocumentBreadCrumbItem) item).getDocumentId();
+			record = getSummaryRecord(((DocumentBreadCrumbItem) item).getDocumentId());
 		} else if (item instanceof TaxonomyElementBreadcrumbItem) {
-			recordId = ((TaxonomyElementBreadcrumbItem) item).getTaxonomyElementId();
+			record = getRecord(((TaxonomyElementBreadcrumbItem) item).getTaxonomyElementId());
 		} else if (item instanceof TaxonomyBreadcrumbItem) {
-			recordId = null;
+			record = null;
 		} else if (item instanceof CollectionBreadcrumbItem) {
-			recordId = null;
+			record = null;
 		} else if (item instanceof SearchResultsBreadcrumbItem) {
-			recordId = null;
+			record = null;
 		} else if(item instanceof ContainerBreadcrumbItem) {
-			recordId = ((ContainerBreadcrumbItem) item).getContainerId();
+			record = getRecord(((ContainerBreadcrumbItem) item).getContainerId());
 		} else if (item instanceof ViewGroupBreadcrumbItem) {
-			recordId = null;
+			record = null;
 		} else if (item instanceof IntermediateBreadCrumbTailItem) {
-			recordId = null;
+			record = null;
 		} else if (item instanceof GroupFavoritesBreadcrumbItem) {
-			recordId = ((GroupFavoritesBreadcrumbItem)item).getFavoriteGroupId();
+			record = getRecord(((GroupFavoritesBreadcrumbItem) item).getFavoriteGroupId());
 		} else if (item instanceof FavoritesBreadcrumbItem) {
-			recordId = null;
+			record = null;
 		} else if (item instanceof LastViewedFoldersDocumentsBreadcrumbItem) {
-			recordId = null;
+			record = null;
 		} else if (item instanceof ListContentAccessAndRoleAuthorizationsBreadCrumbItem) {
-			recordId = null;
+			record = null;
 		} else if (item instanceof TriggerManagerBreadcrumbItem) {
-			recordId = null;
+			record = null;
 		} else if (item instanceof TriggerFormBreadcrumbItem) {
-			recordId = null;
+			record = null;
 		} else {
 			throw new RuntimeException("Unrecognized breadcrumb item type : " + item.getClass());
 		}
-		if (recordId != null) {
-			Resource icon = FileIconUtils.getIconForRecordId(recordId);
+		if (record != null) {
+			Resource icon = FileIconUtils.getIconForRecordId(record, false);
 			button.setIcon(icon);
 		}
 		return button;
+	}
+
+	private Record getRecord(String recordId) {
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		return appLayerFactory.getModelLayerFactory().newRecordServices().get(recordId);
+	}
+
+	private Record getSummaryRecord(String recordId) {
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		return appLayerFactory.getModelLayerFactory().newRecordServices().get(recordId, GetRecordOptions.RETURNING_SUMMARY);
 	}
 
 	@Override

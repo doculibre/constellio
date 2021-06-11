@@ -15,6 +15,7 @@ public class DocumentType extends ValueListItem implements SchemaLinkingType {
 	public static final String LINKED_SCHEMA = "linkedSchema";
 	public static final String EMAIL_DOCUMENT_TYPE = "emailDocumentType";
 	public static final String TEMPLATES = "templates";
+	public static final String PARENT = "parent";
 
 	public DocumentType(Record record,
 						MetadataSchemaTypes types) {
@@ -56,6 +57,15 @@ public class DocumentType extends ValueListItem implements SchemaLinkingType {
 
 	public DocumentType setTemplates(List<Content> templates) {
 		set(TEMPLATES, templates);
+		return this;
+	}
+
+	public String getParent() {
+		return get(PARENT);
+	}
+
+	public DocumentType setParent(String id) {
+		set(PARENT, id);
 		return this;
 	}
 }

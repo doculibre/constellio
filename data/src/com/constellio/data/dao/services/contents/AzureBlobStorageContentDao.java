@@ -15,10 +15,12 @@ import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToAddFile;
 import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToDeleteFileFromAzure;
-import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToGetFile;
 import com.constellio.data.dao.services.contents.AzureBlobStorageContentDaoRuntimeException.AzureBlobStorageContentDaoRuntimeException_FailedToMoveFileToVault;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.extensions.contentDao.ContentDaoReadEvent;
+import com.constellio.data.extensions.contentDao.ContentDaoReadEvent.ContentOperation;
+import com.constellio.data.extensions.contentDao.ContentDaoWriteEvent;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.google.common.annotations.VisibleForTesting;
@@ -31,6 +33,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -69,6 +72,7 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 
 	@Override
 	public void add(String newContentId, InputStream newInputStream) {
+		long start = new Date().getTime();
 		if (typeStoredInAzure(newContentId)) {
 			try (BlobOutputStream blobOutputStream = getBlobClient(newContentId).getBlockBlobClient().getBlobOutputStream(true)) {
 				IOUtils.copy(newInputStream, blobOutputStream);
@@ -80,6 +84,9 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 		} else {
 			fileSystemContentDao.add(newContentId, newInputStream);
 		}
+		long end = new Date().getTime();
+		dataLayerFactory.getExtensions().getSystemWideExtensions().onVaultUpload(new ContentDaoWriteEvent()
+				.setHash(newContentId).setDuration(end - start));
 	}
 
 	@Override
@@ -135,12 +142,21 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 	@Override
 	public InputStream getContentInputStream(String contentId, String streamName)
 			throws ContentDaoException_NoSuchContent {
-		if (typeStoredInAzure(contentId)) {
-			BlobClient blobClient = getBlobClient(contentId);
-			InputStream inputStream = blobClient.openInputStream();
-			return inputStream;
-		} else {
-			return fileSystemContentDao.getContentInputStream(contentId, streamName);
+
+		long start = new Date().getTime();
+		try {
+
+			if (typeStoredInAzure(contentId)) {
+				BlobClient blobClient = getBlobClient(contentId);
+				InputStream inputStream = blobClient.openInputStream();
+				return inputStream;
+			} else {
+				return fileSystemContentDao.getContentInputStream(contentId, streamName);
+			}
+		} finally {
+			long end = new Date().getTime();
+			dataLayerFactory.getExtensions().getSystemWideExtensions().onVaultInputStreamOpened(new ContentDaoReadEvent()
+					.setHash(contentId).setDuration(end - start).setContentOperation(ContentOperation.STREAM_OPENED));
 		}
 	}
 
@@ -156,14 +172,29 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 
 	@Override
 	public boolean isDocumentExisting(String documentId) {
-		BlobClient blobClient = getBlobClient(documentId);
-		return blobClient.exists();
+		long start = new Date().getTime();
+		try {
+			BlobClient blobClient = getBlobClient(documentId);
+			return blobClient.exists();
+		} finally {
+			long end = new Date().getTime();
+			dataLayerFactory.getExtensions().getSystemWideExtensions().onVaultInputStreamOpened(new ContentDaoReadEvent()
+					.setHash(documentId).setDuration(end - start).setContentOperation(ContentOperation.EXIST_CHECK));
+		}
 	}
 
 	@Override
 	public long getContentLength(String vaultContentId) {
-		DaoFile file = getFile(vaultContentId);
-		return file.length();
+		long start = new Date().getTime();
+		try {
+			DaoFile file = getFile(vaultContentId);
+			return file.length();
+
+		} finally {
+			long end = new Date().getTime();
+			dataLayerFactory.getExtensions().getSystemWideExtensions().onVaultInputStreamOpened(new ContentDaoReadEvent()
+					.setHash(vaultContentId).setDuration(end - start).setContentOperation(ContentOperation.GET_PROPERTIES));
+		}
 	}
 
 	@Override
@@ -219,20 +250,27 @@ public class AzureBlobStorageContentDao implements StatefulService, ContentDao {
 
 	@Override
 	public DaoFile getFile(String contentId) {
-		if (typeStoredInAzure(contentId)) {
-			BlobClient blobClient = getBlobClient(contentId);
-			DaoFile file;
-			try (BlobInputStream blobInputStream = blobClient.openInputStream();) {
-				BlobProperties properties = blobInputStream.getProperties();
+		long start = new Date().getTime();
+		try {
+			if (typeStoredInAzure(contentId)) {
+				BlobClient blobClient = getBlobClient(contentId);
+				DaoFile file;
+				try (BlobInputStream blobInputStream = blobClient.openInputStream();) {
+					BlobProperties properties = blobInputStream.getProperties();
 
-				file = new DaoFile(contentId, contentId, properties.getBlobSize(), properties.getLastModified().toInstant().toEpochMilli(), false, this);
-			} catch (BlobStorageException e) {
-				throw new AzureBlobStorageContentDaoRuntimeException_FailedToGetFile(contentId);
+					file = new DaoFile(contentId, contentId, properties.getBlobSize(), properties.getLastModified().toInstant().toEpochMilli(), false, this, true);
+				} catch (BlobStorageException ignored) {
+					file = new DaoFile(contentId, contentId, 0L, 0L, false, this, false);
+				}
+
+				return file;
+			} else {
+				return fileSystemContentDao.getFile(contentId);
 			}
-
-			return file;
-		} else {
-			return fileSystemContentDao.getFile(contentId);
+		} finally {
+			long end = new Date().getTime();
+			dataLayerFactory.getExtensions().getSystemWideExtensions().onVaultInputStreamOpened(new ContentDaoReadEvent()
+					.setHash(contentId).setDuration(end - start).setContentOperation(ContentOperation.GET_PROPERTIES));
 		}
 	}
 

@@ -29,6 +29,7 @@ import org.junit.Test;
 import java.util.Arrays;
 
 import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -108,6 +109,41 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 		assertThat(service.isProcessable(records.getList07(), records.getGandalf_managerInABC())).isFalse();
 		assertThat(service.isProcessable(approved(records.getList07()), records.getChuckNorris())).isTrue();
+	}
+
+	@Test
+	public void givenUnprocessedListToTransferThenIsProcessableIfNoFolderDetailStatusSelected() {
+		getConfigurationManager().setValue(RMConfigs.DECOMMISSIONING_LIST_WITH_SELECTED_FOLDERS, true);
+		getConfigurationManager().setValue(RMConfigs.REQUIRE_APPROVAL_FOR_TRANSFER, false);
+
+		ContainerRecord container = rm.newContainerRecord()
+				.setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE)
+				.setIdentifier("ZeContainer").setTemporaryIdentifier("ZeContainer")
+				.setType(records.containerTypeId_boite22x22)
+				.setAdministrativeUnits(asList(records.unitId_10a));
+
+		DecommissioningListParams params = new DecommissioningListParams();
+		params.setTitle("Ze title");
+		params.setDescription("Ze description");
+		params.setAdministrativeUnit(records.unitId_10a);
+		params.setSearchType(SearchType.transfer);
+		params.setSelectedRecordIds(Arrays.asList(records.folder_A10, records.folder_A11, records.folder_A12));
+		params.setFolderDetailStatus(FolderDetailStatus.SELECTED);
+
+		User chuckNorris = records.getChuckNorris();
+		DecommissioningList list = packed(service.createDecommissioningList(params, chuckNorris), container.getId());
+
+		assertThat(service.isProcessable(list, chuckNorris)).isFalse();
+
+		final boolean[] included = {false};
+		list.getFolderDetails().forEach(fd -> {
+			fd.setFolderDetailStatus(included[0] ? FolderDetailStatus.INCLUDED : FolderDetailStatus.EXCLUDED);
+			included[0] = !included[0];
+		});
+		assertThat(service.isProcessable(list, chuckNorris)).isTrue();
+
+		list.getFolderDetail(records.folder_A10).setFolderDetailStatus(FolderDetailStatus.SELECTED);
+		assertThat(service.isProcessable(list, chuckNorris)).isFalse();
 	}
 
 	@Test

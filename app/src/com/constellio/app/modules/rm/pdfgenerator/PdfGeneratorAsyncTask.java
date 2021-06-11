@@ -2,9 +2,9 @@ package com.constellio.app.modules.rm.pdfgenerator;
 
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
-import com.constellio.app.modules.rm.services.reports.XmlReportGenerator;
-import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
+import com.constellio.app.modules.rm.services.reports.JasperReportServices;
+import com.constellio.app.modules.rm.services.reports.printable.PrintableGeneratorParams;
+import com.constellio.app.modules.rm.services.reports.xml.XMLDataSourceType;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -13,12 +13,10 @@ import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.DocumentListPDF;
 import com.constellio.model.entities.records.wrappers.User;
@@ -53,6 +51,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -66,6 +65,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
 	private List<String> documentIdList;
 	private Boolean withMetadata;
+	private Boolean asPdfA;
 	private String consolidatedName;
 	private String consolidatedId;
 	private String consolidatedTitle;
@@ -106,11 +106,18 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 	public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidatedId,
 								 String consolidatedName, String consolidatedTitle,
 								 String username, Boolean withMetadata, String languageCode) {
+		this(documentIdList, consolidatedId, consolidatedName, consolidatedTitle, username, withMetadata, true, languageCode);
+	}
+
+	public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidatedId,
+								 String consolidatedName, String consolidatedTitle,
+								 String username, Boolean withMetadata, Boolean asPdfA, String languageCode) {
 		this.documentIdList = documentIdList;
 		this.consolidatedId = consolidatedId;
 		this.consolidatedName = consolidatedName;
 		this.consolidatedTitle = consolidatedTitle;
 		this.withMetadata = withMetadata;
+		this.asPdfA = asPdfA;
 		this.username = username;
 		this.languageCode = languageCode;
 		this.locale = Language.withCode(languageCode).getLocale();
@@ -121,34 +128,26 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 		PDDocument result;
 		try {
 			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-			ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 			String collection = document.getCollection();
 			String documentId = document.getId();
 
-			XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(1);
-
-			XmlReportGenerator xmlReportGenerator = new XmlReportGenerator(appLayerFactory, collection, xmlGeneratorParameters, locale);
-
-			ArrayList<String> documentIdAsString = new ArrayList<>();
-			documentIdAsString.add(documentId);
-			xmlGeneratorParameters.setElementWithIds(Document.SCHEMA_TYPE, documentIdAsString);
-
-			JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(xmlReportGenerator);
-
-			InputStream jasperTemplateIn;
-			List<PrintableReportTemplate> printableReportTemplates = ReportGeneratorUtils.getPrintableReportTemplate(appLayerFactory, collection, document.getSchemaCode(), PrintableReportListPossibleType.DOCUMENT);
-			if (!printableReportTemplates.isEmpty()) {
-				ContentVersion printableReportTemplateContentVersion = printableReportTemplates.get(0).getJasperFile().getCurrentVersion();
-				jasperTemplateIn = contentManager.getContentInputStream(printableReportTemplateContentVersion.getHash(), getClass().getSimpleName() + ".jasperTemplate");
-			} else {
-				File jasperTemplateFile = new File(new FoldersLocator().getModuleResourcesFolder("rm"), "DocumentMetadataReport.jasper");
-				jasperTemplateIn = new FileInputStream(jasperTemplateFile);
-			}
-
-			File generatedJasperFile = null;
 			try {
-				generatedJasperFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperTemplateIn);
-				result = PDDocument.load(generatedJasperFile);
+				JasperReportServices jasperReportServices = new JasperReportServices(collection, appLayerFactory);
+				PrintableGeneratorParams printableGeneratorParams = PrintableGeneratorParams.builder()
+						.XMLDataSourceType(XMLDataSourceType.METADATA)
+						.numberOfCopies(1)
+						.schemaType(Document.SCHEMA_TYPE)
+						.recordIds(Collections.singletonList(documentId))
+						.locale(locale)
+						.username(username)
+						.build();
+
+				List<PrintableReportTemplate> printableReportTemplates = ReportGeneratorUtils.getPrintableReportTemplate(appLayerFactory, collection, document.getSchemaCode(), PrintableReportListPossibleType.DOCUMENT);
+				if (!printableReportTemplates.isEmpty()) {
+					printableGeneratorParams.setPrintableId(printableReportTemplates.get(0).getId());
+				}
+				InputStream generatedJasperInputStream = jasperReportServices.generatePrintable(printableGeneratorParams);
+				result = PDDocument.load(generatedJasperInputStream);
 				result.getDocumentCatalog().setDocumentOutline(null);
 			} catch (JRException e) {
 				logError(params, document, JASPER_FILE_ERROR);
@@ -338,10 +337,12 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 			File tempFolder = ioServices.newTemporaryFolder(getClass().getName());
 
 			List<IncludedDocument> includedPdfDocuments = new ArrayList<>();
+			params.setProgressionUpperLimit(documentIdList.size());
 			for (String documentId : documentIdList) {
 				Record record = recordServices.getDocumentById(documentId);
 				if (!SchemaUtils.getSchemaTypeCode(record.getSchemaCode()).equals(Document.SCHEMA_TYPE)) {
 					Map<String, Object> parameters = new HashMap<>();
+					parameters.put("id", documentId);
 					parameters.put("schemaCode", SchemaUtils.getSchemaTypeCode(record.getSchemaCode()));
 					errors.add(PdfGeneratorAsyncTask.class, INVALID_SCHEMA_TYPE, parameters);
 					errors.throwIfNonEmpty();
@@ -368,6 +369,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 					includedPdfDocuments.add(new IncludedDocument(document, includedPdfDocumentsForCurrentDocument));
 					logMessage(params, document, DOCUMENT_INCLUDED_IN_CONSOLIDATED_PDF);
 				}
+				params.incrementProgression(1);
 			}
 
 			PDDocument consolidatedPdf = createConsolidatedPdf(includedPdfDocuments, params);
@@ -376,6 +378,16 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
 				File consolidatedPdfFile = ioServices.newTemporaryFile(getClass().getName() + ".pdf");
 				consolidatedPdf.save(consolidatedPdfFile);
+
+				if (asPdfA) {
+					File newConsolidatedPdfFile;
+					try (InputStream is = new FileInputStream(consolidatedPdfFile)) {
+						ConversionManager conversionManager = modelLayerFactory.getDataLayerFactory().getConversionManager();
+						newConsolidatedPdfFile = conversionManager.convertToPDF(is, consolidatedName, tempFolder, asPdfA);
+						ioServices.deleteQuietly(consolidatedPdfFile);
+						consolidatedPdfFile = newConsolidatedPdfFile;
+					}
+				}
 
 				try (InputStream resultInputStream = new FileInputStream(consolidatedPdfFile)) {
 					consolidatedContent =
@@ -474,7 +486,8 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
 	@Override
 	public Object[] getInstanceParameters() {
-		return new Object[]{documentIdList, consolidatedId, consolidatedName, consolidatedTitle, username, withMetadata, languageCode};
+		return new Object[]{documentIdList, consolidatedId, consolidatedName, consolidatedTitle, username, withMetadata,
+							asPdfA, languageCode};
 	}
 
 

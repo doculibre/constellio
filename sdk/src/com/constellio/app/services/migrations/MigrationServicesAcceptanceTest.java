@@ -44,23 +44,23 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 	@Mock SystemGlobalConfigsManager systemGlobalConfigsManager;
 	@Mock ConstellioEIM constellioEIM;
-	@Mock MigrationScript coreMigrationTo100;
-	@Mock MigrationScript coreMigrationTo103;
-	@Mock MigrationScript coreMigrationTo110;
+	MigrationScript coreMigrationTo100;
+	MigrationScript coreMigrationTo103;
+	MigrationScript coreMigrationTo110;
 
 	@Mock ConstellioModulesManagerImpl moduleManager;
 	String aModuleId = "aModuleId";
 	String aModuleWithDependencyId = "aModuleWithDependencyId";
 	InstallableModule aModule, aModuleWithDependency;
-	@Mock MigrationScript aModuleMigrationTo100;
-	@Mock MigrationScript aModuleMigrationTo102;
-	@Mock MigrationScript aModuleMigrationTo110;
-	@Mock MigrationScript aModuleWithDependencyMigrationTo100;
-	@Mock MigrationScript aModuleWithDependencyMigrationTo101;
-	@Mock MigrationScript aModuleWithDependencyMigrationTo106;
+	MigrationScript aModuleMigrationTo100;
+	MigrationScript aModuleMigrationTo102;
+	MigrationScript aModuleMigrationTo110;
+	MigrationScript aModuleWithDependencyMigrationTo100;
+	MigrationScript aModuleWithDependencyMigrationTo101;
+	MigrationScript aModuleWithDependencyMigrationTo106;
 	InOrder inOrder;
 
-	@Mock MigrationScript moduleAMigrationTo100, moduleBMigrationTo100, moduleCMigrationTo100, moduleDMigrationTo100, moduleEMigrationTo100, moduleFMigrationTo100;
+	MigrationScript moduleAMigrationTo100, moduleBMigrationTo100, moduleCMigrationTo100, moduleDMigrationTo100, moduleEMigrationTo100, moduleFMigrationTo100;
 
 	@Before
 	public void setUp() {
@@ -75,39 +75,128 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 		migrationServices = new com.constellio.app.services.migrations.MigrationServices(constellioEIM, appLayerFactory,
 				moduleManager, pluginManager);
-		when(coreMigrationTo100.getVersion()).thenReturn("1.0.0");
-		when(coreMigrationTo103.getVersion()).thenReturn("1.0.3");
-		when(coreMigrationTo110.getVersion()).thenReturn("1.1.0");
+
+		coreMigrationTo100 = newSpiedDummyScript("1.0.0");
+		coreMigrationTo103 = newSpiedDummyScript("1.0.3");
+		coreMigrationTo110 = newSpiedDummyScript("1.1.0");
+
 		when(constellioEIM.getMigrationScripts()).thenReturn(
 				Arrays.asList(coreMigrationTo100, coreMigrationTo103, coreMigrationTo110));
 
-		when(aModuleMigrationTo100.getVersion()).thenReturn("1.0.0");
-		when(aModuleMigrationTo102.getVersion()).thenReturn("1.0.2");
-		when(aModuleMigrationTo110.getVersion()).thenReturn("1.1.0");
+		aModuleMigrationTo100 = newSpiedDummyScript("1.0.0");
+		aModuleMigrationTo102 = newSpiedDummyScript("1.0.2");
+		aModuleMigrationTo110 = newSpiedDummyScript("1.1.0");
 		when(aModule.getMigrationScripts()).thenReturn(
 				Arrays.asList(aModuleMigrationTo100, aModuleMigrationTo102, aModuleMigrationTo110));
 
-		when(aModuleWithDependencyMigrationTo100.getVersion()).thenReturn("1.0.0");
-		when(aModuleWithDependencyMigrationTo101.getVersion()).thenReturn("1.0.1");
-		when(aModuleWithDependencyMigrationTo106.getVersion()).thenReturn("1.0.6");
+		aModuleWithDependencyMigrationTo100 = newSpiedDummyScript("1.0.0");
+		aModuleWithDependencyMigrationTo101 = newSpiedDummyScript("1.0.1");
+		aModuleWithDependencyMigrationTo106 = newSpiedDummyScript("1.0.6");
+
 		when(aModuleWithDependency.getMigrationScripts()).thenReturn(
 				Arrays.asList(aModuleWithDependencyMigrationTo100, aModuleWithDependencyMigrationTo101,
 						aModuleWithDependencyMigrationTo106));
 
 		when(aModuleWithDependency.getDependencies()).thenReturn(Arrays.asList(aModuleId));
 
-		when(moduleAMigrationTo100.getVersion()).thenReturn("1.0.0");
-		when(moduleBMigrationTo100.getVersion()).thenReturn("1.0.0");
-		when(moduleCMigrationTo100.getVersion()).thenReturn("1.0.0");
-		when(moduleDMigrationTo100.getVersion()).thenReturn("1.0.0");
-		when(moduleEMigrationTo100.getVersion()).thenReturn("1.0.0");
-		when(moduleFMigrationTo100.getVersion()).thenReturn("1.0.0");
+		moduleAMigrationTo100 = newSpiedDummyScript("1.0.0");
+		moduleBMigrationTo100 = newSpiedDummyScript("1.0.0");
+		moduleCMigrationTo100 = newSpiedDummyScript("1.0.0");
+		moduleDMigrationTo100 = newSpiedDummyScript("1.0.0");
+		moduleEMigrationTo100 = newSpiedDummyScript("1.0.0");
+		moduleFMigrationTo100 = newSpiedDummyScript("1.0.0");
 
 		inOrder = inOrder(coreMigrationTo100, coreMigrationTo103, coreMigrationTo110, aModuleMigrationTo100,
 				aModuleMigrationTo102, aModuleMigrationTo110, aModuleWithDependencyMigrationTo100,
 				aModuleWithDependencyMigrationTo101, aModuleWithDependencyMigrationTo106, moduleAMigrationTo100,
 				moduleBMigrationTo100, moduleCMigrationTo100, moduleDMigrationTo100, moduleEMigrationTo100,
 				moduleFMigrationTo100);
+
+	}
+
+	private MigrationScript newSpiedDummyScript(String version) {
+		return spy(new MigrationScript() {
+			@Override
+			public String getVersion() {
+				return version;
+			}
+
+			@Override
+			public String getResourcesDirectoryName() {
+				return version.replace(".", "_");
+			}
+
+			@Override
+			public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+								AppLayerFactory appLayerFactory) throws Exception {
+
+			}
+		});
+	}
+
+	public static class MigrationScriptFrom9_4_2_DefaultVersion implements MigrationScript {
+
+		@Override
+		public String getVersion() {
+			return null;
+		}
+
+		@Override
+		public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+							AppLayerFactory appLayerFactory) throws Exception {
+
+		}
+	}
+
+
+	public static class MigrationScriptFrom9_4_2DefaultVersion implements MigrationScript {
+
+		@Override
+		public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+							AppLayerFactory appLayerFactory) throws Exception {
+
+		}
+	}
+
+	public static class MigrationScriptFrom10DefaultVersion implements MigrationScript {
+
+		@Override
+		public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+							AppLayerFactory appLayerFactory) throws Exception {
+
+		}
+	}
+
+
+	public static class MigrationScriptFrom9_4_2_CustomVersion implements MigrationScript {
+
+		@Override
+		public String getVersion() {
+			return "9.4.3";
+		}
+
+		@Override
+		public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+							AppLayerFactory appLayerFactory) throws Exception {
+
+		}
+	}
+
+	public static class MigrationScriptFrom9_4_4 implements MigrationScript {
+
+		@Override
+		public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+							AppLayerFactory appLayerFactory) throws Exception {
+
+		}
+	}
+
+	@Test
+	public void whenScanningVersionNumberOfMigrationScriptsThenOK() {
+		assertThat(new MigrationScriptFrom9_4_2DefaultVersion().getVersion()).isEqualTo("9.4.2");
+		assertThat(new MigrationScriptFrom10DefaultVersion().getVersion()).isEqualTo("10");
+		assertThat(new MigrationScriptFrom9_4_2_CustomVersion().getVersion()).isEqualTo("9.4.3");
+		assertThat(new MigrationScriptFrom9_4_4().getVersion()).isEqualTo("9.4.4");
 
 	}
 
@@ -124,7 +213,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		collectionsManager.createCollectionConfigs("collection1");
 		collectionsListManager.addCollection("collection1", Arrays.asList("fr"), (byte) 42);
 		try {
-			migrationServices.migrate("collection1", null, false);
+			migrationServices.migrate("collection1", false);
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
@@ -132,7 +221,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 		collectionsManager.createCollectionConfigs("collection2");
 		collectionsListManager.addCollection("collection2", Arrays.asList("fr"), (byte) 68);
 		try {
-			migrationServices.migrate("collection2", null, false);
+			migrationServices.migrate("collection2", false);
 		} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
@@ -176,17 +265,18 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 		migrationServices.setCurrentDataVersion(zeCollection, "0.9.9");
 
-		migrationServices.migrate(zeCollection, "1.1.0", false);
+		migrationServices.migrate(zeCollection, false);
 		inOrder.verify(coreMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
-		inOrder.verify(aModuleMigrationTo100)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
-		inOrder.verify(aModuleMigrationTo102)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(coreMigrationTo103)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(coreMigrationTo110)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+		inOrder.verify(aModuleMigrationTo100)
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+		inOrder.verify(aModuleMigrationTo102)
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+
 		inOrder.verify(aModuleMigrationTo110)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 
@@ -200,25 +290,25 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 
 		migrationServices.setCurrentDataVersion(zeCollection, "0.9.9");
 
-		migrationServices.migrate(zeCollection, "1.1.0", false);
+		migrationServices.migrate(zeCollection, false);
 
 		inOrder.verify(coreMigrationTo100)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+		inOrder.verify(coreMigrationTo103)
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+		inOrder.verify(coreMigrationTo110)
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleMigrationTo100)
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+		inOrder.verify(aModuleMigrationTo102)
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+		inOrder.verify(aModuleMigrationTo110)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleWithDependencyMigrationTo100)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleWithDependencyMigrationTo101)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
-		inOrder.verify(aModuleMigrationTo102)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
-		inOrder.verify(coreMigrationTo103)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(aModuleWithDependencyMigrationTo106)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
-		inOrder.verify(coreMigrationTo110)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
-		inOrder.verify(aModuleMigrationTo110)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 
 	}
@@ -249,9 +339,11 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 				.thenReturn(Arrays.asList(moduleA, moduleB, moduleC, moduleD, moduleE, moduleF));
 
 		migrationServices.setCurrentDataVersion(zeCollection, "0.9.9");
-		migrationServices.migrate(zeCollection, "1.1.0", false);
+		migrationServices.migrate(zeCollection, false);
 
 		inOrder.verify(coreMigrationTo100)
+				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+		inOrder.verify(coreMigrationTo103)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(moduleCMigrationTo100)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
@@ -265,8 +357,7 @@ public class MigrationServicesAcceptanceTest extends ConstellioTest {
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
 		inOrder.verify(moduleBMigrationTo100)
 				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
-		inOrder.verify(coreMigrationTo103)
-				.migrate(eq(zeCollection), any(MigrationResourcesProvider.class), eq(appLayerFactory));
+
 
 	}
 

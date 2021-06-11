@@ -7,6 +7,8 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.SchemaUtils;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +20,8 @@ import java.util.Map;
 import java.util.Set;
 
 @SuppressWarnings("serial")
+@AllArgsConstructor
+@Builder
 public class FormMetadataVO implements Serializable {
 	short id;
 	String code;
@@ -58,6 +62,12 @@ public class FormMetadataVO implements Serializable {
 	private String dataEntryReference;
 	@Getter @Setter
 	private String dataEntrySource;
+
+	@Getter @Setter
+	private boolean separatedStructure;
+
+	FormMetadataVO() {
+	}
 
 	public FormMetadataVO(short id, String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO,
 						  String reference,

@@ -707,7 +707,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition())
 				.setOverridedQueryParams(extraSolrParams)
 				.setFreeTextQuery(filteredSolrOperatorsInUserSearchExpression())
-				.filteredWithUser(getCurrentUser())
+				.filteredWithUserRead(getCurrentUser())
 				.filteredByStatus(StatusFilter.ACTIVES)
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 
@@ -806,7 +806,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		MetadataSchemaType schemaType = types().getSchemaType(schemaTypeCode);
 		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
 				.setNumberOfRows(0)
-				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
+				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUserRead(getCurrentUser()))
 				.getFieldFacetValues("schema_s");
 		Set<String> metadataCodes = new HashSet<>();
 		if (schema_s != null) {

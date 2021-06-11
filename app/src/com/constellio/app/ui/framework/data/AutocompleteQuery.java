@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.StatusFilter;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -43,6 +44,7 @@ public class AutocompleteQuery {
 	private boolean includeLogicallyDeleted;
 	private List<String> idsToIgnore;
 	private ReturnedMetadatasFilter metadataFilter;
+	private VisibilityStatusFilter visibilityStatus = VisibilityStatusFilter.ALL;
 
 	public LogicalSearchQuery searchQuery() {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -93,6 +95,7 @@ public class AutocompleteQuery {
 				.setPreferAnalyzedFields(true)
 				.setStartRow(startRow)
 				.setNumberOfRows(rowCount)
+				.filteredByVisibilityStatus(visibilityStatus)
 				.setName("Autocomplete query for input '" + expression + "'");
 
 		//		boolean isDDV = schemaTypeCode != null? schemaTypeCode.startsWith("ddv"):schemaCode.startsWith("ddv");
@@ -116,7 +119,7 @@ public class AutocompleteQuery {
 			if (writeAccessRequired) {
 				query.filteredWithUserWrite(user);
 			} else {
-				query.filteredWithUser(user);
+				query.filteredWithUserRead(user);
 			}
 		}
 

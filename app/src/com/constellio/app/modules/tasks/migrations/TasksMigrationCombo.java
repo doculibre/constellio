@@ -59,12 +59,23 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 		scripts.add(new TasksMigrationTo8_2_42());
 		scripts.add(new TasksMigrationTo8_3_1());
 		scripts.add(new TasksMigrationTo9_0());
+		scripts.add(new TasksMigrationTo9_0_1_1());
+		scripts.add(new TasksMigrationTo9_0_3());
+		scripts.add(new TasksMigrationTo9_0_4());
+		scripts.add(new TasksMigrationTo9_1());
+		scripts.add(new TasksMigrationTo9_1_0_1());
+		scripts.add(new TasksMigrationTo9_1_0_2());
+		scripts.add(new TasksMigrationTo9_1_0_3());
+		scripts.add(new TasksMigrationTo9_2_0());
+		scripts.add(new TasksMigrationTo9_2_3());
+		scripts.add(new TasksMigrationFrom9_3_UpdateTokensCalculator());
+
 		return scripts;
 	}
 
 	@Override
 	public String getVersion() {
-		return getVersions().get(getVersions().size() - 1).getVersion();
+		return "combo";
 	}
 
 	GeneratedTasksMigrationCombo generatedComboMigration;

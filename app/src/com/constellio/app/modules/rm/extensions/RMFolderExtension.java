@@ -163,7 +163,11 @@ public class RMFolderExtension extends RecordExtension {
 			folder.setCategoryEntered((String) null);
 			folder.setRetentionRuleEntered((String) null);
 
-			folder.setCopyStatusEntered(null);
+			Boolean copyStatusEnteredHasPriority = modelLayerFactory.getSystemConfigurationsManager()
+					.getValue(RMConfigs.COPY_STATUS_ENTERED_HAS_PRIORITY_OVER_PARENTS_COPY_STATUS);
+			if (!Boolean.TRUE.equals(copyStatusEnteredHasPriority)) {
+				folder.setCopyStatusEntered(null);
+			}
 		}
 	}
 
@@ -237,7 +241,7 @@ public class RMFolderExtension extends RecordExtension {
 			Folder folder = rm.wrapFolder(params.getRecord());
 
 			if (user.hasWriteAccess().on(folder)) {
-				if (folder.getPermissionStatus().isInactive()) {
+				if (folder.getPermissionStatus() != null && folder.getPermissionStatus().isInactive()) {
 					if (folder.getBorrowed() != null && folder.getBorrowed()) {
 						return ExtensionBooleanResult
 								.trueIf((user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
@@ -245,7 +249,7 @@ public class RMFolderExtension extends RecordExtension {
 					}
 					return ExtensionBooleanResult.trueIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_FOLDERS).on(folder));
 				}
-				if (folder.getPermissionStatus().isSemiActive()) {
+				if (folder.getPermissionStatus() != null && folder.getPermissionStatus().isSemiActive()) {
 					if (folder.getBorrowed() != null && folder.getBorrowed()) {
 						return ExtensionBooleanResult
 								.trueIf(user.has(RMPermissionsTo.MODIFY_SEMIACTIVE_BORROWED_FOLDER).on(folder) && user

@@ -1,5 +1,21 @@
 package com.constellio.app.services.signature;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import com.constellio.app.api.pdf.signature.config.ESignatureConfigs;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotCreateTempFileException;
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException.PdfSignatureException_CannotReadKeystoreFileException;
@@ -33,7 +49,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.pdf.PdfAnnotation;
 import com.constellio.model.services.pdf.pdtron.AnnotationLockManager;
 import com.constellio.model.services.pdf.pdtron.PdfTronXMLException.PdfTronXMLException_CannotEditAnnotationWithoutLock;
@@ -46,20 +61,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 
 public class PdfDocumentCertifyService {
 
@@ -273,6 +274,7 @@ public class PdfDocumentCertifyService {
 	@SuppressWarnings("rawtypes")
 	public void certifyAndSign(String fileAsStr, List<PdfAnnotation> signatures, String location, String reason, boolean externalSignature)
 			throws PdfSignatureException {
+		ESignatureConfigs eSignatureConfigs = new ESignatureConfigs(modelLayerFactory.getSystemConfigurationsManager());
 
 		String filePath = createTempFileFromBase64("docToSign.pdf", fileAsStr);
 		if (StringUtils.isBlank(filePath)) {
@@ -281,11 +283,10 @@ public class PdfDocumentCertifyService {
 
 		File keystoreFile;
 		String keystorePass;
-		StreamFactory keystore = appLayerFactory.getModelLayerFactory()
-				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
+		StreamFactory keystore = eSignatureConfigs.getKeystore();
 		if (keystore != null) {
 			keystoreFile = createTempKeystoreFile("keystore");
-			keystorePass = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE_PASSWORD);
+			keystorePass = eSignatureConfigs.getKeystorePass();
 		} else {
 			FoldersLocator foldersLocator = new FoldersLocator();
 			keystoreFile = foldersLocator.getKeystoreFile();
@@ -352,9 +353,9 @@ public class PdfDocumentCertifyService {
 	private File createTempKeystoreFile(String filename) throws PdfSignatureException {
 		FileService fileService = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService();
 		File tempFile = fileService.newTemporaryFile(filename);
+		ESignatureConfigs eSignatureConfigs = new ESignatureConfigs(modelLayerFactory.getSystemConfigurationsManager());
 
-		StreamFactory keystore = appLayerFactory.getModelLayerFactory()
-				.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.SIGNING_KEYSTORE);
+		StreamFactory keystore = eSignatureConfigs.getKeystore();
 		if (keystore == null) {
 			throw new PdfSignatureException_CannotReadKeystoreFileException();
 		}

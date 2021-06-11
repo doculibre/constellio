@@ -1,5 +1,7 @@
 package com.constellio.app.entities.schemasDisplay;
 
+import com.constellio.model.services.schemas.SchemaUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,11 +30,32 @@ public class SchemaDisplayConfig implements Serializable {
 							   List<String> searchResultsMetadataCodes, List<String> tableMetadataCodes) {
 		this.collection = collection;
 		this.schemaCode = schemaCode;
-		this.displayMetadataCodes = Collections.unmodifiableList(displayMetadataCodes);
-		this.formMetadataCodes = Collections.unmodifiableList(formMetadataCodes);
-		this.formHiddenMetadataCodes = Collections.unmodifiableList(formHiddenMetadataCodes);
-		this.searchResultsMetadataCodes = Collections.unmodifiableList(searchResultsMetadataCodes);
-		this.tableMetadataCodes = Collections.unmodifiableList(tableMetadataCodes);
+		if (schemaCode.endsWith("_default")) {
+			this.displayMetadataCodes = Collections.unmodifiableList(displayMetadataCodes);
+			this.formMetadataCodes = Collections.unmodifiableList(formMetadataCodes);
+			this.formHiddenMetadataCodes = Collections.unmodifiableList(formHiddenMetadataCodes);
+			this.searchResultsMetadataCodes = Collections.unmodifiableList(searchResultsMetadataCodes);
+			this.tableMetadataCodes = Collections.unmodifiableList(tableMetadataCodes);
+		} else {
+			String defaultSchema = SchemaUtils.getSchemaTypeCode(schemaCode) + "_default";
+			this.displayMetadataCodes = Collections.unmodifiableList(replacingValuesStartingWith(displayMetadataCodes, defaultSchema, schemaCode));
+			this.formMetadataCodes = Collections.unmodifiableList(replacingValuesStartingWith(formMetadataCodes, defaultSchema, schemaCode));
+			this.formHiddenMetadataCodes = Collections.unmodifiableList(replacingValuesStartingWith(formHiddenMetadataCodes, defaultSchema, schemaCode));
+			this.searchResultsMetadataCodes = Collections.unmodifiableList(replacingValuesStartingWith(searchResultsMetadataCodes, defaultSchema, schemaCode));
+			this.tableMetadataCodes = Collections.unmodifiableList(replacingValuesStartingWith(tableMetadataCodes, defaultSchema, schemaCode));
+		}
+	}
+
+	private List<String> replacingValuesStartingWith(List<String> values, String shouldNeverStartWith,
+													 String shouldAlwaysStartWith) {
+
+		List<String> modifiedValues = new ArrayList<>();
+
+		for (String value : values) {
+			modifiedValues.add(value.replace(shouldNeverStartWith, shouldAlwaysStartWith));
+		}
+
+		return modifiedValues;
 	}
 
 	public List<String> getDisplayMetadataCodes() {
@@ -158,6 +181,18 @@ public class SchemaDisplayConfig implements Serializable {
 		formMetadatas.addAll(asList(metadataCodes));
 		return withFormMetadataCodes(formMetadatas).withDisplayMetadataCodes(displayMetadatas);
 	}
+
+	public SchemaDisplayConfig withNewFormAndDisplayMetadatas(List<String> metadataCodes) {
+		List<String> displayMetadatas = new ArrayList<>();
+		displayMetadatas.addAll(this.displayMetadataCodes);
+		displayMetadatas.addAll(metadataCodes);
+
+		List<String> formMetadatas = new ArrayList<>();
+		formMetadatas.addAll(this.formMetadataCodes);
+		formMetadatas.addAll(metadataCodes);
+		return withFormMetadataCodes(formMetadatas).withDisplayMetadataCodes(displayMetadatas);
+	}
+
 
 	public SchemaDisplayConfig withNewDisplayMetadatas(String... metadataCodes) {
 		List<String> displayMetadatas = new ArrayList<>();

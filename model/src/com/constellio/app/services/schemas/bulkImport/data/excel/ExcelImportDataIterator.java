@@ -6,6 +6,7 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRun
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.SimpleImportContent;
 import com.drew.metadata.MetadataException;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +37,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 	public static final String ITEM = "item";
 	public static final String MULTILINE = "multiline";
 	public static final String LEGACY_ID = "importAsLegacyId";
+	public static final String SYNCHRONIZE_FILENAME = "useTitleAsFilename";
 	public static final String FILENAME_HASH_CONTENT = "filename:hash";
 
 	private ExcelSheet sheet;
@@ -108,8 +110,15 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 			dataType.setTypeName(metadatas[0]);
 			for (int index = 1; index < metadatas.length; index++) {
 				String line = metadatas[index];
-				if (line.contains(DATE) || line.contains(PATTERN) || line.contains(SEPARATOR) || line.contains(STRUCTURE) || line
-						.contains(ITEM) || line.contains(MULTILINE) || line.contains(LEGACY_ID) || line.contains(FILENAME_HASH_CONTENT)) {
+				if (line.contains(DATE) ||
+					line.contains(PATTERN) ||
+					line.contains(SEPARATOR) ||
+					line.contains(STRUCTURE) ||
+					line.contains(ITEM) ||
+					line.contains(MULTILINE) ||
+					line.contains(LEGACY_ID) ||
+					line.contains(FILENAME_HASH_CONTENT) ||
+					line.contains(SYNCHRONIZE_FILENAME)) {
 					if (line.contains(DATE)) {
 						String[] splitDatas = line.split("=", 2);
 						dataType.setDateType(splitDatas[splitDatas.length - 1]);
@@ -127,8 +136,11 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 					} else if (line.contains(FILENAME_HASH_CONTENT)) {
 						dataType.setFilenameHashImport(true);
 					} else if (line.contains(LEGACY_ID)) {
-						boolean isLegacyId = line.split("=", 2)[1].equalsIgnoreCase("true") ? true : false;
+						boolean isLegacyId = line.split("=", 2)[1].equalsIgnoreCase("true");
 						options.setImportAsLegacyId(isLegacyId);
+					} else if (line.contains(SYNCHRONIZE_FILENAME) && Schemas.TITLE_CODE.equals(dataType.getTypeName())) {
+						boolean synchronizeFilenames = line.split("=", 2)[1].equalsIgnoreCase("true");
+						options.setSynchronizeFilename(synchronizeFilenames);
 					}
 
 					if (line.contains(SEPARATOR)) {
@@ -344,19 +356,19 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 			return null;
 		}
 
-        value = StringUtils.trim(value);
-        if (type.getDatePattern() != null) {
-            return formatDateString(value, type);
-        } else if (type.getDataPattern() != null) {
-            return type.getDataPattern() + ":" + value;
-        } else if (type.isFilenameHashImport() && StringUtils.isNotBlank(value) && value.contains(":")) {
+		value = StringUtils.trim(value);
+		if (type.getDatePattern() != null) {
+			return formatDateString(value, type);
+		} else if (type.getDataPattern() != null) {
+			return type.getDataPattern() + ":" + value;
+		} else if (type.isFilenameHashImport() && StringUtils.isNotBlank(value) && value.contains(":")) {
 			String[] parts = value.split(":");
 			return new SimpleImportContent("hash:" + parts[1], parts[0], true, TimeProvider.getLocalDateTime());
 
 		} else {
-            return value;
-        }
-    }
+			return value;
+		}
+	}
 
 	public Object formatDateString(String value, ExcelDataType type) {
 		DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(type.getDatePattern());

@@ -9,7 +9,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.VisibilityStatusFilter;
@@ -28,12 +27,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.entities.schemas.Schemas.TOKENS_OF_HIERARCHY;
-import static com.constellio.model.entities.security.SecurityModelUtils.hasNegativeAccessOnSecurisedRecord;
 import static com.constellio.model.services.search.VisibilityStatusFilter.VISIBLES;
 import static java.util.Arrays.asList;
 
@@ -195,12 +195,12 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	@Override
-	public LogicalSearchQuery filteredWithUser(User user) {
-		return filteredWithUser(user, Role.READ);
+	public LogicalSearchQuery filteredWithUserRead(User user) {
+		return filteredWithUserRead(user, Role.READ);
 	}
 
 	@Override
-	public LogicalSearchQuery filteredWithUser(User user, String accessOrPermission) {
+	public LogicalSearchQuery filteredWithUserRead(User user, String accessOrPermission) {
 		if (user == null) {
 			throw new IllegalArgumentException("user required");
 		}
@@ -212,7 +212,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	@Override
-	public LogicalSearchQuery filteredWithUser(User user, List<String> accessOrPermissions) {
+	public LogicalSearchQuery filteredWithUserRead(User user, List<String> accessOrPermissions) {
 		if (user == null) {
 			throw new IllegalArgumentException("user required");
 		}
@@ -229,11 +229,11 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public LogicalSearchQuery filteredWithUserWrite(User user) {
-		return filteredWithUser(user, Role.WRITE);
+		return filteredWithUserRead(user, Role.WRITE);
 	}
 
 	public LogicalSearchQuery filteredWithUserDelete(User user) {
-		return filteredWithUser(user, Role.DELETE);
+		return filteredWithUserRead(user, Role.DELETE);
 	}
 
 
@@ -374,7 +374,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	}
 
 	public LogicalSearchQuery sortDesc(DataStoreField field) {
-		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
+		if (field != null && !field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
 			DataStoreField sortField = field.getSortField();
 			sortFields.add(new FieldLogicalSearchQuerySort(field, false));
 		}
@@ -420,6 +420,11 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public LogicalSearchQuery addFieldFacet(String fieldFacet) {
 		fieldFacets.add(fieldFacet);
+		return this;
+	}
+
+	public LogicalSearchQuery addFieldFacets(List<String> fieldFacets) {
+		this.fieldFacets.addAll(fieldFacets);
 		return this;
 	}
 
@@ -721,13 +726,6 @@ public class LogicalSearchQuery implements SearchQuery {
 
 		@Override
 		public boolean hasUserAccessToRecord(Record record) {
-			SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
-					.newRecordServices().getSecurityModel(user.getCollection());
-
-			//			if (!this.showInvisibleRecordsInLinkingMode && Boolean.FALSE.equals(record.get(Schemas.VISIBLE_IN_TREES))) {
-			//				return false;
-			//			}
-
 			String selectedTypeSmallCode = null;
 			if (forSelectionOfSchemaType != null) {
 				selectedTypeSmallCode = forSelectionOfSchemaType.getSmallCode();
@@ -757,21 +755,15 @@ public class LogicalSearchQuery implements SearchQuery {
 
 			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(record).getDefaultSchema();
 
-			List<String> tokensHierarchy = record.getList(schema.getMetadata(TOKENS_OF_HIERARCHY.getLocalCode()));
+			Set<String> tokensHierarchy = new HashSet<>(record.getList(schema.getMetadata(TOKENS_OF_HIERARCHY.getLocalCode())));
 
 			if (user.isActiveUser() && !user.hasCollectionAccess(this.access == null ? Role.READ : this.access)) {
-
-				if (hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(user.getId(), false))) {
-
-					if (tokensHierarchy.contains("nr_" + user.getId())) {
-						return false;
-					}
+				if (tokensHierarchy.contains("nr_" + user.getId())) {
+					return false;
 				}
 
 				for (String aGroup : user.getUserGroups()) {
-					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())
-						&& hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup, true))) {
-
+					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())) {
 						if (tokensHierarchy.contains("nr_" + aGroup)) {
 							return false;
 						}
@@ -804,7 +796,6 @@ public class LogicalSearchQuery implements SearchQuery {
 
 				for (String aGroup : user.getUserGroups()) {
 					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup, user.getCollection())) {
-
 						if (tokensHierarchy.contains(tokenPrefix + "_" + aGroup)) {
 							return true;
 						}
@@ -824,7 +815,6 @@ public class LogicalSearchQuery implements SearchQuery {
 						return true;
 					}
 				}
-
 
 				if (tokensHierarchy.contains(Record.PUBLIC_TOKEN)) {
 					return true;

@@ -5,6 +5,7 @@ import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
+import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CollectionInfo;
@@ -16,8 +17,10 @@ import com.constellio.model.entities.records.RecordRuntimeException.InvalidMetad
 import com.constellio.model.entities.records.RecordRuntimeException.RecordIsAlreadySaved;
 import com.constellio.model.entities.records.RecordRuntimeException.RecordRuntimeException_CannotModifyId;
 import com.constellio.model.entities.records.RecordRuntimeException.RequiredMetadataArgument;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -26,6 +29,8 @@ import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
+import com.constellio.model.entities.schemas.StructureInstanciationParams;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.records.RecordImplRuntimeException.CannotGetListForSingleValue;
@@ -53,13 +58,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
 import static com.constellio.model.entities.records.Record.GetMetadataOption.DIRECT_GET_FROM_DTO;
 import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_DECRYPTION;
 import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.ONLY_MAIN_STRUCTURE_VALUE;
 import static com.constellio.model.entities.records.Record.GetMetadataOption.RARELY_HAS_VALUE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
@@ -229,9 +238,9 @@ public class RecordImpl implements Record {
 			getMetadataOption = NO_DECRYPTION;
 		}
 
- 		get(metadata, getMetadataOption);
+		get(metadata, getMetadataOption);
 		validateMetadata(metadata);
-		if (!metadata.isMultivalue()) {
+		if (!metadata.isMultivalue() && !Boolean.TRUE.equals(metadata.isMarkedForMigrationToMultivalue())) {
 			validateScalarValue(metadata, value);
 		}
 
@@ -249,7 +258,7 @@ public class RecordImpl implements Record {
 				convertedRecord = EnumWithSmallCodeUtils.toSmallCode((Enum<?>) value);
 			}
 
- 		} else if (value instanceof List) {
+		} else if (value instanceof List) {
 			List<Object> convertedRecordList = new ArrayList<>();
 			for (Object item : (List) value) {
 				if (item instanceof Record) {
@@ -357,7 +366,7 @@ public class RecordImpl implements Record {
 		} else {
 			codeAndType = metadata.getSecondaryLanguageDataStoreCode(language);
 		}
-		if (structuredValues != null && structuredValues.containsKey(codeAndType)) {
+		if (structuredValues != null && structuredValues.get(codeAndType) != null) {
 			if (!structuredValues.get(codeAndType).equals(correctedValue)) {
 				map.put(codeAndType, correctedValue);
 			} else {
@@ -407,7 +416,7 @@ public class RecordImpl implements Record {
 		if (metadata.isMultivalue() && !(value instanceof List)) {
 			throw new RecordRuntimeException.CannotSetNonListValueInMultivalueMetadata(metadata, value.getClass());
 		}
-		if (!metadata.isMultivalue() && (value instanceof Collection)) {
+		if (!metadata.isMultivalue() && !Boolean.TRUE.equals(metadata.isMarkedForMigrationToMultivalue()) && (value instanceof Collection)) {
 			throw new RecordRuntimeException.CannotSetCollectionInSingleValueMetadata(metadata);
 		}
 	}
@@ -445,19 +454,27 @@ public class RecordImpl implements Record {
 	private <T> T get(Metadata metadata, String language, LocalisedRecordMetadataRetrieval mode,
 					  GetMetadataOption... options) {
 
+		boolean directGetFromDTO = false;
+		boolean rarelyHasValue = false;
+		boolean mainStructureValue = false;
+		for (GetMetadataOption option : options) {
 
-		if (recordDTO != null) {
-			boolean directGetFromDTO = false;
-			boolean rarelyHasValue = false;
-			for (GetMetadataOption option : options) {
-
-				if (option == DIRECT_GET_FROM_DTO) {
-					directGetFromDTO = true;
-				}
-				if (option == RARELY_HAS_VALUE) {
-					rarelyHasValue = true;
+			if (option == DIRECT_GET_FROM_DTO) {
+				directGetFromDTO = true;
+			}
+			if (option == RARELY_HAS_VALUE) {
+				rarelyHasValue = true;
+			}
+			if (option == ONLY_MAIN_STRUCTURE_VALUE) {
+				mainStructureValue = true;
+				if (metadata.getType() != STRUCTURE || !(metadata.getStructureFactory() instanceof SeparatedStructureFactory)) {
+					throw new ImpossibleRuntimeException("Option 'ONLY_MAIN_STRUCTURE_VALUE' only available for separated structures");
 				}
 			}
+
+		}
+
+		if (recordDTO != null) {
 
 			if (directGetFromDTO) {
 				//These fields is used A LOT!
@@ -485,13 +502,34 @@ public class RecordImpl implements Record {
 			throw new IllegalArgumentException("Non summary metadata '" + metadata.getCode() + "' cannot be obtained on summary record");
 		}
 
+		T returnedValue;
+		//		if (metadata.getStructureFactory() != null && metadata.getStructureFactory() instanceof SeparatedStructureFactory) {
+		//
+		//			if (structuredValues == null) {
+		//				structuredValues = new HashMap<>();
+		//			}
+		//			Object convertedValue = structuredValues.get(metadata.getDataStoreCode());
+		//			if (convertedValue == null) {
+		//				try {
+		//					convertedValue = convertToSeparatedStructuredValue(metadata);
+		//
+		//				} catch (RecordImplException_CannotBuildStructureValue e) {
+		//					LOGGER.error("Error while building a structure value", e);
+		//					convertedValue = null;
+		//				}
+		//				structuredValues.put(metadata.getDataStoreCode(), convertedValue);
+		//			}
+		//			returnedValue = (T) convertedValue;
+		//
+		//		} else {
+
 		if (collectionInfo.getMainSystemLanguage().getCode().equals(language) || language == null) {
 			codeAndType = metadata.getDataStoreCode();
 		} else {
 			codeAndType = metadata.getSecondaryLanguageDataStoreCode(language);
 		}
 
-		T returnedValue;
+
 		if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY) {
 			returnedValue = (T) lazyTransientValues.get(codeAndType);
 
@@ -509,6 +547,7 @@ public class RecordImpl implements Record {
 		} else {
 			returnedValue = null;
 		}
+		//		}
 
 		String mainDataLanguage = collectionInfo.getMainSystemLanguage().getCode();
 		if (mode == PREFERRING && LangUtils.isNullOrEmptyCollection(returnedValue) && !language.equals(mainDataLanguage)) {
@@ -536,12 +575,20 @@ public class RecordImpl implements Record {
 			}
 		}
 
+		if (mainStructureValue && returnedValue != null) {
+			ModifiableStructure modifiableStructure = (ModifiableStructure) returnedValue;
+			SeparatedStructureFactory structureFactory = (SeparatedStructureFactory) metadata.getStructureFactory();
+			returnedValue = (T) structureFactory.toFields(modifiableStructure).get(structureFactory.getMainValueFieldName());
+		}
+
 		return returnedValue;
 	}
 
 	private boolean hasOption(GetMetadataOption[] options, GetMetadataOption option) {
 		for (int i = 0; i < options.length; i++) {
-			return options[i] == option;
+			if (options[i] == option) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -570,7 +617,9 @@ public class RecordImpl implements Record {
 		}
 
 		if (rawValue == null) {
-			return null;
+			if (metadata.getType() != STRUCTURE || !(metadata.getStructureFactory() instanceof SeparatedStructureFactory)) {
+				return null;
+			}
 		}
 
 		if (metadata.isEncrypted()) {
@@ -589,47 +638,102 @@ public class RecordImpl implements Record {
 
 		Object convertedValue = structuredValues.get(metadata.getDataStoreCode());
 		if (convertedValue == null) {
-			try {
-				convertedValue = convertToStructuredValue(rawValue, metadata);
-			} catch (RecordImplException_CannotBuildStructureValue e) {
-				LOGGER.error("Error while building a structure value", e);
-				convertedValue = null;
+
+			if (metadata.isCombinedStructure()) {
+				try {
+					convertedValue = convertToCombinedStructuredValue(rawValue, metadata);
+				} catch (RecordImplException_CannotBuildStructureValue e) {
+					LOGGER.error("Error while building a structure value", e);
+					convertedValue = null;
+				}
+			} else if (metadata.isSeparatedStructure()) {
+				try {
+					convertedValue = convertToSeparatedStructuredValue(metadata);
+				} catch (RecordImplException_CannotBuildStructureValue e) {
+					LOGGER.error("Error while building a structure value", e);
+					convertedValue = null;
+				}
 			}
+
 			structuredValues.put(metadata.getDataStoreCode(), convertedValue);
 		}
 		return convertedValue;
 	}
 
-	private Object convertToStructuredValue(Object rawValue, Metadata metadata) {
+	private Object convertToSeparatedStructuredValue(Metadata metadata) {
+
+		AtomicBoolean hasFields = new AtomicBoolean(false);
+		Map<String, Object> structureFields = new HashMap<>();
+
+		SeparatedStructureFactory factory = (SeparatedStructureFactory) metadata.getStructureFactory();
+		Consumer<Map<String, Object>> addValuesFromMap = (map) -> {
+			for (Map.Entry<String, Object> entry : map.entrySet()) {
+
+				String fieldName;
+				if (entry.getKey().startsWith(metadata.getLocalCode() + ".")) {
+					fieldName = entry.getKey().substring(metadata.getLocalCode().length() + 1, entry.getKey().lastIndexOf("_"));
+				} else if (entry.getKey().equals(metadata.getDataStoreCode())) {
+					fieldName = factory.getMainValueFieldName();
+				} else {
+					continue;
+				}
+
+				if (entry.getValue() == null) {
+					structureFields.remove(fieldName);
+				} else {
+					if (entry.getValue() instanceof ModifiableStructure) {
+						hasFields.set(true);
+						structureFields.putAll(factory.toFields((ModifiableStructure) entry.getValue()));
+					} else {
+						hasFields.set(true);
+						structureFields.put(fieldName, entry.getValue());
+					}
+				}
+			}
+		};
+
+
+		if (recordDTO != null) {
+			addValuesFromMap.accept(recordDTO.getFields());
+		}
+
+		addValuesFromMap.accept(modifiedValues);
+
+		StructureInstanciationParams params = new StructureInstanciationParams(getRecordId(), getTypeCode(), collection);
+		return !hasFields.get() ? null : factory.build(structureFields, params);
+
+	}
+
+	private Object convertToCombinedStructuredValue(Object rawValue, Metadata metadata) {
 		if (rawValue instanceof List) {
 			List<Object> convertedValues = new ArrayList<>();
 			for (Object value : (List) rawValue) {
 				if (value == null) {
 					convertedValues.add(null);
 				} else {
-					convertedValues.add(convertToStructuredValue(value, metadata));
+					convertedValues.add(convertToCombinedStructuredValue(value, metadata));
 				}
 			}
 			return convertedValues;
 		} else {
 			try {
-				return metadata.getStructureFactory().build((String) rawValue);
+				return ((CombinedStructureFactory) metadata.getStructureFactory()).build((String) rawValue);
 			} catch (RuntimeException e) {
 				throw new RecordImplException_CannotBuildStructureValue(getId(), (String) rawValue, e);
 			}
 		}
 	}
 
-	private Object convertStructuredValueToString(Object structureValue, Metadata metadata) {
+	private Object convertCombinedStructuredValueToString(Object structureValue, Metadata metadata) {
 		if (structureValue instanceof List) {
 			List<Object> convertedValues = new ArrayList<>();
 			for (Object value : (List) structureValue) {
-				convertedValues.add(convertStructuredValueToString(value, metadata));
+				convertedValues.add(convertCombinedStructuredValueToString(value, metadata));
 			}
 			return convertedValues;
 		} else {
 			ModifiableStructure structure = (ModifiableStructure) structureValue;
-			return structure == null ? null : metadata.getStructureFactory().toString(structure);
+			return structure == null ? null : ((CombinedStructureFactory) metadata.getStructureFactory()).toString(structure);
 		}
 	}
 
@@ -834,6 +938,33 @@ public class RecordImpl implements Record {
 		return toDocumentDTO(schema, copyfieldsPopulators);
 	}
 
+	private void addStructureFieldToSolrFieldsMap(Metadata metadata, ModifiableStructure value,
+												  Map<String, Object> solrFields) {
+
+		if (value != null) {
+			Map<String, Object> structureFields = ((SeparatedStructureFactory) metadata.getStructureFactory()).toFields((ModifiableStructure) value);
+
+			String mainFieldName = ((SeparatedStructureFactory) metadata.getStructureFactory()).getMainValueFieldName();
+			for (Entry<String, Object> structureField : structureFields.entrySet()) {
+
+				String dataStoreCode;
+				if (structureField.getKey().equals(mainFieldName)) {
+					dataStoreCode = metadata.getLocalCode() + "_" + SolrDataStoreTypesUtils.getTypeOrMultivalueExtensionForValue(structureField.getValue());
+				} else {
+					dataStoreCode = metadata.getLocalCode() + "." + structureField.getKey() + "_" +
+									SolrDataStoreTypesUtils.getTypeOrMultivalueExtensionForValue(structureField.getValue());
+				}
+
+
+				if (structureField.getValue() == null) {
+					solrFields.remove(dataStoreCode);
+				} else {
+					solrFields.put(dataStoreCode, structureField.getValue());
+				}
+			}
+		}
+	}
+
 	public RecordDTO toDocumentDTO(MetadataSchema schema, List<FieldsPopulator> copyfieldsPopulators) {
 
 		Map<String, Object> fields = new HashMap<String, Object>();
@@ -843,7 +974,6 @@ public class RecordImpl implements Record {
 			fields.putAll(recordDTO.getFields());
 			mode = recordDTO.getLoadingMode();
 		}
-
 
 		for (Map.Entry<String, Object> entry : modifiedValues.entrySet()) {
 			String metadataAtomicCode = new SchemaUtils().getLocalCodeFromDataStoreCode(entry.getKey());
@@ -856,7 +986,15 @@ public class RecordImpl implements Record {
 					fields.put(entry.getKey(), encryptionServices.encryptWithAppKey(value));
 
 				} else if (metadata.getStructureFactory() != null) {
-					fields.put(entry.getKey(), convertStructuredValueToString(value, metadata));
+					if (metadata.isCombinedStructure()) {
+						fields.put(entry.getKey(), convertCombinedStructuredValueToString(value, metadata));
+
+					} else if (metadata.isSeparatedStructure()) {
+						addStructureFieldToSolrFieldsMap(metadata, (ModifiableStructure) value, fields);
+
+					} else {
+						fields.put(entry.getKey(), value);
+					}
 
 				} else {
 					fields.put(entry.getKey(), value);
@@ -1001,7 +1139,21 @@ public class RecordImpl implements Record {
 					}
 
 					if (metadata.getStructureFactory() != null) {
-						convertedValues.put(entry.getKey(), convertStructuredValueToString(value, metadata));
+						if (metadata.isCombinedStructure()) {
+							convertedValues.put(entry.getKey(), convertCombinedStructuredValueToString(value, metadata));
+
+						} else if (metadata.isSeparatedStructure()) {
+							recordDTO.getFields().keySet().forEach((f) -> {
+								if (f.startsWith(metadata.getLocalCode() + "_") ||
+									f.startsWith(metadata.getLocalCode() + ".")) {
+									convertedValues.put(f, null);
+								}
+							});
+							addStructureFieldToSolrFieldsMap(metadata, (ModifiableStructure) value, convertedValues);
+
+						} else {
+							convertedValues.put(entry.getKey(), value);
+						}
 					}
 				}
 			} catch (NoSuchMetadata e) {
@@ -1166,7 +1318,7 @@ public class RecordImpl implements Record {
 	private Object correctValue(Metadata metadata, Object value) {
 
 		if (metadata.getType() == MetadataValueType.INTEGER && !metadata.isMultivalue()) {
-			return value == null ? null :((Number) value).intValue();
+			return value == null ? null : ((Number) value).intValue();
 		}
 		if (value instanceof Number) {
 			return ((Number) value).doubleValue();
@@ -1440,6 +1592,20 @@ public class RecordImpl implements Record {
 	public Map<String, Object> getEagerTransientValues() {
 		return eagerTransientValues;
 	}
+
+	public NestedRecordAuthorizations getNestedAuthorizations() {
+		if (recordDTO != null && recordDTO.getLoadingMode() != RecordDTOMode.FULLY_LOADED) {
+			return null;
+		}
+		NestedRecordAuthorizations nestedRecordAuthorizations = get(Schemas.NESTED_AUTHORIZATIONS, GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION);
+		if (nestedRecordAuthorizations == null) {
+			StructureInstanciationParams params = new StructureInstanciationParams(getRecordId(), getTypeCode(), collection);
+			nestedRecordAuthorizations = new NestedRecordAuthorizations(params);
+			set(Schemas.NESTED_AUTHORIZATIONS, nestedRecordAuthorizations);
+		}
+		return nestedRecordAuthorizations;
+	}
+
 
 	@Override
 	public <T> void addValueToList(Metadata metadata, T value) {

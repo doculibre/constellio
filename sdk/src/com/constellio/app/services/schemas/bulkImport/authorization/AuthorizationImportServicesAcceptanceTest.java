@@ -165,9 +165,9 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
-		Authorization auth1 = rm.getSolrAuthorizationDetailsWithLegacyId("1");
-		Authorization auth2 = rm.getSolrAuthorizationDetailsWithLegacyId("2");
-		Authorization auth3 = rm.getSolrAuthorizationDetailsWithLegacyId("3");
+		Authorization auth1 = rm.getAuthorizationWithLegacyId("1");
+		Authorization auth2 = rm.getAuthorizationWithLegacyId("2");
+		Authorization auth3 = rm.getAuthorizationWithLegacyId("3");
 
 		assertThat(auth1).isNotNull();
 		assertThat(auth1.getTarget()).isEqualTo(rm.getCategoryWithCode("Z100").getId());

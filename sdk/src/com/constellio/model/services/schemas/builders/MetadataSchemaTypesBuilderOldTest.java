@@ -43,7 +43,7 @@ public class MetadataSchemaTypesBuilderOldTest extends ConstellioTest {
 		CollectionInfo zeCollectionInfo = new CollectionInfo((byte) 0, zeCollection, "fr", Arrays.asList("fr"));
 		typesBuilder = (new MetadataSchemaTypesBuilder(zeCollectionInfo)).createWithVersion(zeCollectionInfo, modelLayerFactory, VERSION,
 				new DefaultClassProvider(), Arrays.asList(Language.French));
-		folderTypeBuilder = typesBuilder.createNewSchemaType(FOLDER);
+		folderTypeBuilder = typesBuilder.createNewSchemaTypeWithSecurity(FOLDER);
 		schemaTypes = typesBuilder.build(typesFactory);
 		typesBuilder2 = (new MetadataSchemaTypesBuilder(zeCollectionInfo)).modify(schemaTypes, modelLayerFactory, new DefaultClassProvider());
 		folderTypeBuilder.getDefaultSchema().create("zetitle");
@@ -69,7 +69,7 @@ public class MetadataSchemaTypesBuilderOldTest extends ConstellioTest {
 	public void whenCreateNewSchemaTypeWithAExistentSchemaThenThrowException()
 			throws Exception {
 
-		folderTypeBuilder = typesBuilder.createNewSchemaType(FOLDER);
+		folderTypeBuilder = typesBuilder.createNewSchemaTypeWithSecurity(FOLDER);
 	}
 
 	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType.class)

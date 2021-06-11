@@ -25,6 +25,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.data.util.converter.Converter;
+import com.vaadin.server.Extension;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -39,6 +40,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.constellio.model.entities.records.Record.GetMetadataOption.NO_SUMMARY_METADATA_VALIDATION;
+
 @Slf4j
 public class ReferenceDisplay extends Button {
 
@@ -47,14 +50,14 @@ public class ReferenceDisplay extends Button {
 	private String recordId;
 	private RecordContextMenu contextMenu;
 	private boolean openLinkInNewTab = false;
-	private Map<String,String> extraParameters = new HashMap<>();
+	private Map<String, String> extraParameters = new HashMap<>();
 
 	public ReferenceDisplay(RecordVO recordVO) {
 		this(recordVO, true);
 	}
 
 	public ReferenceDisplay(RecordVO recordVO, boolean link) {
-		this(recordVO, link,  null);
+		this(recordVO, link, null);
 	}
 
 	public ReferenceDisplay(RecordVO recordVO, boolean link, Map<String, String> extraParameters) {
@@ -118,7 +121,7 @@ public class ReferenceDisplay extends Button {
 			record = recordVO.getRecord();
 		} else if (recordId != null) {
 			try {
-				record = recordServices.getDocumentById(recordId);
+				record = recordServices.realtimeGetRecordSummaryById(recordId);
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				record = null;
 			}
@@ -178,7 +181,7 @@ public class ReferenceDisplay extends Button {
 			RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 			try {
-				String niceTitle = getNiceTitle(recordServices.getDocumentById(recordId), types);
+				String niceTitle = getNiceTitle(recordServices.realtimeGetRecordSummaryById(recordId), types);
 				addExtension(new NiceTitle(niceTitle));
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 				log.warn("Referenced recordId doesn't exist : " + recordId, e);
@@ -191,7 +194,7 @@ public class ReferenceDisplay extends Button {
 		String description = null;
 		if (schema.hasMetadataWithCode("description")) {
 			Metadata descriptionMetadata = schema.getMetadata("description");
-			description = record.get(descriptionMetadata, getLocale());
+			description = record.get(descriptionMetadata, getLocale(), NO_SUMMARY_METADATA_VALIDATION);
 		}
 		return description;
 	}
@@ -215,7 +218,7 @@ public class ReferenceDisplay extends Button {
 			isRecordInTrash = Boolean.TRUE.equals(recordVO.get(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode()));
 		} else if (recordId != null) {
 			try {
-				Record record = recordServices.getDocumentById(recordId);
+				Record record = recordServices.realtimeGetRecordSummaryById(recordId);
 				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(record.getSchemaCode());
 				navigationParams = new NavigationParams(ui.navigate(), recordId, schemaTypeCode, Page.getCurrent(),
 						this);
@@ -306,5 +309,9 @@ public class ReferenceDisplay extends Button {
 	public void disableClicks() {
 		// TODO Auto-generated method stub
 
+	}
+
+	public void addExtension(Extension extension) {
+		super.addExtension(extension);
 	}
 }

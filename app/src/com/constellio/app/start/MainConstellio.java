@@ -139,6 +139,11 @@ public final class MainConstellio {
 			params.setSSLWithKeystorePassword(keyStorePassword);
 		}
 
+		boolean isHttpsViaProxy = Boolean.parseBoolean(properties.get("server.httpsViaProxy"));
+		if (isHttpsViaProxy) {
+			params.setIsHttpsViaProxy(true);
+		}
+
 		String serverPortConfig = properties.get("server.port");
 		params.setPort(StringUtils.isNotBlank(serverPortConfig) ? Integer.valueOf(serverPortConfig) : 8080);
 

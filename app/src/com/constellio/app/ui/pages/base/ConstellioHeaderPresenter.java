@@ -12,7 +12,10 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.LegalReference;
+import com.constellio.app.modules.rm.wrappers.LegalRequirement;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.services.background.UpdateServerPingBackgroundAction;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -41,6 +44,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.SearchSortType;
@@ -55,6 +59,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -76,16 +81,20 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Notification;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
@@ -346,6 +355,9 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		} else if (StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES)
 				.globally()) {
 			return false;
+		} else if (!Toggle.DISPLAY_LEGAL_REQUIREMENTS.isEnabled() &&
+				   (type.getCode().equals(LegalRequirement.SCHEMA_TYPE) || type.getCode().equals(LegalReference.SCHEMA_TYPE))) {
+			return false;
 		}
 		return true;
 	}
@@ -420,7 +432,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
 				.setNumberOfRows(0)
 				.setCondition(generateFromForMetadataAllowedInCriteria(schemaType).returnAll())
-				.addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
+				.addFieldFacet("schema_s").filteredWithUserRead(getCurrentUser()))
 				.getFieldFacetValues("schema_s");
 
 		List<Metadata> metadatas = new ArrayList<>();
@@ -470,6 +482,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		MetadataSchemaToVOBuilder schemaBuilder = new MetadataSchemaToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
+
 		List<Metadata> allMetadatas;
 		if (StringUtils.isBlank(schemaCode)) {
 			allMetadatas = schemaType.getAllMetadataIncludingInheritedOnes();
@@ -478,7 +491,8 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		}
 		List<String> metadatasAddedToResults = new ArrayList<>();
 		for (Metadata metadata : allMetadatas) {
-			if ((!schemaType.hasSecurity() || metadataCodes.contains(metadata.getLocalCode())) && !metadatasAddedToResults.contains(metadata.getLocalCode())) {
+			boolean metadataAvailable = (!schemaType.hasSecurity() && !isCopiedMode) || metadataCodes.contains(metadata.getLocalCode());
+			if (metadataAvailable && metadata.isEnabled() && !metadatasAddedToResults.contains(metadata.getLocalCode())) {
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());
@@ -927,4 +941,80 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 	}
 
+	// TODO : TEMP USE ONLY REMOVE WHEN REFACTORING NOTIFICATIONS
+	public Map<String, UpdateServerPingBackgroundAction.Notification> getNotifications() {
+		Map<String, UpdateServerPingBackgroundAction.Notification> notifications = userCanViewNotifications() ? UpdateServerPingBackgroundAction.notifications : Collections.emptyMap();
+
+		return notifications.entrySet().stream()
+				.filter(entry -> userCanViewNotification(entry.getKey()))
+				.collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+	}
+
+	// TODO : TEMP USE ONLY REMOVE WHEN REFACTORING NOTIFICATIONS
+	private boolean userCanViewNotifications() {
+		return getCurrentUser() != null && getCurrentUser().has(CorePermissions.MANAGE_SYSTEM_UPDATES).globally();
+	}
+
+	// TODO : TEMP USE ONLY REMOVE WHEN REFACTORING NOTIFICATIONS
+	private boolean userCanViewNotification(String notification) {
+		boolean canBeViewed;
+		if (canBeViewed = getCurrentUser() != null) {
+			User currentUser = getCurrentUser();
+			UserServices userServices = modelLayerFactory.newUserServices();
+			UserCredential user = userServices.getUser(currentUser.getUsername());
+			LocalDate aWeekAgo = TimeProvider.getLocalDate().minusDays(7);
+
+			try {
+				switch (notification) {
+					case "Notifications.newVersionsAvailable":
+					case "Notifications.newVersionAvailable":
+						canBeViewed = aWeekAgo.isAfter(user.getNewVersionsNotificationViewDate());
+						break;
+					case "Notifications.currentLtsEndsOn":
+					case "Notifications.currentLtsIsExpired":
+						canBeViewed = aWeekAgo.isAfter(user.getLtsEndOfLifeNotificationViewDate());
+						break;
+					case "Notifications.licenseInstalled":
+						canBeViewed = aWeekAgo.isAfter(user.getLicenseNotificationViewDate());
+						break;
+					case "Notifications.currentVersionNotALtsButALtsExists":
+						canBeViewed = aWeekAgo.isAfter(user.getNotALtsNotificationViewDate());
+						break;
+
+					default:
+						canBeViewed = false;
+				}
+			} catch (IllegalArgumentException nullDateException) {
+				canBeViewed = true;
+			}
+		}
+		return canBeViewed;
+	}
+
+	// TODO : TEMP USE ONLY REMOVE WHEN REFACTORING NOTIFICATIONS
+	public void notificationsViewed(Collection<String> notificationKeys) {
+		if (getCurrentUser() != null) {
+			User currentUser = getCurrentUser();
+			UserServices userServices = modelLayerFactory.newUserServices();
+			UserCredential user = userServices.getUser(currentUser.getUsername());
+			LocalDate today = TimeProvider.getLocalDate();
+
+			if (notificationKeys != null) {
+				userServices.execute(user.getUsername(), req -> {
+					if (notificationKeys.contains("Notifications.newVersionsAvailable") || notificationKeys.contains("Notifications.newVersionAvailable")) {
+						req.set(UserCredential.NEW_VERSIONS_NOTIFICATION_VIEW_DATE, today);
+					}
+					if (notificationKeys.contains("Notifications.currentLtsEndsOn") || notificationKeys.contains("Notifications.currentLtsIsExpired")) {
+						req.set(UserCredential.LTS_END_OF_LIFE_NOTIFICATION_VIEW_DATE, today);
+					}
+					if (notificationKeys.contains("Notifications.licenseInstalled")) {
+						req.set(UserCredential.LICENSE_NOTIFICATION_VIEW_DATE, today);
+					}
+					if (notificationKeys.contains("Notifications.currentVersionNotALtsButALtsExists")) {
+						req.set(UserCredential.NOT_A_LTS_NOTIFICATION_VIEW_DATE, today);
+					}
+				});
+			}
+		}
+	}
 }

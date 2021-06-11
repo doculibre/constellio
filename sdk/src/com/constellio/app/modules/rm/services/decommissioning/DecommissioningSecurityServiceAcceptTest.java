@@ -54,7 +54,16 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 			throws Exception {
 		assertThat(service.hasAccessToDecommissioningMainPage(sasquatch)).isFalse();
 		assertThat(service.hasAccessToDecommissioningListPage(alistIn10A, sasquatch)).isFalse();
+	}
 
+	@Test
+	public void givenUsersHasNoDecommissioningPermissionsAndNoListsToValidateButIsSuperUserThenHasAccessToPages()
+			throws Exception {
+		alistIn10A.setSuperUser(users.sasquatchIn(zeCollection));
+		recordServices.update(alistIn10A);
+
+		assertThat(service.hasAccessToDecommissioningMainPage(sasquatch)).isTrue();
+		assertThat(service.hasAccessToDecommissioningListPage(alistIn10A, sasquatch)).isTrue();
 	}
 
 	@Test
@@ -145,6 +154,66 @@ public class DecommissioningSecurityServiceAcceptTest extends ConstellioTest {
 
 		assertThatResultsOf(queryFactory.getGeneratedListsQuery(robin))
 
+				.contains(aListIn20D, anotherListIn20D)
+				.doesNotContain(alistIn10A, anotherListIn10A);
+
+		assertThatResultsOf(queryFactory.getProcessedListsQuery(sasquatch))
+				.contains(aProcessedListIn10A, anotherProcessedListIn10A)
+				.doesNotContain(alistIn10A, anotherListIn10A, aListIn20D, anotherListIn20D);
+
+		assertThatResultsOf(queryFactory.getProcessedListsQuery(robin)).isEmpty();
+
+		assertThatResultsOf(queryFactory.getListsToValidateQuery(sasquatch)).isEmpty();
+
+		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(sasquatch))
+				.extracting("id").containsOnly(records.list_25);
+
+		assertThatResultsOf(queryFactory.getListsPendingValidationQuery(robin)).isEmpty();
+	}
+
+	@Test
+	public void givenUsersHasDecommissioningPermissionsInASpecificAdministrativeUnitThenHasAccessToItsListsAndSuperUserList()
+			throws Exception {
+		save(authorization().forUsers(sasquatch).on(records.unitId_10).giving(RMRoles.RGD));
+		save(authorization().forUsers(robin).on(records.unitId_20).giving(RMRoles.RGD));
+		refresh();
+
+		anotherListIn20D.setSuperUser(users.sasquatchIn(zeCollection));
+		recordServices.update(anotherListIn20D);
+
+		assertThat(service.canCreateLists(sasquatch)).isTrue();
+		assertThat(service.canCreateLists(robin)).isTrue();
+		assertThat(service.hasAccessToDecommissioningMainPage(sasquatch)).isTrue();
+		assertThat(service.hasAccessToDecommissioningListPage(alistIn10A, sasquatch)).isTrue();
+		assertThat(service.hasAccessToDecommissioningListPage(aListIn20D, sasquatch)).isFalse();
+		assertThat(service.getVisibleTabsInDecommissioningMainPage(sasquatch)).containsOnly(
+				DecommissioningMainPresenter.CREATE, DecommissioningMainPresenter.GENERATED,
+				DecommissioningMainPresenter.PENDING_VALIDATION, DecommissioningMainPresenter.TO_VALIDATE,
+				DecommissioningMainPresenter.VALIDATED, DecommissioningMainPresenter.PENDING_APPROVAL,
+				DecommissioningMainPresenter.TO_APPROVE, DecommissioningMainPresenter.APPROVED,
+				DecommissioningMainPresenter.PROCESSED);
+
+		assertThat(service.canAskApproval(alistIn10A, sasquatch)).isTrue();
+		assertThat(service.canAskValidation(alistIn10A, sasquatch)).isTrue();
+		assertThat(service.canDelete(alistIn10A, sasquatch)).isTrue();
+		assertThat(service.canModify(alistIn10A, sasquatch)).isTrue();
+		assertThat(service.canModifyFoldersAndContainers(alistIn10A, sasquatch)).isTrue();
+		assertThat(service.canProcess(alistIn10A, sasquatch)).isTrue();
+		assertThat(service.canValidate(alistIn10A, sasquatch)).isFalse();
+
+		assertThat(service.canAskApproval(aListIn20D, sasquatch)).isFalse();
+		assertThat(service.canAskValidation(aListIn20D, sasquatch)).isFalse();
+		assertThat(service.canDelete(aListIn20D, sasquatch)).isFalse();
+		assertThat(service.canModify(aListIn20D, sasquatch)).isFalse();
+		assertThat(service.canModifyFoldersAndContainers(aListIn20D, sasquatch)).isFalse();
+		assertThat(service.canProcess(aListIn20D, sasquatch)).isFalse();
+		assertThat(service.canValidate(aListIn20D, sasquatch)).isFalse();
+
+		assertThatResultsOf(queryFactory.getGeneratedListsQuery(sasquatch))
+				.contains(alistIn10A, anotherListIn10A, anotherListIn20D)
+				.doesNotContain(aListIn20D);
+
+		assertThatResultsOf(queryFactory.getGeneratedListsQuery(robin))
 				.contains(aListIn20D, anotherListIn20D)
 				.doesNotContain(alistIn10A, anotherListIn10A);
 

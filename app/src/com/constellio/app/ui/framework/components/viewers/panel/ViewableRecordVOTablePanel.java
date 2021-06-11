@@ -1,20 +1,5 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu;
-
 import com.constellio.app.api.extensions.params.SchemaDisplayParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension.ViewableRecordVOTablePanelExtensionParams;
@@ -42,6 +27,8 @@ import com.constellio.app.ui.framework.components.selection.SelectionComponent.S
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionManager;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.BaseTable.DeselectAllButton;
+import com.constellio.app.ui.framework.components.table.BaseTable.ItemsPerPageChangeListener;
+import com.constellio.app.ui.framework.components.table.BaseTable.PageChangeListener;
 import com.constellio.app.ui.framework.components.table.BaseTable.PagingControls;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable.RecordVOSelectionManager;
@@ -52,6 +39,7 @@ import com.constellio.app.ui.framework.containers.RecordVOContainer;
 import com.constellio.app.ui.framework.exception.UserException.UserDoesNotHaveAccessException;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.schemaRecords.DisplaySchemaRecordWindow;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.ResponsiveUtils;
 import com.constellio.model.entities.enums.TableMode;
 import com.constellio.model.entities.records.Record;
@@ -94,8 +82,21 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.themes.ValoTheme;
-
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 //@com.vaadin.annotations.JavaScript({ "theme://jquery/jquery-2.1.4.min.js" })
 @Slf4j
@@ -177,6 +178,12 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	private TableModeManager tableModeManager;
 
 	private String panelId = null;
+
+	private Integer itemsPerPage;
+	private Integer currentPage;
+
+	private List<PageChangeListener> pageChangeListeners = new ArrayList();
+	private List<ItemsPerPageChangeListener> itemsPerPageChangeListeners = new ArrayList();
 
 	public ViewableRecordVOTablePanel(RecordVOContainer container) {
 		this(container, null, null, true);
@@ -291,7 +298,12 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		tableLayout.addComponent(tableButtonsLayout);
 		tableLayout.addComponent(table);
 		if (table.isPaged()) {
-			ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
+			pagingControls = table.createPagingControls();
+			if (!ConstellioUI.getCurrent().isNested()) {
+				ConstellioUI.getCurrent().setStaticFooterContent(pagingControls);
+			} else {
+				tableLayout.addComponent(pagingControls);
+			}
 		}
 		Label spacer = new Label("");
 		spacer.setHeight("50px");
@@ -325,9 +337,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		this.allItemsVisible = allItemsVisible;
 		adjustResultsTableHeight();
 	}
-	
+
 	private void adjustResultsTableHeight() {
-		if (allItemsVisible && (table != null && (tableMode == TableMode.TABLE || !isPagedInListMode()))) {
+		if (allItemsVisible && (table != null && (tableMode == TableMode.TABLE || !isPagedInListMode())) && table.getPageLength() != table.size()) {
 			table.setPageLength(table.size());
 		}
 	}
@@ -472,11 +484,11 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return selectedRecords;
 	}
 
-	int computeCompressedWidth() {
+	protected int computeCompressedWidth() {
 		return Page.getCurrent().getBrowserWindowWidth() > 1400 ? 650 : 500;
 	}
 
-	boolean isCompressionSupported() {
+	protected boolean isCompressionSupported() {
 		return ResponsiveUtils.isDesktop() && !isNested() && tableMode == TableMode.LIST;
 	}
 
@@ -552,234 +564,12 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return null;
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
 	private BaseTable buildResultsTable() {
 		BaseTable resultsTable;
 		if (tableMode == TableMode.LIST) {
-			ViewableRecordVOContainer viewableRecordVOContainer = new ViewableRecordVOContainer(recordVOContainer) {
-				@Override
-				protected Component getRecordDisplay(Object itemId) {
-					Component recordDisplay = ViewableRecordVOTablePanel.this.newSearchResultComponent(itemId);
-					if (recordDisplay == null) {
-						recordDisplay = super.getRecordDisplay(itemId);
-					}
-					return recordDisplay;
-				}
-
-				@Override
-				protected boolean isShowThumbnailCol() {
-					return ViewableRecordVOTablePanel.this.isShowThumbnailCol();
-				}
-			};
-
-			final ViewableRecordVOTable viewableRecordVOTable = new ViewableRecordVOTable(viewableRecordVOContainer) {
-				@Override
-				public boolean isSelectColumn() {
-					return ViewableRecordVOTablePanel.this.isSelectColumn();
-				}
-
-				@Override
-				public boolean isDragColumn() {
-					return ViewableRecordVOTablePanel.this.isRowDragSupported();
-				}
-
-				@Override
-				protected SelectionManager newSelectionManager() {
-					SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
-					if (selectionManager == null) {
-						selectionManager = super.newSelectionManager();
-					}
-					SelectionManager finalSelectionManager = createSelectionManagerWithSelectedCountCaption(selectionManager);
-					return finalSelectionManager;
-				}
-
-				@Override
-				protected MenuBar newMenuBar(Object itemId) {
-					if (isNewMenuBarDefined()) {
-						Item item = getItem(itemId);
-						RecordVO recordVO = getRecordVOForTitleColumn(item);
-
-						return ViewableRecordVOTablePanel.this.newMenuBar(recordVO);
-					} else {
-						return super.newMenuBar(itemId);
-					}
-				}
-
-				@Override
-				public boolean isUnknownEnd() {
-					return ViewableRecordVOTablePanel.this.isUnknownEnd();
-				}
-
-				private SelectionManager createSelectionManagerWithSelectedCountCaption(
-						SelectionManager selectionManager) {
-					final SelectionManager finalSelectionManager = selectionManager;
-					SelectionManager selectionManagerWithSelectedCount = new SelectionManager() {
-						@Override
-						public List<Object> getAllSelectedItemIds() {
-							return finalSelectionManager.getAllSelectedItemIds();
-						}
-
-						@Override
-						public boolean isAllItemsSelected() {
-							return finalSelectionManager.isAllItemsSelected();
-						}
-
-						@Override
-						public boolean isAllItemsDeselected() {
-							return finalSelectionManager.isAllItemsDeselected();
-						}
-
-						@Override
-						public boolean isSelected(Object itemId) {
-							return finalSelectionManager.isSelected(itemId);
-						}
-
-						@Override
-						public void selectionChanged(SelectionChangeEvent event) {
-							finalSelectionManager.selectionChanged(event);
-							setSelectedCountCaption(getSelectedSize());
-						}
-					};
-					return selectionManagerWithSelectedCount;
-				}
-
-				@Override
-				public boolean isPaged() {
-					return ViewableRecordVOTablePanel.this.isPagedInListMode();
-				}
-
-				@Override
-				protected RecordVO getRecordVOForTitleColumn(Item item) {
-					RecordVO recordVO = ViewableRecordVOTablePanel.this.getRecordVOForTitleColumn(item);
-					if (recordVO == null) {
-						recordVO = super.getRecordVOForTitleColumn(item);
-					}
-					return recordVO;
-				}
-				
-				@Override
-				public void containerItemSetChange(ItemSetChangeEvent event) {
-					super.containerItemSetChange(event);
-					if (!isPaged() && allItemsVisible) {
-						adjustResultsTableHeight();
-//					} else {
-//						scrollToTop();
-					}
-				}
-			};
-			viewableRecordVOTable.setWidth("100%");
-			if (recordVOContainer instanceof PreLoader) {
-				viewableRecordVOTable.setPreLoader((PreLoader) recordVOContainer);
-			}
-
-			resultsTable = viewableRecordVOTable;
-			resultsTable.setContainerDataSource(new ContainerAdapter(viewableRecordVOContainer) {
-				@Override
-				public Property getContainerProperty(Object itemId, Object propertyId) {
-					Property result = super.getContainerProperty(itemId, propertyId);
-					Object propertyValue = result.getValue();
-					if (propertyValue instanceof SearchResultDisplay) {
-						SearchResultDisplay searchResultDisplay = (SearchResultDisplay) propertyValue;
-						for (ClickListener clickListener : searchResultDisplay.getClickListeners()) {
-							searchResultDisplay.removeClickListener(clickListener);
-						}
-					}
-					//					if (propertyValue instanceof Component) {
-					//						List<ReferenceDisplay> referenceDisplays = ComponentTreeUtils.getChildren((Component) propertyValue, ReferenceDisplay.class);
-					//						for (ReferenceDisplay referenceDisplay : referenceDisplays) {
-					//							for (Object listenerObject : new ArrayList<>(referenceDisplay.getListeners(ClickEvent.class))) {
-					//								referenceDisplay.removeClickListener((ClickListener) listenerObject);
-					//							}
-					//						}
-					//						List<ConstellioAgentLink> constellioAgentLinks = ComponentTreeUtils.getChildren((Component) propertyValue, ConstellioAgentLink.class);
-					//						for (ConstellioAgentLink constellioAgentLink : constellioAgentLinks) {
-					//							for (Object listenerObject : new ArrayList<>(constellioAgentLink.getAgentLink().getListeners(ClickEvent.class))) {
-					//								constellioAgentLink.getAgentLink().removeClickListener((ClickListener) listenerObject);
-					//							}
-					//						}
-					//					}
-					return new ObjectProperty<>(propertyValue);
-				}
-			});
-
-			resultsTable.setSelectable(true);
-			resultsTable.setMultiSelect(false);
-			if (!resultsTable.isPaged() && allItemsVisible) {
-				resultsTable.setPageLength(resultsTable.size());
-			}
-			if (isIndexVisible()) {
-				addStyleName("viewable-record-table-panel-with-index");
-			}
+			resultsTable = buildListModeComponent();
 		} else {
-			resultsTable = new RecordVOTable(recordVOContainer) {
-				@Override
-				public String getTableId() {
-					String tableId = super.getTableId();
-					if (tableId == null) {
-						tableId = getClass().getName() + ".tableMode";
-					}
-					return tableId;
-				}
-
-				@Override
-				protected RecordVO getRecordVOForTitleColumn(Item item) {
-					RecordVO recordVO = ViewableRecordVOTablePanel.this.getRecordVOForTitleColumn(item);
-					if (recordVO == null) {
-						recordVO = super.getRecordVOForTitleColumn(item);
-					}
-					return recordVO;
-				}
-
-				@Override
-				public boolean isContextMenuPossible() {
-					return false;
-				}
-
-				@Override
-				public boolean isSelectColumn() {
-					return ViewableRecordVOTablePanel.this.isSelectColumn();
-				}
-
-				@Override
-				public boolean isIndexColumn() {
-					return ViewableRecordVOTablePanel.this.isIndexVisible();
-				}
-
-				@Override
-				protected SelectionManager newSelectionManager() {
-					SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
-					if (selectionManager == null) {
-						selectionManager = super.newSelectionManager();
-					}
-					return selectionManager;
-				}
-
-				@Override
-				public boolean isPaged() {
-					// Never paged in table mode
-					return false;
-				}
-
-				@Override
-				public boolean isMenuBarColumn() {
-					return ViewableRecordVOTablePanel.this.isMenuBarColumn();
-				}
-			};
-			resultsTable.setWidth("100%");
-			resultsTable.addStyleName("viewable-record-table-table-mode");
-
-			if (!tableModeVisibleColumns.isEmpty()) {
-				resultsTable.setVisibleColumns(tableModeVisibleColumns.toArray(new Object[0]));
-			}
-			for (Object propertyId : tableModeColumnHeaders.keySet()) {
-				resultsTable.setColumnHeader(propertyId, tableModeColumnHeaders.get(propertyId));
-			}
-			for (Object propertyId : tableModeColumnExpandRatios.keySet()) {
-				resultsTable.setColumnExpandRatio(propertyId, tableModeColumnExpandRatios.get(propertyId));
-			}
-			if (allItemsVisible) {
-				resultsTable.setPageLength(resultsTable.size());
-			}
+			resultsTable = buildTableModeComponent();
 		}
 
 		final CellStyleGenerator cellStyleGenerator = resultsTable.getCellStyleGenerator();
@@ -803,9 +593,333 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			public void itemClick(ItemClickEvent event) {
 				if (ResponsiveUtils.isMobile() || event.getButton() == MouseButton.LEFT) {
 					rowClicked(event);
+					
+					// Set title style without waiting to rebuild the table.
+					Property<?> property = resultsTable.getContainerProperty(event.getItemId(), ViewableRecordVOContainer.SEARCH_RESULT_PROPERTY);
+					if (property != null) {
+						Component cellComponent = (Component) property.getValue();
+						SearchResultDisplay display = ComponentTreeUtils.getFirstChild(cellComponent, SearchResultDisplay.class);
+						if (display != null) {
+							display.addVisitedStyleNameToTitle();
+						}
+					}
 				}
 			}
 		});
+		for (ItemClickListener listener : itemClickListeners) {
+			resultsTable.addItemClickListener(listener);
+		}
+		for (SelectionChangeListener listener : selectionChangeListeners) {
+			resultsTable.addSelectionChangeListener(listener);
+		}
+		resultsTable.removeStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
+		//resultsTable.setAlwaysRecalculateColumnWidths(true);
+
+		if (isRowDragSupported()) {
+			resultsTable.setDragMode(TableDragMode.ROW);
+			resultsTable.setDropHandler(this);
+		}
+
+		return resultsTable;
+	}
+
+	protected BaseTable buildListModeComponent() {
+		BaseTable resultsTable;
+
+		ViewableRecordVOContainer viewableRecordVOContainer = new ViewableRecordVOContainer(recordVOContainer) {
+			@Override
+			protected Component getRecordDisplay(Object itemId) {
+				Component recordDisplay = ViewableRecordVOTablePanel.this.newSearchResultComponent(itemId);
+				if (recordDisplay == null) {
+					recordDisplay = super.getRecordDisplay(itemId);
+				}
+				return recordDisplay;
+			}
+
+			@Override
+			protected boolean isShowThumbnailCol() {
+				return ViewableRecordVOTablePanel.this.isShowThumbnailCol();
+			}
+		};
+		
+		final ViewableRecordVOTable viewableRecordVOTable = new ViewableRecordVOTable(viewableRecordVOContainer) {
+			@Override
+			public boolean isSelectColumn() {
+				return ViewableRecordVOTablePanel.this.isSelectColumn();
+			}
+
+			@Override
+			public boolean isDragColumn() {
+				return ViewableRecordVOTablePanel.this.isRowDragSupported();
+			}
+
+			@Override
+			protected SelectionManager newSelectionManager() {
+				SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
+				if (selectionManager == null) {
+					selectionManager = super.newSelectionManager();
+				}
+				SelectionManager finalSelectionManager = createSelectionManagerWithSelectedCountCaption(selectionManager);
+				return finalSelectionManager;
+			}
+
+			@Override
+			protected MenuBar newMenuBar(Object itemId) {
+				if (isNewMenuBarDefined()) {
+					Item item = getItem(itemId);
+					RecordVO recordVO = getRecordVOForTitleColumn(item);
+
+					return ViewableRecordVOTablePanel.this.newMenuBar(recordVO);
+				} else {
+					return super.newMenuBar(itemId);
+				}
+			}
+
+			@Override
+			public boolean isUnknownEnd() {
+				return ViewableRecordVOTablePanel.this.isUnknownEnd();
+			}
+
+			private SelectionManager createSelectionManagerWithSelectedCountCaption(
+					SelectionManager selectionManager) {
+				final SelectionManager finalSelectionManager = selectionManager;
+				SelectionManager selectionManagerWithSelectedCount = new SelectionManager() {
+					@Override
+					public List<Object> getAllSelectedItemIds() {
+						return finalSelectionManager.getAllSelectedItemIds();
+					}
+
+					@Override
+					public boolean isAllItemsSelected() {
+						return finalSelectionManager.isAllItemsSelected();
+					}
+
+					@Override
+					public boolean isAllItemsDeselected() {
+						return finalSelectionManager.isAllItemsDeselected();
+					}
+
+					@Override
+					public boolean isSelected(Object itemId) {
+						return finalSelectionManager.isSelected(itemId);
+					}
+
+					@Override
+					public void selectionChanged(SelectionChangeEvent event) {
+						finalSelectionManager.selectionChanged(event);
+						setSelectedCountCaption(getSelectedSize());
+					}
+				};
+				return selectionManagerWithSelectedCount;
+			}
+
+			@Override
+			public boolean isPaged() {
+				return ViewableRecordVOTablePanel.this.isPagedInListMode();
+			}
+
+			@Override
+			protected void scrollToTop() {
+				ConstellioUI.getCurrent().scrollToTop();
+			}
+
+			@Override
+			protected RecordVO getRecordVOForTitleColumn(Item item) {
+				RecordVO recordVO = ViewableRecordVOTablePanel.this.getRecordVOForTitleColumn(item);
+				if (recordVO == null) {
+					recordVO = super.getRecordVOForTitleColumn(item);
+				}
+				return recordVO;
+			}
+
+			@Override
+			public void containerItemSetChange(ItemSetChangeEvent event) {
+				super.containerItemSetChange(event);
+				if (!isPaged() && allItemsVisible) {
+					adjustResultsTableHeight();
+					//					} else {
+					//						scrollToTop();
+				}
+				int newSize = size();
+				if (selectDeselectAllToggleButton != null) {
+					selectDeselectAllToggleButton.setVisible(newSize > 0);
+				}
+				if (countLabel != null) {
+					countLabel.setVisible(newSize > 0);
+				}
+			}
+		};
+		viewableRecordVOTable.setWidth("100%");
+		if (recordVOContainer instanceof PreLoader) {
+			viewableRecordVOTable.setPreLoader((PreLoader) recordVOContainer);
+		}
+
+//		recordVOContainer.sort(new Object[0], new boolean[0]);
+		
+		resultsTable = viewableRecordVOTable;
+		resultsTable.setContainerDataSource(new ContainerAdapter(viewableRecordVOContainer) {
+			@Override
+			public Property getContainerProperty(Object itemId, Object propertyId) {
+				Property result = super.getContainerProperty(itemId, propertyId);
+				Object propertyValue = result.getValue();
+				if (propertyValue instanceof SearchResultDisplay) {
+					SearchResultDisplay searchResultDisplay = (SearchResultDisplay) propertyValue;
+					for (ClickListener clickListener : searchResultDisplay.getClickListeners()) {
+						searchResultDisplay.removeClickListener(clickListener);
+					}
+				}
+				//					if (propertyValue instanceof Component) {
+				//						List<ReferenceDisplay> referenceDisplays = ComponentTreeUtils.getChildren((Component) propertyValue, ReferenceDisplay.class);
+				//						for (ReferenceDisplay referenceDisplay : referenceDisplays) {
+				//							for (Object listenerObject : new ArrayList<>(referenceDisplay.getListeners(ClickEvent.class))) {
+				//								referenceDisplay.removeClickListener((ClickListener) listenerObject);
+				//							}
+				//						}
+				//						List<ConstellioAgentLink> constellioAgentLinks = ComponentTreeUtils.getChildren((Component) propertyValue, ConstellioAgentLink.class);
+				//						for (ConstellioAgentLink constellioAgentLink : constellioAgentLinks) {
+				//							for (Object listenerObject : new ArrayList<>(constellioAgentLink.getAgentLink().getListeners(ClickEvent.class))) {
+				//								constellioAgentLink.getAgentLink().removeClickListener((ClickListener) listenerObject);
+				//							}
+				//						}
+				//					}
+				return new ObjectProperty<>(propertyValue);
+			}
+		});
+
+		resultsTable.setSelectable(true);
+		resultsTable.setMultiSelect(false);
+		if (resultsTable.isPaged()) {
+			if (this.currentPage != null) {
+				resultsTable.setCurrentPage(this.currentPage);
+			}
+			if (this.itemsPerPage != null) {
+				resultsTable.setItemsPerPage(this.itemsPerPage);
+			}
+			for (PageChangeListener listener : pageChangeListeners) {
+				resultsTable.addPageChangeListener(listener);
+			}
+			for (ItemsPerPageChangeListener listener : itemsPerPageChangeListeners) {
+				resultsTable.addItemsPerPageChangeListener(listener);
+			}
+		} else if (allItemsVisible) {
+			resultsTable.setPageLength(resultsTable.size());
+		}
+		if (isIndexVisible()) {
+			addStyleName("viewable-record-table-panel-with-index");
+		}
+
+		return resultsTable;
+	}
+
+	protected BaseTable buildTableModeComponent() {
+		BaseTable resultsTable;
+
+		resultsTable = new RecordVOTable(recordVOContainer) {
+			@Override
+			public String getTableId() {
+				String tableId = super.getTableId();
+				if (tableId == null) {
+					tableId = getClass().getName() + ".tableMode";
+				}
+				return tableId;
+			}
+
+			@Override
+			protected RecordVO getRecordVOForTitleColumn(Item item) {
+				RecordVO recordVO = ViewableRecordVOTablePanel.this.getRecordVOForTitleColumn(item);
+				if (recordVO == null) {
+					recordVO = super.getRecordVOForTitleColumn(item);
+				}
+				return recordVO;
+			}
+
+			@Override
+			public boolean isContextMenuPossible() {
+				return false;
+			}
+
+			@Override
+			public boolean isSelectColumn() {
+				return ViewableRecordVOTablePanel.this.isSelectColumn();
+			}
+
+			@Override
+			public boolean isIndexColumn() {
+				return ViewableRecordVOTablePanel.this.isIndexVisible();
+			}
+
+			@Override
+			protected SelectionManager newSelectionManager() {
+				SelectionManager selectionManager = ViewableRecordVOTablePanel.this.newSelectionManager();
+				if (selectionManager == null) {
+					selectionManager = super.newSelectionManager();
+				}
+				return selectionManager;
+			}
+
+			@Override
+			public boolean isPaged() {
+				// Never paged in table mode
+				return false;
+			}
+
+			@Override
+			public boolean isMenuBarColumn() {
+				return ViewableRecordVOTablePanel.this.isMenuBarColumn();
+			}
+
+			@Override
+			public boolean isSortPersisted() {
+				return ViewableRecordVOTablePanel.this.isSortPersisted();
+			}
+
+			@Override
+			public void containerItemSetChange(ItemSetChangeEvent event) {
+				super.containerItemSetChange(event);
+				if (allItemsVisible) {
+					adjustResultsTableHeight();
+				}
+				int newSize = size();
+				if (selectDeselectAllToggleButton != null) {
+					selectDeselectAllToggleButton.setVisible(newSize > 0);
+				}
+				if (countLabel != null) {
+					countLabel.setVisible(newSize > 0);
+				}
+			}
+		};
+		resultsTable.setWidth("100%");
+		resultsTable.addStyleName("viewable-record-table-table-mode");
+
+		if (!tableModeVisibleColumns.isEmpty()) {
+			resultsTable.setVisibleColumns(tableModeVisibleColumns.toArray(new Object[0]));
+		}
+		for (Object propertyId : tableModeColumnHeaders.keySet()) {
+			resultsTable.setColumnHeader(propertyId, tableModeColumnHeaders.get(propertyId));
+		}
+		for (Object propertyId : tableModeColumnExpandRatios.keySet()) {
+			resultsTable.setColumnExpandRatio(propertyId, tableModeColumnExpandRatios.get(propertyId));
+		}
+		if (allItemsVisible) {
+			resultsTable.setPageLength(resultsTable.size());
+		}
+
+		final CellStyleGenerator cellStyleGenerator = resultsTable.getCellStyleGenerator();
+		resultsTable.setCellStyleGenerator(new CellStyleGenerator() {
+			@Override
+			public String getStyle(Table source, Object itemId, Object propertyId) {
+				String baseStyle = cellStyleGenerator != null ? cellStyleGenerator.getStyle(source, itemId, propertyId) : "";
+				if (StringUtils.isNotBlank(baseStyle)) {
+					baseStyle += " ";
+				}
+				String tableModeName = tableMode == TableMode.LIST ? "listMode" : "tableMode";
+				baseStyle += "viewer-results-table-" + tableModeName + " ";
+				baseStyle += "viewer-results-table-" + propertyId + " ";
+				baseStyle += "viewer-results-table-" + tableModeName + "-" + propertyId + " ";
+				return baseStyle + "viewer-results-table-row-" + itemId;
+			}
+		});
+
 		for (ItemClickListener listener : itemClickListeners) {
 			resultsTable.addItemClickListener(listener);
 		}
@@ -854,6 +968,10 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return true;
 	}
 
+	public boolean isSortPersisted() {
+		return true;
+	}
+
 	public TableMode getTableMode() {
 		return tableMode;
 	}
@@ -883,7 +1001,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 					ConstellioUI.getCurrent().setStaticFooterContent(null);
 				}
 				if (table.isPaged()) {
-					ConstellioUI.getCurrent().setStaticFooterContent(pagingControls = table.createPagingControls());
+					pagingControls = table.createPagingControls();
+					if (this.itemsPerPage != null) {
+						pagingControls.setItemsPerPageValue(this.itemsPerPage);
+					}
+					if (!ConstellioUI.getCurrent().isNested()) {
+						ConstellioUI.getCurrent().setStaticFooterContent(pagingControls);
+					} else {
+						tableLayout.addComponent(pagingControls);
+					}
 				}
 				adjustTableExpansion();
 
@@ -958,7 +1084,9 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				@Override
 				public void windowClose(CloseEvent e) {
 					if (getPanelContent() != null) {
-						refreshMetadata();
+						if (tableMode == TableMode.LIST) {
+							refreshMetadata();
+						}
 						recordVOContainer.forceRefresh();
 					} else {
 						selectRecordVO(null, null, true);
@@ -1037,13 +1165,21 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 			compressionChange = null;
 		}
 
-		if (newSelectedItemId != null && !newSelectedItemId.equals(this.selectedItemId) || reload) {
-			selectedItemId = newSelectedItemId;
+		boolean selectedItemIdChanged;
+		if (newSelectedItemId == null && this.selectedItemId != null) {
+			selectedItemIdChanged = true;
+		} else if (newSelectedItemId != null && !newSelectedItemId.equals(this.selectedItemId)) {
+			selectedItemIdChanged = true;
+		} else {
+			selectedItemIdChanged = false;
+		} 
+		if (selectedItemIdChanged || reload) {
+			this.selectedItemId = newSelectedItemId;
 			if (reload) {
 				recordVOContainer.forceRefresh();
 			}
 
-			if (selectedItemId != null) {
+			if (this.selectedItemId != null) {
 				selectedRecordVO = getRecordVO(selectedItemId);
 			} else {
 				selectedRecordVO = null;
@@ -1076,7 +1212,7 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 	}
 
 	public void closePanel() {
-		selectedItemId = null;
+		selectRecordVO(null, null, false);
 
 		TableCompressEvent tableCompressEvent = new TableCompressEvent(null, false);
 		for (TableCompressListener tableCompressListener : tableCompressListeners) {
@@ -1254,10 +1390,51 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 		return table.createPagingControls();
 	}
 
-	public void setItemsPerPageValue(int value) {
+	public void setItemsPerPage(int value) {
+		this.itemsPerPage = value;
 		if (table.isPaged()) {
+			table.setItemsPerPage(value);
 			pagingControls.setItemsPerPageValue(value);
 		}
+	}
+
+	public void setCurrentPage(int value) {
+		this.currentPage = value;
+		if (table.isPaged()) {
+			table.setCurrentPage(value);
+		}
+	}
+
+	public List<PageChangeListener> getPageChangeListeners() {
+		return pageChangeListeners;
+	}
+
+	public void addPageChangeListener(PageChangeListener listener) {
+		if (!pageChangeListeners.contains(listener)) {
+			pageChangeListeners.add(listener);
+			table.addPageChangeListener(listener);
+		}
+	}
+
+	public void removePageChangeListener(PageChangeListener listener) {
+		pageChangeListeners.remove(listener);
+		table.removePageChangeListener(listener);
+	}
+
+	public List<ItemsPerPageChangeListener> getItemsPerPageChangeListeners() {
+		return itemsPerPageChangeListeners;
+	}
+
+	public void addItemsPerPageChangeListener(ItemsPerPageChangeListener listener) {
+		if (!itemsPerPageChangeListeners.contains(listener)) {
+			itemsPerPageChangeListeners.add(listener);
+			table.addItemsPerPageChangeListener(listener);
+		}
+	}
+
+	public void removeItemsPerPageChangeListener(ItemsPerPageChangeListener listener) {
+		itemsPerPageChangeListeners.remove(listener);
+		table.removeItemsPerPageChangeListener(listener);
 	}
 
 	public void select(Object itemId) {
@@ -1486,9 +1663,15 @@ public class ViewableRecordVOTablePanel extends I18NHorizontalLayout implements 
 				Label spacer = new Label("");
 				spacer.setHeight("100px");
 				mainLayout.addComponent(spacer);
+				adjustViewerPanelPositionToScroll();
 			} else {
 				panelContent = null;
 			}
+		}
+
+		private void adjustViewerPanelPositionToScroll() {
+			String js = "setTimeout(function(){ adjustViewerPanelPositionToScroll(); }, 100);";
+			Page.getCurrent().getJavaScript().execute(js);
 		}
 
 		private void buildUI() {

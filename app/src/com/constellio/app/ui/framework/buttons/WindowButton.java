@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.buttons;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.server.Resource;
@@ -14,6 +9,11 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class WindowButton extends BaseButton implements Button.ClickListener {
 
@@ -72,6 +72,10 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 			}
 			if (configuration.getHeight() != null) {
 				window.setHeight(configuration.getHeight());
+			}
+			List<String> additionalStyleNames = configuration.getAdditionalStyleNames();
+			if (additionalStyleNames != null) {
+				additionalStyleNames.forEach(window::addStyleName);
 			}
 
 			if (acceptWindowOpen(event)) {
@@ -173,6 +177,10 @@ public abstract class WindowButton extends BaseButton implements Button.ClickLis
 
 		public String getHeight() {
 			return height;
+		}
+
+		public List<String> getAdditionalStyleNames() {
+			return Collections.emptyList();
 		}
 	}
 

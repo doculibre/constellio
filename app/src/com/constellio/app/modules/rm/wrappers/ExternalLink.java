@@ -16,6 +16,7 @@ public class ExternalLink extends RecordWrapper {
 	public static final String TYPE = "type";
 	public static final String TYPE_CODE = "typeCode";
 	public static final String IMPORTED_ON = "importedOn";
+	public static final String LINKED_TO = "linkedTo";
 
 	public ExternalLink(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -45,8 +46,26 @@ public class ExternalLink extends RecordWrapper {
 		return this;
 	}
 
+	public String getLinkedto() {
+		return get(LINKED_TO);
+	}
+
+	public ExternalLink setLinkedto(Folder type) {
+		set(LINKED_TO, type);
+		return this;
+	}
+
+	public ExternalLink setLinkedto(String type) {
+		set(LINKED_TO, type);
+		return this;
+	}
+
 	public ExternalLink setImportedOn(LocalDateTime importedOn) {
 		set(IMPORTED_ON, importedOn);
 		return this;
+	}
+
+	public LocalDateTime getImportedOn() {
+		return get(IMPORTED_ON);
 	}
 }

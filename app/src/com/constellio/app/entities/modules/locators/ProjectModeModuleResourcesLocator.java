@@ -1,5 +1,6 @@
 package com.constellio.app.entities.modules.locators;
 
+import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 
@@ -25,27 +26,24 @@ public class ProjectModeModuleResourcesLocator implements ModuleResourcesLocator
 	}
 
 	@Override
-	public Utf8ResourceBundles getModuleMigrationI18nBundle(String module, String version) {
-		String versionWithUnderscores = version.replace(".", "_");
-		File folder = getModuleMigrationResourcesFolder(module, version);
+	public Utf8ResourceBundles getModuleMigrationI18nBundle(String module, MigrationScript script) {
+		String resources = script.getResourcesDirectoryName();
+		File folder = getModuleMigrationResourcesFolder(module, script);
 
 		if (folder == null) {
 			return null;
 
-		} else if (module == null) {
-			return getResourceBundle(folder, "core_" + versionWithUnderscores);
-
 		} else {
-			return getResourceBundle(folder, module + "_" + versionWithUnderscores);
+			return getResourceBundle(folder, script.getI18nBundleName(module));
 		}
 	}
 
 	@Override
-	public File getModuleMigrationResourcesFolder(String module, String version) {
-		String versionWithUnderscores = version.replace(".", "_");
+	public File getModuleMigrationResourcesFolder(String module, MigrationScript script) {
+		String resources = script.getResourcesDirectoryName();
 		File pluginResourcesFolder = getPluginResourcesFolder(module);
 		if (pluginResourcesFolder != null) {
-			File migrationFolder = new File(pluginResourcesFolder, "migrations" + File.separator + versionWithUnderscores);
+			File migrationFolder = new File(pluginResourcesFolder, "migrations" + File.separator + resources);
 			return migrationFolder.exists() ? migrationFolder : null;
 		}
 
@@ -58,7 +56,7 @@ public class ProjectModeModuleResourcesLocator implements ModuleResourcesLocator
 			moduleMigrations = new File(foldersLocator.getI18nFolder(), "migrations" + File.separator + module);
 		}
 
-		return new File(moduleMigrations, versionWithUnderscores);
+		return new File(moduleMigrations, resources);
 	}
 
 	@Override
@@ -92,8 +90,8 @@ public class ProjectModeModuleResourcesLocator implements ModuleResourcesLocator
 	}
 
 	@Override
-	public File getModuleMigrationResource(String module, String version, String resource) {
-		return new File(getModuleMigrationResourcesFolder(module, version), removeBadSeparators(resource));
+	public File getModuleMigrationResource(String module, MigrationScript script, String resource) {
+		return new File(getModuleMigrationResourcesFolder(module, script), removeBadSeparators(resource));
 	}
 
 	private File getPluginResourcesFolder(String module) {
@@ -117,6 +115,24 @@ public class ProjectModeModuleResourcesLocator implements ModuleResourcesLocator
 		} else {
 			return path.replace("/", File.separator);
 		}
+	}
+
+	@Override
+	public File getI18nBundleFile(String module, MigrationScript script) {
+
+		String resourcesFolder = script.getResourcesDirectoryName();
+
+		File folder = getModuleResource(module, resourcesFolder);
+
+		if (folder == null) {
+			File constellioPlugins = foldersLocator.getPluginsRepository();
+			File plugin = new File(constellioPlugins, "plugin???");
+			folder = new File(plugin, "resources" + File.separator + module + File.separator + resourcesFolder);
+		}
+
+		String bundleName = script.getI18nBundleName(module);
+
+		return new File(folder, bundleName + ".properties");
 	}
 
 }

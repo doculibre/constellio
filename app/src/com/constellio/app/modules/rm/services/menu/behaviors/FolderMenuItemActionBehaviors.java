@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServi
 import com.constellio.app.modules.rm.services.actions.FolderRecordActionsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.menu.behaviors.ui.GenerateExternalUploadLinkButton;
 import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendReturnReminderEmailButton;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
@@ -38,14 +39,15 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
+import com.constellio.app.ui.framework.buttons.DuplicateFoldersButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.BaseWindow;
-import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.SelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -56,6 +58,7 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.app.ui.util.ViewUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
@@ -391,23 +394,9 @@ public class FolderMenuItemActionBehaviors {
 
 	public void copy(Folder folderSummary, MenuItemActionBehaviorParams params) {
 		Folder folder = loadingFullRecordIfSummary(folderSummary);
-		Button duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
-				$("DisplayFolderView.duplicateFolderOnlyOrHierarchy"),
-				WindowConfiguration.modalDialog("50%", "20%")) {
+		Button duplicateFolderButton = new DuplicateFoldersButton(Arrays.asList(folder), folderRecordActionsServices, params, decommissioningService) {
 			@Override
-			protected Component buildWindowContent() {
-				BaseButton folderButton = new BaseButton($("DisplayFolderView.folderOnly")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						if (folderRecordActionsServices.isCopyActionPossible(folder.getWrappedRecord(), params.getUser())) {
-							navigateToDuplicateFolder(folder, false, params);
-						}
-						if (!params.isNestedView()) {
-							params.getView().closeAllWindows();
-						}
-					}
-				};
-
+			protected BaseButton buildHierarchyButton() {
 				BaseButton structure = new BaseButton($("DisplayFolderView.hierarchy")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -426,23 +415,23 @@ public class FolderMenuItemActionBehaviors {
 						}
 					}
 				};
+				return structure;
+			}
 
-				BaseButton cancel = new BaseButton($("cancel")) {
+			@Override
+			protected BaseButton buildFolderOnlyButton() {
+				BaseButton folderButton = new BaseButton($("DisplayFolderView.folderOnly")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
+						if (folderRecordActionsServices.isCopyActionPossible(folder.getWrappedRecord(), params.getUser())) {
+							navigateToDuplicateFolder(folder, false, params);
+						}
+						if (!params.isNestedView()) {
+							params.getView().closeAllWindows();
+						}
 					}
 				};
-				cancel.addStyleName(ValoTheme.BUTTON_LINK);
-
-				HorizontalLayout layout = new HorizontalLayout(folderButton, structure, cancel);
-				layout.setSpacing(true);
-
-				VerticalLayout wrapper = new VerticalLayout(layout);
-				wrapper.setSizeFull();
-				wrapper.setComponentAlignment(layout, Alignment.MIDDLE_CENTER);
-
-				return wrapper;
+				return folderButton;
 			}
 		};
 		duplicateFolderButton.click();
@@ -486,7 +475,7 @@ public class FolderMenuItemActionBehaviors {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				unshareFolderButtonClicked(ParamUtils.getCurrentParams(), folder, params.getUser());
-				params.getView().partialRefresh();
+				ViewUtils.baseViewRefresh(params);
 			}
 		};
 
@@ -648,8 +637,8 @@ public class FolderMenuItemActionBehaviors {
 	public void generateReport(Folder folderSummary, MenuItemActionBehaviorParams params) {
 		Folder folder = loadingFullRecordIfSummary(folderSummary);
 		// FIXME refactor so that we don't we need to instanciate a presenter
-		RMSelectionPanelReportPresenter reportPresenter =
-				new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
+		SelectionPanelReportPresenter reportPresenter =
+				new SelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
 					@Override
 					public String getSelectedSchemaType() {
 						return Folder.SCHEMA_TYPE;
@@ -662,7 +651,7 @@ public class FolderMenuItemActionBehaviors {
 				};
 
 		Button reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory,
-				collection, false, false, reportPresenter, params.getView().getSessionContext()) {
+				collection, reportPresenter, params.getView().getSessionContext()) {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				setRecordVoList(params.getRecordVO());
@@ -682,26 +671,31 @@ public class FolderMenuItemActionBehaviors {
 
 	protected void deleteFolder(Folder folder, String reason, MenuItemActionBehaviorParams params) {
 		String parentId = folder.get(Folder.PARENT_FOLDER);
+		BaseView view = params.getView();
 		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Folder.DEFAULT_SCHEMA,
-				params.getView().getConstellioFactories(), params.getView().getSessionContext());
+				view.getConstellioFactories(), view.getSessionContext());
 		ValidationErrors validateLogicallyDeletable = recordServices.validateLogicallyDeletable(folder, params.getUser());
 		if (validateLogicallyDeletable.isEmpty()) {
 			appLayerFactory.getExtensions().forCollection(collection)
 					.notifyFolderDeletion(new FolderDeletionEvent(folder));
 
-			boolean isDeleteSuccessful = delete(presenterUtils, params.getView(), folder.getWrappedRecord(), reason, false, 1);
+			boolean isDeleteSuccessful = delete(presenterUtils, view, folder.getWrappedRecord(), reason, false, 0);
 			if (isDeleteSuccessful) {
-				if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
+				if (reloadIfSearch(view)) {
 					return;
 				} else if (parentId != null) {
 					RMNavigationUtils.navigateToDisplayFolder(parentId, params.getFormParams(), appLayerFactory, collection);
 				} else {
-					params.getView().navigate().to().home();
+					view.navigate().to().home();
 				}
 			}
 		} else {
 			MessageUtils.getCannotDeleteWindow(validateLogicallyDeletable).openWindow();
 		}
+	}
+
+	public boolean reloadIfSearch(BaseView view) {
+		return BehaviorsUtil.reloadIfSearchView(view) || BehaviorsUtil.reloadIfWasSearchView(view);
 	}
 
 	private boolean delete(SchemaPresenterUtils presenterUtils, BaseView view, Record record, String reason,
@@ -783,6 +777,12 @@ public class FolderMenuItemActionBehaviors {
 
 	public void createTask(Folder folder, MenuItemActionBehaviorParams params) {
 		params.getView().navigate().to(TaskViews.class).addLinkedRecordsToTask(Arrays.asList(folder.getId()));
+	}
+
+	public void generateExternalUploadLink(Folder folder, MenuItemActionBehaviorParams params) {
+		Button generateButton = new GenerateExternalUploadLinkButton(appLayerFactory, collection, params.getUser(), folder,
+				params.getView());
+		generateButton.click();
 	}
 
 	private Roles getCollectionRoles() {

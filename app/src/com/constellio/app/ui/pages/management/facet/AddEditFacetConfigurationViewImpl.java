@@ -70,6 +70,7 @@ public class AddEditFacetConfigurationViewImpl extends BaseViewImpl implements A
 			dataFieldCombo.setItemCaption(metadata.getCode(), metadata.getLabel());
 		}
 
+		dataFieldCombo.setRequired(presenter.isDataStoreCodeNeeded());
 		dataFieldCombo.setEnabled(presenter.isDataStoreCodeNeeded());
 		dataFieldCombo.addValueChangeListener(new ValueChangeListener() {
 			@Override

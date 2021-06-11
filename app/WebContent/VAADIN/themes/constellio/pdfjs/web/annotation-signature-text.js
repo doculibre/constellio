@@ -35,6 +35,15 @@ SignatureTextAnnotation.prototype.fromJSON = function(json) {
 	this.signature = json.signature;
 };	
 
+SignatureTextAnnotation.prototype.getPreText = function() {
+	var preText = TextAnnotation.prototype.getPreText.call(this);
+	var annotationText = this.getText();
+	if (annotationText && (annotationText.startsWith("f") || annotationText.startsWith("j") || annotationText.startsWith("t"))) {
+		preText = " ";
+	}
+	return preText;
+}	
+
 SignatureTextAnnotation.prototype.bind = function(htmlElement) {
 	TextAnnotation.prototype.bind.call(this, htmlElement);
 	htmlElement.classList.add("signature-text-annotation");

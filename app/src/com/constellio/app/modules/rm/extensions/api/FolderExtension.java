@@ -15,6 +15,11 @@ public abstract class FolderExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
+	public ExtensionBooleanResult isBatchDuplicateActionPossible(FolderExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+
 	public ExtensionBooleanResult isDownloadActionPossible(FolderExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
@@ -51,6 +56,11 @@ public abstract class FolderExtension {
 		return user.hasDeleteAccess().on(folder);
 	}
 
+	protected boolean isNotLogicallyDeleted(FolderExtensionActionPossibleParams params) {
+		Folder folder = params.getFolder();
+		return !folder.isLogicallyDeletedStatus();
+	}
+
 	public ExtensionBooleanResult isReturnActionPossible(FolderExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
@@ -72,6 +82,10 @@ public abstract class FolderExtension {
 	}
 
 	public ExtensionBooleanResult isEditActionPossible(FolderExtensionActionPossibleParams params) {
+		return isNotLogicallyDeleted(params) ? ExtensionBooleanResult.NOT_APPLICABLE : ExtensionBooleanResult.FALSE;
+	}
+
+	public ExtensionBooleanResult isDuplicateActionPossible(FolderExtensionActionPossibleParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 

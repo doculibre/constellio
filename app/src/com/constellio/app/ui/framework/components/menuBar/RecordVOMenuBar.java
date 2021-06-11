@@ -2,10 +2,10 @@ package com.constellio.app.ui.framework.components.menuBar;
 
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.services.actionDisplayManager.MenuDisplayList;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.MenuItemAction;
 import com.constellio.app.services.menu.MenuItemFactory;
-import com.constellio.app.services.menu.MenuItemFactory.CommandCallback;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.menu.MenuItemServices;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
@@ -25,7 +25,7 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.FontAwesome;
 import org.apache.commons.collections4.MapUtils;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -57,10 +57,15 @@ public class RecordVOMenuBar extends BaseMenuBar {
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		this.recordToVOBuilder = new RecordToVOBuilder();
 
-		buildMenuItems();
+		MenuDisplayList actionDisplayList = appLayerFactory
+				.getMenusDisplayManager()
+				.getMenuDisplayList(collection)
+				.getActionDisplayList(recordVO.getSchema().getTypeCode());
+
+		buildMenuItems(actionDisplayList);
 	}
 
-	public void buildMenuItems() {
+	public void buildMenuItems(MenuDisplayList actionDisplayList) {
 		removeItems();
 
 		MenuItem rootItem = addItem("", FontAwesome.ELLIPSIS_V, null);
@@ -105,26 +110,23 @@ public class RecordVOMenuBar extends BaseMenuBar {
 		menuItemFactory.buildMenuBar(rootItem, menuItemActions, new MenuItemRecordProvider() {
 			@Override
 			public List<Record> getRecords() {
-				return Arrays.asList(recordVO.getRecord());
+				return Collections.singletonList(recordVO.getRecord());
 			}
 
 			@Override
 			public LogicalSearchQuery getQuery() {
 				return null;
 			}
-		}, new CommandCallback() {
-			@Override
-			public void actionExecuted(MenuItemAction menuItemAction, Object component) {
-				if (isAttached()) {
-					// Some action do not keep updated the provided record and/or recordVO, so after an action a refresh is required.
-					Record record = RecordVOMenuBar.this.recordServices.realtimeGetRecordById(recordVO.getId());
-					recordVO = recordToVOBuilder.build(record, recordVO.getViewMode(), sessionContext);
+		}, (menuItemAction, component) -> {
+			if (isAttached()) {
+				// Some action do not keep updated the provided record and/or recordVO, so after an action a refresh is required.
+				Record record = RecordVOMenuBar.this.recordServices.realtimeGetRecordById(recordVO.getId());
+				recordVO = recordToVOBuilder.build(record, recordVO.getViewMode(), sessionContext);
 
-					// Recursive call
-					buildMenuItems();
-				}
+				// Recursive call
+				buildMenuItems(actionDisplayList);
 			}
-		});
+		}, actionDisplayList, null);
 	}
 
 }

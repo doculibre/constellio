@@ -263,7 +263,7 @@ public class SystemCheckManager implements StatefulService {
 			Iterator<Record> authsIterator = searchServices.recordsIterator(new LogicalSearchQuery(
 					from(schemas.authorizationDetails.schemaType()).returnAll()), 10000);
 			while (authsIterator.hasNext()) {
-				Authorization auth = schemas.wrapSolrAuthorizationDetails(authsIterator.next());
+				Authorization auth = schemas.wrapAuthorization(authsIterator.next());
 				authsIds.put(auth.getId(), auth.getTarget());
 			}
 		}

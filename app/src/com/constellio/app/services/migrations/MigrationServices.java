@@ -21,6 +21,7 @@ import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.services.extensions.ConstellioModulesManagerException.ConstellioModulesManagerException_ModuleInstallationFailed;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -28,6 +29,8 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.utils.DependencyUtils;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +38,12 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static com.constellio.model.entities.modules.PluginUtil.getDependencies;
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
@@ -83,20 +89,26 @@ public class MigrationServices {
 		return propertiesConfiguration == null ? null : propertiesConfiguration.getProperties().get(collection + "_version");
 	}
 
+	@AllArgsConstructor
+	private static class ModuleMigrations {
+		InstallableModule module;
+		List<Migration> migrations;
+	}
+
 	private List<Migration> getAllMigrationsFor(boolean newCollection, String collection) {
 		ConstellioModulesManagerImpl modulesManager = getModulesManager();
-		List<Migration> migrations = new ArrayList<>();
+		List<ModuleMigrations> migrations = new ArrayList<>();
 
 		List<InstallableModule> enabledModules, requiredDependentModules;
 		enabledModules = modulesManager.getEnabledModules(collection);
 		requiredDependentModules = modulesManager.getRequiredDependentModulesToInstall(collection);
 		List<InstallableModule> modules = new ArrayList<>(enabledModules);
 
-		LOGGER.warn("Enabled modules to install for tenant '" + TenantUtils.getTenantId() + "' : " +
-					enabledModules.stream().map((m) -> m.getId()).collect(toList()));
+		LOGGER.trace("Enabled modules to install for tenant '" + TenantUtils.getTenantId() + "' : " +
+					 enabledModules.stream().map((m) -> m.getId()).collect(toList()));
 
-		LOGGER.warn("Required dependent modules to install for tenant '" + TenantUtils.getTenantId() + "' : " +
-					requiredDependentModules.stream().map((m) -> m.getId()).collect(toList()));
+		LOGGER.trace("Required dependent modules to install for tenant '" + TenantUtils.getTenantId() + "' : " +
+					 requiredDependentModules.stream().map((m) -> m.getId()).collect(toList()));
 		for (InstallableModule installableModule : requiredDependentModules) {
 
 			if (!modulesManager.isInstalled(installableModule)) {
@@ -109,8 +121,8 @@ public class MigrationServices {
 			modules.add(installableModule);
 		}
 
-		LOGGER.warn("Modules to install for tenant '" + TenantUtils.getTenantId() + "' : " +
-					modules.stream().map((m) -> m.getId()).collect(toList()));
+		LOGGER.trace("Modules to install for tenant '" + TenantUtils.getTenantId() + "' : " +
+					 modules.stream().map((m) -> m.getId()).collect(toList()));
 		for (InstallableModule module : modules) {
 			boolean useComboMigration = newCollection && module instanceof ModuleWithComboMigration;
 			if (useComboMigration) {
@@ -119,16 +131,18 @@ public class MigrationServices {
 				List<String> completedMigrations = getCompletedMigrations(collection);
 				for (MigrationScript aMigrationScriptIncludedInCombo : comboMigrationScript.getVersions()) {
 
-					if (completedMigrations.contains(
-							new Migration(collection, module.getId(), aMigrationScriptIncludedInCombo).getMigrationId())) {
+					if (completedMigrations.contains(new Migration(collection, module.getId(), aMigrationScriptIncludedInCombo).getLegacyMigrationId())
+						|| completedMigrations.contains(aMigrationScriptIncludedInCombo.getClass().getName())) {
 						useComboMigration = false;
 						break;
 					}
 				}
 			}
+
+			List<Migration> moduleMigrations = new ArrayList<>();
 			if (useComboMigration) {
 				ComboMigrationScript comboMigrationScript = ((ModuleWithComboMigration) module).getComboMigrationScript();
-				migrations.add(new Migration(collection, module.getId(), comboMigrationScript));
+				moduleMigrations.add(new Migration(collection, module.getId(), comboMigrationScript));
 
 				for (MigrationScript migrationScript : getMigrationScripts(module)) {
 
@@ -141,26 +155,63 @@ public class MigrationServices {
 					}
 
 					if (!found) {
-						migrations.add(new Migration(collection, module.getId(), migrationScript));
+						moduleMigrations.add(new Migration(collection, module.getId(), migrationScript));
 					}
 
 				}
 
 			} else {
 				for (MigrationScript script : getMigrationScripts(module)) {
-					migrations.add(new Migration(collection, module.getId(), script));
+					moduleMigrations.add(new Migration(collection, module.getId(), script));
 				}
 			}
+
+			migrations.add(new ModuleMigrations(module, moduleMigrations));
 		}
 
+		List<Migration> coreMigrations = new ArrayList<>();
 		for (
 				MigrationScript script
 				: constellioEIM.getMigrationScripts()) {
-			migrations.add(new Migration(collection, null, script));
+			coreMigrations.add(new Migration(collection, null, script));
+		}
+		migrations.add(new ModuleMigrations(null, coreMigrations));
+
+		Map<String, Set<String>> dependencies = new HashMap<>();
+		for (Module module : modules) {
+			dependencies.put(module.getId(), new HashSet<>(getDependencies(module)));
 		}
 
-		Collections.sort(migrations, MigrationScriptsComparator.forModules(modules));
-		return migrations;
+		List<String> modulesInDependencyOrder = new DependencyUtils<String>().sortByDependency(dependencies);
+		migrations.sort((m1, m2) -> {
+			int i1 = m1.module == null ? -1 : modulesInDependencyOrder.indexOf(m1.module.getId());
+			int i2 = m2.module == null ? -1 : modulesInDependencyOrder.indexOf(m2.module.getId());
+			return new Integer(i1).compareTo(i2);
+		});
+
+		List<Migration> flattenedMigrations = new ArrayList<>();
+		migrations.forEach(moduleMigrations -> {
+			flattenedMigrations.addAll(moduleMigrations.migrations);
+		});
+
+		flattenedMigrations.forEach(m -> {
+			if (!VersionsComparator.isFirstVersionBeforeSecond(m.getVersion(), "9.4")) {
+
+				String name = m.getScript().getClass().getSimpleName().toLowerCase();
+				if (name.contains("migrationto")
+					|| !name.contains("migrationfrom")
+					|| Character.isDigit(name.charAt(name.length() - 1))) {
+
+					if (!name.toLowerCase().contains("mockito")) {
+						throw new IllegalStateException("Invalid migration script name '" + m.getScript().getClass().getName() + "' : From version 9.4, migration script must have this pattern : <ModuleName>MigrationFrom<aPreviousVersion>_<SmallDescription>");
+					}
+
+				}
+
+			}
+		});
+
+		return flattenedMigrations;
 	}
 
 	public List<RecordMigrationScript> getAllRecordMigrationScripts(String collection) {
@@ -196,11 +247,11 @@ public class MigrationServices {
 		return returnList;
 	}
 
-	public void migrate(String toVersion, boolean newModule)
+	public void migrate(boolean newModule)
 			throws ConstellioModulesManagerException_ModuleInstallationFailed, OptimisticLockingConfiguration {
 
 		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
-		if(collections.contains(SYSTEM_COLLECTION)) {
+		if (collections.contains(SYSTEM_COLLECTION)) {
 			collections = new ArrayList<>(collections);
 			collections.remove(SYSTEM_COLLECTION);
 			collections.add(0, SYSTEM_COLLECTION);
@@ -208,11 +259,11 @@ public class MigrationServices {
 
 
 		for (String collection : collections) {
-			migrate(collection, toVersion, newModule);
+			migrate(collection, newModule);
 		}
 	}
 
-	private void migrateModules(String collection, String toVersion, boolean newModule)
+	private void migrateModules(String collection, boolean newModule)
 			throws ConstellioModulesManagerException_ModuleInstallationFailed, OptimisticLockingConfiguration {
 		List<String> collectionCodes = collectionsManager.getCollectionCodesExcludingSystem();
 		boolean newCollection = isNewCollection(collection);
@@ -230,16 +281,13 @@ public class MigrationServices {
 
 			LOGGER.info("Migrating collection " + collection + " : " + migrations);
 			for (Migration migration : migrations) {
-				if (toVersion == null || VersionsComparator
-						.isFirstVersionBeforeOrEqualToSecond(migration.getVersion(), toVersion)) {
 
-					if (firstMigration) {
-						ensureSchemasHaveCommonMetadata(collection, 0);
-						firstMigration = false;
-					}
-
-					migrateWithoutException(migration, collection);
+				if (firstMigration) {
+					ensureSchemasHaveCommonMetadata(collection, 0);
+					firstMigration = false;
 				}
+
+				migrateWithoutException(migration, collection);
 			}
 		}
 	}
@@ -275,9 +323,9 @@ public class MigrationServices {
 		}
 	}
 
-	public void migrate(String collection, String toVersion, boolean newModule)
+	public void migrate(String collection, boolean newModule)
 			throws OptimisticLockingConfiguration, ConstellioModulesManagerException_ModuleInstallationFailed {
-		migrateModules(collection, toVersion, newModule);
+		migrateModules(collection, newModule);
 	}
 
 	boolean isNewCollection(String collection) {
@@ -297,7 +345,9 @@ public class MigrationServices {
 
 			List<Migration> filteredMigrations = new ArrayList<>();
 			for (Migration migration : migrations) {
-				if (!runnedMigrations.contains(migration.getMigrationId())) {
+				//Mockito a
+				if (!runnedMigrations.contains(migration.getLegacyMigrationId()) &&
+					!runnedMigrations.contains(migration.getScript().getClass().getName())) {
 					filteredMigrations.add(migration);
 				}
 			}
@@ -328,15 +378,14 @@ public class MigrationServices {
 			throws OptimisticLockingConfiguration {
 
 		MigrationScript script = migration.getScript();
-		LOGGER.info("Running migration script '" + script.getClass().getSimpleName() +
-					"' updating to version '" + script.getVersion() + "'");
+		LOGGER.info("Running migration script '" + script.getClass().getSimpleName() + "'");
 		IOServices ioServices = modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices();
 		Language language = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage());
 		String moduleId = migration.getModuleId() == null ? "core" : migration.getModuleId();
 		String version = migration.getVersion();
 		List<Language> languages = Language.withCodes(collectionsManager.getCollectionLanguages(migration.getCollection()));
 		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language, languages,
-				version, ioServices, moduleResourcesLocator);
+				script, ioServices, moduleResourcesLocator);
 
 		try {
 			script.migrate(migration.getCollection(), migrationResourcesProvider, appLayerFactory);
@@ -374,7 +423,7 @@ public class MigrationServices {
 		moduleId = moduleId == null ? "core" : moduleId;
 
 		MigrationResourcesProvider migrationResourcesProvider = new MigrationResourcesProvider(moduleId, language, languages,
-				"combo", ioServices, moduleResourcesLocator);
+				fastMigrationScript, ioServices, moduleResourcesLocator);
 
 		try {
 			fastMigrationScript.migrate(collectionId, migrationResourcesProvider, appLayerFactory);
@@ -425,7 +474,7 @@ public class MigrationServices {
 				if (StringUtils.isNotBlank(completedMigrations)) {
 					migrations.addAll(asList(completedMigrations.split(",")));
 				}
-				migrations.add(migration.getMigrationId());
+				migrations.add(migration.getScript().getClass().getName());
 				Collections.sort(migrations);
 
 				properties.put(propertyKey, StringUtils.join(migrations, ","));

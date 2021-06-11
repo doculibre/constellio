@@ -70,7 +70,7 @@ public class RMMigrationTo9_1_0 implements MigrationScript {
 		appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 	}
 
-	private void createRecords(String collection, AppLayerFactory appLayerFactory, Transaction transaction) {
+	public static  void createRecords(String collection, AppLayerFactory appLayerFactory, Transaction transaction) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
 		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
@@ -98,7 +98,7 @@ public class RMMigrationTo9_1_0 implements MigrationScript {
 		}
 	}
 
-	private String getDefaultTriggerMetadataCode(String metadataCode) {
+	private static String getDefaultTriggerMetadataCode(String metadataCode) {
 		return Trigger.DEFAULT_SCHEMA + "_" + metadataCode;
 	}
 
@@ -191,7 +191,7 @@ public class RMMigrationTo9_1_0 implements MigrationScript {
 
 			if (!typesBuilder.hasSchemaType(ExternalLink.SCHEMA_TYPE)) {
 				MetadataSchemaBuilder externalLinkTypeSchema = setupExternalLinkTypeSchema().getDefaultSchema();
-				MetadataSchemaTypeBuilder externalLinkSchemaType = typesBuilder.createNewSchemaType(ExternalLink.SCHEMA_TYPE).setSecurity(false);
+				MetadataSchemaTypeBuilder externalLinkSchemaType = typesBuilder.createNewSchemaTypeWithSecurity(ExternalLink.SCHEMA_TYPE).setSecurity(false);
 				MetadataSchemaBuilder externalLinkSchema = externalLinkSchemaType.getDefaultSchema();
 
 				externalLinkSchema.createUndeletable(ExternalLink.TYPE)
@@ -205,18 +205,18 @@ public class RMMigrationTo9_1_0 implements MigrationScript {
 				documentSchema.createUndeletable(Document.FILENAME).setType(STRING)
 						.defineDataEntry().asCalculated(new DocumentFilenameCalculator());
 
-				MetadataSchemaTypeBuilder triggerActionTypeSchemaType = typesBuilder.createNewSchemaType(TriggerActionType.SCHEMA_TYPE).setSecurity(false);
+				MetadataSchemaTypeBuilder triggerActionTypeSchemaType = typesBuilder.createNewSchemaTypeWithSecurity(TriggerActionType.SCHEMA_TYPE).setSecurity(false);
 				MetadataSchemaBuilder triggerActionTypeSchema = triggerActionTypeSchemaType.getDefaultSchema();
 				triggerActionTypeSchema.createUndeletable(TriggerActionType.LINKED_SCHEMA).setType(STRING)
 						.setDefaultRequirement(true);
 				triggerActionTypeSchema.createUndeletable(TriggerActionType.CODE).setType(STRING).setSystemReserved(true).setDefaultRequirement(true);
 
-				MetadataSchemaTypeBuilder triggerTypeSchemaType = typesBuilder.createNewSchemaType(TriggerType.SCHEMA_TYPE).setSecurity(false);
+				MetadataSchemaTypeBuilder triggerTypeSchemaType = typesBuilder.createNewSchemaTypeWithSecurity(TriggerType.SCHEMA_TYPE).setSecurity(false);
 				MetadataSchemaBuilder triggerTypeSchema = triggerTypeSchemaType.getDefaultSchema();
 				triggerTypeSchema.createUndeletable(TriggerType.CODE).setType(STRING).setSystemReserved(true).setDefaultRequirement(true);
 
 
-				MetadataSchemaTypeBuilder triggerActionSchemaType = typesBuilder.createNewSchemaType(TriggerAction.SCHEMA_TYPE).setSecurity(false);
+				MetadataSchemaTypeBuilder triggerActionSchemaType = typesBuilder.createNewSchemaTypeWithSecurity(TriggerAction.SCHEMA_TYPE).setSecurity(false);
 				MetadataSchemaBuilder triggerActionSchema = triggerActionSchemaType.getDefaultSchema();
 				triggerActionSchema.getMetadata(TriggerAction.TITLE).required();
 				triggerActionSchema.createUndeletable(TriggerAction.TYPE).setType(REFERENCE).defineReferencesTo(triggerActionTypeSchemaType).required();
@@ -224,7 +224,7 @@ public class RMMigrationTo9_1_0 implements MigrationScript {
 				triggerActionSchemaType.createCustomSchema(MoveInFolderTriggerAction.SCHEMA_LOCAL_CODE);
 				triggerActionSchemaType.getCustomSchema(MoveInFolderTriggerAction.SCHEMA_LOCAL_CODE).createUndeletable(MoveInFolderTriggerAction.DATE).setType(MetadataValueType.DATE);
 
-				MetadataSchemaTypeBuilder triggerSchemaType = typesBuilder.createNewSchemaType(Trigger.SCHEMA_TYPE).setSecurity(false);
+				MetadataSchemaTypeBuilder triggerSchemaType = typesBuilder.createNewSchemaTypeWithSecurity(Trigger.SCHEMA_TYPE).setSecurity(false);
 				MetadataSchemaBuilder triggerSchema = triggerSchemaType.getDefaultSchema();
 
 				triggerSchema.getMetadata(Trigger.TITLE).required();

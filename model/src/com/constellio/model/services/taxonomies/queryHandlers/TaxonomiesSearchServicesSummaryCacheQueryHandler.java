@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.constellio.model.entities.schemas.Schemas.LINKABLE;
+import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
@@ -112,10 +114,10 @@ public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 		return records.stream().map(r -> {
 			boolean linkable = false;
 
-			if (ctx.getForSelectionOfSchemaType() != null
-				&& ctx.getForSelectionOfSchemaType().getCode().equals(r.getTypeCode())) {
+			if (ctx.options.isForceLinkableCalculation() || ( ctx.getForSelectionOfSchemaType() != null
+				&& ctx.getForSelectionOfSchemaType().getCode().equals(r.getTypeCode()))) {
 
-				linkable = !Boolean.FALSE.equals(r.get(Schemas.LINKABLE)) && ctx.hasRequiredAccessOn(r);
+				linkable = LangUtils.isTrueOrNull(r.get(LINKABLE)) && LangUtils.isFalseOrNull(r.get(LOGICALLY_DELETED_STATUS)) && ctx.hasRequiredAccessOn(r);
 			}
 			return new TaxonomySearchRecord(r, linkable, !types.getClassifiedSchemaTypesIn(r.getTypeCode()).isEmpty());
 		}).collect(toList());
@@ -130,7 +132,7 @@ public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 			condition = condition.andWhere(VISIBLE_IN_TREES).isTrueOrNull();
 		}
 
-		if (ctx.forSelectionOfSchemaType != null && !ctx.getOptions().isShowInvisibleRecordsInLinkingMode()) {
+		if (!ctx.getOptions().isShowInvisibleRecords(ctx.forSelectionOfSchemaType != null)) {
 			condition = condition.andWhere(VISIBLE_IN_TREES).isTrueOrNull();
 		}
 
@@ -179,7 +181,7 @@ public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 			}
 
 			boolean linkable = false;
-			if (selectingAConcept && calculateLinkability) {
+			if ((selectingAConcept && calculateLinkability) || ctx.getOptions().isForceLinkableCalculation()) {
 				linkable = isLinkable(concept, ctx.taxonomy, ctx.options) && ctx.hasRequiredAccessOn(concept);
 			}
 
@@ -245,11 +247,11 @@ public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 
 
 		if (ctx.isSelectingAConcept() && !ctx.getOptions().isAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable()) {
-			query.setCondition(query.getCondition().andWhere(Schemas.LINKABLE).isTrueOrNull());
+			query.setCondition(query.getCondition().andWhere(LINKABLE).isTrueOrNull());
 		}
 
 		if (ctx.isPrincipalTaxonomy()) {
-			query.filteredWithUser(ctx.getUser(), ctx.getOptions().getRequiredAccess());
+			query.filteredWithUserRead(ctx.getUser(), ctx.getOptions().getRequiredAccess());
 		}
 
 		if (ctx.getOptions().getFilter() != null && ctx.getOptions().getFilter().getLinkableConceptsFilter() != null) {
@@ -271,10 +273,12 @@ public class TaxonomiesSearchServicesSummaryCacheQueryHandler
 			return true;
 		}
 
-		boolean linkable = LangUtils.isTrueOrNull(record.<Boolean>get(Schemas.LINKABLE));
+		boolean linkable = LangUtils.isTrueOrNull(record.<Boolean>get(LINKABLE))
+				&& LangUtils.isFalseOrNull(record.<Boolean>get(LOGICALLY_DELETED_STATUS));
 		if (linkable && options.getFilter() != null && options.getFilter().getLinkableConceptsFilter() != null) {
 			linkable = options.getFilter().getLinkableConceptsFilter().isLinkable(new LinkableConceptFilterParams(record, taxonomy));
 		}
+
 		return linkable;
 	}
 

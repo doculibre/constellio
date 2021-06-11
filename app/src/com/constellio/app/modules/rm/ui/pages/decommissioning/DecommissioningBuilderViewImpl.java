@@ -1,17 +1,21 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListParams;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeEvent;
 import com.constellio.app.ui.framework.components.selection.SelectionComponent.SelectionChangeListener;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
@@ -36,6 +40,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.constellio.app.modules.rm.extensions.app.RMDecommissioningBuilderMenuItemActionsExtension.RMRECORDS_CREATE_DECOMMISSIONING_LIST;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -92,6 +98,8 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		//		menuItemFactory = new MenuItemFactory();
 
 		addStyleName("search-decommissioning");
+
+		buildActionButtons();
 	}
 
 	@Override
@@ -114,7 +122,20 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 	}
 
 	@Override
-	protected List<Button> getQuickActionMenuButtons() {
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				Stream.of(createList, buttonAddToList).map(MenuItemActionConverter::toMenuItemAction).collect(Collectors.toList())
+		);
+	}
+
+	@Override
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay) {
+		};
+	}
+
+	protected void buildActionButtons() {
 		// TODO a ajuster apres le refactor pour les whiteliste de l'api des menu.
 		//		MenuItemIdProvider menuItemIdProvider = new MenuItemIdProvider() {
 		//			@Override
@@ -167,10 +188,12 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 
 
 		createList = new DecommissioningButton($("DecommissioningBuilderView.createDecommissioningList"));
+		createList.setId("CreateList");
 		createList.addStyleName(ValoTheme.BUTTON_LINK);
 		createList.addStyleName(CREATE_LIST);
 
 		buttonAddToList = buildAddToListButton();
+		buttonAddToList.setId("AddToList");
 
 		updateGenerateDecomListButton();
 
@@ -180,8 +203,11 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 				updateGenerateDecomListButton();
 			}
 		});
+	}
 
-		return Arrays.asList(createList, buttonAddToList);
+	@Override
+	protected String getActionMenuBarCaption() {
+		return null;
 	}
 
 	private void updateGenerateDecomListButton() {
@@ -192,11 +218,8 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		if (buttonAddToList != null) {
 			buttonAddToList.setEnabled(!getSelectedRecordIds().isEmpty());
 		}
-	}
 
-	@Override
-	protected boolean isActionMenuBar() {
-		return true;
+		refreshActionMenu();
 	}
 
 	@Override

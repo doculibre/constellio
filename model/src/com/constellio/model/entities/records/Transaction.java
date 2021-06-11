@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class Transaction {
@@ -191,7 +192,7 @@ public class Transaction {
 	public Record add(Record addUpdateRecord) {
 
 		records.add(addUpdateRecord);
-		validateCollection(addUpdateRecord.getCollection());
+		validateCollection(addUpdateRecord.getCollection(), addUpdateRecord.getId());
 		collection = addUpdateRecord.getCollection();
 		return addUpdateRecord;
 	}
@@ -206,7 +207,7 @@ public class Transaction {
 			updatedRecordsMap.put(addUpdateRecord.getId(), addUpdateRecord);
 			records.add(addUpdateRecord);
 		}
-		validateCollection(addUpdateRecord.getCollection());
+		validateCollection(addUpdateRecord.getCollection(), addUpdateRecord.getId());
 		collection = addUpdateRecord.getCollection();
 		return this;
 	}
@@ -241,6 +242,11 @@ public class Transaction {
 
 	public void setOptions(RecordUpdateOptions recordUpdateOptions) {
 		this.recordUpdateOptions = recordUpdateOptions;
+	}
+
+	public Transaction withOptions(Consumer<RecordUpdateOptions> optionsConsumer) {
+		optionsConsumer.accept(getRecordUpdateOptions());
+		return this;
 	}
 
 	public List<Record> getSavedRecordWithModification() {
@@ -343,15 +349,15 @@ public class Transaction {
 		return id;
 	}
 
-	void validateCollection(String collection) {
+	void validateCollection(String collection, String recordId) {
 		if (this.collection != null && !this.collection.equals(collection)) {
-			throw new TransactionRuntimeException.DifferentCollectionsInRecords(this.collection, collection);
+			throw new TransactionRuntimeException.DifferentCollectionsInRecords(this.collection, collection, recordId);
 		}
 	}
 
 	void validateCollections() {
 		for (Record record : records) {
-			validateCollection(record.getCollection());
+			validateCollection(record.getCollection(), record.getId());
 		}
 	}
 

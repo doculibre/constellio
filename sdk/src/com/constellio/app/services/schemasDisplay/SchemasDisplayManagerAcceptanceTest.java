@@ -421,7 +421,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				MetadataSchemaBuilder schemaBuilder = types.createNewSchemaType("mySchemaType").getDefaultSchema();
+				MetadataSchemaBuilder schemaBuilder = types.createNewSchemaTypeWithSecurity("mySchemaType").getDefaultSchema();
 				schemaBuilder.create("aMetadataThatWillOneDayBeEssential").setType(TEXT).setEssential(false)
 						.addLabel(Language.French, "zeMetadataThatWillOneDayBeEssential");
 				schemaBuilder.create("anEssentialMetadata").setType(TEXT).setEssential(true)
@@ -509,7 +509,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void givenUnconfiguredSchemaDisplayWhenGetValueThenReturnDefaultValue()
 			throws Exception {
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
-		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaTypeWithSecurity("myType");
 		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
 		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
 		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
@@ -560,7 +560,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void givenUnconfiguredSchemaFormWhenGetValueThenReturnDefaultValue()
 			throws Exception {
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
-		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaTypeWithSecurity("myType");
 		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
 		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
 		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
@@ -607,7 +607,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void givenUnconfiguredSchemaTableWhenGetValueThenReturnDefaultValue()
 			throws Exception {
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
-		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaTypeWithSecurity("myType");
 		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
 		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
 		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
@@ -652,7 +652,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void whenConfiguringCustomMetadatasInDefaultSchemaThenOnlyKeptForTableConfig()
 			throws Exception {
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
-		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaTypeWithSecurity("myType");
 		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
 		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
 		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
@@ -712,7 +712,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void givenUnconfiguredSchemaSearchWhenGetValueThenReturnDefaultValue()
 			throws Exception {
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
-		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaTypeWithSecurity("myType");
 		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
 		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
 		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
@@ -756,7 +756,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void givenUnconfiguredMetadataDisplayWhenGetValueThenReturnDefaultValue()
 			throws Exception {
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
-		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaTypeWithSecurity("myType");
 		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
 		MetadataSchemaBuilder customSchema = typeBuilder.createCustomSchema("custom");
 		defaultSchema.create("metadata").setType(MetadataValueType.STRING);
@@ -831,7 +831,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 	public void givenUnconfiguredSchemaDisplayInheritingSchemaWithRemovedMetadataFromDisplayWhenGetValueThenReturnDefaultValue()
 			throws Exception {
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
-		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaTypeWithSecurity("myType");
 		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
 		defaultSchema.create("metadata1").setType(MetadataValueType.STRING);
 		defaultSchema.create("metadata2").setType(MetadataValueType.STRING);
@@ -888,7 +888,7 @@ public class SchemasDisplayManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(zeCollection);
-		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType("myType");
+		MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaTypeWithSecurity("myType");
 		MetadataSchemaBuilder defaultSchema = typeBuilder.getDefaultSchema();
 		defaultSchema.create("metadata").setType(MetadataValueType.STRING);
 		schemasManager.saveUpdateSchemaTypes(typesBuilder);

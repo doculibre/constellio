@@ -5,6 +5,8 @@ public class TasksEmailTemplates {
 	public static final String TASK_DELETED = "taskDeleted";
 	public static final String TASK_STATUS_MODIFIED = "taskStatusModified";
 	public static final String TASK_ASSIGNEE_MODIFIED = "taskAssigneeModified";
+	public static final String TASK_COLLABORATOR_ADDED = "collaboratorAdded";
+	public static final String TASK_FOLLOWER_ADDED = "followerAdded";
 	public static final String TASK_ASSIGNED_TO_YOU = "taskAssigneeToYou";
 	public static final String TASK_SUB_TASKS_MODIFIED = "taskSubTasksModified";
 	public static final String TASK_COMPLETED = "taskTaskCompleted";

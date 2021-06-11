@@ -4,6 +4,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -11,6 +12,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.GetRecordOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -44,7 +46,7 @@ public class SchemaCaptionUtils implements Serializable {
 			ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 			RecordServices recordServices = modelLayerFactory.newRecordServices();
 			try {
-				Record record = recordServices.getDocumentById(recordId);
+				Record record = recordServices.get(recordId, GetRecordOptions.RETURNING_SUMMARY);
 				String schemaCode = record.getSchemaCode();
 				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 				String captionForSchemaTypeCode = getCaptionForSchemaTypeCode(schemaTypeCode, locale);
@@ -231,6 +233,7 @@ public class SchemaCaptionUtils implements Serializable {
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 		String schemaCode = record.getSchemaCode();
 
@@ -250,7 +253,12 @@ public class SchemaCaptionUtils implements Serializable {
 					}
 				} else {
 					Metadata metadata = metadataSchemaTypes.getMetadata(schemaCode + "_" + metadataCode);
-					value = record.get(metadata, locale);
+					if (record.getRecordDTOMode() == RecordDTOMode.SUMMARY && !metadata.isAvailableInSummary()) {
+						Record fullRecord = recordServices.get(record.getId());
+						value = fullRecord.get(metadata, locale);
+					} else {
+						value = record.get(metadata, locale);
+					}
 				}
 			} catch (Exception e) {
 				LOGGER.warn("Could not compute caption", e);

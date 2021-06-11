@@ -5,6 +5,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -17,7 +18,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.constellio.data.utils.AccentApostropheCleaner.cleanAll;
 
@@ -53,6 +56,11 @@ public class ConstellioGetSchemaMetadatasServlet extends HttpServlet {
 			metadataElement.setAttribute("type", metadata.getType().name());
 			metadataElement.setAttribute("solr-field", metadata.getDataStoreCode());
 			metadataElement.setAttribute("label", metadata.getLabel(Language.withCode(language)));
+			if (metadata.getType() == MetadataValueType.ENUM) {
+				metadataElement.setAttribute("allowed-values",
+						Arrays.stream(metadata.getEnumClass().getEnumConstants()).map(Enum::name)
+								.collect(Collectors.joining(",")));
+			}
 			if (metadata.isSearchable()) {
 				String solrAnalyzedField = metadata.getAnalyzedField(language).getDataStoreCode();
 				metadataElement.setAttribute("solr-analyzed-field", solrAnalyzedField);

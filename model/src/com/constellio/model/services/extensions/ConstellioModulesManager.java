@@ -11,6 +11,8 @@ public interface ConstellioModulesManager {
 
 	boolean isModuleEnabled(String collection, Module module);
 
+	boolean isModuleEnabled(String collection, String moduleId);
+
 	List<? extends Module> getInstalledModules();
 
 	void enableValidModuleAndGetInvalidOnes(String collection, Module module)

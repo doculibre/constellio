@@ -19,7 +19,6 @@ import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamVariable;
-import com.vaadin.server.VaadinService;
 import com.vaadin.server.StreamVariable.StreamingEndEvent;
 import com.vaadin.server.StreamVariable.StreamingErrorEvent;
 import com.vaadin.server.StreamVariable.StreamingProgressEvent;
@@ -381,7 +380,11 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 	@Override
 	public void detach() {
 		closeUploadWindow();
-		UI.getCurrent().getNavigator().removeViewChangeListener(this);
+
+		Navigator navigator = UI.getCurrent().getNavigator();
+		if (navigator != null) {
+			navigator.removeViewChangeListener(this);
+		}
 		UI.getCurrent().removePollListener(this);
 		UI.getCurrent().setPollInterval(uiPollIntervalBefore);
 		super.detach();
@@ -449,16 +452,32 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 		return AcceptAll.get();
 	}
 
+	public boolean mustUploadWithMinimumUIUpdatePossible(int fileToUploadCount) {
+		return false;
+	}
+
+	public void streamingStarted(Html5File html5File, boolean isInterrupted) {
+	}
+
+	public void streamingFinished(Html5File html5File, boolean isInterrupted) {
+	}
+
 	public void drop(DragAndDropEvent event) {
 		DragAndDropWrapper.WrapperTransferable transferable = (WrapperTransferable) event
 				.getTransferable();
 		Html5File[] files = transferable.getFiles();
 		final List<String> emptyFilesName = new ArrayList<>();
 		if (files != null) {
+			final boolean uploadWithMinimumUIUpdatePossible = mustUploadWithMinimumUIUpdatePossible(files.length);
+
 			for (final Html5File html5File : files) {
 				final ProgressIndicator pi = new ProgressIndicator();
 				pi.setCaption(html5File.getFileName());
-				addProgressIndicator(pi);
+
+				if (!uploadWithMinimumUIUpdatePossible) {
+					addProgressIndicator(pi);
+				}
+
 				final FileBuffer receiver = createReceiver();
 				html5File.setStreamVariable(new StreamVariable() {
 
@@ -477,20 +496,28 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 					public void onProgress(StreamingProgressEvent event) {
 						float p = (float) event.getBytesReceived()
 								  / (float) event.getContentLength();
-						pi.setValue(p);
+
+						if (!uploadWithMinimumUIUpdatePossible) {
+							pi.setValue(p);
+						}
 					}
 
 					public void streamingStarted(StreamingStartEvent event) {
 						name = event.getFileName();
 						mime = event.getMimeType();
-						if (isUploadWindow()) {
-							showUploadWindowIfNotVisible();
+
+						if (!uploadWithMinimumUIUpdatePossible) {
+							if (isUploadWindow()) {
+								showUploadWindowIfNotVisible();
+							}
 						}
+
 						isInterrupted = event.getContentLength() <= 0;
+
+						BaseMultiFileUpload.this.streamingStarted(html5File, isInterrupted);
 					}
 
 					public void streamingFinished(StreamingEndEvent event) {
-						removeProgressBar(pi);
 
 						if (isInterrupted) {
 							emptyFilesName.add(html5File.getFileName());
@@ -501,13 +528,22 @@ public abstract class BaseMultiFileUpload extends CssLayout implements DropHandl
 							receiver.setValue(null);
 						}
 
+						if (!uploadWithMinimumUIUpdatePossible) {
+							removeProgressBar(pi);
+						}
+
 						if (isUploadWindow()) {
 							closeUploadWindowIfAllDone(emptyFilesName);
 						}
+
+						BaseMultiFileUpload.this.streamingFinished(html5File, isInterrupted);
 					}
 
 					public void streamingFailed(StreamingErrorEvent event) {
-						removeProgressBar(pi);
+						if (!uploadWithMinimumUIUpdatePossible) {
+							removeProgressBar(pi);
+						}
+
 						if (isUploadWindow()) {
 							closeUploadWindowIfAllDone();
 						}

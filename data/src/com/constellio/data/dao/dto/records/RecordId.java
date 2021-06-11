@@ -1,5 +1,6 @@
 package com.constellio.data.dao.dto.records;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 
 import java.io.Serializable;
@@ -39,11 +40,7 @@ public interface RecordId extends Comparable, Serializable, Supplier<RecordId> {
 		List<RecordId> ids = new ArrayList<>();
 
 		for (Object value : values) {
-			if (value instanceof String) {
-				ids.add(toId((String) value));
-			} else {
-				ids.add(toId((Integer) value));
-			}
+			ids.add(toId(value));
 		}
 
 		return ids;
@@ -56,9 +53,26 @@ public interface RecordId extends Comparable, Serializable, Supplier<RecordId> {
 
 	static boolean isIntId(String stringValue) {
 		long intValue = LangUtils.tryParseLong(stringValue, -1);
-		return intValue != -1;
+		return intValue != -1 && stringValue.length() == 11;
 	}
 
+	static RecordId toId(Object value) {
+		if (value instanceof RecordId) {
+			return (RecordId) value;
+
+		} else if (value instanceof RecordIdSupplier) {
+			return ((RecordIdSupplier) value).getRecordId();
+
+		} else if (value instanceof String) {
+			return toId((String) value);
+
+		} else if (value instanceof Integer) {
+			return toId((int) value);
+
+		} else {
+			throw new ImpossibleRuntimeException("Unsupported");
+		}
+	}
 
 	static RecordId toId(String stringValue) {
 		if (stringValue == null) {

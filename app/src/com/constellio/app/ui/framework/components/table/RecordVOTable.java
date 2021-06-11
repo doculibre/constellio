@@ -1,5 +1,11 @@
 package com.constellio.app.ui.framework.components.table;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
+
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -36,11 +42,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class RecordVOTable extends BaseTable {
 
@@ -248,7 +249,7 @@ public class RecordVOTable extends BaseTable {
 			}
 			boolean instance = metadataDisplay instanceof Label;
 			boolean matchCode = metadataVO.codeMatches(Schemas.TITLE_CODE);
-			if (instance && matchCode) {
+			if (instance && matchCode && metadataDisplay instanceof Label) {
 				RecordVO titleRecordVO = getRecordVOForTitleColumn(getItem(itemId));
 				if (titleRecordVO != null) {
 					MetadataSchemaVO recordSchemaVO = titleRecordVO.getSchema();

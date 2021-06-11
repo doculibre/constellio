@@ -26,6 +26,8 @@ public class InheritedMetadataBehaviors implements Serializable {
 	final boolean availableInSummary;
 	final boolean multiLingual;
 	final boolean markedForDeletion;
+	MetadataValueType markedForMigrationToType;
+	Boolean markedForMigrationToMultivalue;
 	final boolean reverseDependency;
 	final boolean relationshipProvidingSecurity;
 	final boolean dependencyOfAutomaticMetadata;
@@ -44,7 +46,9 @@ public class InheritedMetadataBehaviors implements Serializable {
 									  boolean sortable,
 									  boolean searchable, boolean schemaAutocomplete, boolean essential,
 									  boolean encrypted, boolean essentialInSummary, boolean availableInSummary,
-									  boolean multiLingual, boolean markedForDeletion, Set<String> customAttributes,
+									  boolean multiLingual, boolean markedForDeletion,
+									  MetadataValueType markedForMigrationToType,
+									  Boolean markedForMigrationToMultivalue, Set<String> customAttributes,
 									  boolean reverseDependency,
 									  boolean relationshipProvidingSecurity, MetadataTransiency volatility,
 									  boolean dependencyOfAutomaticMetadata, boolean cacheIndex, Integer maxLength,
@@ -65,6 +69,8 @@ public class InheritedMetadataBehaviors implements Serializable {
 		this.availableInSummary = availableInSummary;
 		this.multiLingual = multiLingual;
 		this.markedForDeletion = markedForDeletion;
+		this.markedForMigrationToType = markedForMigrationToType;
+		this.markedForMigrationToMultivalue = markedForMigrationToMultivalue;
 		this.customAttributes = Collections.unmodifiableSet(customAttributes);
 		this.reverseDependency = reverseDependency;
 		this.relationshipProvidingSecurity = relationshipProvidingSecurity;

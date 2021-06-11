@@ -2,7 +2,9 @@ package com.constellio.model.services.collections;
 
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.model.services.collections.exceptions.NoMoreCollectionAvalibleException;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -113,6 +115,24 @@ public class CollectionsListManagerAcceptanceTest extends ConstellioTest {
 		collectionsListManager.remove("zeUltimateCollection1");
 
 		assertThat(collectionsListManager.getCollections()).containsOnly("zeUltimateCollection2", SYSTEM_COLLECTION);
+	}
+
+	@Test
+	public void whenCreatingCollectionThenIdAvailableInAllInstances()
+			throws Exception {
+
+		ModelLayerFactory modelLayerFactory = getModelLayerFactory();
+		ModelLayerFactory otherInstanceModelLayerFactory = getModelLayerFactory("other-instance");
+		TestUtils.linkEventBus(modelLayerFactory, otherInstanceModelLayerFactory);
+
+		CollectionsListManager collectionsListManager = modelLayerFactory.getCollectionsListManager();
+		CollectionsListManager otherInstanceCollectionsListManager = modelLayerFactory.getCollectionsListManager();
+
+		collectionsListManager.addCollection("newCollection", asList("fr"), (byte)42);
+
+		assertThat(collectionsListManager.getCollectionId("newCollection")).isEqualTo((byte)42);
+		assertThat(otherInstanceCollectionsListManager.getCollectionId("newCollection")).isEqualTo((byte)42);
+
 	}
 
 }

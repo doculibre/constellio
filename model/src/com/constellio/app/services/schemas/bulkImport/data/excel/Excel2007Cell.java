@@ -27,7 +27,7 @@ public class Excel2007Cell implements ExcelCell {
 		if (cellType == CellType.BOOLEAN) {
 			return cell.getBooleanCellValue() ? "true" : "false";
 		} else {
-			return formatter.formatCellValue(cell);
+			return formatter.formatCellValue(cell, cell.getSheet().getWorkbook().getCreationHelper().createFormulaEvaluator());
 		}
 	}
 

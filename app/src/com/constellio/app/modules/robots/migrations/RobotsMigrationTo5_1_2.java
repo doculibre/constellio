@@ -108,7 +108,7 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 		}
 
 		private MetadataSchemaTypeBuilder createActionParametersSchemaType(MetadataSchemaTypesBuilder types) {
-			MetadataSchemaTypeBuilder type = types.createNewSchemaType(ActionParameters.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder type = types.createNewSchemaTypeWithSecurity(ActionParameters.SCHEMA_TYPE);
 
 			type.getDefaultSchema().get(Schemas.TITLE_CODE).setEnabled(false).setDefaultRequirement(false);
 
@@ -117,7 +117,7 @@ public class RobotsMigrationTo5_1_2 extends MigrationHelper implements Migration
 
 		private void createRobotSchemaType(MetadataSchemaTypesBuilder types,
 										   MetadataSchemaTypeBuilder actionParameters) {
-			MetadataSchemaTypeBuilder robots = types.createNewSchemaType(Robot.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder robots = types.createNewSchemaTypeWithSecurity(Robot.SCHEMA_TYPE);
 			MetadataSchemaBuilder schema = robots.getDefaultSchema();
 
 			schema.get(Schemas.TITLE_CODE).setDefaultRequirement(true).setMultiLingual(true);

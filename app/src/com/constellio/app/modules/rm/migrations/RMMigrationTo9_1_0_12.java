@@ -22,13 +22,18 @@ public class RMMigrationTo9_1_0_12 extends MigrationHelper implements MigrationS
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
+		addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory);
+	}
+
+	public static void addEmailTemplates(String collection, MigrationResourcesProvider migrationResourcesProvider,
+										 AppLayerFactory appLayerFactory) {
 		addEmailTemplate(appLayerFactory, migrationResourcesProvider, collection, "alertBorrowingPeriodEndedTemplate.html",
 				RMEmailTemplateConstants.ALERT_BORROWING_PERIOD_ENDED);
 	}
 
-	private void addEmailTemplate(AppLayerFactory appLayerFactory,
-								  MigrationResourcesProvider migrationResourcesProvider, String collection,
-								  String templateFileName, String templateId) {
+	public static void addEmailTemplate(AppLayerFactory appLayerFactory,
+										MigrationResourcesProvider migrationResourcesProvider, String collection,
+										String templateFileName, String templateId) {
 		InputStream remindReturnBorrowedFolderTemplate = migrationResourcesProvider.getStream(templateFileName);
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()

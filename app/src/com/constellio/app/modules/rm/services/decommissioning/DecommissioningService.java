@@ -199,7 +199,8 @@ public class DecommissioningService {
 	private boolean isFolderListProcessable(DecommissioningList decommissioningList, User user) {
 		return decommissioningList.isUnprocessed() &&
 			   areAllFoldersProcessable(decommissioningList) &&
-			   isApprovedOrDoesNotNeedApproval(decommissioningList) &&
+			   areAllFoldersSorted(decommissioningList) &&
+			   isApprovedOrDoesNotNeedApproval(decommissioningList, user) &&
 			   securityService().canProcess(decommissioningList, user);
 	}
 
@@ -207,7 +208,11 @@ public class DecommissioningService {
 		return decommissioningList.isUnprocessed() && securityService().canProcess(decommissioningList, user);
 	}
 
-	private boolean isApprovedOrDoesNotNeedApproval(DecommissioningList decommissioningList) {
+	private boolean isApprovedOrDoesNotNeedApproval(DecommissioningList decommissioningList, User user) {
+		if (user.getId().equals(decommissioningList.getSuperUser())) {
+			return true;
+		}
+
 		switch (decommissioningList.getStatus()) {
 			case APPROVED:
 				return true;
@@ -589,6 +594,10 @@ public class DecommissioningService {
 		return true;
 	}
 
+	private boolean areAllFoldersSorted(DecommissioningList decommissioningList) {
+		return decommissioningList.getFolderDetailsWithType().stream().noneMatch(FolderDetailWithType::isSelected);
+	}
+
 	private boolean isFolderRepackable(DecommissioningList decommissioningList, FolderDetailWithType folder) {
 		return folder.getType().potentiallyHasAnalogMedium();
 	}
@@ -882,6 +891,31 @@ public class DecommissioningService {
 		transaction.setOptions(new RecordUpdateOptions().setSkipValidationsIfNotEssential(true));
 		recordServices.execute(transaction);
 		return duplicatedFolder;
+	}
+
+	public void batchDuplicateStructure(List<Folder> folders, User currentUser, boolean forceTitleDuplication)
+			throws RecordServicesException {
+		Transaction transaction = new Transaction();
+		transaction.setUser(currentUser);
+		transaction.setOptions(new RecordUpdateOptions().setSkipValidationsIfNotEssential(true));
+		for (Folder folder : folders) {
+			Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
+			transaction.add(duplicatedFolder);
+		}
+		recordServices.execute(transaction);
+	}
+
+
+	public void batchDuplicateForm(List<Folder> folders, User currentUser) throws RecordServicesException {
+		Transaction transaction = new Transaction();
+		transaction.setUser(currentUser);
+		transaction.setOptions(new RecordUpdateOptions().setSkipValidationsIfNotEssential(true));
+		for (Folder folder : folders) {
+			Record record = duplicate(folder, currentUser, false).getWrappedRecord();
+			transaction.add(record);
+		}
+		recordServices.execute(transaction);
+
 	}
 
 	public void validateDuplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication)

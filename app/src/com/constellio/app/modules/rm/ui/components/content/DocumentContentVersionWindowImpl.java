@@ -1,5 +1,11 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentWindow;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -26,11 +32,6 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 @Slf4j
 public class DocumentContentVersionWindowImpl extends VerticalLayout implements DocumentContentVersionWindow {
@@ -66,6 +67,8 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 		addStyleName("no-scroll-vertical");
 
 		readOnlyLabel = new Label(readOnlyMessage, ContentMode.HTML);
+		readOnlyLabel.addStyleName(ValoTheme.LABEL_COLORED);
+		readOnlyLabel.addStyleName(ValoTheme.LABEL_BOLD);
 		readOnlyLabel.addStyleName("read-only-document-warning");
 		readOnlyLabel.setVisible(readOnlyMessage != null);
 
@@ -138,7 +141,7 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 		if (ResponsiveUtils.isPhone()) {
 			warningWindow.setWidth("90%");
 		} else {
-			warningWindow.setWidth("700px");
+			warningWindow.setWidth("500px");
 		}
 		warningWindow.center();
 		warningWindow.setModal(true);

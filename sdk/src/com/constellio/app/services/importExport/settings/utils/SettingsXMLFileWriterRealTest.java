@@ -543,6 +543,83 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 	}
 
 	@Test
+	public void whenWritingTypesWithAdvancedSequenceDataEntryTypeMetadataThenOK()
+			throws IOException {
+
+		ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
+				.setType("STRING")
+				.setEnabledIn(toListOfString("default", "custom1", "custom2"))
+				.setRequiredIn(toListOfString("custom1"))
+				.setVisibleInFormIn(toListOfString("default", "custom1"))
+				.setDataEntry(ImportedDataEntry.asAdvancedSequence("zeAdvancedSequenceCalculatorClass"));
+
+
+		zeCollectionSettings.addType(new ImportedType().setCode("folder").setLabel("Dossier")
+				.setDefaultSchema(new ImportedMetadataSchema().setCode("default").addMetadata(m1)));
+
+		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
+		writer.writeSettings(importedSettings);
+
+		List<Element> collectionElements = writer.getDocument().getRootElement().getChildren("collection-settings");
+		assertThat(collectionElements).hasSize(1);
+
+		Element zeCollectionElem = collectionElements.get(0);
+		assertThat(zeCollectionElem.getAttributeValue(CODE)).isEqualTo(zeCollection);
+
+		List<Element> children = zeCollectionElem.getChildren();
+
+		// types
+		Element typesElement = children.get(2);
+		assertThat(typesElement).isNotNull();
+		assertThat(typesElement.getChildren()).hasSize(1);
+
+		// folder type
+		Element folderTypeElement = typesElement.getChildren().get(0);
+		assertThat(folderTypeElement).isNotNull();
+		assertThat(folderTypeElement.getAttributeValue(CODE)).isEqualTo("folder");
+
+		// default-schema
+		Element defaultSchemaElem = typesElement.getChildren().get(0).getChild("default-schema");
+		assertThat(defaultSchemaElem).isNotNull();
+
+		Element metadata1Elem = defaultSchemaElem.getChildren().get(0);
+		assertThat(metadata1Elem.getAttributeValue(CODE)).isEqualTo("m1");
+		assertThat(metadata1Elem.getAttributeValue(TITLE)).isEqualTo("titre m1");
+		assertThat(metadata1Elem.getAttributeValue(TYPE)).isEqualTo("STRING");
+		assertThat(metadata1Elem.getAttributeValue(ENABLED)).isNull();
+		assertThat(metadata1Elem.getAttributeValue(ENABLED_IN)).isEqualTo("default,custom1,custom2");
+		assertThat(metadata1Elem.getAttributeValue(REQUIRED)).isNull();
+		assertThat(metadata1Elem.getAttributeValue(REQUIRED_IN)).isEqualTo("custom1");
+		assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_FORM)).isNull();
+		assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_FORM_IN)).isEqualTo("default,custom1");
+		assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_DISPLAY)).isNull();
+		assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_DISPLAY_IN)).isNullOrEmpty();
+		assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_SEARCH_RESULT)).isNull();
+		assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_RESULT_IN)).isNullOrEmpty();
+		assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_TABLES)).isNull();
+		assertThat(metadata1Elem.getAttributeValue(VISIBLE_IN_TABLES_IN)).isNullOrEmpty();
+		assertThat(metadata1Elem.getAttributeValue(TAB)).isNullOrEmpty();
+		assertThat(metadata1Elem.getAttributeValue(MULTI_VALUE)).isNull();
+		assertThat(metadata1Elem.getAttributeValue(INPUT_MASK)).isNullOrEmpty();
+
+		Element dataEntry = metadata1Elem.getChildren("data-entry").get(0);
+		assertThat(dataEntry.getAttributeValue("type")).isEqualTo("advancedSequence");
+		assertThat(dataEntry.getAttributeValue("advancedSequenceCalculator")).isEqualTo("zeAdvancedSequenceCalculatorClass");
+
+		String outputFilePath = "settings-types-output.xml";
+		File outputFile = new File(newTempFolder(), outputFilePath);
+
+		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(writer.getDocument(), fileOutputStream);
+		}
+
+		System.out.println("File Saved!");
+	}
+
+	@Test
 	public void whenWritingTypesThenElementsPresent()
 			throws IOException {
 

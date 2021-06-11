@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+
 public class RecordsImportValidator {
 
 	public static final String LEGACY_ID_LOCAL_CODE = Schemas.LEGACY_ID.getLocalCode();
@@ -60,6 +62,7 @@ public class RecordsImportValidator {
 	public static final String INVALID_MULTIVALUE = "invalidMultivalue";
 	public static final String INVALID_STRING_VALUE = "invalidStringValue";
 	public static final String INVALID_NUMBER_VALUE = "invalidNumberValue";
+	public static final String INVALID_INTEGER_VALUE = "invalidIntegerValue";
 	public static final String INVALID_CONTENT_VALUE = "invalidContentValue";
 	public static final String INVALID_STRUCTURE_VALUE = "invalidStructureValue";
 	public static final String INVALID_BOOLEAN_VALUE = "invalidBooleanValue";
@@ -171,7 +174,7 @@ public class RecordsImportValidator {
 					boolean isUpdate = resolverCache.isRecordUpdate(schemaType, importData.getLegacyId(),
 							importDataIterator.getOptions().isImportAsLegacyId());
 
-					if (!isUpdate) {
+					if (!isUpdate && !extensions.isSkipPrevalidation(schemaType, new PrevalidationParams(decoratedErrors, importData))) {
 						validateMetadatasRequirement(importData, metadataSchema, decoratedErrors);
 					}
 				} catch (MetadataSchemasRuntimeException.NoSuchSchema | CannotGetMetadatasOfAnotherSchemaType e) {
@@ -206,7 +209,6 @@ public class RecordsImportValidator {
 					for (Map.Entry<String, Set<String>> entry : unresolved.getMapEntries()) {
 						String value = entry.getKey();
 						for (String usedBy : entry.getValue()) {
-
 							addReferenceResolveError(errors, schemaType, uniqueValueMetadata, value, usedBy);
 						}
 					}
@@ -266,16 +268,22 @@ public class RecordsImportValidator {
 		} else {
 
 			for (String uniqueMetadata : uniqueMetadatas) {
-				String uniqueValue = (String) importData.getFields().get(uniqueMetadata);
 
-				if (uniqueValue != null && !resolverCache.isNewUniqueValue(type.getCode(), uniqueMetadata, uniqueValue)) {
-					Metadata metadata = (StringUtils.isNotBlank(importData.getSchema()) ?
-										 type.getSchema(importData.getSchema()) : type.getDefaultSchema()).getMetadata(uniqueMetadata);
-					Map<String, Object> parameters = toMetadataParameters(metadata);
-					parameters.put("value", uniqueValue);
-					errors.add(RecordsImportServices.class, METADATA_NOT_UNIQUE, parameters);
+				Object value = importData.getFields().get(uniqueMetadata);
+
+				if (value != null) {
+					List<String> uniqueValues = value instanceof List<?> ? (List<String>) value : Collections.singletonList((String) value);
+
+					uniqueValues.forEach(uniqueValue -> {
+						if (uniqueValue != null && !resolverCache.isNewUniqueValue(type.getCode(), uniqueMetadata, uniqueValue)) {
+							Metadata metadata = (StringUtils.isNotBlank(importData.getSchema()) ?
+												 type.getSchema(importData.getSchema()) : type.getDefaultSchema()).getMetadata(uniqueMetadata);
+							Map<String, Object> parameters = toMetadataParameters(metadata);
+							parameters.put("value", uniqueValue);
+							errors.add(RecordsImportServices.class, METADATA_NOT_UNIQUE, parameters);
+						}
+					});
 				}
-
 			}
 		}
 	}
@@ -289,11 +297,17 @@ public class RecordsImportValidator {
 		}
 
 		for (String uniqueMetadata : uniqueMetadatas) {
-			String value = (String) importData.getFields().get(uniqueMetadata);
-			if (value != null) {
-				resolverCache.markAsRecordInFile(type.getCode(), uniqueMetadata, value);
-			}
+			Object value = importData.getFields().get(uniqueMetadata);
 
+			if (value != null) {
+				List<String> uniqueValues = value instanceof List<?> ? (List<String>) value : Collections.singletonList((String) value);
+
+				uniqueValues.forEach(uniqueValue -> {
+					if (uniqueValue != null) {
+						resolverCache.markAsRecordInFile(type.getCode(), uniqueMetadata, uniqueValue);
+					}
+				});
+			}
 		}
 	}
 
@@ -434,9 +448,17 @@ public class RecordsImportValidator {
 		} else if (type == MetadataValueType.NUMBER) {
 
 			try {
-				Double.valueOf((String) value);
+				Double.valueOf(((String) value).replace(",", "."));
 			} catch (Exception e) {
 				errors.add(RecordsImportServices.class, INVALID_NUMBER_VALUE);
+			}
+
+		} else if (type == MetadataValueType.INTEGER) {
+
+			try {
+				Integer.valueOf((String) value);
+			} catch (Exception e) {
+				errors.add(RecordsImportServices.class, INVALID_INTEGER_VALUE);
 			}
 
 		} else if (type == MetadataValueType.CONTENT) {

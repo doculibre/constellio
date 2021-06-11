@@ -1,13 +1,10 @@
 package com.constellio.app.ui.pages.search;
 
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
-import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.SimpleSearchUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
@@ -103,10 +100,11 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 						view.getSessionContext().getCurrentUser().getUsername(),
 						collection);
 
-		if (allowedSchemaTypes().isEmpty()) {
+		List<MetadataSchemaType> allowedSchemaTypes = allowedSchemaTypes();
+		if (allowedSchemaTypes.isEmpty()) {
 			service = new SearchPresenterService(collection, user, modelLayerFactory, null);
 		} else {
-			service = new SearchPresenterService(collection, user, modelLayerFactory, allowedSchemaTypes());
+			service = new SearchPresenterService(collection, user, modelLayerFactory, allowedSchemaTypes);
 		}
 
 	}
@@ -209,10 +207,11 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	@Override
 	protected LogicalSearchCondition getSearchCondition() {
 		LogicalSearchCondition logicalSearchCondition;
-		if (allowedSchemaTypes().isEmpty()) {
+		List<MetadataSchemaType> allowedSchemaTypes = allowedSchemaTypes();
+		if (allowedSchemaTypes.isEmpty()) {
 			logicalSearchCondition = fromAllSchemasIn(view.getCollection()).returnAll();
 		} else {
-			logicalSearchCondition = from(allowedSchemaTypes()).returnAll();
+			logicalSearchCondition = from(allowedSchemaTypes).returnAll();
 		}
 
 		logicalSearchCondition = appCollectionExtentions.adjustSearchPageCondition(new SearchPageConditionParam((Component) view, logicalSearchCondition, getCurrentUser()));
@@ -224,33 +223,6 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		return search.setSearchType(SimpleSearchView.SEARCH_TYPE)
 				.setFreeTextSearch(searchExpression)
 				.setPageNumber(pageNumber);
-	}
-
-	protected List<MetadataSchemaType> allowedSchemaTypes() {
-		List<MetadataSchemaType> result = new ArrayList<>();
-		if (types() != null) {
-			for (MetadataSchemaType type : types().getSchemaTypes()) {
-				SchemaTypeDisplayConfig config = schemasDisplayManager()
-						.getType(view.getSessionContext().getCurrentCollection(), type.getCode());
-				if (config.isSimpleSearch() && isVisibleForUser(type, getCurrentUser())) {
-					result.add(type);
-				}
-			}
-		}
-
-
-		return result;
-	}
-
-	private boolean isVisibleForUser(MetadataSchemaType type, User currentUser) {
-		if (ContainerRecord.SCHEMA_TYPE.equals(type.getCode()) && !currentUser
-				.hasAny(RMPermissionsTo.DISPLAY_CONTAINERS, RMPermissionsTo.MANAGE_CONTAINERS).onSomething()) {
-			return false;
-		} else if (StorageSpace.SCHEMA_TYPE.equals(type.getCode()) && !currentUser.has(RMPermissionsTo.MANAGE_STORAGE_SPACES)
-				.globally()) {
-			return false;
-		}
-		return true;
 	}
 
 	public Record getTemporarySearchRecord() {
@@ -305,11 +277,15 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		//		} catch (RecordServicesException e) {
 		//			LOGGER.error("Error while saving temporary search", e);
 		//		}
-		
+
 		updateUIContext(search);
 		if (refreshPage) {
 			view.navigate().to().simpleSearchReplay(search.getId());
 		}
 		return search;
+	}
+
+	protected List<MetadataSchemaType> allowedSchemaTypes() {
+		return SimpleSearchUtils.allowedSchemaTypes(getCurrentUser(), collection, types(), schemasDisplayManager);
 	}
 }

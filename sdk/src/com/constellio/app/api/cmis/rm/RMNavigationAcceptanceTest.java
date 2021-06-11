@@ -107,6 +107,8 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 		authorizationsServices.add(authorizationForUsers(users.robinIn(zeCollection))
 				.on(folder1Doc).givingReadAccess(), users.adminIn(zeCollection));
 
+		//Added by Francis on 21-02-2021 in hope of fixing intermittent failure
+		waitForBatchProcess();
 		assertThat(getModelLayerFactory().getTaxonomyRecordsHookRetriever(zeCollection)
 				.hasUserAccessToSomethingInPrincipalConcept(users.robinIn(zeCollection), records.getUnit10a().getWrappedRecord(), false, false))
 				.isTrue();
@@ -319,7 +321,16 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 					tuple("A16", "folder_default", "Chat"),
 					tuple("B32", "folder_default", "Pêche"),
 					tuple("A17", "folder_default", "Chauve-souris"),
-					tuple("C32", "folder_default", "Maïs")
+					tuple("C32", "folder_default", "Maïs"),
+
+					tuple("A87", "folder_default", "Phoque"),
+					tuple("A85", "folder_default", "Panda"),
+					tuple("A50", "folder_default", "Hamster"),
+					tuple("C52", "folder_default", "Pomme de terre"),
+					tuple("A49", "folder_default", "Grenouille"),
+					tuple("B52", "folder_default", "Avocat"),
+					tuple("A48", "folder_default", "Gorille"),
+					tuple("A86", "folder_default", "Perroquet")
 			);
 		}
 
@@ -332,7 +343,16 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 				tuple("A16", "folder_default", "Chat"),
 				tuple("B32", "folder_default", "Pêche"),
 				tuple("A17", "folder_default", "Chauve-souris"),
-				tuple("C32", "folder_default", "Maïs")
+				tuple("C32", "folder_default", "Maïs"),
+
+				tuple("A87", "folder_default", "Phoque"),
+				tuple("A85", "folder_default", "Panda"),
+				tuple("A50", "folder_default", "Hamster"),
+				tuple("C52", "folder_default", "Pomme de terre"),
+				tuple("A49", "folder_default", "Grenouille"),
+				tuple("B52", "folder_default", "Avocat"),
+				tuple("A48", "folder_default", "Gorille"),
+				tuple("A86", "folder_default", "Perroquet")
 		);
 
 		as(sasquatch).assertThatChildrensOf(folder("/taxo_plan/categoryId_X/categoryId_X100")).containsOnly(
@@ -350,7 +370,15 @@ public class RMNavigationAcceptanceTest extends ConstellioTest {
 				tuple("B05", "folder_default", "Fraise"),
 				tuple("B09", "folder_default", "Melon"),
 				tuple("B07", "folder_default", "Kiwi"),
-				tuple("B03", "folder_default", "Citron")
+				tuple("B03", "folder_default", "Citron"),
+
+				tuple("B53", "folder_default", "Ananas"),
+				tuple("bac03", "containerRecord_default", "11_B_01"),
+				tuple("B51", "folder_default", "Cerise"),
+				tuple("B35", "folder_default", "Raison"),
+				tuple("B55", "folder_default", "Prune"),
+				tuple("bac09", "containerRecord_default", "11_B_02"),
+				tuple("B33", "folder_default", "Poire")
 		);
 	}
 

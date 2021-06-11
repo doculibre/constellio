@@ -6,6 +6,7 @@ import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.EnumWithSmallCode;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -38,6 +39,10 @@ public class EnumWithSmallCodeOptionGroup<E extends EnumWithSmallCode> extends L
 		initStyleName();
 		for (EnumWithSmallCode enumWithSmallCode : enumConstants) {
 			String enumCode = enumWithSmallCode.getCode();
+			if(codesToIgnore().contains(enumCode)) {
+				continue;
+			}
+
 			addItem(enumWithSmallCode);
 			// TODO Use EnumWithSmallCodeToCaptionConverter
 			String caption = $(enumWithSmallCodeClass.getSimpleName() + "." + enumCode);
@@ -58,6 +63,7 @@ public class EnumWithSmallCodeOptionGroup<E extends EnumWithSmallCode> extends L
 		}
 	}
 
-	;
-
+	public List<String> codesToIgnore() {
+		return Collections.emptyList();
+	}
 }

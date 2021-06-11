@@ -4,8 +4,8 @@ import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerC
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -49,9 +49,10 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			@Override
 			public void setupCollection() {
 				givenCollection(zeCollection);
-				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, Authorization.DEFAULT_SCHEMA);
+				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, RecordAuthorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				//getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, VaultScanReport.FULL_SCHEMA);
 			}
 		});
 
@@ -68,9 +69,10 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			public void setupCollection() {
 				givenCollection(zeCollection).withTaskModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						Authorization.DEFAULT_SCHEMA);
+						RecordAuthorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				//getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, VaultScanReport.FULL_SCHEMA);
 			}
 		});
 
@@ -87,9 +89,10 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			public void setupCollection() {
 				givenCollection(zeCollection).withConstellioRMModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
-						.resetSchema(zeCollection, Authorization.DEFAULT_SCHEMA);
+						.resetSchema(zeCollection, RecordAuthorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				//getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, VaultScanReport.FULL_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
 						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
@@ -109,9 +112,10 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			public void setupCollection() {
 				givenCollection(zeCollection).withRobotsModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						Authorization.DEFAULT_SCHEMA);
+						RecordAuthorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				//getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, VaultScanReport.FULL_SCHEMA);
 			}
 		});
 
@@ -128,9 +132,10 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			public void setupCollection() {
 				givenCollection(zeCollection).withConstellioESModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						Authorization.DEFAULT_SCHEMA);
+						RecordAuthorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				//getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, VaultScanReport.FULL_SCHEMA);
 			}
 		});
 	}
@@ -151,9 +156,10 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 					}
 				});
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						Authorization.DEFAULT_SCHEMA);
+						RecordAuthorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				//getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, VaultScanReport.FULL_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
 						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
@@ -178,9 +184,10 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 					}
 				});
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						Authorization.DEFAULT_SCHEMA);
+						RecordAuthorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				//getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, VaultScanReport.FULL_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
 						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
@@ -208,9 +215,10 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 				givenCollection(zeCollection).withMockedAvailableModules(false).withConstellioRMModule().withConstellioESModule()
 						.withRobotsModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						Authorization.DEFAULT_SCHEMA);
+						RecordAuthorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
+				//getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, VaultScanReport.FULL_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
 						.resetMetadata(zeCollection, "containerRecord_default_administrativeUnit");
@@ -365,6 +373,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 				types.resetAllIds();
 			}
 		});
+
 		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(zeCollection);
 		getAppLayerFactory().getMetadataSchemasDisplayManager().rewriteInOrderAndGetCodes(Collection.SYSTEM_COLLECTION);
 		dataLayerFactory = getAppLayerFactory().getModelLayerFactory().getDataLayerFactory();
@@ -415,26 +424,29 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			String contentOfFileMigratedUsingComboScript = contentExceptVersion(file1);
 			String contentOfFileMigratedUsingAtomicScripts = contentExceptVersion(file2);
 
-			if (file.endsWith(".properties")) {
-				List<String> linesOfComboMigrationFile = asList(contentOfFileMigratedUsingComboScript.split("\n"));
-				Collections.sort(linesOfComboMigrationFile);
-				List<String> linesOfMigrationFile = asList(contentOfFileMigratedUsingAtomicScripts.split("\n"));
-				Collections.sort(linesOfMigrationFile);
+			if (!"globalProperties".equals(file) && !"/settings/_system_roles.xml".equals(fileAbsolutePath)) {
 
-				assertThat(linesOfComboMigrationFile).describedAs("Content of file '" + fileAbsolutePath + "")
-						.isEqualTo(linesOfMigrationFile);
+				if (file.endsWith(".properties")) {
+					List<String> linesOfComboMigrationFile = asList(contentOfFileMigratedUsingComboScript.split("\n"));
+					Collections.sort(linesOfComboMigrationFile);
+					List<String> linesOfMigrationFile = asList(contentOfFileMigratedUsingAtomicScripts.split("\n"));
+					Collections.sort(linesOfMigrationFile);
 
-			} else {
+					assertThat(linesOfComboMigrationFile).describedAs("Content of file '" + fileAbsolutePath + "")
+							.isEqualTo(linesOfMigrationFile);
 
-				if (!contentOfFileMigratedUsingComboScript.equals(contentOfFileMigratedUsingAtomicScripts)) {
-					assertThat("FICHIER GÉNÉRÉ AVEC LES WOMBO COMBO (ne pas tenir compte de cette ligne) :\n"
-							   + contentOfFileMigratedUsingComboScript).describedAs("Actual content of file '" + fileAbsolutePath
-																					+ "' generated using combo script is not equal to the content generated using atomic scripts")
-							.isEqualTo("FICHIER GÉNÉRÉ SANS LES WOMBO COMBO (ne pas tenir compte de cette ligne) :\n"
-									   + contentOfFileMigratedUsingAtomicScripts);
+				} else {
+
+					if (!contentOfFileMigratedUsingComboScript.equals(contentOfFileMigratedUsingAtomicScripts)) {
+						assertThat("FICHIER GÉNÉRÉ AVEC LES WOMBO COMBO (ne pas tenir compte de cette ligne) :\n"
+								   + contentOfFileMigratedUsingComboScript).describedAs("Actual content of file '" + fileAbsolutePath
+																						+ "' generated using combo script is not equal to the content generated using atomic scripts")
+								.isEqualTo("FICHIER GÉNÉRÉ SANS LES WOMBO COMBO (ne pas tenir compte de cette ligne) :\n"
+										   + contentOfFileMigratedUsingAtomicScripts);
+					}
 				}
+				System.out.println(file1.getName() + " is OK");
 			}
-			System.out.println(file1.getName() + " is OK");
 			//}
 		}
 

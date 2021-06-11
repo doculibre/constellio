@@ -12,6 +12,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.structures.TableProperties;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.Table;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,7 +93,8 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 	protected Object toPropertyId(String columnId, Object[] propertyIds) {
 		for (Object propertyId : propertyIds) {
 			if (propertyId instanceof MetadataVO) {
-				if (columnId.equals(((MetadataVO) propertyId).getCode())) {
+				String value = getMetadataAdaptedId((MetadataVO) propertyId);
+				if (columnId.equals(value)) {
 					return propertyId;
 				}
 			}
@@ -100,11 +102,21 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 		return super.toPropertyId(columnId, propertyIds);
 	}
 
+	@NotNull
+	private String getMetadataAdaptedId(MetadataVO propertyId) {
+		String schemaCode = propertyId.getSchema().getCode();
+		String shouldNeverStartWith = SchemaUtils.getSchemaTypeCode(schemaCode) + "_default";
+		String value = propertyId.getCode();
+		value = value.replace(shouldNeverStartWith, schemaCode);
+		return value;
+	}
+
 	@Override
 	protected String toColumnId(Object propertyId) {
 		String columnId;
 		if (propertyId instanceof MetadataVO) {
-			columnId = ((MetadataVO) propertyId).getCode();
+			String value = getMetadataAdaptedId((MetadataVO) propertyId);
+			columnId = value;
 		} else {
 			columnId = super.toColumnId(propertyId);
 		}

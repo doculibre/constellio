@@ -2,56 +2,83 @@
   "action": {
     "apply": "適用",
     "applyAll": "すべて適用",
+    "calibrate": "調整する",
     "cancel": "キャンセル",
     "clear": "クリア",
     "close": "閉じる",
+    "undo": "元に戻す",
+    "redo": "準備ができて",
     "comment": "コメント",
+    "reply": "返信",
     "copy": "コピー",
     "delete": "削除",
     "group": "グループ",
     "ungroup": "グループ解除",
     "download": "ダウンロード",
     "edit": "編集",
+    "extract": "エキス",
     "enterFullscreen": "全画面表示",
     "exitFullscreen": "全画面表示を終了",
     "fit": "フィット",
     "fitToPage": "ページに合わせる",
     "fitToWidth": "幅に合わせる",
+    "more": "もっと多く",
     "openFile": "ファイルを開く",
+    "pagePrev": "前のページ",
+    "pageNext": "次のページ",
+    "pageSet": "ページを設定",
     "print": "印刷",
+    "name": "名前",
     "ok": "OK",
-    "reply": "返信",
     "rotate": "回転",
     "rotateClockwise": "時計回り",
     "rotateCounterClockwise": "反時計回り",
     "save": "保存",
+    "post": "投稿",
     "create": "作成",
     "showMoreResults": "より多くの結果を表示",
-    "saveSignature": "署名の保存",
     "sign": "署名",
     "style": "スタイル",
     "submit": "送信",
     "zoom": "ズーム",
     "zoomIn": "ズームイン",
-    "zoomOut": "ズームアウト"
+    "zoomOut": "ズームアウト",
+    "zoomSet": "ズームを設定",
+    "zoomControls": "ズームコントロール",
+    "draw": "ドロー",
+    "type": "タイプ",
+    "upload": "アップロードする",
+    "link": "リンク",
+    "darkMode": "ダークモード",
+    "lightMode": "ライトモード",
+    "fileAttachmentDownload": "添付ファイルをダウンロード",
+    "prevResult": "前の結果",
+    "nextResult": "次の結果",
+    "prev": "前",
+    "next": "次",
+    "startFormEditing": "フォームの編集を開始",
+    "exitFormEditing": "フォーム編集モードを終了する",
+    "exit": "出口",
+    "markAllRead": "すべて既読にする"
   },
   "annotation": {
     "areaMeasurement": "面積測定",
     "arrow": "矢印",
     "callout": "コールアウト",
+    "crop": "切り抜きページ",
     "caret": "キャレット",
     "distanceMeasurement": "距離測定",
+    "countMeasurement": "カウント測定",
     "ellipse": "楕円",
+    "eraser": "消しゴム",
+    "fileattachment": "添付ファイル",
     "freehand": "フリーハンド",
-    "freehand2": "フリーハンド",
     "freetext": "フリーテキスト",
-    "freetext2": "フリーテキスト",
     "highlight": "ハイライト",
-    "highlight2": "ハイライト",
     "line": "線",
     "perimeterMeasurement": "境界測定",
     "polygon": "ポリゴン",
-    "polygonCloud": "クラウド",
+    "polygonCloud": "曇り",
     "polyline": "ポリライン",
     "rectangle": "矩形",
     "redact": "改訂",
@@ -62,25 +89,60 @@
     "strikeout": "抹消線",
     "underline": "下線",
     "custom": "カスタム",
-    "eraser": "消しゴム"
+    "rubberStamp": "ゴム印",
+    "note": "注意",
+    "link": "リンク",
+    "other": "その他"
+  },
+  "rubberStamp": {
+    "Approved": "承認済み",
+    "AsIs": "そのまま",
+    "Completed": "完了しました",
+    "Confidential": "機密",
+    "Departmental": "部門別",
+    "Draft": "ドラフト",
+    "Experimental": "実験的",
+    "Expired": "期限切れ",
+    "Final": "最後の",
+    "ForComment": "コメント用",
+    "ForPublicRelease": "公開リリース",
+    "InformationOnly": "情報のみ",
+    "NotApproved": "未承認",
+    "NotForPublicRelease": "非公開リリース",
+    "PreliminaryResults": "予備結果",
+    "Sold": "販売済み",
+    "TopSecret": "トップシークレット",
+    "Void": "ボイド",
+    "SHSignHere": "ここに署名",
+    "SHWitness": "証人",
+    "SHInitialHere": "初期",
+    "SHAccepted": "受け入れられた",
+    "SBRejected": "拒否されました"
   },
   "component": {
-    "freehandToolsButton": "フリーハンド ツール",
     "leftPanel": "パネル",
+    "toolsHeader": "道具",
     "searchOverlay": "検索",
+    "searchPanel": "探す",
     "menuOverlay": "メニュー",
-    "miscToolsButton": "その他のツール",
     "notesPanel": "備考",
-    "outlinesPanel": "アウトライン",
-    "shapeToolsButton": "シェイプ ツール",
-    "textToolsButton": "テキスト ツール",
+    "outlinesPanel": "概要",
+    "bookmarksPanel": "しおり",
+    "newBookmark": "新しいブックマーク",
+    "bookmarkPage": "ページ",
+    "layersPanel": "レイヤー",
     "thumbnailsPanel": "サムネイル",
     "toolsButton": "ツール",
     "redaction": "改訂",
     "viewControlsOverlay": "コントロールの表示",
-    "measurementToolsButton": "測定ツール"
+    "calibration": "較正",
+    "zoomOverlay": "ズームオーバーレイ",
+    "textPopup": "テキストポップアップ",
+    "createStampButton": "新しいスタンプを作成",
+    "filter": "フィルタ"
   },
   "message": {
+    "toolsOverlayNoPresets": "プリセットなし",
     "badDocument": "ドキュメントの読み込みに失敗しました。ドキュメントが破損しているか、無効です。",
     "customPrintPlaceholder": "例：3, 4-10",
     "encryptedAttemptsExceeded": "暗号化されたドキュメントを読み込めませんでした。試行回数が多すぎます。",
@@ -88,28 +150,64 @@
     "enterPassword": "このドキュメントは、パスワード保護されています。 パスワードを入力してください。",
     "incorrectPassword": "パスワードが正しくありません。残りの試行回数：{{ remainingAttempts }}",
     "noAnnotations": "このドキュメントには注釈がありません。",
+    "noAnnotationsFilter": "注釈の作成を開始すると、フィルターがここに表示されます。",
     "noOutlines": "このドキュメントには概要がありません。",
     "noResults": "結果が見つかりませんでした。",
+    "numResultsFound": "結果が見つかりました",
     "notSupported": "このファイルの種類はサポートされていません。",
     "passwordRequired": "パスワードが必要です",
     "preparingToPrint": "印刷の準備をしています...",
+    "annotationReplyCount": "{{count}} 応答",
+    "annotationReplyCount_plural": "{{count}} 返信",
     "printTotalPageCount": "{{count}} ページ",
     "printTotalPageCount_plural": "{{count}} ページ",
     "processing": "処理中...",
     "searching": "検索中...",
-    "searchPlaceholder": "コメントを検索...",
+    "searchCommentsPlaceholder": "コメントを検索",
+    "searchDocumentPlaceholder": "ドキュメントを検索",
     "signHere": "ここに署名",
-    "insertTextHere": "ここにテキストを挿入"
+    "insertTextHere": "ここにテキストを挿入",
+    "imageSignatureAcceptedFileTypes": "{{acceptedFileTypes}}のみが受け入れられます",
+    "enterMeasurement": "2点間の測定値を入力します",
+    "errorEnterMeasurement": "入力した数値は無効です。7.5や7 1/2などの値を入力できます",
+    "linkURLorPage": "リンクURLまたはページ",
+    "enterReplacementText": "置き換えるテキストを入力してください",
+    "sortBy": "並び替え",
+    "emptyCustomStampInput": "スタンプテキストを空にすることはできません",
+    "unpostedComment": "未投稿コメント"
   },
   "option": {
+    "notesOrder": {
+      "dropdownLabel": "ソート順リス",
+      "position": "ポジション",
+      "time": "時間",
+      "status": "状態",
+      "author": "著者",
+      "type": "タイプ"
+    },
+    "toolbarGroup": {
+      "dropdownLabel": "ツールバーグループ",
+      "toolbarGroup-View": "見る",
+      "toolbarGroup-Annotate": "注釈を付ける",
+      "toolbarGroup-Shapes": "形",
+      "toolbarGroup-Insert": "インサート",
+      "toolbarGroup-Measure": "測る",
+      "toolbarGroup-Edit": "編集する"
+    },
     "annotationColor": {
       "StrokeColor": "罫線の色",
       "FillColor": "塗りつぶしの色",
       "TextColor": "テキストの色"
     },
+    "colorPalette": {
+      "colorLabel": "色"
+    },
     "displayMode": {
       "layout": "レイアウト",
       "pageTransition": "ページ遷移"
+    },
+    "documentControls": {
+      "placeholder": "ページを入力して選択します（例：2、5-9）"
     },
     "layout": {
       "cover": "カバー",
@@ -117,8 +215,6 @@
       "single": "シングル"
     },
     "notesPanel": {
-      "orderPosition": "位置",
-      "orderTime": "時間",
       "separator": {
         "today": "今日",
         "yesterday": "昨日"
@@ -126,25 +222,68 @@
     },
     "pageTransition": {
       "continuous": "続く",
-      "default": "ページごと"
+      "default": "ページごと",
+      "reader": "読者"
     },
     "print": {
       "all": "すべて",
-      "current": "現在の",
+      "current": "現在のページ",
       "pages": "ページ",
-      "includeComments": "コメントを含める"
+      "view": "現在のビュー",
+      "pageQuality": "印刷品質",
+      "qualityNormal": "正常",
+      "qualityHigh": "高い",
+      "includeAnnotations": "注釈を含める",
+      "includeComments": "コメントを含める",
+      "addWatermarkSettings": "透かし設定を追加"
+    },
+    "printInfo": {
+      "author": "著者",
+      "subject": "件名",
+      "date": "日付"
     },
     "redaction": {
-      "markForRedaction": "改訂マーク",
-      "warningPopupMessage": "この操作を行うと、編集対象として選択されているすべてのアイテムが完全に削除されます。 元に戻すことはできません。",
-      "warningPopupTitle": "改定を適用"
+      "markForRedaction": "改訂マーク"
     },
     "searchPanel": {
       "caseSensitive": "大文字と小文字を区別",
-      "wholeWordOnly": "単語全体"
+      "wholeWordOnly": "単語全体",
+      "wildcard": "ワイルドカード"
+    },
+    "toolsOverlay": {
+      "currentStamp": "現在のスタンプ",
+      "currentSignature": "現在の署名",
+      "signatureAltText": "署名"
+    },
+    "stampOverlay": {
+      "addStamp": "新しいスタンプを追加"
     },
     "signatureOverlay": {
       "addSignature": "署名を追加"
+    },
+    "signatureModal": {
+      "saveSignature": "署名を保存",
+      "dragAndDrop": "ここに画像をドラッグアンドドロップします",
+      "or": "または",
+      "pickImage": "署名画像を選択"
+    },
+    "filterAnnotModal": {
+      "commentBy": "によるコメント",
+      "types": "タイプ"
+    },
+    "status": {
+      "status": "状態"
+    },
+    "state": {
+      "accepted": "受け入れられた",
+      "rejected": "拒否されました",
+      "completed": "完了しました",
+      "cancelled": "キャンセル",
+      "set": "ステータスを設定：",
+      "setBy": "によって設定されました",
+      "none": "無し",
+      "marked": "マークされた",
+      "unmarked": "マークなし"
     },
     "measurementOverlay": {
       "scale": "スケール比",
@@ -154,10 +293,18 @@
       "area": "領域",
       "distanceMeasurement": "距離測定",
       "perimeterMeasurement": "境界測定",
-      "areaMeasurement": "面積測定"
+      "areaMeasurement": "面積測定",
+      "countMeasurement": "カウント測定",
+      "radius": "半径",
+      "count": "カウント"
     },
     "measurementOption": {
       "scale": "スケール"
+    },
+    "styleOption": {
+      "style": "スタイル",
+      "solid": "固体",
+      "cloudy": "曇り"
     },
     "slider": {
       "opacity": "不透明度",
@@ -166,7 +313,63 @@
     },
     "shared": {
       "page": "ページ",
-      "precision": "精度"
+      "precision": "精度",
+      "enableSnapping": "測定ツールのスナップを有効にする"
+    },
+    "watermark": {
+      "size": "サイズ",
+      "location": "透かしを編集する場所を選択してください",
+      "text": "テキスト",
+      "style": "スタイル",
+      "resetAllSettings": "すべての設定をリセット",
+      "font": "フォント",
+      "locations": {
+        "center": "センター",
+        "topLeft": "左上",
+        "topRight": "右上",
+        "topCenter": "トップセンター",
+        "bottomLeft": "左下",
+        "bottomRight": "右下",
+        "bottomCenter": "下部中央"
+      }
+    },
+    "thumbnailPanel": {
+      "delete": "削除する",
+      "rotateClockwise": "時計回り",
+      "rotateCounterClockwise": "反時計回り"
+    },
+    "richText": {
+      "bold": "太字",
+      "italic": "イタリック",
+      "underline": "下線",
+      "strikeout": "取り消し線"
+    },
+    "customStampModal": {
+      "stampText": "スタンプテキスト：",
+      "timestampText": "タイムスタンプテキスト：",
+      "stampColor": "スタンプ色：",
+      "Username": "ユーザー名",
+      "Date": "日付",
+      "Time": "時間"
+    }
+  },
+  "warning": {
+    "deletePage": {
+      "deleteTitle": "ページを削除",
+      "deleteMessage": "選択したページを削除してもよろしいですか？これは元に戻せません",
+      "deleteLastPageMessage": "これにより、ページが残りません。少なくとも1ページ残してください"
+    },
+    "redaction": {
+      "applyTile": "リダクションを適用",
+      "applyMessage": "この操作により、編集用に選択されたすべてのアイテムが完全に削除されます。元に戻すことはできません。"
+    },
+    "selectPage": {
+      "selectTitle": "ページが選択されていません",
+      "selectMessage": "ページを選択して、もう一度お試しください。"
+    },
+    "colorPicker": {
+      "deleteTitle": "カスタムカラーを削除する",
+      "deleteMessage": "選択したカスタムカラーを削除しますか？カラーパレットから削除されます。"
     }
   },
   "shortcut": {
@@ -175,6 +378,7 @@
     "copy": "(Ctrl C)",
     "delete": "(Del)",
     "ellipse": "(O)",
+    "eraser": "(E)",
     "freehand": "(F)",
     "freetext": "(T)",
     "highlight": "(H)",
@@ -187,16 +391,161 @@
     "signature": "(S)",
     "squiggly": "(G)",
     "stamp": "(I)",
+    "redo": "（Ctrl Shift Z）",
+    "redo_windows": "(Ctrl Y)",
+    "undo": "（Ctrl Z）",
     "stickyNote": "(N)",
     "strikeout": "(K)",
     "underline": "(U)",
     "zoomIn": "(Ctrl +)",
     "zoomOut": "(Ctrl -)",
-    "eraser": "(E)"
+    "richText": {
+      "bold": "（Ctrl B）",
+      "italic": "（Ctrl I）",
+      "underline": "（Ctrl U）",
+      "strikeout": "（Ctrl K）"
+    }
   },
   "tool": {
     "pan": "パン",
     "select": "選択",
-    "Marquee": "マーキーズーム"
+    "Marquee": "マーキーズーム",
+    "Link": "リンクURLまたはページ",
+    "Standard": "標準",
+    "Custom": "カスタム"
+  },
+  "link": {
+    "url": "URL",
+    "page": "ページ",
+    "enterurl": "リンクするURLを入力してください",
+    "enterpage": "リンクするページ番号を選択します"
+  },
+  "datePicker": {
+    "previousMonth": "前月",
+    "nextMonth": "来月",
+    "months": {
+      "0": "一月",
+      "1": "二月",
+      "2": "三月",
+      "3": "四月",
+      "4": "五月",
+      "5": "六月",
+      "6": "七月",
+      "7": "八月",
+      "8": "九月",
+      "9": "十月",
+      "10": "十一月",
+      "11": "十二月"
+    },
+    "weekdays": {
+      "0": "日曜日",
+      "1": "月曜日",
+      "2": "火曜日",
+      "3": "水曜日",
+      "4": "木曜日",
+      "5": "金曜日",
+      "6": "土曜日"
+    },
+    "weekdaysShort": {
+      "0": "日",
+      "1": "月",
+      "2": "火",
+      "3": "水",
+      "4": "木",
+      "5": "金",
+      "6": "土"
+    }
+  },
+  "digitalSignatureModal": {
+    "certification": "認証",
+    "Certification": "認証",
+    "signature": "署名",
+    "Signature": "署名",
+    "valid": "有効",
+    "invalid": "無効",
+    "unknown": "わからない",
+    "title": "{{type}}プロパティ",
+    "header": {
+      "documentIntegrity": "ドキュメントの整合性",
+      "identitiesTrust": "アイデンティティと信頼",
+      "generalErrors": "一般的なエラー",
+      "digestStatus": "ダイジェストステータス"
+    },
+    "digestAlgorithm": {
+      "preamble": "署名に署名するために使用されたダイジェストアルゴリズム：",
+      "unknown": "署名の署名に使用されたダイジェストアルゴリズムは不明です。"
+    },
+    "trustVerification": {
+      "none": "詳細な信頼検証結果はありません。",
+      "current": "現在の時刻に関して信頼の検証が試行されました",
+      "signing": "署名時間に関して信頼の検証が試行されました：{{trustVerificationTime}}",
+      "timestamp": "安全な埋め込みタイムスタンプに関して信頼の検証が試行されました：{{trustVerificationTime}}"
+    },
+    "signerIdentity": {
+      "preamble": "署名者の身元は",
+      "valid": "有効です。",
+      "unknown": "わからない。"
+    },
+    "summaryBox": {
+      "summary": "デジタル{{type}}は{{status}}です",
+      "signedBy": "、{{name}}による署名"
+    }
+  },
+  "digitalSignatureVerification": {
+    "certifier": "証明する",
+    "certified": "認証済み",
+    "Certified": "認証済み",
+    "signer": "符号",
+    "signed": "手話",
+    "Signed": "手話",
+    "by": "沿って",
+    "on": "オン",
+    "disallowedChange": "許可されていない変更：{{type}}、objnum：{{objnum}}",
+    "trustVerification": {
+      "current": "使用した検証時間は現在の時間でした",
+      "signing": "確認時間は署名者のコンピューターの時計からです",
+      "timestamp": "検証時間は、ドキュメントに埋め込まれている安全なタイムスタンプからのものです",
+      "verifiedTrust": "信頼検証結果：検証済み",
+      "noTrustVerification": "詳細な信頼検証結果はありません。"
+    },
+    "permissionStatus": {
+      "noPermissionsStatus": "レポートする権限ステータスがありません。",
+      "permissionsVerificationDisabled": "権限の検証が無効になっています。",
+      "hasAllowedChanges": "ドキュメントには、署名のアクセス許可設定で許可されている変更があります。",
+      "invalidatedByDisallowedChanges": "ドキュメントには、署名のアクセス許可設定で許可されていない変更があります。",
+      "unmodified": "ドキュメントは変更されていません。"
+    },
+    "trustStatus": {
+      "trustVerified": "{{verificationType}}への信頼が正常に確立されました。",
+      "untrusted": "信頼を確立できませんでした。",
+      "trustVerificationDisabled": "信頼の検証が無効になっています。",
+      "noTrustStatus": "報告する信頼ステータスはありません。"
+    },
+    "digestStatus": {
+      "digestInvalid": "ダイジェストが正しくありません。",
+      "digestVerified": "ダイジェストは正しいです。",
+      "digestVerificationDisabled": "ダイジェスト検証が無効になっています。",
+      "weakDigestAlgorithmButDigestVerifiable": "ダイジェストは正しいですが、ダイジェストアルゴリズムは弱く、安全ではありません。",
+      "noDigestStatus": "報告するダイジェストステータスはありません。",
+      "unsupportedEncoding": "インストールされたSignatureHandlerは署名のエンコーディングを認識できませんでした"
+    },
+    "documentStatus": {
+      "noError": "報告する一般的なエラーはありません。",
+      "corruptFile": "SignatureHandlerがファイルの破損を報告しました。",
+      "unsigned": "署名はまだ暗号で署名されていません。",
+      "badByteRanges": "SignatureHandlerは、デジタル署名のByteRangesの破損を報告します。",
+      "corruptCryptographicContents": "SignatureHandlerは、デジタル署名の内容の破損を報告します。"
+    },
+    "signatureDetails": {
+      "signatureDetails": "署名の詳細",
+      "contactInformation": "連絡先",
+      "location": "ロケーション",
+      "reason": "理由",
+      "signingTime": "署名時間",
+      "noContactInformation": "連絡先情報は提供されていません",
+      "noLocation": "場所は提供されていません",
+      "noReason": "理由はありません",
+      "noSigningTime": "署名時間が見つかりません"
+    }
   }
 }

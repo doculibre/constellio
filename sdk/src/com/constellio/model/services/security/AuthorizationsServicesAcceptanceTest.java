@@ -4,8 +4,11 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAccessType;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAuthorization;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -208,7 +211,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	//TODO Dylan : Réparer ce test en tri
 	public void whenRecordIsSecurableThenHasAncestors()
 			throws Exception {
 
@@ -1116,6 +1118,18 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
+	public void whenDetachingWithoutCopyThenNoInheritedAuthorizationsCopied() {
+		auth1 = addWithoutUser(authorizationForUser(alice).on(FOLDER4).givingReadAccess());
+
+		verifyRecord(FOLDER4_1).usersWithReadAccess().containsOnly(alice, chuck);
+
+		detachWithoutCopy(FOLDER4_1);
+
+		verifyRecord(FOLDER4_1).detachedAuthorizationFlag().isTrue();
+		verifyRecord(FOLDER4_1).usersWithReadAccess().containsOnly(chuck);
+	}
+
+	@Test
 	public void whenResettingASecurableRecordThenCustomAuthDeletedAndRemovedAuthReenabled()
 			throws Exception {
 
@@ -1264,7 +1278,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth2 = add(authorizationForPrincipals(heroes, dakota).on(FOLDER2).givingReadWriteAccess());
 		auth3 = add(authorizationForUser(dakota).on(TAXO1_CATEGORY1).givingReadAccess());
 
-		List<Record> records = recordServices.getRecordsCaches().getCache(zeCollection).getAllValues(Authorization.SCHEMA_TYPE);
+		List<Record> records = recordServices.getRecordsCaches().getCache(zeCollection).getAllValues(RecordAuthorization.SCHEMA_TYPE);
 		assertThat(records)
 				.hasSize(3);
 
@@ -2109,7 +2123,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
 
 		services.execute(authorizationDeleteRequest(auth2, zeCollection)
-				.setReattachIfLastAuthDeleted(false)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
 		assertThatAllAuthorizations().containsOnly(
@@ -2119,7 +2132,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(charles, chuck);
 
 		services.execute(authorizationDeleteRequest(auth3, zeCollection)
-				.setReattachIfLastAuthDeleted(false)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
 		assertThatAllAuthorizations().containsOnly(
@@ -2128,7 +2140,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
 
 		services.execute(authorizationDeleteRequest(auth1, zeCollection)
-				.setReattachIfLastAuthDeleted(false)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
 		assertThatAllAuthorizations().isEmpty();
@@ -2175,7 +2186,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).usersWithDeleteAccess().containsOnly(bob, chuck);
 
 		services.execute(authorizationDeleteRequest(auth1, zeCollection)
-				.setReattachIfLastAuthDeleted(false)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
 		assertThatAllAuthorizations().containsOnly(authOnRecord(FOLDER4).givingRead().forPrincipals(charles));
@@ -2203,7 +2213,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
 
 		services.execute(authorizationDeleteRequest(auth2, zeCollection)
-				.setReattachIfLastAuthDeleted(true)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
 		assertThatAllAuthorizations().containsOnly(
@@ -2213,7 +2222,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(charles, chuck);
 
 		services.execute(authorizationDeleteRequest(auth3, zeCollection)
-				.setReattachIfLastAuthDeleted(true)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
 		assertThatAllAuthorizations().containsOnly(
@@ -2222,7 +2230,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
 
 		services.execute(authorizationDeleteRequest(auth1, zeCollection)
-				.setReattachIfLastAuthDeleted(true)
 				.setExecutedBy(users.chuckNorrisIn(zeCollection)));
 
 		assertThatAllAuthorizations().isEmpty();
@@ -2240,7 +2247,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenDeleteLastAuthorizationOfDetachedRecordThenReattachDependingOnOption()
+	public void whenDeleteLastAuthorizationOfDetachedRecordThenRecordIsNotReattached()
 			throws Exception {
 
 		detach(FOLDER4);
@@ -2251,7 +2258,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThatRecords(schemas.searchEvents(ALL)).isEmpty();
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(bob, charles, chuck);
 
-		services.execute(authorizationDeleteRequest(auth2, zeCollection).setReattachIfLastAuthDeleted(true));
+		services.execute(authorizationDeleteRequest(auth2, zeCollection));
 
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(alice),
@@ -2259,17 +2266,17 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(charles, chuck);
 
-		services.execute(authorizationDeleteRequest(auth3, zeCollection).setReattachIfLastAuthDeleted(true));
+		services.execute(authorizationDeleteRequest(auth3, zeCollection));
 
 		assertThatAllAuthorizations().containsOnly(
 				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(alice));
-		verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
-		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(alice, chuck);
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
+		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
 
-		services.execute(authorizationDeleteRequest(auth1, zeCollection).setReattachIfLastAuthDeleted(true));
+		services.execute(authorizationDeleteRequest(auth1, zeCollection));
 
 		assertThatAllAuthorizations().isEmpty();
-		verifyRecord(FOLDER4).detachedAuthorizationFlag().isFalse();
+		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 		verifyRecord(FOLDER4).usersWithReadAccess().containsOnly(chuck);
 
 		recordServices.flush();
@@ -2867,7 +2874,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth3 = add(authorizationForGroup(legends).on(FOLDER3).givingReadDeleteAccess());
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(setup.folderSchema.instance()).where(IDENTIFIER).isEqualTo("folder4"));
-		query.filteredWithUser(users.aliceIn(zeCollection));
+		query.filteredWithUserRead(users.aliceIn(zeCollection));
 
 		assertThat(searchServices.hasResults(query)).isTrue();
 
@@ -3221,13 +3228,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		LogicalSearchQuery queryWithAccessOnly = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
-				.filteredWithUser(bob);
+				.filteredWithUserRead(bob);
 		LogicalSearchQuery queryWithPermissionOnly = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
-				.filteredWithUser(bob, PERMISSION_OF_ROLE1);
+				.filteredWithUserRead(bob, PERMISSION_OF_ROLE1);
 		LogicalSearchQuery queryWithMultipleFilters = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
-				.filteredWithUser(bob, asList(Role.READ, PERMISSION_OF_ROLE1));
+				.filteredWithUserRead(bob, asList(Role.READ, PERMISSION_OF_ROLE1));
 
 		assertThat(searchServices.getResultsCount(queryWithAccessOnly)).isEqualTo(1);
 		assertThat(searchServices.getResultsCount(queryWithPermissionOnly)).isEqualTo(0);
@@ -3256,13 +3263,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		LogicalSearchQuery queryWithAccessOnly = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
-				.filteredWithUser(bob);
+				.filteredWithUserRead(bob);
 		LogicalSearchQuery queryWithPermissionOnly = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
-				.filteredWithUser(bob, PERMISSION_OF_ROLE1);
+				.filteredWithUserRead(bob, PERMISSION_OF_ROLE1);
 		LogicalSearchQuery queryWithMultipleFilters = new LogicalSearchQuery()
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(FOLDER1))
-				.filteredWithUser(bob, asList(Role.READ, PERMISSION_OF_ROLE1));
+				.filteredWithUserRead(bob, asList(Role.READ, PERMISSION_OF_ROLE1));
 
 		assertThat(searchServices.getResultsCount(queryWithAccessOnly)).isEqualTo(1);
 		assertThat(searchServices.getResultsCount(queryWithPermissionOnly)).isEqualTo(0);
@@ -4098,24 +4105,24 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
 
 			//Alice
-			logicalSearchQuery.filteredWithUser(users.aliceIn(zeCollection), PERMISSION_OF_ROLE1);
+			logicalSearchQuery.filteredWithUserRead(users.aliceIn(zeCollection), PERMISSION_OF_ROLE1);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
 
-			logicalSearchQuery.filteredWithUser(users.aliceIn(zeCollection), PERMISSION_OF_ROLE2);
+			logicalSearchQuery.filteredWithUserRead(users.aliceIn(zeCollection), PERMISSION_OF_ROLE2);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
 
 			//Bob
-			logicalSearchQuery.filteredWithUser(users.bobIn(zeCollection), PERMISSION_OF_ROLE1);
+			logicalSearchQuery.filteredWithUserRead(users.bobIn(zeCollection), PERMISSION_OF_ROLE1);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
 
-			logicalSearchQuery.filteredWithUser(users.bobIn(zeCollection), PERMISSION_OF_ROLE2);
+			logicalSearchQuery.filteredWithUserRead(users.bobIn(zeCollection), PERMISSION_OF_ROLE2);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
 
 			//Charles
-			logicalSearchQuery.filteredWithUser(users.charlesIn(zeCollection), PERMISSION_OF_ROLE1);
+			logicalSearchQuery.filteredWithUserRead(users.charlesIn(zeCollection), PERMISSION_OF_ROLE1);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
 
-			logicalSearchQuery.filteredWithUser(users.charlesIn(zeCollection), PERMISSION_OF_ROLE2);
+			logicalSearchQuery.filteredWithUserRead(users.charlesIn(zeCollection), PERMISSION_OF_ROLE2);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
 		}
 	}
@@ -4137,25 +4144,25 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
 
 			//Alice
-			logicalSearchQuery.filteredWithUser(users.aliceIn(zeCollection), PERMISSION_OF_ROLE1);
+			logicalSearchQuery.filteredWithUserRead(users.aliceIn(zeCollection), PERMISSION_OF_ROLE1);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
 
-			logicalSearchQuery.filteredWithUser(users.aliceIn(zeCollection), PERMISSION_OF_ROLE2);
+			logicalSearchQuery.filteredWithUserRead(users.aliceIn(zeCollection), PERMISSION_OF_ROLE2);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
 
 
 			//Bob
-			logicalSearchQuery.filteredWithUser(users.bobIn(zeCollection), PERMISSION_OF_ROLE1);
+			logicalSearchQuery.filteredWithUserRead(users.bobIn(zeCollection), PERMISSION_OF_ROLE1);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
 
-			logicalSearchQuery.filteredWithUser(users.bobIn(zeCollection), PERMISSION_OF_ROLE2);
+			logicalSearchQuery.filteredWithUserRead(users.bobIn(zeCollection), PERMISSION_OF_ROLE2);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
 
 			//Charles
-			logicalSearchQuery.filteredWithUser(users.charlesIn(zeCollection), PERMISSION_OF_ROLE1);
+			logicalSearchQuery.filteredWithUserRead(users.charlesIn(zeCollection), PERMISSION_OF_ROLE1);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(1);
 
-			logicalSearchQuery.filteredWithUser(users.charlesIn(zeCollection), PERMISSION_OF_ROLE2);
+			logicalSearchQuery.filteredWithUserRead(users.charlesIn(zeCollection), PERMISSION_OF_ROLE2);
 			assertThat(searchServices.query(logicalSearchQuery).getNumFound()).isEqualTo(0);
 		}
 	}
@@ -4440,6 +4447,74 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				.extracting("details.id").doesNotContain(auth1);
 		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationWithId(auth1)).isNull();
 
+	}
+
+	@Test
+	public void givenNonCascadingNestedAuthorizatonOnRecordThenAppliedOnRecordAndNotHisChildren()
+			throws Exception {
+		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
+
+		Record folder4 = records.folder4_1();
+		folder4.getNestedAuthorizations().add(NestedRecordAuthorization.builder().cascading(false)
+				.principals(asList(users.charlesIn(zeCollection).getWrappedRecordId())).accessType(NestedRecordAccessType.RW));
+		recordServices.update(folder4);
+
+		assertThat(records.folder4_1().getNestedAuthorizations().getAuthorizations()).hasSize(1);
+
+		assertThatAuthorizationsOn(FOLDER4_1).containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(charles).nestedInRecordWithoutCascade()
+		);
+
+		assertThatAuthorizationsFor(alice).containsOnly(
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(alice)
+		);
+
+		assertThatAuthorizationsFor(bob).containsOnly(
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
+		);
+
+		//This service does not return nested auths
+		assertThatAuthorizationsFor(charles).isEmpty();
+
+		for (RecordVerifier verifyRecord : $(FOLDER4_1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+		detach(FOLDER4_1);
+
+		assertThatAuthorizationsOn(FOLDER4_1).containsOnly(
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(charles).nestedInRecordWithoutCascade()
+		);
+
+		assertThatAuthorizationsFor(alice).containsOnly(
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(alice),
+				authOnRecord(TAXO1_CATEGORY2).givingReadWrite().forPrincipals(alice)
+		);
+
+		assertThatAuthorizationsFor(bob).containsOnly(
+				authOnRecord(FOLDER4_1).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
+		);
+
+		//This service does not return nested auths
+		assertThatAuthorizationsFor(charles).isEmpty();
+
+		for (RecordVerifier verifyRecord : $(FOLDER4_1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
+		}
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_2_DOC1)) {
+			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
+		}
+
+		verifyRecord(FOLDER4_1).detachedAuthorizationFlag().isTrue();
 	}
 
 	private void createAFolderOnInstance1() {

@@ -57,7 +57,7 @@ public class MetadataSchemaXMLReader1 {
 	private MetadataSchemaType parseProfilType(MetadataSchemaTypesBuilder typesBuilder, Element element,
 											   DataStoreTypesFactory typesFactory,
 											   ModelLayerFactory modelLayerFactory) {
-		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(getCodeValue(element), false).addLabel(
+		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaTypeWithSecurity(getCodeValue(element), false).addLabel(
 				Language.French, getLabelValue(element));
 		schemaTypeBuilder.setSecurity(getBooleanFlagValue(element, "security"));
 		schemaTypeBuilder.setInTransactionLog(getBooleanFlagValueWithTrueAsDefaultValue(element, "inTransactionLog"));

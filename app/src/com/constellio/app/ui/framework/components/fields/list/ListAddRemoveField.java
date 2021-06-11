@@ -1,5 +1,8 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
+import com.constellio.app.events.EventArgs;
+import com.constellio.app.events.EventListener;
+import com.constellio.app.events.EventObservable;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -77,9 +80,12 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 	private Boolean delayedEnabled = null;
 	private List<T> delayedNewFieldValue;
 
+	private final EventObservable<ValidationBeforeListManipulationArgs> validationBeforeListManipulationArgsObservable;
+
 	public ListAddRemoveField() {
 		setWidth("100%");
 		setHeightUndefined();
+		validationBeforeListManipulationArgsObservable = new EventObservable<>();
 	}
 
 	@Override
@@ -233,8 +239,13 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 
 	protected void removeValue(T value) {
 		if (value != null) {
-			valuesAndButtonsContainer.removeItem(value);
-			notifyValueChange();
+			ValidationBeforeListManipulationArgs validationBeforeListManipulationArgs = new ValidationBeforeListManipulationArgs(this, value);
+			validationBeforeListManipulationArgsObservable.fire(validationBeforeListManipulationArgs);
+
+			if (!validationBeforeListManipulationArgs.isManipulationCancelled()) {
+				valuesAndButtonsContainer.removeItem(value);
+				notifyValueChange();
+			}
 		}
 	}
 
@@ -425,6 +436,16 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 		addEditFieldLayout.setExpandRatio(addEditField, 1);
 		addEditFieldLayout.setVisible(isAddEditFieldVisible());
 
+		if (delayedNewFieldValue != null) {
+			List<T> newFieldValue = delayedNewFieldValue;
+			delayedNewFieldValue = null;
+
+			boolean previousReadOnlyValue = isReadOnly();
+			setReadOnly(false);
+			setValue(newFieldValue);
+			setReadOnly(previousReadOnlyValue);
+		}
+
 		if (delayedReadOnly != null) {
 			setReadOnly(delayedReadOnly);
 		}
@@ -432,11 +453,6 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 			setEnabled(delayedEnabled);
 		}
 
-		if (delayedNewFieldValue != null) {
-			List<T> newFieldValue = delayedNewFieldValue;
-			delayedNewFieldValue = null;
-			setValue(newFieldValue);
-		}
 		return mainLayout;
 	}
 
@@ -707,5 +723,40 @@ public abstract class ListAddRemoveField<T extends Serializable, F extends Abstr
 			}
 		};
 	}
+
+	public void addValidationBeforeListManipulationListener(
+			EventListener<ValidationBeforeListManipulationArgs> listener) {
+		validationBeforeListManipulationArgsObservable.addListener(listener);
+	}
+
+	public void removeValidationBeforeListManipulationListener(
+			EventListener<ValidationBeforeListManipulationArgs> listener) {
+		validationBeforeListManipulationArgsObservable.removeListener(listener);
+	}
+
+	public class ValidationBeforeListManipulationArgs extends EventArgs<ListAddRemoveField<T, F>> {
+		private final T value;
+		private boolean isManipulationCancelled;
+
+		public ValidationBeforeListManipulationArgs(ListAddRemoveField<T, F> sender, T value) {
+			super(sender);
+
+			this.value = value;
+			this.isManipulationCancelled = false;
+		}
+
+		public T getValue() {
+			return value;
+		}
+
+		public void cancelManipulation() {
+			isManipulationCancelled = true;
+		}
+
+		public boolean isManipulationCancelled() {
+			return isManipulationCancelled;
+		}
+	}
+
 
 }

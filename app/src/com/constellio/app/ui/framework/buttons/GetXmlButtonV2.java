@@ -1,11 +1,15 @@
 package com.constellio.app.ui.framework.buttons;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
-import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
-import com.constellio.app.modules.rm.services.reports.printableReport.PrintableReportXmlGenerator;
+import com.constellio.app.modules.rm.services.reports.JasperReportServices;
+import com.constellio.app.modules.rm.services.reports.xml.XMLDataSourceGeneratorParams;
+import com.constellio.app.modules.rm.services.reports.xml.XMLDataSourceType;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.LegalRequirement;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
@@ -25,14 +29,13 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.server.DownloadStream;
 import com.vaadin.server.StreamResource;
+import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.List;
@@ -83,12 +86,30 @@ public class GetXmlButtonV2 extends WindowButton {
 		}
 
 		String caption;
-		if (currentSchema.getSchemaType().equals(Folder.SCHEMA_TYPE)) {
-			caption = $("GenerateXML.chooseFolder");
-		} else if (currentSchema.getSchemaType().equals(ContainerRecord.SCHEMA_TYPE)) {
-			caption = $("GenerateXML.chooseContainer");
-		} else {
-			caption = $("GenerateXML.chooseDocument");
+		switch (currentSchema.getSchemaType()) {
+			case Folder.SCHEMA_TYPE:
+				caption = $("GenerateXML.chooseFolder");
+				break;
+			case ContainerRecord.SCHEMA_TYPE:
+				caption = $("GenerateXML.chooseContainer");
+				break;
+			case RetentionRule.SCHEMA_TYPE:
+				caption = $("GenerateXML.chooseRetentionRule");
+				break;
+			case Task.SCHEMA_TYPE:
+				caption = $("GenerateXML.chooseTask");
+				break;
+			case Category.SCHEMA_TYPE:
+				caption = $("GenerateXML.chooseCategory");
+				break;
+			case LegalRequirement.SCHEMA_TYPE:
+				caption = $("GenerateXML.chooseLegalRequirement");
+				break;
+			case AdministrativeUnit.SCHEMA_TYPE:
+				caption = $("GenerateXML.chooseAdminUnit");
+				break;
+			default:
+				caption = $("GenerateXML.chooseDocument");
 		}
 		this.elementLookUpField.setCaption(caption);
 
@@ -127,18 +148,19 @@ public class GetXmlButtonV2 extends WindowButton {
 				Field lookupField = fields.get(0);
 				List<String> ids = currentSchema.equals(PrintableReportListPossibleType.TASK) ? asList(((TaskVO) lookupField.getValue()).getId()) : ((ListAddRemoveRecordLookupField) lookupField).getValue();
 				if (ids.size() > 0) {
-					XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(1);
-					xmlGeneratorParameters.setElementWithIds(currentSchema.getSchemaType(), ids);
-					if (parent.isXmlForTest) {
-						xmlGeneratorParameters.markAsTestXml();
-					}
+					XMLDataSourceGeneratorParams params = XMLDataSourceGeneratorParams.builder()
+							.xmlDataSourceType(XMLDataSourceType.REPORT)
+							.schemaType(currentSchema.getSchemaType())
+							.recordIds(ids)
+							.username(view.getSessionContext().getCurrentUser().getUsername())
+							.locale(view.getSessionContext().getCurrentLocale())
+							.isXmlForTest(parent.isXmlForTest)
+							.build();
+					InputStream inputStream = new JasperReportServices(parent.collection, parent.factory)
+							.generateXmlDataSource(params);
 
-					AbstractXmlGenerator xmlGenerator = new PrintableReportXmlGenerator(parent.factory,
-							parent.collection, xmlGeneratorParameters, view.getSessionContext().getCurrentLocale(),
-							view.getSessionContext().getCurrentUser());
-					String xml = xmlGenerator.generateXML();
 					String filename = "Constellio-Test.xml";
-					StreamResource source = createResource(xml, filename);
+					StreamResource source = createResource(inputStream, filename);
 					Link download = new Link($("ReportViewer.download", filename),
 							new GetXMLButton.DownloadStreamResource(source.getStreamSource(), filename));
 					VerticalLayout newLayout = new VerticalLayout();
@@ -150,6 +172,7 @@ public class GetXmlButtonV2 extends WindowButton {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+				view.showErrorMessage($("DisplayLabelViewImpl.menu.getXMLButton2.error"));
 			}
 		}
 
@@ -158,18 +181,8 @@ public class GetXmlButtonV2 extends WindowButton {
 			getWindow().close();
 		}
 
-		private StreamResource createResource(final String xml, final String filename) {
-			return new StreamResource(new StreamResource.StreamSource() {
-				@Override
-				public InputStream getStream() {
-					try {
-						return new ByteArrayInputStream(xml.getBytes("UTF-8"));
-					} catch (IOException e) {
-						e.printStackTrace();
-						return null;
-					}
-				}
-			}, filename);
+		private StreamResource createResource(final InputStream inputStream, final String filename) {
+			return new StreamResource((StreamSource) () -> inputStream, filename);
 		}
 	}
 

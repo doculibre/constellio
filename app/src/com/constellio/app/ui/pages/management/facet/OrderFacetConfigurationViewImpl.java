@@ -64,7 +64,7 @@ public class OrderFacetConfigurationViewImpl extends BaseViewImpl implements Ord
 	}
 
 	private boolean isAddButtonsToStaticFooter() {
-		return !isInWindow();
+		return !isInWindow() && !ConstellioUI.getCurrent().isNested();
 	}
 
 	private Layout getFormButton() {

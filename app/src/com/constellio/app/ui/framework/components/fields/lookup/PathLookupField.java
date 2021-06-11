@@ -191,7 +191,7 @@ public class PathLookupField extends LookupField<String> {
 			}
 
 			LogicalSearchQuery query = new LogicalSearchQuery(condition)
-					.filteredWithUser(user).filteredByStatus(StatusFilter.ACTIVES)
+					.filteredWithUserRead(user).filteredByStatus(StatusFilter.ACTIVES)
 					.setStartRow(startIndex).setNumberOfRows(count);
 			return modelLayerFactory.newSearchServices().query(query);
 		}

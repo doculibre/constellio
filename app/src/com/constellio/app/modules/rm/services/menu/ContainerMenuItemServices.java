@@ -24,6 +24,7 @@ import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServi
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_CONSULT_LINK;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_DELETE;
+import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_DELETE_CONTENT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EDIT;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_EMPTY_THE_BOX;
 import static com.constellio.app.modules.rm.services.menu.ContainerMenuItemServices.ContainerRecordMenuItemActionType.CONTAINER_GENERATE_REPORT;
@@ -149,11 +150,20 @@ public class ContainerMenuItemServices {
 			menuItemActions.add(menuItemAction);
 		}
 
+		if (!filteredActionTypes.contains(CONTAINER_DELETE_CONTENT.name())) {
+			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_DELETE_CONTENT.name(),
+					isMenuItemActionPossible(CONTAINER_DELETE_CONTENT.name(), container, user, params),
+					$("ContainerMenuItemServices.deleteContent"), FontAwesome.ERASER, -1, Integer.MAX_VALUE - 3,
+					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).deleteContent(container, params));
+
+			menuItemActions.add(menuItemAction);
+		}
+
 		if (!filteredActionTypes.contains(CONTAINER_EMPTY_THE_BOX.name())) {
 			// confirm message
 			MenuItemAction menuItemAction = buildMenuItemAction(CONTAINER_EMPTY_THE_BOX.name(),
 					isMenuItemActionPossible(CONTAINER_EMPTY_THE_BOX.name(), container, user, params),
-					$("DisplayContainerView.empty"), null, -1, Integer.MAX_VALUE-1,
+					$("DisplayContainerView.empty"), null, -1, Integer.MAX_VALUE - 1,
 					(ids) -> new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory).empty(container, params));
 
 			menuItemAction.setConfirmMessage($("DisplayContainerView.confirmEmpty"));
@@ -213,6 +223,8 @@ public class ContainerMenuItemServices {
 					   sessionContext.getSelectedRecordIds().contains(record.getId());
 			case CONTAINER_BORROW:
 				return containerRecordActionsServices.isBorrowActionPossible(record, user);
+			case CONTAINER_DELETE_CONTENT:
+				return containerRecordActionsServices.isDeleteContainerContent(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -246,7 +258,8 @@ public class ContainerMenuItemServices {
 		CONTAINER_REMOVE_FROM_SELECTION,
 		CONTAINER_BORROW,
 		CONTAINER_RETURN_REMAINDER,
-		CONTAINER_CHECK_IN
+		CONTAINER_CHECK_IN,
+		CONTAINER_DELETE_CONTENT,
 	}
 
 }

@@ -5,6 +5,7 @@ import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.security.Role;
@@ -71,14 +72,13 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
 
-
 		defineSchemasManager().using(zeCollectionSchemas);
 		users.setUp(userServices, zeCollection);
 
 		MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		MetadataSchemaTypesBuilder metadataSchemaTypesBuilder = schemasManager.modify(zeCollection);
-		metadataSchemaTypesBuilder.getSchemaType(Authorization.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
+		metadataSchemaTypesBuilder.getSchemaType(RecordAuthorization.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
 		metadataSchemaTypesBuilder.getSchemaType(User.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
 		metadataSchemaTypesBuilder.getSchemaType(Group.SCHEMA_TYPE).setRecordCacheType(RecordCacheType.FULLY_CACHED);
 

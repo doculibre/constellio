@@ -1,10 +1,10 @@
 package com.constellio.app.modules.rm.model;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 
-public class CopyRetentionRuleInRuleFactory implements StructureFactory {
+public class CopyRetentionRuleInRuleFactory implements CombinedStructureFactory {
 
 	private static final String NULL = "~null~";
 

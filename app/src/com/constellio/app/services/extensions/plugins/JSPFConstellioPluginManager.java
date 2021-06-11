@@ -122,7 +122,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			}
 
 			for (ConstellioPluginInfo pluginInfo : getPlugins(ENABLED, DISABLED, READY_TO_INSTALL)) {
-				LOGGER.warn("Detected plugin for tenant " + TenantUtils.getTenantId() + " : " + pluginInfo.getCode(), new Exception());
+				//LOGGER.info("Detected plugin for tenant " + TenantUtils.getTenantId() + " : " + pluginInfo.getCode(), new Exception());
 				installValidPlugin(pluginInfo);
 			}
 			//handlePluginsDependency();
@@ -278,13 +278,13 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		List<InstallableModule> plugins = new ArrayList<>();
 
 		Collection<InstallableModule> registeredModulesValues = registeredModules.values();
-		LOGGER.info("Registered module values for tenant '" + TenantUtils.getTenantId() + "' are : " +
-					registeredModulesValues.stream().map(InstallableModule::getId).collect(Collectors.toList()));
+		LOGGER.trace("Registered module values for tenant '" + TenantUtils.getTenantId() + "' are : " +
+					 registeredModulesValues.stream().map(InstallableModule::getId).collect(Collectors.toList()));
 		plugins.addAll(registeredModulesValues);
 
 		Collection<InstallableModule> activePluginModules = getActivePluginModules();
-		LOGGER.info("Active plugin modules for tenant '" + TenantUtils.getTenantId() + "' are : " +
-					activePluginModules.stream().map(InstallableModule::getId).collect(Collectors.toList()));
+		LOGGER.trace("Active plugin modules for tenant '" + TenantUtils.getTenantId() + "' are : " +
+					 activePluginModules.stream().map(InstallableModule::getId).collect(Collectors.toList()));
 		plugins.addAll(activePluginModules);
 		return plugins;
 	}

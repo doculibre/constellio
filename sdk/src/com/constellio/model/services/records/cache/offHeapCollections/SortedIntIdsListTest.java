@@ -12,8 +12,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class SortedIntIdsListTest extends ConstellioTest {
 
-	private static int smallTestedCapacity = (int) (SortedIntIdsList.INITIAL_SIZE * Math.pow(SortedIntIdsList.RESIZE_FACTOR, 5));
-	private static int largeTestedCapacity = (int) (SortedIntIdsList.INITIAL_SIZE * Math.pow(SortedIntIdsList.RESIZE_FACTOR, 7));
+	private static int smallTestedCapacity = (int) (SortedIntIdsList.INITIAL_SIZE * Math.pow(SortedIntIdsList.ADD_RESIZE_FACTOR, 5));
+	private static int largeTestedCapacity = (int) (SortedIntIdsList.INITIAL_SIZE * Math.pow(SortedIntIdsList.ADD_RESIZE_FACTOR, 7));
 
 	//	@Before
 	//	public void validateNotWritingOutsideOfReservedMemory() {

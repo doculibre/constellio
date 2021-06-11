@@ -13,6 +13,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -28,7 +29,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -247,23 +247,51 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements RecordV
 				}
 			}
 
-			Collections.sort(extraPropertyMetadataVOs, new Comparator<MetadataVO>() {
-				@Override
-				public int compare(MetadataVO o1, MetadataVO o2) {
-					if (o1.getLabel() == null || o2.getLabel() == null) {
-						return -1;
-					}
-					return o1.getLabel().compareTo(o2.getLabel());
-				}
-			});
+			// If we have multiple schemas sort to make the first title metadata with a generic label
+			tablePropertyMetadataVOs = reorderTitleMetadataVOsForMultipleSchemas(tablePropertyMetadataVOs, dataProviders.size());
+
 			propertyMetadataVOs.addAll(tablePropertyMetadataVOs);
 			propertyMetadataVOs.addAll(extraPropertyMetadataVOs);
+
+			// order all but the first element (the title) to not break the title column if more then one schema is present
+
+			List<MetadataVO> metadataVOs = dataProviders.size() > 1 ?
+										   propertyMetadataVOs.subList(1, propertyMetadataVOs.size()) : propertyMetadataVOs;
+			Collections.sort(metadataVOs, (o1, o2) -> {
+				if (o1.getLabel() == null || o2.getLabel() == null) {
+					return -1;
+				}
+				return o1.getLabel().compareTo(o2.getLabel());
+			});
 
 			for (MetadataVO metadataVO : propertyMetadataVOs) {
 				if (user.hasGlobalAccessToMetadata(metadataTypes.getMetadata(metadataVO.getCode()))) {
 					super.addProperty(metadataVO, metadataVO.getJavaType(), null, true, true);
 				}
 			}
+		}
+
+		private List<MetadataVO> reorderTitleMetadataVOsForMultipleSchemas(List<MetadataVO> tablePropertyMetadataVOs,
+																		   int numberOfSchemas) {
+			int metadataWithGenericLabel = -1;
+			List<MetadataVO> newTable = new ArrayList<>();
+
+			// Find the first metadata with the right label
+			for (int i = 0; i < tablePropertyMetadataVOs.size(); i++) {
+				if (tablePropertyMetadataVOs.get(i).getLocalCode().equals(Schemas.TITLE.getLocalCode())) {
+					metadataWithGenericLabel = i;
+					break;
+				}
+			}
+			// Put the metadata we found at index 0 so we can use the right label and add the rest
+			if (numberOfSchemas > 1 && metadataWithGenericLabel != -1) {
+				newTable.add(tablePropertyMetadataVOs.get(metadataWithGenericLabel));
+				tablePropertyMetadataVOs.remove(metadataWithGenericLabel);
+				newTable.addAll(tablePropertyMetadataVOs);
+				return newTable;
+			}
+			// If it's doesn't apply to the current situation return the unchanged table
+			return tablePropertyMetadataVOs;
 		}
 
 	}

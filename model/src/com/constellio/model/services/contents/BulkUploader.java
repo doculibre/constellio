@@ -2,7 +2,6 @@ package com.constellio.model.services.contents;
 
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.model.services.contents.ContentManager.ParseOptions;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotReadParsedContent;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -16,6 +15,9 @@ import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.model.services.contents.ContentManager.ParseOptions.NO_PARSING;
+import static com.constellio.model.services.contents.ContentManager.ParseOptions.PARSING_WITHOUT_OCR;
 
 public class BulkUploader {
 
@@ -85,10 +87,8 @@ public class BulkUploader {
 					inputStream = streamFactory.create(READ_STREAM_RESOURCE);
 
 					UploadOptions options = new UploadOptions(fileName)
-							.setHandleDeletionOfUnreferencedHashes(handleDeletionOfUnreferencedHashes);
-					if (parse) {
-						options.setParseOptions(new ParseOptions());
-					}
+							.setHandleDeletionOfUnreferencedHashes(handleDeletionOfUnreferencedHashes)
+							.setParseOptions(parse ? PARSING_WITHOUT_OCR : NO_PARSING);
 
 					ContentVersionDataSummary summary = contentManager.upload(inputStream, options)
 							.getContentVersionDataSummary();

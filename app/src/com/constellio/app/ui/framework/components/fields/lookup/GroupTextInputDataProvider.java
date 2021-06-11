@@ -64,7 +64,7 @@ public class GroupTextInputDataProvider extends RecordTextInputDataProvider {
 			if (writeAccess) {
 				query.filteredWithUserWrite(user);
 			} else {
-				query.filteredWithUser(user);
+				query.filteredWithUserRead(user);
 			}
 		}
 		query.filteredByStatus(StatusFilter.ACTIVES);

@@ -56,6 +56,8 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 
 	static {
 		keysWithSameFrenchEnglishValue.add("SystemConfigurationGroup.agent");
+		keysWithSameFrenchEnglishValue.add("SystemConfigurationGroup.signature");
+
 	}
 
 	@Test

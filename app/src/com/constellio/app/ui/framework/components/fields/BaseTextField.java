@@ -9,9 +9,13 @@ import com.vaadin.ui.TextField;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @JavaScript({"theme://jquery/jquery-2.1.4.min.js", "theme://inputmask/jquery.inputmask.bundle.js"})
 public class BaseTextField extends TextField {
+	public static final String XSS_REGEX = "<\\S+(\\s+\\S+=\\S+)+>";
+	private static final Pattern XSS_PATTERN = Pattern.compile(XSS_REGEX);
+
 
 	private String inputMask;
 
@@ -82,6 +86,15 @@ public class BaseTextField extends TextField {
 		super.setValue(newValue);
 	}
 
+	@Override
+	protected void setInternalValue(String newValue) {
+		if (hasToBeEscapedBecauseItHasThePotentialToBeAnXSSScript(newValue)) {
+			newValue = StringUtils.replace(newValue, "<", "&lt;");
+			newValue = StringUtils.replace(newValue, ">", "&gt;");
+		}
+		super.setInternalValue(newValue);
+	}
+
 	public String getInputMask() {
 		return inputMask;
 	}
@@ -96,5 +109,9 @@ public class BaseTextField extends TextField {
 			setInternalValue(StringUtils.trim(getValue()));
 		}
 		super.commit();
+	}
+
+	public static boolean hasToBeEscapedBecauseItHasThePotentialToBeAnXSSScript(String value) {
+		return value != null && XSS_PATTERN.matcher(value).matches();
 	}
 }

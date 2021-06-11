@@ -29,6 +29,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.data.io.services.facades.IOServices;
@@ -77,6 +78,7 @@ import com.constellio.model.services.schemas.ModificationImpactCalculatorRespons
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.taxonomies.CacheBasedTaxonomyVisitingServices;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -484,6 +486,7 @@ public class BatchProcessingPresenterService {
 		List<Transaction> transactionList = prepareTransactionWithQuery(request, true);
 
 		for (Transaction transaction : transactionList) {
+			transaction.setOptions(RecordUpdateOptions.userModificationsSafeOptions());
 			recordServices.validateTransaction(transaction);
 		}
 
@@ -519,11 +522,13 @@ public class BatchProcessingPresenterService {
 
 				List<Taxonomy> taxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
 				ModificationImpactCalculatorResponse response = new ModificationImpactCalculator(
-						schemas.getTypes(), taxonomies, searchServices, recordServices).findTransactionImpact(transaction, true);
-				transaction.addAllRecordsToReindex(response.getRecordsToReindexLater());
+						schemas.getTypes(), taxonomies, searchServices, recordServices,
+						new CacheBasedTaxonomyVisitingServices(modelLayerFactory)).findTransactionImpact(transaction);
 				for (ModificationImpact impact : response.getImpacts()) {
-					impacts.add(
-							new BatchProcessPossibleImpact(impact.getPotentialImpactsCount(), impact.getImpactedSchemaType()));
+					impact.getDetails().forEach(detail-> {
+						impacts.add(new BatchProcessPossibleImpact(detail.getGetPotentialImpactCount(), detail.getGetImpactedSchemaType()));
+					});
+
 				}
 
 				recordModificationses.add(new BatchProcessRecordModifications(originalRecord.getId(), originalRecord.getTitle(),
@@ -582,10 +587,11 @@ public class BatchProcessingPresenterService {
 			List<Taxonomy> taxonomies = modelLayerFactory.getTaxonomiesManager().getEnabledTaxonomies(collection);
 			ModificationImpactCalculatorResponse modificationImpactCalculatorResponse =
 					new ModificationImpactCalculator(schemas.getTypes(), taxonomies, searchServices,
-							recordServices).findTransactionImpact(transaction, true);
-			transaction.addAllRecordsToReindex(modificationImpactCalculatorResponse.getRecordsToReindexLater());
+							recordServices, new CacheBasedTaxonomyVisitingServices(modelLayerFactory)).findTransactionImpact(transaction);
 			for (ModificationImpact impact : modificationImpactCalculatorResponse.getImpacts()) {
-				impacts.add(new BatchProcessPossibleImpact(impact.getPotentialImpactsCount(), impact.getImpactedSchemaType()));
+				impact.getDetails().forEach(detail-> {
+					impacts.add(new BatchProcessPossibleImpact(detail.getGetPotentialImpactCount(), detail.getGetImpactedSchemaType()));
+				});
 			}
 
 			recordModificationses.add(new BatchProcessRecordModifications(originalRecord.getId(), originalRecord.getTitle(),
@@ -678,6 +684,9 @@ public class BatchProcessingPresenterService {
 
 		List<Record> recordList = searchServices.search(request.getQuery());
 		for (Record record : recordList) {
+			if (record.getLoadedFieldsMode() != RecordDTOMode.FULLY_LOADED) {
+				record = recordServices.getDocumentById(record.getId());
+			}
 			transaction.add(record);
 			if (++counter == 1000) {
 				counter = 0;

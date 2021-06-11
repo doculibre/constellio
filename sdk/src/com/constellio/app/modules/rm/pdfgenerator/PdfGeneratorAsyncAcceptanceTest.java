@@ -1,5 +1,17 @@
 package com.constellio.app.modules.rm.pdfgenerator;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.data.dao.services.contents.ContentDao;
@@ -11,22 +23,12 @@ import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.DocumentListPDF;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -48,6 +50,7 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 	@Test
 	public void testDocumentConsolidation()
 			throws ValidationException, ContentDaoException.ContentDaoException_NoSuchContent, IOException, FileParserException {
+		assumeContentConversionAvailable();
 		List<String> documentIdList = new ArrayList<>();
 
 		documentIdList.add(records.document_A19);
@@ -60,7 +63,7 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 
 		PdfGeneratorAsyncTask pdfGeneratorAsyncTask = new PdfGeneratorAsyncTask(documentIdList,
 				"consolidatedPdf1",
-				"consolidatedPdf1",
+				"consolidatedPdf1.pdf",
 				"consolidatedPdf1",
 				users.adminIn(zeCollection).getUsername(), true, Locale.FRENCH.getLanguage());
 
@@ -95,6 +98,11 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 
 			@Override
 			public AsyncTaskBatchProcess getBatchProcess() {
+				return null;
+			}
+
+			@Override
+			public ModelLayerFactory getModelLayerFactory() {
 				return null;
 			}
 		};

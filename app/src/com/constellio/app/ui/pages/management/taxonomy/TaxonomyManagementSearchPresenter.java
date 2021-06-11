@@ -104,7 +104,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 						new LogicalSearchQuery().setCondition(condition));
 				query.setFreeTextQuery(queryExpression);
 				if (isPrincipalTaxonomy()) {
-					query.filteredWithUser(getCurrentUser());
+					query.filteredWithUserRead(getCurrentUser());
 				}
 				return query.filteredByStatus(StatusFilter.ACTIVES);
 			}

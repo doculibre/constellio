@@ -56,6 +56,7 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Metadata;
@@ -123,6 +124,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	protected boolean isDuplicateAction;
 	protected boolean isDuplicateStructureAction;
 	protected String userFolderId;
+	protected Record duplicateSourceRecord;
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient BorrowingServices borrowingServices;
@@ -204,6 +206,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 
 			isDuplicateAction = paramsMap.containsKey(DUPLICATE);
+			if (isDuplicateAction) {
+				duplicateSourceRecord = record;
+			}
 			isDuplicateStructureAction = isDuplicateAction && paramsMap.containsKey(STRUCTURE);
 			if (isDuplicateStructureAction) {
 				Folder folder = rmSchemas().wrapFolder(record);
@@ -385,7 +390,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		save(record);
 	}
 
-	private void save(Record record) {
+	protected void save(Record record) {
 		schemaPresenterUtils.fillRecordUsingRecordVO(record, getFolderVO(), false);
 		Folder folder = rmSchemas().wrapFolder(record);
 		if (!canSaveFolder(folder, getCurrentUser())) {
@@ -421,7 +426,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		folder.setFormModifiedBy(currentUser);
 		folder.setFormModifiedOn(time);
 		addOrUpdate(folder.getWrappedRecord(),
-				RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()));
+				RecordsFlushing.WITHIN_SECONDS(modelLayerFactory.getSystemConfigs().getTransactionDelay()),
+				getUpdateOptions());
 
 		if (userFolderId != null) {
 			RMUserFolder userFolder = rmSchemas().getUserFolder(userFolderId);
@@ -438,6 +444,10 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 
 		navigateToFolderDisplay(folder.getId());
+	}
+
+	protected RecordUpdateOptions getUpdateOptions() {
+		return null;
 	}
 
 	public void customFieldValueChanged(CustomFolderField<?> customField) {
@@ -867,7 +877,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		return decommissioningService().isCopyStatusInputPossible(folder, getCurrentUser());
 	}
 
-	void adjustStatusCopyEnteredField(boolean firstDraw) {
+	protected FolderCopyStatusEnteredField adjustStatusCopyEnteredField(boolean firstDraw) {
 		FolderCopyStatusEnteredField copyStatusEnteredField = (FolderCopyStatusEnteredField) view.getForm()
 				.getCustomField(Folder.COPY_STATUS_ENTERED);
 		if (copyStatusEnteredField != null) {
@@ -887,6 +897,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				}
 			}
 		}
+
+		return copyStatusEnteredField;
 	}
 
 	public boolean isMainCategoryEnteredAutomaticlyAssigned(Record record) {
@@ -1143,10 +1155,15 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private boolean canSaveFolder(Folder folder, User user) {
 		FolderRecordActionsServices folderRecordActionsServices = newFolderRecordActionsServices();
-		if (!addView) {
+		if (isDuplicateAction) {
+			if (duplicateSourceRecord != null && user.hasReadAccess().on(duplicateSourceRecord)) {
+				return folderRecordActionsServices.isDuplicateActionPossible(folder.getWrappedRecord(), user);
+			} else {
+				return false;
+			}
+		} else if (!addView) {
 			return folderRecordActionsServices.isEditActionPossible(folder.getWrappedRecord(), user);
 		}
-
 		if (folder.getParentFolder() == null) {
 			if (folder.getAdministrativeUnitEntered() == null) {
 				return true;

@@ -48,7 +48,7 @@ public class TaxonomyRecordIdToContextCaptionConverter extends RecordIdToCaption
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
 		String caption;
 		if (StringUtils.isNotBlank(value)) {
-			Record record = recordServices.getDocumentById(value);
+			Record record = recordServices.getDocumentByIdOrNull(value);
 			if (record != null) {
 				Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
 				if (taxonomy != null && taxonomy.isShowParentsInSearchResults()) {

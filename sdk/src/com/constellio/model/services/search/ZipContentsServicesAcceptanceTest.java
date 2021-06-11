@@ -14,6 +14,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServices;
@@ -114,6 +115,47 @@ public class ZipContentsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenFolderWithLongTitleWhenZippedThenTruncated()
+			throws Exception {
+
+		recordServices.update(subFolder1WithDocumentHavingContent2.setTitle(
+				"Morbi tristique senectus et netus et malesuada fames. Mauris nunc congue nisi vitae. A lacus" +
+				" vestibulum sed arcu non odio euismod. Tortor at risus viverra adipiscing at in. Sagittis vitae et" +
+				" leo duis. Auctor urna nunc id cursus metus aliquam eleifend mi. Sed odio morbi quis commodo odio" +
+				" aenean. Libero volutpat sed cras ornare arcu dui vivamus. Aliquet nibh praesent tristique magna." +
+				" Etiam sit amet nisl purus in. Sed elementum tempus egestas sed sed risus. Pellentesque nec nam" +
+				" aliquam sem et tortor consequat id porta."));
+		selectedRecordIds = asList(subFolder1WithDocumentHavingContent2.getId());
+		zipSearchResultsContentsServices.zipContentsOfRecords(selectedRecordIds, zippedContentsResult);
+		assertZipHasContents(zippedContentsResult, asList(content2File));
+		File unzippedResult = newTempFolder();
+		zipService.unzip(zippedContentsResult, unzippedResult);
+		assertThat(unzippedResult.list()).containsOnly(
+				"Morbi tristique senectus et netus et ... consequat id porta.");
+		assertThat(new File(unzippedResult, "Morbi tristique senectus et netus et ... consequat id porta.").list()).containsOnly("Grenouille.odt");
+	}
+
+	@Test
+	public void givenFolderWithLongTitleAndAbbreviationWhenZippedThenUseAbbreviation()
+			throws Exception {
+
+		recordServices.update(subFolder1WithDocumentHavingContent2.setTitle(
+				"Morbi tristique senectus et netus et malesuada fames. Mauris nunc congue nisi vitae. A lacus" +
+				" vestibulum sed arcu non odio euismod. Tortor at risus viverra adipiscing at in. Sagittis vitae et" +
+				" leo duis. Auctor urna nunc id cursus metus aliquam eleifend mi. Sed odio morbi quis commodo odio" +
+				" aenean. Libero volutpat sed cras ornare arcu dui vivamus. Aliquet nibh praesent tristique magna." +
+				" Etiam sit amet nisl purus in. Sed elementum tempus egestas sed sed risus. Pellentesque nec nam" +
+				" aliquam sem et tortor consequat id porta.").set(Schemas.ABBREVIATION, "Lorem"));
+		selectedRecordIds = asList(subFolder1WithDocumentHavingContent2.getId());
+		zipSearchResultsContentsServices.zipContentsOfRecords(selectedRecordIds, zippedContentsResult);
+		assertZipHasContents(zippedContentsResult, asList(content2File));
+		File unzippedResult = newTempFolder();
+		zipService.unzip(zippedContentsResult, unzippedResult);
+		assertThat(unzippedResult.list()).containsOnly("Lorem");
+		assertThat(new File(unzippedResult, "Lorem").list()).containsOnly("Grenouille.odt");
+	}
+
+	@Test
 	public void givenDocumentAndFolderContainingDocumentSelectedWhenZipThenDocumentAppearsOnlyInItsFolder()
 			throws Exception {
 		selectedRecordIds = asList(subFolder1WithDocumentHavingContent2.getId(),
@@ -142,6 +184,31 @@ public class ZipContentsServicesAcceptanceTest extends ConstellioTest {
 				subFolder1WithDocumentHavingContent2.getTitle());
 		assertThat(subFolder1WithDocumentHavingContent2File.list())
 				.containsOnly(content2_title2.getCurrentVersion().getFilename());
+	}
+
+
+	@Test
+	public void givenDocumentWithVeryLongNameWhenZipThenTruncated()
+			throws Exception {
+
+		document11WithContent1HavingTitle1InFolderA2.setContent(document11WithContent1HavingTitle1InFolderA2.getContent().renameCurrentVersion(
+				"Ut porttitor leo a diam sollicitudin tempor id eu. Placerat in egestas erat imperdiet sed euismod nisi. " +
+				"Semper feugiat nibh sed pulvinar proin gravida hendrerit lectus. Pellentesque elit eget gravida cum " +
+				"sociis natoque penatibus. Integer eget aliquet nibh praesent tristique magna sit amet purus. Ac ut " +
+				"consequat semper viverra nam. Sed sed risus pretium quam vulputate dignissim suspendisse in.pdf"));
+		recordServices.update(document11WithContent1HavingTitle1InFolderA2);
+
+		selectedRecordIds = asList(folderA2WithDocument1AndSubFolder1WithContent2AndSubFolder2.getId(),
+				subFolder1WithDocumentHavingContent2.getId());
+		zipSearchResultsContentsServices.zipContentsOfRecords(selectedRecordIds, zippedContentsResult);
+		assertZipHasContents(zippedContentsResult, asList(content1File, content2File));
+		File unzippedResult = newTempFolder();
+
+		zipService.unzip(zippedContentsResult, unzippedResult);
+		assertThat(unzippedResult.list()).containsOnly(folderA2WithDocument1AndSubFolder1WithContent2AndSubFolder2.getTitle());
+		File folderA2Unzipped = new File(unzippedResult, folderA2WithDocument1AndSubFolder1WithContent2AndSubFolder2.getTitle());
+		assertThat(folderA2Unzipped.list()).containsOnly(subFolder1WithDocumentHavingContent2.getTitle(),
+				"Ut porttitor leo a diam sollicitudin tempor id eu. Placerat in egestas erat imperdiet sed euismod...m suspendisse in.pdf");
 	}
 
 	@Test(expected = NoContentToZipRuntimeException.class)

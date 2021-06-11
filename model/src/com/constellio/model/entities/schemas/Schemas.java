@@ -1,6 +1,7 @@
 package com.constellio.model.entities.schemas;
 
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizationsStructureFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -13,11 +14,11 @@ import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static java.util.Arrays.asList;
 
-public class
-Schemas {
+public class Schemas {
 
 	private static List<Metadata> allGlobalMetadatas = new ArrayList<>();
 
@@ -96,6 +97,9 @@ Schemas {
 	public static final Metadata PRINCIPAL_CONCEPTS_INT_IDS = add(new Metadata(-51, "principalConceptsIntIds_is", INTEGER, true));
 	public static final Metadata ABBREVIATION = new Metadata(-52, "abbreviation_s", STRING, false);
 	public static final Metadata DETACHED_PRINCIPAL_ANCESTORS_INT_IDS = add(new Metadata(-53, "detachedPrincipalAncestorsIntIds_is", INTEGER, true));
+
+	public static final Metadata NESTED_AUTHORIZATIONS = add(new Metadata(-54, "global_default", "nestedAuthorizations_is",
+			STRUCTURE, false, false, new NestedRecordAuthorizationsStructureFactory()));
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();
@@ -219,4 +223,5 @@ Schemas {
 		String metadataLocalCode = new SchemaUtils().toLocalMetadataCode(metadata);
 		return !TITLE_CODE.equals(metadataLocalCode) && isGlobalMetadata(metadata);
 	}
+
 }

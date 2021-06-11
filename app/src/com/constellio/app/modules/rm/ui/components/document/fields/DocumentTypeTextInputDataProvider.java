@@ -111,7 +111,7 @@ public class DocumentTypeTextInputDataProvider extends RecordTextInputDataProvid
 			if (writeAccess) {
 				query.filteredWithUserWrite(user);
 			} else {
-				query.filteredWithUser(user);
+				query.filteredWithUserRead(user);
 			}
 		}
 		return getModelLayerFactory().newSearchServices().query(query);

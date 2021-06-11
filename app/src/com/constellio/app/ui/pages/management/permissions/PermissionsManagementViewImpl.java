@@ -1,19 +1,21 @@
 package com.constellio.app.ui.pages.management.permissions;
 
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
+import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
@@ -26,9 +28,11 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -40,11 +44,30 @@ public class PermissionsManagementViewImpl extends BaseViewImpl implements Permi
 	private final PermissionsManagementPresenter presenter;
 	private RoleMatrix matrix;
 	private VerticalLayout layout;
+	private CreateRoleButton create;
 	private Button save;
 	private Button revert;
 
 	public PermissionsManagementViewImpl() {
+
 		presenter = new PermissionsManagementPresenter(this);
+		create = new CreateRoleButton();
+		create.setId("crateId");
+		create.addStyleName(CREATE_ROLE);
+
+
+		save = new Button($("PermissionsManagementView.save"));
+		save.setId("saveId");
+		save.addClickListener((ClickListener) event -> presenter.saveRequested(matrix.getModifiedRoles()));
+		save.addStyleName(SAVE);
+		save.setEnabled(false);
+
+
+		revert = new Button($("PermissionsManagementView.revert"));
+		revert.setId("revertId");
+		revert.addClickListener((ClickListener) event -> presenter.revertRequested());
+		revert.addStyleName(REVERT);
+		revert.setEnabled(false);
 	}
 
 	@Override
@@ -54,56 +77,34 @@ public class PermissionsManagementViewImpl extends BaseViewImpl implements Permi
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
-		return new ClickListener() {
+		return event -> navigateTo().adminModule();
+	}
+
+	@Override
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay) {
 			@Override
-			public void buttonClick(ClickEvent event) {
-				navigateTo().adminModule();
+			public Supplier<List<MenuItemAction>> getUseTheseActionsInQuickActionInsteadSupplier() {
+				return () -> Arrays.asList(
+						MenuItemActionConverter.toMenuItemAction(create),
+						MenuItemActionConverter.toMenuItemAction(save),
+						MenuItemActionConverter.toMenuItemAction(revert));
 			}
 		};
-	}
-
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> buttons = super.buildActionMenuButtons(event);
-
-		CreateRoleButton create = new CreateRoleButton();
-		create.addStyleName(CREATE_ROLE);
-		buttons.add(create);
-
-		save = new Button($("PermissionsManagementView.save"));
-		save.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.saveRequested(matrix.getModifiedRoles());
-			}
-		});
-		save.addStyleName(SAVE);
-		save.setEnabled(false);
-		buttons.add(save);
-
-		revert = new Button($("PermissionsManagementView.revert"));
-		revert.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.revertRequested();
-			}
-		});
-		revert.addStyleName(REVERT);
-		revert.setEnabled(false);
-		buttons.add(revert);
-
-		return buttons;
-	}
-
-	@Override
-	protected boolean isActionMenuBar() {
-		return false;
 	}
 
 	@Override
 	public void setSaveAndRevertButtonStatus(boolean enabled) {
 		save.setEnabled(enabled);
 		revert.setEnabled(enabled);
+
+		updateMenuAction(save.getId(), menuItemActionBuilder ->
+				menuItemActionBuilder.state(new MenuItemActionState(save.isEnabled() ? MenuItemActionStateStatus.VISIBLE : MenuItemActionStateStatus.DISABLED))
+						.build());
+
+		updateMenuAction(revert.getId(), menuItemActionBuilder ->
+				menuItemActionBuilder.state(new MenuItemActionState(revert.isEnabled() ? MenuItemActionStateStatus.VISIBLE : MenuItemActionStateStatus.DISABLED))
+						.build());
 	}
 
 	@Override
@@ -215,17 +216,14 @@ public class PermissionsManagementViewImpl extends BaseViewImpl implements Permi
 			final CheckBox checkBox = new CheckBox();
 			checkBox.setValue(role.hasPermission(permission));
 			checkBox.addStyleName(role.getCode() + "-" + permission.replaceAll("\\.", "_"));
-			checkBox.addValueChangeListener(new ValueChangeListener() {
-				@Override
-				public void valueChange(ValueChangeEvent event) {
-					if (checkBox.getValue()) {
-						role.addPermission(permission);
-					} else {
-						role.removePermission(permission);
-					}
-					presenter.permissionsChanged(isDirty());
-					table.refreshRowCache();
+			checkBox.addValueChangeListener((ValueChangeListener) event -> {
+				if (checkBox.getValue()) {
+					role.addPermission(permission);
+				} else {
+					role.removePermission(permission);
 				}
+				presenter.permissionsChanged(isDirty());
+				table.refreshRowCache();
 			});
 			return checkBox;
 		}
@@ -263,8 +261,7 @@ public class PermissionsManagementViewImpl extends BaseViewImpl implements Permi
 
 			return new BaseForm<RoleVO>(new RoleVO(), this, code, title) {
 				@Override
-				protected void saveButtonClick(RoleVO role)
-						throws ValidationException {
+				protected void saveButtonClick(RoleVO role) {
 					getWindow().close();
 					presenter.roleCreationRequested(role);
 				}

@@ -1,16 +1,5 @@
 package com.constellio.app.ui.framework.components.tree;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
@@ -45,6 +34,16 @@ import com.vaadin.ui.Tree.TreeDragMode;
 import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class LazyTree<T extends Serializable> extends CustomField<Object> {
 
@@ -124,6 +123,14 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 
 	protected CellKey getCellKey(Object itemId, Object propertyId) {
 		return null;
+	}
+
+	@Override
+	public void setCaptionAsHtml(boolean captionAsHtml) {
+		super.setCaptionAsHtml(captionAsHtml);
+		if (this.adaptee instanceof LazyTree.TreeComponent) {
+			((TreeComponent) this.adaptee).setHtmlContentAllowed(captionAsHtml);
+		}
 	}
 
 	@Override
@@ -373,7 +380,7 @@ public class LazyTree<T extends Serializable> extends CustomField<Object> {
 	protected boolean isSelectable(T object) {
 		return true;
 	}
-	
+
 	protected Component getItemCaptionComponent(final T object) {
 		Component itemCaptionComponent;
 		if (multiValue) {

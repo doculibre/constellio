@@ -1,7 +1,7 @@
 package com.constellio.app.modules.tasks.model.wrappers.structures;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
@@ -12,7 +12,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.IOException;
 
-public class TaskFollowerFactory implements StructureFactory {
+public class TaskFollowerFactory implements CombinedStructureFactory {
 	transient private GsonBuilder gsonBuilder;
 	transient private Gson gson;
 

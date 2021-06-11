@@ -588,6 +588,15 @@ public class BigVaultServer implements Cloneable {
 		if (configurations.getRecordsDaoSolrServerType() == SolrServerType.CLOUD) {
 			req.setParam("min_rf", String.valueOf(configurations.getSolrMinimalReplicationFactor()));
 		}
+
+		if (transaction.getNewDocuments().stream().anyMatch(d -> "categoryId_X".equals(d.get("id")))) {
+			System.out.println("categoryId_X");
+		}
+
+		if (transaction.getUpdatedDocuments().stream().anyMatch(d -> "categoryId_X".equals(d.get("id")))) {
+			System.out.println("categoryId_X");
+		}
+
 		req.add(transaction.getNewDocuments());
 		req.deleteById(transaction.getDeletedRecords());
 		req.setDeleteQuery(deletedQueriesAndLocks);
@@ -810,7 +819,7 @@ public class BigVaultServer implements Cloneable {
 	public TupleStream tupleStream(Map<String, String> props) {
 
 		StreamContext streamContext = new StreamContext();
-		SolrClientCache solrClientCache = new SolrClientCache();
+		SolrClientCache solrClientCache = solrServerFactory.getSolrClientCache();
 		streamContext.setSolrClientCache(solrClientCache);
 		TupleStream tupleStream = solrServerFactory.newTupleStream(name, props);
 		tupleStream.setStreamContext(streamContext);

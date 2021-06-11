@@ -812,7 +812,7 @@ public class SearchServices {
 		return recordsIterator(query, 100);
 	}
 
-	private SearchResponseIterator<Record> streamToSearchResponseIterator(Stream<Record> recordStream, int batchSize) {
+	public static SearchResponseIterator<Record> streamToSearchResponseIterator(Stream<Record> recordStream, int batchSize) {
 		List<Record> records = recordStream.collect(Collectors.toList());
 		Iterator<Record> recordsIterator = records.iterator();
 		return new SearchResponseIterator<Record>() {
@@ -1549,7 +1549,7 @@ public class SearchServices {
 			String freeText = freeTextQuery.toLowerCase();
 			return freeText.contains("?") || freeText.contains("*") || freeText.contains("(")
 				   || freeText.contains(")") || freeText.contains("and") || freeText.contains("or")
-				   || freeText.contains("not");
+				   || freeText.contains("not") || freeText.contains("\"");
 		}
 	}
 

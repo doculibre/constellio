@@ -18,6 +18,7 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.DragAndDropWrapper;
+import com.vaadin.ui.Html5File;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
@@ -129,6 +130,21 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 				receiver.setDeleteFiles(false);
 				return receiver;
 			}
+
+			@Override
+			public boolean mustUploadWithMinimumUIUpdatePossible(int fileToUploadCount) {
+				return BaseUploadField.this.mustUploadWithMinimumUIUpdatePossible(fileToUploadCount);
+			}
+
+			@Override
+			public void streamingStarted(Html5File html5File, boolean isInterrupted) {
+				BaseUploadField.this.streamingStarted(html5File, isInterrupted);
+			}
+
+			@Override
+			public void streamingFinished(Html5File html5File, boolean isInterrupted) {
+				BaseUploadField.this.streamingFinished(html5File, isInterrupted);
+			}
 		};
 		multiFileUpload.setWidth("100%");
 		multiFileUpload.addStyleName(STYLE_NAME + "-multifileupload");
@@ -215,6 +231,16 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		multiFileUpload.setVisible(!isViewOnly);
 
 		mainLayout.addComponents(multiFileUpload, fileUploadsTable);
+	}
+
+	public boolean mustUploadWithMinimumUIUpdatePossible(int fileToUploadCount) {
+		return false;
+	}
+
+	public void streamingStarted(Html5File html5File, boolean isInterrupted) {
+	}
+
+	public void streamingFinished(Html5File html5File, boolean isInterrupted) {
 	}
 
 	protected void onUploadWindowClosed(CloseEvent e) {

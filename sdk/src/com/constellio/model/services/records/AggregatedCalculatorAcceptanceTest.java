@@ -116,7 +116,7 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(Folder.SCHEMA_TYPE,
 				ContainerRecord.SCHEMA_TYPE);
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA).isEqualTo(asList(1D));
-		assertThat(nbQueries).isEqualTo(7);
+		assertThat(nbQueries).isEqualTo(8);
 	}
 
 	@Test
@@ -156,7 +156,7 @@ public class AggregatedCalculatorAcceptanceTest extends ConstellioTest {
 				ContainerRecord.SCHEMA_TYPE);
 
 		assertThatRecord(records.getContainerBac13()).extracting(AGGREGATED_METADATA).isEqualTo(asList(3D));
-		assertThat(nbQueries).isEqualTo(7);
+		assertThat(nbQueries).isEqualTo(8);
 	}
 
 	public Record fetchBac13FromSolr() {

@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.util.ViewUtils;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -89,11 +90,14 @@ public class PublishDocumentViewImpl extends BaseViewImpl implements PublishDocu
 			@Override
 			protected void saveButtonClick(DocumentVO documentVO) {
 				try {
-					Document document = presenter.publishDocument(recordVO.getId(), publishStartDate.getValue(), publishEndDate.getValue());
-					closeWindow();
-					linkToDocument(document);
-					view.refreshActionMenu();
-					view.partialRefresh();
+					if (!presenter.validatePublishingDates(publishStartDate.getValue(), publishEndDate.getValue())) {
+						this.showErrorMessage($("PublishDocumentView.dateError"));
+					} else {
+						Document document = presenter.publishDocument(recordVO.getId(), publishStartDate.getValue(), publishEndDate.getValue());
+						closeWindow();
+						linkToDocument(document);
+						ViewUtils.baseViewRefresh(view);
+					}
 				} catch (RecordServicesException e) {
 					closeWindow();
 				}

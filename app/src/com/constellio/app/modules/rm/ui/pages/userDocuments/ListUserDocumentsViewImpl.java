@@ -382,9 +382,8 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	}
 
 	@Override
-	public void showUploadMessage(String message) {
-		//		multiFileUpload.notifyMessage(message);
-		showClickableMessage(message);
+	public void showUploadMessage(VerticalLayout verticalLayout) {
+		showClickableMessage(verticalLayout);
 	}
 
 	@Override

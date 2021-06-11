@@ -2,12 +2,29 @@ package com.constellio.data.services.tenant;
 
 import com.constellio.data.utils.TenantUtils;
 
+import java.util.function.Supplier;
+
 public class TenantLocal<V> {
+
+	private Supplier<V> defaultValueSupplier;
+
+	public TenantLocal() {
+		this.defaultValueSupplier = () -> null;
+	}
+
+
+	public TenantLocal(Supplier<V> defaultValueSupplier) {
+		this.defaultValueSupplier = defaultValueSupplier;
+	}
 
 	private Object[] values = new Object[257];
 
 	public V get() {
-		return (V) values[getIdx()];
+		V value = (V) values[getIdx()];
+		if (value == null) {
+			value = defaultValueSupplier.get();
+		}
+		return value;
 	}
 
 	public void set(V value) {

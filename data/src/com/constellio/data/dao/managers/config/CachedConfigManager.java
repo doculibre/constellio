@@ -43,7 +43,16 @@ public class CachedConfigManager implements ConfigManager, ConfigUpdatedEventLis
 
 		if (xmlConfiguration == null) {
 			xmlConfiguration = configManager.getXML(path);
-			constellioCache.put(path, xmlConfiguration, InsertionReason.WAS_OBTAINED);
+			if (xmlConfiguration == null) {
+				xmlConfiguration = XMLConfiguration.NULL_VALUE;
+			}
+			if (cachedPaths.contains(path)) {
+				constellioCache.put(path, xmlConfiguration, InsertionReason.WAS_OBTAINED);
+			}
+		}
+
+		if (xmlConfiguration == XMLConfiguration.NULL_VALUE) {
+			xmlConfiguration = null;
 		}
 
 		return xmlConfiguration;
@@ -55,7 +64,9 @@ public class CachedConfigManager implements ConfigManager, ConfigUpdatedEventLis
 
 		if (textConfiguration == null) {
 			textConfiguration = configManager.getText(path);
-			constellioCache.put(path, textConfiguration, InsertionReason.WAS_OBTAINED);
+			if (cachedPaths.contains(path)) {
+				constellioCache.put(path, textConfiguration, InsertionReason.WAS_OBTAINED);
+			}
 		}
 
 		return textConfiguration;
@@ -67,7 +78,16 @@ public class CachedConfigManager implements ConfigManager, ConfigUpdatedEventLis
 
 		if (propertiesConfiguration == null) {
 			propertiesConfiguration = configManager.getProperties(path);
-			constellioCache.put(path, propertiesConfiguration, InsertionReason.WAS_OBTAINED);
+			if (propertiesConfiguration == null) {
+				propertiesConfiguration = PropertiesConfiguration.NULL_VALUE;
+			}
+			if (cachedPaths.contains(path)) {
+				constellioCache.put(path, propertiesConfiguration, InsertionReason.WAS_OBTAINED);
+			}
+		}
+
+		if (propertiesConfiguration == PropertiesConfiguration.NULL_VALUE) {
+			propertiesConfiguration = null;
 		}
 
 		return propertiesConfiguration;
@@ -75,7 +95,8 @@ public class CachedConfigManager implements ConfigManager, ConfigUpdatedEventLis
 
 	@Override
 	public boolean exist(String path) {
-		return getFromCache(path) != null || configManager.exist(path);
+		Object cachedObject = getFromCache(path);
+		return (cachedObject != null && cachedObject != PropertiesConfiguration.NULL_VALUE && cachedObject != XMLConfiguration.NULL_VALUE) || configManager.exist(path);
 	}
 
 	@Override

@@ -43,7 +43,7 @@ public class TasksSearchServices {
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
 						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
-				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+				.filteredWithUserRead(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getUnassignedTasksQuery(User user) {
@@ -55,7 +55,7 @@ public class TasksSearchServices {
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus())
 						.andWhere(tasksSchemas.userTask.statusType()).isNotEqual(TERMINATED_STATUS)
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
-				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+				.filteredWithUserRead(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getTasksAssignedToUserQuery(User user) {
@@ -74,7 +74,7 @@ public class TasksSearchServices {
 								)
 						)
 				));
-		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+		return new LogicalSearchQuery(condition).filteredWithUserRead(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getTasksSharedToUserQuery(User user) {
@@ -87,7 +87,7 @@ public class TasksSearchServices {
 						where(tasksSchemas.userTask.taskCollaboratorsGroups()).isIn(user.getUserGroups()),
 						where(tasksSchemas.userTask.taskCollaborators()).isContaining(asList(user))
 				));
-		return new LogicalSearchQuery(condition).filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+		return new LogicalSearchQuery(condition).filteredWithUserRead(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public long getCountUnreadTasksToUserQuery(User user) {
@@ -138,7 +138,7 @@ public class TasksSearchServices {
 								)
 						)
 				));
-		LogicalSearchQuery query = new LogicalSearchQuery(condition).filteredWithUser(user);
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).filteredWithUserRead(user);
 		return searchServices.getResultsCount(query);
 	}
 
@@ -147,7 +147,7 @@ public class TasksSearchServices {
 				from(tasksSchemas.userTask.schemaType()).where(tasksSchemas.userTask.parentTask()).isEqualTo(taskId)
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.status()).isNotEqual(getClosedStatus()))
-				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+				.filteredWithUserRead(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getRecentlyCompletedTasks(User user) {
@@ -157,7 +157,7 @@ public class TasksSearchServices {
 						.where(tasksSchemas.userTask.status()).isIn(taskStatusList)
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
-				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+				.filteredWithUserRead(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public LogicalSearchQuery getRecentlyClosedTasks(User user) {
@@ -168,7 +168,7 @@ public class TasksSearchServices {
 						.where(tasksSchemas.userTask.status()).isIn(taskStatusList)
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						.andWhere(tasksSchemas.userTask.isModel()).isFalseOrNull())
-				.filteredWithUser(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
+				.filteredWithUserRead(user).sortDesc(tasksSchemas.userTask.dueDate()).sortDesc(tasksSchemas.userTask.modifiedOn());
 	}
 
 	public TaskStatus getClosedStatus() {

@@ -1353,6 +1353,8 @@ var PDFViewerApplication = {
       self.viewerPrefs['enablePrintAutoRotate'] = value;
     }), Preferences.get('disableSignature').then(function resolved(value) {
       self.viewerPrefs['disableSignature'] = value;
+    }), Preferences.get('disableDownload').then(function resolved(value) {
+        self.viewerPrefs['disableDownload'] = value;
     })]).catch(function (reason) {});
   },
   _initializeViewerComponents: function () {
@@ -1382,7 +1384,8 @@ var PDFViewerApplication = {
         enhanceTextSelection: self.viewerPrefs['enhanceTextSelection'],
         renderInteractiveForms: self.viewerPrefs['renderInteractiveForms'],
         enablePrintAutoRotate: self.viewerPrefs['enablePrintAutoRotate'],
-        disableSignature: self.viewerPrefs['disableSignature']
+        disableSignature: self.viewerPrefs['disableSignature'],
+        disableDownload: self.viewerPrefs['disableDownload']
       });
       pdfRenderingQueue.setViewer(self.pdfViewer);
       pdfLinkService.setViewer(self.pdfViewer);
@@ -2096,6 +2099,13 @@ function webViewerInitialized() {
 	  PDFJS.locale = params.locale;
 	  mozL10n.setLanguage(PDFJS.locale);
   }
+  if ('disabledownload' in params) {
+	    appConfig.disableDownload = params.disabledownload === 'true';
+	    if (appConfig.disableDownload) {
+	        appConfig.toolbar.download.classList.add('hidden');
+	        appConfig.secondaryToolbar.downloadButton.classList.add('hidden');
+	    }
+  }	    
   if ('disablesignature' in params) {
     appConfig.disableSignature = params.disablesignature === 'true';
     if (appConfig.disableSignature) {
@@ -2390,8 +2400,8 @@ webViewerFileInputChange = function webViewerFileInputChange(e) {
   var appConfig = PDFViewerApplication.appConfig;
   appConfig.toolbar.viewBookmark.setAttribute('hidden', 'true');
   appConfig.secondaryToolbar.viewBookmarkButton.setAttribute('hidden', 'true');
-  appConfig.toolbar.download.setAttribute('hidden', 'true');
-  appConfig.secondaryToolbar.downloadButton.setAttribute('hidden', 'true');
+  //appConfig.toolbar.download.setAttribute('hidden', 'true');
+  //appConfig.secondaryToolbar.downloadButton.setAttribute('hidden', 'true');
 };
 function webViewerPresentationMode() {
   PDFViewerApplication.requestPresentationMode();

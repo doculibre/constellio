@@ -9,12 +9,17 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.ExternalLink;
+import com.constellio.app.modules.rm.wrappers.ExternalUploadLink;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.LegalReference;
+import com.constellio.app.modules.rm.wrappers.LegalRequirement;
+import com.constellio.app.modules.rm.wrappers.LegalRequirementReference;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.RetentionRuleDocumentType;
 import com.constellio.app.modules.rm.wrappers.SIParchive;
 import com.constellio.app.modules.rm.wrappers.SignatureExternalAccessUrl;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
@@ -27,6 +32,7 @@ import com.constellio.app.modules.rm.wrappers.triggers.TriggerType;
 import com.constellio.app.modules.rm.wrappers.triggers.actions.MoveInFolderTriggerAction;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.modules.rm.wrappers.type.RequirementType;
 import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.modules.rm.wrappers.type.YearType;
 import com.constellio.model.entities.records.Record;
@@ -330,6 +336,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("keywords");
 		}
 
+		public Metadata legalRequirements() {
+			return metadata("legalRequirements");
+		}
+
 		public Metadata level() {
 			return metadata("level");
 		}
@@ -590,6 +600,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedSchema");
 		}
 
+		public Metadata parent() {
+			return metadata("parent");
+		}
+
 		public Metadata templates() {
 			return metadata("templates");
 		}
@@ -658,6 +672,68 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata linkedSchema() {
 			return metadata("linkedSchema");
+		}
+	}
+	public RequirementType wrapRequirementType(Record record) {
+		return record == null ? null : new RequirementType(record, getTypes());
+	}
+
+	public List<RequirementType> wrapRequirementTypes(List<Record> records) {
+		List<RequirementType> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new RequirementType(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<RequirementType> searchRequirementTypes(LogicalSearchQuery query) {
+		return wrapRequirementTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<RequirementType> searchRequirementTypes(LogicalSearchCondition condition) {
+		MetadataSchemaType type = ddvRequirementType.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapRequirementTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<RequirementType> requirementTypeIterator() {
+		return iterateFromCache(ddvRequirementType.schemaType(), this::wrapRequirementType);
+	}
+
+	public Stream<RequirementType> requirementTypeStream() {
+		return streamFromCache(ddvRequirementType.schemaType(), this::wrapRequirementType);
+	}
+
+	public RequirementType getRequirementType(String id) {
+		return wrapRequirementType(get(ddvRequirementType.schemaType(), id));
+	}
+
+	public List<RequirementType> getRequirementTypes(List<String> ids) {
+		return wrapRequirementTypes(get(ddvRequirementType.schemaType(), ids));
+	}
+
+	public RequirementType getRequirementTypeWithCode(String code) {
+		return wrapRequirementType(getByCode(ddvRequirementType.schemaType(), code));
+	}
+
+	public RequirementType getRequirementTypeWithLegacyId(String legacyId) {
+		return wrapRequirementType(getByLegacyId(ddvRequirementType.schemaType(), legacyId));
+	}
+
+	public RequirementType newRequirementType() {
+		return wrapRequirementType(create(ddvRequirementType.schema()));
+	}
+
+	public RequirementType newRequirementTypeWithId(String id) {
+		return wrapRequirementType(create(ddvRequirementType.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_ddvRequirementType_default ddvRequirementType
+			= new SchemaTypeShortcuts_ddvRequirementType_default("ddvRequirementType_default");
+	public class SchemaTypeShortcuts_ddvRequirementType_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_ddvRequirementType_default(String schemaCode) {
+			super(schemaCode);
 		}
 	}
 	public StorageSpaceType wrapStorageSpaceType(Record record) {
@@ -972,6 +1048,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("electronicMedium");
 		}
 
+		public Metadata externalLinkDisposalMode() {
+			return metadata("externalLinkDisposalMode");
+		}
+
 		public Metadata filingSpace() {
 			return metadata("filingSpace");
 		}
@@ -1008,8 +1088,16 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("processingUser");
 		}
 
+		public Metadata requester() {
+			return metadata("requester");
+		}
+
 		public Metadata status() {
 			return metadata("status");
+		}
+
+		public Metadata superUser() {
+			return metadata("superUser");
 		}
 
 		public Metadata type() {
@@ -1202,16 +1290,20 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("contentCheckedOutDate");
 		}
 
+		public Metadata contentCheckedOutFrom() {
+			return metadata("contentCheckedOutFrom");
+		}
+
 		public Metadata contentHashes() {
 			return metadata("contentHashes");
 		}
 
-		public Metadata isCheckoutAlertSent() {
-			return metadata("isCheckoutAlertSent");
-		}
-
 		public Metadata copyStatus() {
 			return metadata("copyStatus");
+		}
+
+		public Metadata currentContentSize() {
+			return metadata("currentContentSize");
 		}
 
 		public Metadata description() {
@@ -1264,6 +1356,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata inheritedRetentionRule() {
 			return metadata("inheritedRetentionRule");
+		}
+
+		public Metadata isCheckoutAlertSent() {
+			return metadata("isCheckoutAlertSent");
 		}
 
 		public Metadata isModel() {
@@ -1444,7 +1540,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("subjectToBroadcastRule");
 		}
 	}
-
 	public SignatureExternalAccessUrl wrapSignatureExternalAccessUrl(Record record) {
 		return record == null ? null : new SignatureExternalAccessUrl(record, getTypes());
 	}
@@ -1505,6 +1600,66 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		}
 	}
 
+	public ExternalUploadLink wrapExternalUploadLink(Record record) {
+		return record == null ? null : new ExternalUploadLink(record, getTypes());
+	}
+
+	public List<ExternalUploadLink> wrapExternalUploadLinks(List<Record> records) {
+		List<ExternalUploadLink> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new ExternalUploadLink(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<ExternalUploadLink> searchExternalUploadLinks(LogicalSearchQuery query) {
+		return wrapExternalUploadLinks(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<ExternalUploadLink> searchExternalUploadLinks(LogicalSearchCondition condition) {
+		MetadataSchemaType type = externalAccessUrl.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapExternalUploadLinks(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<ExternalUploadLink> externalUploadLinkIterator() {
+		return iterateFromCache(externalAccessUrl.schemaType(), this::wrapExternalUploadLink);
+	}
+
+	public Stream<ExternalUploadLink> externalUploadLinkStream() {
+		return streamFromCache(externalAccessUrl.schemaType(), this::wrapExternalUploadLink);
+	}
+
+	public ExternalUploadLink getExternalUploadLink(String id) {
+		return wrapExternalUploadLink(get(externalAccessUrl.schemaType(), id));
+	}
+
+	public List<ExternalUploadLink> getExternalUploadLinks(List<String> ids) {
+		return wrapExternalUploadLinks(get(externalAccessUrl.schemaType(), ids));
+	}
+
+	public ExternalUploadLink getExternalUploadLinkWithLegacyId(String legacyId) {
+		return wrapExternalUploadLink(getByLegacyId(externalAccessUrl.schemaType(), legacyId));
+	}
+
+	public ExternalUploadLink newExternalUploadLink() {
+		return wrapExternalUploadLink(create(externalAccessUrl_upload.schema()));
+	}
+
+	public ExternalUploadLink newExternalUploadLinkWithId(String id) {
+		return wrapExternalUploadLink(create(externalAccessUrl_upload.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_externalAccessUrl_upload externalAccessUrl_upload
+			= new SchemaTypeShortcuts_externalAccessUrl_upload("externalAccessUrl_upload");
+
+	public class SchemaTypeShortcuts_externalAccessUrl_upload extends SchemaTypeShortcuts_externalAccessUrl_default {
+		protected SchemaTypeShortcuts_externalAccessUrl_upload(String schemaCode) {
+			super(schemaCode);
+		}
+	}
+
 	public ExternalLink wrapExternalLink(Record record) {
 		return record == null ? null : new ExternalLink(record, getTypes());
 	}
@@ -1558,7 +1713,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_externalLink_default externalLink
 			= new SchemaTypeShortcuts_externalLink_default("externalLink_default");
-
 	public class SchemaTypeShortcuts_externalLink_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_externalLink_default(String schemaCode) {
 			super(schemaCode);
@@ -1576,7 +1730,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("typeCode");
 		}
 	}
-
 	public ExternalLinkType wrapExternalLinkType(Record record) {
 		return record == null ? null : new ExternalLinkType(record, getTypes());
 	}
@@ -1634,7 +1787,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_externalLinkType_default externalLinkType
 			= new SchemaTypeShortcuts_externalLinkType_default("externalLinkType_default");
-
 	public class SchemaTypeShortcuts_externalLinkType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_externalLinkType_default(String schemaCode) {
 			super(schemaCode);
@@ -1828,6 +1980,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata container() {
 			return metadata("container");
+		}
+
+		public Metadata conversation() {
+			return metadata("conversation");
 		}
 
 		public Metadata copyRulesExpectedDepositDates() {
@@ -2050,6 +2206,232 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("uniqueKey");
 		}
 	}
+	public LegalReference wrapLegalReference(Record record) {
+		return record == null ? null : new LegalReference(record, getTypes(), locale);
+	}
+
+	public List<LegalReference> wrapLegalReferences(List<Record> records) {
+		List<LegalReference> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new LegalReference(record, getTypes(), locale));
+		}
+
+		return wrapped;
+	}
+
+	public List<LegalReference> searchLegalReferences(LogicalSearchQuery query) {
+		return wrapLegalReferences(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<LegalReference> searchLegalReferences(LogicalSearchCondition condition) {
+		MetadataSchemaType type = legalReference.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapLegalReferences(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<LegalReference> legalReferenceIterator() {
+		return iterateFromCache(legalReference.schemaType(), this::wrapLegalReference);
+	}
+
+	public Stream<LegalReference> legalReferenceStream() {
+		return streamFromCache(legalReference.schemaType(), this::wrapLegalReference);
+	}
+
+	public LegalReference getLegalReference(String id) {
+		return wrapLegalReference(get(legalReference.schemaType(), id));
+	}
+
+	public List<LegalReference> getLegalReferences(List<String> ids) {
+		return wrapLegalReferences(get(legalReference.schemaType(), ids));
+	}
+
+	public LegalReference getLegalReferenceWithCode(String code) {
+		return wrapLegalReference(getByCode(legalReference.schemaType(), code));
+	}
+
+	public LegalReference getLegalReferenceWithLegacyId(String legacyId) {
+		return wrapLegalReference(getByLegacyId(legalReference.schemaType(), legacyId));
+	}
+
+	public LegalReference newLegalReference() {
+		return wrapLegalReference(create(legalReference.schema()));
+	}
+
+	public LegalReference newLegalReferenceWithId(String id) {
+		return wrapLegalReference(create(legalReference.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_legalReference_default legalReference
+			= new SchemaTypeShortcuts_legalReference_default("legalReference_default");
+	public class SchemaTypeShortcuts_legalReference_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_legalReference_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata code() {
+			return metadata("code");
+		}
+
+		public Metadata url() {
+			return metadata("url");
+		}
+	}
+	public LegalRequirement wrapLegalRequirement(Record record) {
+		return record == null ? null : new LegalRequirement(record, getTypes(), locale);
+	}
+
+	public List<LegalRequirement> wrapLegalRequirements(List<Record> records) {
+		List<LegalRequirement> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new LegalRequirement(record, getTypes(), locale));
+		}
+
+		return wrapped;
+	}
+
+	public List<LegalRequirement> searchLegalRequirements(LogicalSearchQuery query) {
+		return wrapLegalRequirements(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<LegalRequirement> searchLegalRequirements(LogicalSearchCondition condition) {
+		MetadataSchemaType type = legalRequirement.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapLegalRequirements(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<LegalRequirement> legalRequirementIterator() {
+		return iterateFromCache(legalRequirement.schemaType(), this::wrapLegalRequirement);
+	}
+
+	public Stream<LegalRequirement> legalRequirementStream() {
+		return streamFromCache(legalRequirement.schemaType(), this::wrapLegalRequirement);
+	}
+
+	public LegalRequirement getLegalRequirement(String id) {
+		return wrapLegalRequirement(get(legalRequirement.schemaType(), id));
+	}
+
+	public List<LegalRequirement> getLegalRequirements(List<String> ids) {
+		return wrapLegalRequirements(get(legalRequirement.schemaType(), ids));
+	}
+
+	public LegalRequirement getLegalRequirementWithCode(String code) {
+		return wrapLegalRequirement(getByCode(legalRequirement.schemaType(), code));
+	}
+
+	public LegalRequirement getLegalRequirementWithLegacyId(String legacyId) {
+		return wrapLegalRequirement(getByLegacyId(legalRequirement.schemaType(), legacyId));
+	}
+
+	public LegalRequirement newLegalRequirement() {
+		return wrapLegalRequirement(create(legalRequirement.schema()));
+	}
+
+	public LegalRequirement newLegalRequirementWithId(String id) {
+		return wrapLegalRequirement(create(legalRequirement.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_legalRequirement_default legalRequirement
+			= new SchemaTypeShortcuts_legalRequirement_default("legalRequirement_default");
+	public class SchemaTypeShortcuts_legalRequirement_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_legalRequirement_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata author() {
+			return metadata("author");
+		}
+
+		public Metadata code() {
+			return metadata("code");
+		}
+
+		public Metadata consequences() {
+			return metadata("consequences");
+		}
+
+		public Metadata description() {
+			return metadata("description");
+		}
+
+		public Metadata objectTypes() {
+			return metadata("objectTypes");
+		}
+
+		public Metadata type() {
+			return metadata("type");
+		}
+	}
+	public LegalRequirementReference wrapLegalRequirementReference(Record record) {
+		return record == null ? null : new LegalRequirementReference(record, getTypes(), locale);
+	}
+
+	public List<LegalRequirementReference> wrapLegalRequirementReferences(List<Record> records) {
+		List<LegalRequirementReference> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new LegalRequirementReference(record, getTypes(), locale));
+		}
+
+		return wrapped;
+	}
+
+	public List<LegalRequirementReference> searchLegalRequirementReferences(LogicalSearchQuery query) {
+		return wrapLegalRequirementReferences(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<LegalRequirementReference> searchLegalRequirementReferences(LogicalSearchCondition condition) {
+		MetadataSchemaType type = legalRequirementReference.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapLegalRequirementReferences(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<LegalRequirementReference> legalRequirementReferenceIterator() {
+		return iterateFromCache(legalRequirementReference.schemaType(), this::wrapLegalRequirementReference);
+	}
+
+	public Stream<LegalRequirementReference> legalRequirementReferenceStream() {
+		return streamFromCache(legalRequirementReference.schemaType(), this::wrapLegalRequirementReference);
+	}
+
+	public LegalRequirementReference getLegalRequirementReference(String id) {
+		return wrapLegalRequirementReference(get(legalRequirementReference.schemaType(), id));
+	}
+
+	public List<LegalRequirementReference> getLegalRequirementReferences(List<String> ids) {
+		return wrapLegalRequirementReferences(get(legalRequirementReference.schemaType(), ids));
+	}
+
+	public LegalRequirementReference getLegalRequirementReferenceWithLegacyId(String legacyId) {
+		return wrapLegalRequirementReference(getByLegacyId(legalRequirementReference.schemaType(), legacyId));
+	}
+
+	public LegalRequirementReference newLegalRequirementReference() {
+		return wrapLegalRequirementReference(create(legalRequirementReference.schema()));
+	}
+
+	public LegalRequirementReference newLegalRequirementReferenceWithId(String id) {
+		return wrapLegalRequirementReference(create(legalRequirementReference.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_legalRequirementReference_default legalRequirementReference
+			= new SchemaTypeShortcuts_legalRequirementReference_default("legalRequirementReference_default");
+	public class SchemaTypeShortcuts_legalRequirementReference_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_legalRequirementReference_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata description() {
+			return metadata("description");
+		}
+
+		public Metadata ruleReference() {
+			return metadata("ruleReference");
+		}
+
+		public Metadata ruleRequirement() {
+			return metadata("ruleRequirement");
+		}
+	}
 	public PrintableLabel wrapPrintableLabel(Record record) {
 		return record == null ? null : new PrintableLabel(record, getTypes());
 	}
@@ -2173,9 +2555,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_printable_report printable_report
 			= new SchemaTypeShortcuts_printable_report("printable_report");
+
 	public class SchemaTypeShortcuts_printable_report extends SchemaTypeShortcuts_printable_default {
 		protected SchemaTypeShortcuts_printable_report(String schemaCode) {
 			super(schemaCode);
+		}
+
+		public Metadata jasperSubreportFiles() {
+			return metadata("jasperSubreportFiles");
 		}
 
 		public Metadata recordSchema() {
@@ -2184,6 +2571,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata recordType() {
 			return metadata("recordType");
+		}
+
+		public Metadata supportedExtensions() {
+			return metadata("supportedExtensions");
 		}
 	}
 	public RetentionRule wrapRetentionRule(Record record) {
@@ -2243,6 +2634,7 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_retentionRule_default retentionRule
 			= new SchemaTypeShortcuts_retentionRule_default("retentionRule_default");
+
 	public class SchemaTypeShortcuts_retentionRule_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_retentionRule_default(String schemaCode) {
 			super(schemaCode);
@@ -2250,6 +2642,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata administrativeUnits() {
 			return metadata("administrativeUnits");
+		}
+
+		public Metadata applicationNotes() {
+			return metadata("applicationNotes");
 		}
 
 		public Metadata approvalDate() {
@@ -2262,6 +2658,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata code() {
 			return metadata("code");
+		}
+
+		public Metadata comments() {
+			return metadata("comments");
 		}
 
 		public Metadata confidentialDocuments() {
@@ -2340,12 +2740,90 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("secondaryDefaultDocumentCopyRetentionRule");
 		}
 
+		public Metadata transaction() {
+			return metadata("transaction");
+		}
+
 		public Metadata yearTypes() {
 			return metadata("yearTypes");
 		}
 
 		public Metadata yearTypesYearEnd() {
 			return metadata("yearTypesYearEnd");
+		}
+	}
+	public RetentionRuleDocumentType wrapRetentionRuleDocumentType(Record record) {
+		return record == null ? null : new RetentionRuleDocumentType(record, getTypes(), locale);
+	}
+
+	public List<RetentionRuleDocumentType> wrapRetentionRuleDocumentTypes(List<Record> records) {
+		List<RetentionRuleDocumentType> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new RetentionRuleDocumentType(record, getTypes(), locale));
+		}
+
+		return wrapped;
+	}
+
+	public List<RetentionRuleDocumentType> searchRetentionRuleDocumentTypes(LogicalSearchQuery query) {
+		return wrapRetentionRuleDocumentTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<RetentionRuleDocumentType> searchRetentionRuleDocumentTypes(LogicalSearchCondition condition) {
+		MetadataSchemaType type = retentionRuleDocumentType.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapRetentionRuleDocumentTypes(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public Iterator<RetentionRuleDocumentType> retentionRuleDocumentTypeIterator() {
+		return iterateFromCache(retentionRuleDocumentType.schemaType(), this::wrapRetentionRuleDocumentType);
+	}
+
+	public Stream<RetentionRuleDocumentType> retentionRuleDocumentTypeStream() {
+		return streamFromCache(retentionRuleDocumentType.schemaType(), this::wrapRetentionRuleDocumentType);
+	}
+
+	public RetentionRuleDocumentType getRetentionRuleDocumentType(String id) {
+		return wrapRetentionRuleDocumentType(get(retentionRuleDocumentType.schemaType(), id));
+	}
+
+	public List<RetentionRuleDocumentType> getRetentionRuleDocumentTypes(List<String> ids) {
+		return wrapRetentionRuleDocumentTypes(get(retentionRuleDocumentType.schemaType(), ids));
+	}
+
+	public RetentionRuleDocumentType getRetentionRuleDocumentTypeWithLegacyId(String legacyId) {
+		return wrapRetentionRuleDocumentType(getByLegacyId(retentionRuleDocumentType.schemaType(), legacyId));
+	}
+
+	public RetentionRuleDocumentType newRetentionRuleDocumentType() {
+		return wrapRetentionRuleDocumentType(create(retentionRuleDocumentType.schema()));
+	}
+
+	public RetentionRuleDocumentType newRetentionRuleDocumentTypeWithId(String id) {
+		return wrapRetentionRuleDocumentType(create(retentionRuleDocumentType.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_retentionRuleDocumentType_default retentionRuleDocumentType
+			= new SchemaTypeShortcuts_retentionRuleDocumentType_default("retentionRuleDocumentType_default");
+	public class SchemaTypeShortcuts_retentionRuleDocumentType_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_retentionRuleDocumentType_default(String schemaCode) {
+			super(schemaCode);
+		}
+
+		public Metadata category() {
+			return metadata("category");
+		}
+
+		public Metadata documentType() {
+			return metadata("documentType");
+		}
+
+		public Metadata retentionRule() {
+			return metadata("retentionRule");
+		}
+
+		public Metadata retentionRuleCopy() {
+			return metadata("retentionRuleCopy");
 		}
 	}
 	public StorageSpace wrapStorageSpace(Record record) {
@@ -2540,7 +3018,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("user");
 		}
 	}
-
 	public Trigger wrapTrigger(Record record) {
 		return record == null ? null : new Trigger(record, getTypes());
 	}
@@ -2594,7 +3071,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_trigger_default trigger
 			= new SchemaTypeShortcuts_trigger_default("trigger_default");
-
 	public class SchemaTypeShortcuts_trigger_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_trigger_default(String schemaCode) {
 			super(schemaCode);
@@ -2620,7 +3096,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 	}
-
 	public TriggerAction wrapTriggerAction(Record record) {
 		return record == null ? null : new TriggerAction(record, getTypes());
 	}
@@ -2674,7 +3149,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_triggerAction_default triggerAction
 			= new SchemaTypeShortcuts_triggerAction_default("triggerAction_default");
-
 	public class SchemaTypeShortcuts_triggerAction_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_triggerAction_default(String schemaCode) {
 			super(schemaCode);
@@ -2688,7 +3162,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 	}
-
 	public MoveInFolderTriggerAction wrapMoveInFolderTriggerAction(Record record) {
 		return record == null ? null : new MoveInFolderTriggerAction(record, getTypes());
 	}
@@ -2742,7 +3215,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_triggerAction_moveInFolder triggerAction_moveInFolder
 			= new SchemaTypeShortcuts_triggerAction_moveInFolder("triggerAction_moveInFolder");
-
 	public class SchemaTypeShortcuts_triggerAction_moveInFolder extends SchemaTypeShortcuts_triggerAction_default {
 		protected SchemaTypeShortcuts_triggerAction_moveInFolder(String schemaCode) {
 			super(schemaCode);
@@ -2752,7 +3224,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("date");
 		}
 	}
-
 	public TriggerActionType wrapTriggerActionType(Record record) {
 		return record == null ? null : new TriggerActionType(record, getTypes());
 	}
@@ -2810,7 +3281,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_triggerActionType_default triggerActionType
 			= new SchemaTypeShortcuts_triggerActionType_default("triggerActionType_default");
-
 	public class SchemaTypeShortcuts_triggerActionType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_triggerActionType_default(String schemaCode) {
 			super(schemaCode);
@@ -2828,7 +3298,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("title");
 		}
 	}
-
 	public TriggerType wrapTriggerType(Record record) {
 		return record == null ? null : new TriggerType(record, getTypes());
 	}
@@ -2886,7 +3355,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_triggerType_default triggerType
 			= new SchemaTypeShortcuts_triggerType_default("triggerType_default");
-
 	public class SchemaTypeShortcuts_triggerType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_triggerType_default(String schemaCode) {
 			super(schemaCode);
@@ -3083,12 +3551,20 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		return wrapRMTasks(modelLayerFactory.newSearchServices().search(query));
 	}
 
-	public Iterator<RMTask> rMTaskIterator() {
-		return iterateFromCache(userTask.schemaType(), this::wrapRMTask);
+	public Iterator<RMTask> rMTaskIterator(LogicalSearchCondition condition) {
+		return searchIterator(from(userTask.schemaType()).whereAllConditions(asList(condition)), this::wrapRMTask);
 	}
 
-	public Stream<RMTask> rMTaskStream() {
-		return streamFromCache(userTask.schemaType(), this::wrapRMTask);
+	public Stream<RMTask> rMTaskStream(LogicalSearchCondition condition) {
+		return searchIterator(from(userTask.schemaType()).whereAllConditions(asList(condition)), this::wrapRMTask).stream();
+	}
+
+	public Iterator<RMTask> rMTaskIterator(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapRMTask);
+	}
+
+	public Stream<RMTask> rMTaskStream(LogicalSearchQuery query) {
+		return searchIterator(query, this::wrapRMTask).stream();
 	}
 
 	public RMTask getRMTask(String id) {

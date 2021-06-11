@@ -51,7 +51,7 @@ public class SchemaRecordMenuItemServices {
 		if (!excludedActionTypes.contains(SCHEMA_RECORD_DELETE.name())) {
 			menuItemActions.add(buildMenuItemAction(SCHEMA_RECORD_DELETE.name(),
 					isMenuItemActionPossible(SCHEMA_RECORD_DELETE.name(), record, user, params),
-					$("deleteWithIcon"), null, -1, Integer.MAX_VALUE,
+					$("delete"), null, -1, Integer.MAX_VALUE,
 					(ids) -> new SchemaRecordMenuItemActionBehaviors(collection, appLayerFactory).delete(record, params)));
 		}
 

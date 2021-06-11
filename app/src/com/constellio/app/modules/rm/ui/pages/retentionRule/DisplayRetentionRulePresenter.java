@@ -22,6 +22,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.SelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -40,6 +41,7 @@ import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<DisplayRetentionRuleView>
 		implements RetentionRuleDisplayPresenter {
@@ -177,7 +179,7 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 				}
 
 				return new LogicalSearchQuery(from(folderSchemaType).whereAllConditions(conditions))
-						.sortDesc(Schemas.MODIFIED_ON).filteredWithUser(getCurrentUser());
+						.sortDesc(Schemas.MODIFIED_ON).filteredWithUserRead(getCurrentUser());
 			}
 
 			private LogicalSearchCondition getRetentionRuleCondition(String retentionRule) {
@@ -204,5 +206,19 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	@Override
 	public List<VariableRetentionPeriodVO> getOpenPeriodsDDVList() {
 		return getOpenActivePeriodsDDVList();
+	}
+
+	public SelectionPanelReportPresenter getRMSelectionPanelReportPresenter(RetentionRuleVO retentionRuleVO) {
+		return new SelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
+			@Override
+			public String getSelectedSchemaType() {
+				return RetentionRule.SCHEMA_TYPE;
+			}
+
+			@Override
+			public List<String> getSelectedRecordIds() {
+				return asList(retentionRuleVO.getId());
+			}
+		};
 	}
 }

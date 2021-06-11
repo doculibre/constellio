@@ -1,5 +1,15 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
+import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -20,6 +30,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
@@ -28,15 +39,6 @@ import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
-import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 public class DocumentContentVersionPresenter implements Serializable {
 
@@ -83,14 +85,12 @@ public class DocumentContentVersionPresenter implements Serializable {
 				.forModule(ConstellioRMModule.ID);
 
 		String readOnlyMessage;
-		if (!hasWritePermission()) {
-			readOnlyMessage = $("DocumentContentVersionWindow.noWritePermission");
-		} else if (isCheckedOutByOtherUser()) {
-			readOnlyMessage = $("DocumentContentVersionWindow.checkedOutByOtherUser");
-		} else if (!isCheckedOut()) {
-			readOnlyMessage = $("DocumentContentVersionWindow.notCheckedOut");
+		if (isCheckedOutByOtherUser()) {
+			readOnlyMessage = $("DocumentContentVersionWindow.checkedOutByOtherUser", getCheckOutInfo());
+		} else if (isCheckedOutByCurrentUser()) {
+			readOnlyMessage = $("DocumentContentVersionWindow.checkedOutByCurrentUser", getCheckOutInfo());
 		} else if (!isLatestVersion()) {
-			readOnlyMessage = $("DocumentContentVersionWindow.notLatestVersion");
+			readOnlyMessage = $("DocumentContentVersionWindow.notLatestVersion", getVersionNumber());
 		} else {
 			readOnlyMessage = null;
 		}
@@ -140,6 +140,10 @@ public class DocumentContentVersionPresenter implements Serializable {
 		return latestVersion.equals(contentVersionVOVersion);
 	}
 
+	private String getVersionNumber() {
+		return contentVersionVO.getVersion();
+	}
+
 	private boolean isCheckedOut() {
 		return documentVO.getContent().getCheckoutUserId() != null;
 	}
@@ -150,8 +154,22 @@ public class DocumentContentVersionPresenter implements Serializable {
 		return checkOutUserId != null && !checkOutUserId.equals(currentUser.getId());
 	}
 
+	private boolean isCheckedOutByCurrentUser() {
+		User currentUser = presenterUtils.getCurrentUser();
+		String checkOutUserId = documentVO.getContent().getCheckoutUserId();
+		return checkOutUserId != null && checkOutUserId.equals(currentUser.getId());
+	}
+
+	private Map<String, Object> getCheckOutInfo() {
+		Map<String, Object> params = new HashMap<>();
+		params.put("usersTitle", rmSchemasRecordsServices.getUser(documentVO.getContent().getCheckoutUserId()).getTitle());
+		params.put("checkOutDateTime", DateFormatUtils.format(documentVO.getContent().getCheckoutDateTime()));
+		return params;
+	}
+
 	private boolean isCheckOutLinkVisible() {
-		return hasWritePermission() && !isCheckedOut() && isLatestVersion() && !rmSchemasRecordsServices.isEmail(contentVersionVO.getFileName());
+		return hasWritePermission() && !isCheckedOut() && isLatestVersion() && !rmSchemasRecordsServices
+				.isEmail(contentVersionVO.getFileName());
 	}
 
 	public void displayDocumentLinkClicked() {

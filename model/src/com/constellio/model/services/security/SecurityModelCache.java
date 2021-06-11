@@ -5,15 +5,17 @@ import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusListener;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutedEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.security.roles.RolesManagerListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +43,7 @@ public class SecurityModelCache implements EventBusListener {
 		eventBus.register(this);
 
 		modelLayerFactory.getExtensions().getSystemWideExtensions().recordExtensions.add(new SecurityModelCacheRecordExtension());
-
+		modelLayerFactory.getRolesManager().registerListener(new SecurityModelCacheRoleManagerListener());
 	}
 
 
@@ -92,8 +94,8 @@ public class SecurityModelCache implements EventBusListener {
 				if (securityModel != null) {
 					SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 					securityModel.updateCache(
-							schemas.getSolrAuthorizationDetailss(event.<List<String>>getData("createdAuthsIds")),
-							schemas.getSolrAuthorizationDetailss(event.<List<String>>getData("modifiedAuthsIds")));
+							schemas.getAuthorizations(event.<List<String>>getData("createdAuthsIds")),
+							schemas.getAuthorizations(event.<List<String>>getData("modifiedAuthsIds")));
 				}
 				break;
 
@@ -111,6 +113,14 @@ public class SecurityModelCache implements EventBusListener {
 
 	public void invalidate(String collection) {
 		invalidateIfLoaded(collection);
+	}
+
+	public class SecurityModelCacheRoleManagerListener implements RolesManagerListener {
+
+		@Override
+		public void onRolesModified(String collection, List<Role> newRoles) {
+			invalidateIfLoaded(collection);
+		}
 	}
 
 	public class SecurityModelCacheRecordExtension extends RecordExtension {
@@ -134,7 +144,7 @@ public class SecurityModelCache implements EventBusListener {
 						fullInvalidateRequired = true;
 						break;
 
-					case Authorization.SCHEMA_TYPE:
+					case RecordAuthorization.SCHEMA_TYPE:
 						authCreated.add(newRecord.getId());
 						break;
 				}
@@ -147,10 +157,10 @@ public class SecurityModelCache implements EventBusListener {
 						break;
 
 					case User.SCHEMA_TYPE:
-						allCollectionInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(User.GROUPS);
+						allCollectionInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(User.GROUPS, User.ALL_ROLES);
 						break;
 
-					case Authorization.SCHEMA_TYPE:
+					case RecordAuthorization.SCHEMA_TYPE:
 						authModified.add(modifiedRecord.getId());
 						break;
 				}
@@ -178,7 +188,7 @@ public class SecurityModelCache implements EventBusListener {
 					invalidateIfLoaded(event.getRecord().getCollection());
 					break;
 
-				case Authorization.SCHEMA_TYPE:
+				case RecordAuthorization.SCHEMA_TYPE:
 					removeAuth(event.getRecord().getCollection(), event.getRecord().getId());
 					break;
 			}

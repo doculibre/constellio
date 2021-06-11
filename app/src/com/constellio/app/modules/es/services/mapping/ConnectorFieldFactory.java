@@ -1,7 +1,7 @@
 package com.constellio.app.modules.es.services.mapping;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -12,7 +12,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-public class ConnectorFieldFactory implements StructureFactory {
+public class ConnectorFieldFactory implements CombinedStructureFactory {
 
 	private transient GsonBuilder gsonBuilder;
 	private transient Gson gson;

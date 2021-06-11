@@ -24,7 +24,7 @@ public class IsStartingWithTextCriterion extends LogicalSearchValueCondition {
 
 	@Override
 	public boolean isValidFor(DataStoreField dataStoreField) {
-		return dataStoreField.getType().isStringOrText();
+		return dataStoreField.getType().isStringOrTextOrStructure();
 	}
 
 	@Override

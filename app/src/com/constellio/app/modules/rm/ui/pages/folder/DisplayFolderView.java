@@ -30,8 +30,6 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void selectEventsTab();
 
-	void hideAllActionMenuButtons();
-
 	String getFolderOrSubFolderButtonTitle(String key);
 
 	String getFolderOrSubFolderButtonKey(String key);

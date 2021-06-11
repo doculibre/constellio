@@ -15,7 +15,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -86,7 +85,7 @@ public class ConnectorCrawler {
 
 	boolean crawlAllConnectors() {
 
-		if (Toggle.ALL_CONNECTORS_DISABLED.isEnabled() || ReindexingServices.getReindexingInfos() != null) {
+		if (Toggle.ALL_CONNECTORS_DISABLED.isEnabled() || es.getAppLayerFactory().isReindexing()) {
 			return false;
 		}
 
@@ -342,7 +341,7 @@ public class ConnectorCrawler {
 	public void crawlUntil(Factory<Boolean> condition) {
 		while (!condition.get()) {
 
-			if (ReindexingServices.getReindexingInfos() == null &&
+			if (!es.getAppLayerFactory().isReindexing() &&
 				es.getModelLayerFactory().getRecordsCaches().areSummaryCachesInitialized()) {
 
 				boolean hasCrawledSomething = crawlAllConnectors();

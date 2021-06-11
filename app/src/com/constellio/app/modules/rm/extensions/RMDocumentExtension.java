@@ -34,11 +34,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.onlySummaryFields;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RMDocumentExtension extends RecordExtension {
 	private final ModelLayerFactory modelLayerFactory;
-	private final RMSchemasRecordsServices rmSchema;
+	protected final RMSchemasRecordsServices rmSchema;
 
 	private static String OUTLOOK_MSG_MIMETYPE = "application/vnd.ms-outlook";
 
@@ -195,7 +196,8 @@ public class RMDocumentExtension extends RecordExtension {
 				tasks = searchServices.search(new LogicalSearchQuery(from(rm.userTask.schemaType())
 						.where(rm.userTask.linkedDocuments()).isEqualTo(event.getRecord().getId())
 						.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()));
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
+						.setReturnedMetadatas(onlySummaryFields()));
 				usedInTasks = tasks.size() > 0;
 			}
 			if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))

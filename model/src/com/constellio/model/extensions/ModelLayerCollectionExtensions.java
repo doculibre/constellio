@@ -14,6 +14,7 @@ import com.constellio.model.extensions.behaviors.RecordExtension.IsRecordModifia
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.behaviors.SchemaExtension;
 import com.constellio.model.extensions.behaviors.TaxonomyExtension;
+import com.constellio.model.extensions.behaviors.ValueListsPageExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
@@ -37,6 +38,7 @@ import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
 import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
+import com.constellio.model.extensions.params.ValueListExtensionParams;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -64,6 +66,8 @@ public class ModelLayerCollectionExtensions {
 	public VaultBehaviorsList<SchemaExtension> schemaExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<BatchProcessingSpecialCaseExtension> batchProcessingSpecialCaseExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<ValueListsPageExtension> valueListsPageExtensions = new VaultBehaviorsList<>();
 
 	public ModelLayerCollectionExtensions(ModelLayerSystemExtensions systemExtensions) {
 		this.systemExtensions = systemExtensions;
@@ -102,6 +106,31 @@ public class ModelLayerCollectionExtensions {
 				extension.prevalidate(params);
 			}
 		}
+	}
+
+	public boolean isSkipValidation(String schemaType, ValidationParams params) {
+		return recordImportExtensions.getBooleanValue(false, behavior -> {
+			if (behavior.getDecoratedSchemaType().equals(schemaType)) {
+				return behavior.skipValidation(params);
+			}
+			return ExtensionBooleanResult.NOT_APPLICABLE;
+		});
+	}
+
+	public boolean isSkipPrevalidation(String schemaType, PrevalidationParams params) {
+		return recordImportExtensions.getBooleanValue(false, behavior -> {
+			if (behavior.getDecoratedSchemaType().equals(schemaType)) {
+				return behavior.skipPrevalidation(params);
+			}
+
+			return ExtensionBooleanResult.NOT_APPLICABLE;
+		});
+	}
+
+	public boolean isRecordTitleShouldBeCalculatedFromContent(Record record) {
+		return schemaExtensions.getExtensions().stream()
+				.allMatch(schemaExtension ->
+						schemaExtension.isRecordTitleShouldBeCalculatedFromContent(record));
 	}
 
 	public void callTransactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event,
@@ -375,5 +404,10 @@ public class ModelLayerCollectionExtensions {
 			sortMetadatas = extension.getSortMetadatas(taxonomy, codeMetadataRequired);
 		}
 		return sortMetadatas;
+	}
+
+	public boolean isValueListManageable(String schemaCode) {
+		return valueListsPageExtensions.getBooleanValue(true,
+				behavior -> behavior.isManageable(new ValueListExtensionParams(schemaCode)));
 	}
 }

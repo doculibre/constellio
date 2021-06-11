@@ -469,7 +469,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	 */
 	@Deprecated
 	public List<Authorization> getAllAuthorizations() {
-		return wrapSolrAuthorizationDetailss(
+		return wrapAuthorizations(
 				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
 	}
 
@@ -480,7 +480,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	 */
 	@Deprecated
 	public List<Authorization> getAllAuthorizationsInUnmodifiableState() {
-		return wrapSolrAuthorizationDetailss(
+		return wrapAuthorizations(
 				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
 	}
 
@@ -555,7 +555,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	public Authorization getSolrAuthorizationDetails(String id) {
-		return wrapSolrAuthorizationDetails(get(id));
+		return wrapAuthorization(get(id));
 	}
 
 	public Authorization getSolrAuthorizationDetails(User user, String recordId) {

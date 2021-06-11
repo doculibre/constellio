@@ -1,5 +1,8 @@
 package com.constellio.app.ui.pages.collection;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RoleAuthVO;
 import com.constellio.app.ui.entities.RoleVO;
@@ -8,8 +11,10 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -30,7 +35,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
@@ -39,6 +43,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -84,34 +89,8 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 	}
 
 	@Override
-	protected boolean isActionMenuBar() {
-		return true;
-	}
-
-	@Override
 	protected String getActionMenuBarCaption() {
-		return getQuickActionMenuButtons().isEmpty() ? super.getActionMenuBarCaption() : null;
-	}
-
-	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		List<Button> quickActionMenuButtons = new ArrayList<>();
-		List<Button> actionMenuButtons = getActionMenuButtons();
-		if (actionMenuButtons != null) {
-			List<Button> visibleButtons = actionMenuButtons.stream().filter(button -> button.isVisible() && button.isEnabled()).collect(Collectors.toList());
-			int remainingSpaceForQuickActions = 2;
-			for (Button button : visibleButtons) {
-				if (remainingSpaceForQuickActions > 0) {
-					remainingSpaceForQuickActions--;
-					quickActionMenuButtons.add(button);
-				} else {
-					break;
-				}
-			}
-			actionMenuButtons.stream().forEach(quickActionMenuButtons::add);
-		}
-
-		return quickActionMenuButtons;
+		return super.getActionMenuBarCaption();
 	}
 
 	@Override
@@ -185,7 +164,22 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		return ListUtils.flatMapFilteringNull(super.buildMenuItemActions(event),
+				buildMenuButtons().stream().map(MenuItemActionConverter::toMenuItemAction).collect(Collectors.toList()));
+	}
+
+	@Override
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay) {
+			@Override
+			public Supplier<String> getSchemaTypeCodeSupplier() {
+				return presenter.getGroup().getSchema()::getTypeCode;
+			}
+		};
+	}
+
+	protected List<Button> buildMenuButtons() {
 		Button windowButton = new WindowButton($("CollectionGroupRolesView.addRoleButton"),
 				$("CollectionGroupRolesView.addRoleWindowTitle"),
 				WindowConfiguration.modalDialog("800px", "450px")) {
@@ -197,7 +191,7 @@ public class CollectionGroupRolesViewImpl extends BaseViewImpl implements Collec
 					targetField = new LookupRecordField(presenter.getPrincipalTaxonomySchemaCode());
 					targetField.setCaption($("CollectionGroupRolesView.targetField"));
 				} else {
-					targetField = new TextField();
+					targetField = new BaseTextField();
 					targetField.setVisible(false);
 				}
 

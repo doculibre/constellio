@@ -3,6 +3,7 @@ package com.constellio.app.modules.tasks.ui.components.fields;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Property;
@@ -119,7 +120,7 @@ public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implement
 			}
 		});
 
-		numberOfDaysToRelativeDateField = new TextField();
+		numberOfDaysToRelativeDateField = new BaseTextField();
 		numberOfDaysToRelativeDateField.setWidth(3, Unit.EM);
 		numberOfDaysToRelativeDateField.setConverter(Integer.class);
 

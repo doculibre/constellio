@@ -79,7 +79,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 			logAs(user.getUsername());
 			LogicalSearchQuery allFoldersWithReadQuery = new LogicalSearchQuery()
 					.setCondition(from(rm.folderSchemaType()).returnAll())
-					.filteredWithUser(user);
+					.filteredWithUserRead(user);
 			List<String> foldersWithReadAccess = searchServices.searchRecordIds(allFoldersWithReadQuery);
 
 			for (String folderId : folders) {
@@ -132,7 +132,7 @@ public class BruteForceFolderSecurityAcceptTest extends ConstellioTest {
 			logAs(user.getUsername());
 			LogicalSearchQuery allDocumentsWithReadQuery = new LogicalSearchQuery()
 					.setCondition(from(rm.documentSchemaType()).returnAll())
-					.filteredWithUser(user);
+					.filteredWithUserRead(user);
 			List<String> documentsWithReadAccess = searchServices.searchRecordIds(allDocumentsWithReadQuery);
 
 			for (String documentId : documents) {

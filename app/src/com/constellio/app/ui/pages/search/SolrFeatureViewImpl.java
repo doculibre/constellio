@@ -5,6 +5,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.SolrFeatureLazyContainer;
@@ -153,7 +154,7 @@ public class SolrFeatureViewImpl extends BaseViewImpl implements SolrFeatureView
 			@Override
 			protected Component buildWindowContent() {
 
-				final TextField labelField = new TextField($("SolrFeatureView.labelField"));
+				final TextField labelField = new BaseTextField($("SolrFeatureView.labelField"));
 				labelField.setRequired(true);
 				labelField.setId("labelField");
 				labelField.addStyleName("labelField");
@@ -177,7 +178,7 @@ public class SolrFeatureViewImpl extends BaseViewImpl implements SolrFeatureView
 					}
 				}
 
-				final TextField queryField = new TextField($("SolrFeatureView.queryField"));
+				final TextField queryField = new BaseTextField($("SolrFeatureView.queryField"));
 				queryField.setRequired(true);
 				queryField.setId("queryField");
 				queryField.addStyleName("queryField");

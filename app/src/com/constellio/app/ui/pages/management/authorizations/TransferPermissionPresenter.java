@@ -9,8 +9,8 @@ import com.constellio.app.ui.pages.management.authorizations.TransferPermissionP
 import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenterException.TransferPermissionPresenterException_CannotUpdateUser;
 import com.constellio.app.ui.pages.management.authorizations.TransferPermissionPresenterException.TransferPermissionPresenterException_EmptyDestinationList;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -18,6 +18,7 @@ import com.vaadin.ui.Window;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -28,22 +29,6 @@ public class TransferPermissionPresenter extends SingleSchemaBasePresenter {
 	public TransferPermissionPresenter(BaseView view, String selectedUserRecord) {
 		super(view, User.DEFAULT_SCHEMA);
 		recordId = selectedUserRecord;
-	}
-
-	public void copyUserAuthorizations(Record sourceUserRecord, List<String> destUsers)
-			throws TransferPermissionPresenterException {
-		validateAccessTransfer(sourceUserRecord, destUsers);
-		List<Authorization> authorizationsList = getUserAuthorizationsList(sourceUserRecord);
-		for (Authorization authorization : authorizationsList) {
-			ArrayList<String> newPrincipalsList = new ArrayList<>();
-			newPrincipalsList.addAll(authorization.getPrincipals());
-			for (String destUserId : destUsers) {
-				if (!authorization.getPrincipals().contains(destUserId)) {
-					newPrincipalsList.add(destUserId);
-				}
-			}
-			updateAuthorizationPrincipalsList(authorization, newPrincipalsList);
-		}
 	}
 
 	public void forRequestParams(String parameters) {
@@ -98,13 +83,21 @@ public class TransferPermissionPresenter extends SingleSchemaBasePresenter {
 
 	}
 
-	public void transferAccessSaveButtonClicked(RecordVO sourceUser, List<String> destUsers, Window window) {
+	public void transferAccessSaveButtonClicked(RecordVO sourceUserVO, List<String> destUsers, Window window) {
 		try {
-			validateAccessTransfer(sourceUser.getRecord(), destUsers);
-			copyUserAuthorizations(sourceUser.getRecord(), destUsers);
-			copyUserGroups(sourceUser, destUsers);
+			validateAccessTransfer(sourceUserVO.getRecord(), destUsers);
+
+			try {
+				User sourceUser = wrapUser(sourceUserVO.getRecord());
+				List<String> destUsernames = destUsers.stream().map(id -> wrapUser(presenterService().getRecord(id)).getUsername()).collect(Collectors.toList());
+				appLayerFactory.getModelLayerFactory().newUserServices()
+						.transferUserPermission(getCurrentUser(), sourceUser, destUsernames);
+			} catch (RecordServicesException e) {
+				throw new TransferPermissionPresenterException_CannotUpdateUser();
+			}
+
 			if (removeUserAccess) {
-				removeAllAuthorizationsOfUser(sourceUser);
+				removeAllAuthorizationsOfUser(sourceUserVO);
 			}
 			window.close();
 		} catch (TransferPermissionPresenterException e) {
@@ -146,25 +139,9 @@ public class TransferPermissionPresenter extends SingleSchemaBasePresenter {
 
 
 	private void updateAuthorizationPrincipalsList(Authorization authorization, List<String> newPrincipalsList) {
-		authorization.setPrincipals(newPrincipalsList);
-		addOrUpdate(authorization.getWrappedRecord());
-	}
-
-	public void copyUserGroups(RecordVO sourceUserVO, List<String> destUsers)
-			throws TransferPermissionPresenterException {
-		User sourceUser = wrapUser(sourceUserVO.getRecord());
-		List<String> groupsList = sourceUser.getUserGroups();
-		Transaction transaction = new Transaction();
-		for (String destUserId : destUsers) {
-			User user = coreSchemas().getUser(destUserId);
-			user.setUserGroups(groupsList);
-			transaction.add(user.getWrappedRecord());
-		}
-		try {
-			schemaPresenterUtils.recordServices().execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new TransferPermissionPresenterException_CannotUpdateUser();
-		}
+		RecordAuthorization recordAuthorization = (RecordAuthorization) authorization;
+		recordAuthorization.setPrincipals(newPrincipalsList);
+		addOrUpdate(recordAuthorization.getWrappedRecord());
 	}
 
 

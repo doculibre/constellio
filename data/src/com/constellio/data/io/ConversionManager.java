@@ -93,7 +93,7 @@ public class ConversionManager implements StatefulService {
 	public static final String[] TEXT_EXTENSIONS = {
 			"odt", "ott", "oth", "odm", "sxw", "stw", "sxg", "doc", "docx", "dot",
 			"wpd", "xml", "wps", "sdw", "sgl", "jtd", "jtt", "pdb", "hwp", "psw",
-			"rtf", "txt", "htm", "html"
+			"rtf", "txt", "htm", "html", "pdf"
 	};
 
 	/*
@@ -330,13 +330,17 @@ public class ConversionManager implements StatefulService {
 	}
 
 	public File convertToPDF(InputStream inputStream, String originalName, File workingFolder) {
+		return convertToPDF(inputStream, originalName, workingFolder, true);
+	}
+
+	public File convertToPDF(InputStream inputStream, String originalName, File workingFolder, boolean pdfA) {
 		File input = null;
 		File output = null;
 		try {
 			input = createTempFile("original", originalName, workingFolder);
 			save(inputStream, input);
 			output = createTempFile("converted", originalName + ".pdf", workingFolder);
-			convertToPDF(input, output);
+			convertToPDF(input, output, pdfA);
 			return output;
 		} catch (IOException | OfficeException e) {
 			ioServices.deleteQuietly(output);
@@ -395,7 +399,7 @@ public class ConversionManager implements StatefulService {
 		}
 	}
 
-	private void convertToPDF(File input, File output)
+	private void convertToPDF(File input, File output, boolean pdfA)
 			throws OfficeException {
 		if (openOfficeOrLibreOfficeInstalled) {
 			ensureInitialized();
@@ -438,7 +442,7 @@ public class ConversionManager implements StatefulService {
 			} else {
 				OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
 				DocumentFormat inputFormat = getInputDocumentFormat(input, converter);
-				DocumentFormat outputFormat = toPDFa(input);
+				DocumentFormat outputFormat = toPDF(input, pdfA);
 				if (outputFormat == null) {
 					outputFormat = converter.getFormatRegistry().getFormatByExtension("pdf");
 				}
@@ -496,8 +500,8 @@ public class ConversionManager implements StatefulService {
 		return inputFormat;
 	}
 
-	private DocumentFormat toPDFa(File input) {
-		DocumentFormat pdfaFormat;
+	private DocumentFormat toPDF(File input, boolean pdfA) {
+		DocumentFormat pdfFormat;
 		DocumentFamily sourceDocumentFamily = getDocumentFamily(input);
 		if (sourceDocumentFamily != null) {
 			String filterName;
@@ -512,7 +516,7 @@ public class ConversionManager implements StatefulService {
 			}
 
 			Map<String, Object> filterData = new HashMap<>();
-			filterData.put("SelectPdfVersion", 1);
+			filterData.put("SelectPdfVersion", pdfA ? 1 : 0);
 			filterData.put("UseTaggedPDF", Boolean.TRUE);
 
 			Map<String, Object> properties = new HashMap<>();
@@ -525,13 +529,13 @@ public class ConversionManager implements StatefulService {
 			storeProperties.put(DocumentFamily.PRESENTATION, properties);
 			storeProperties.put(DocumentFamily.DRAWING, properties);
 
-			pdfaFormat = new DocumentFormat("PDF/A-1", "pdf", "application/pdf", sourceDocumentFamily, properties,
-					storeProperties);
+			pdfFormat = new DocumentFormat(pdfA ? "PDF/A-1" : "PDF 1.4", "pdf", "application/pdf",
+					sourceDocumentFamily, properties, storeProperties);
 		} else {
-			pdfaFormat = null;
+			pdfFormat = null;
 		}
 
-		return pdfaFormat;
+		return pdfFormat;
 	}
 
 	public String[] getAllSupportedExtensions() {

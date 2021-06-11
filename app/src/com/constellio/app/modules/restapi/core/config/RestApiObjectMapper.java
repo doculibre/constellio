@@ -1,5 +1,6 @@
 package com.constellio.app.modules.restapi.core.config;
 
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
@@ -23,6 +24,7 @@ public class RestApiObjectMapper implements ContextResolver<ObjectMapper> {
 	private static ObjectMapper createDefaultMapper() {
 		final ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.registerModule(new JodaModule());
+		objectMapper.enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
 
 		return objectMapper;
 	}

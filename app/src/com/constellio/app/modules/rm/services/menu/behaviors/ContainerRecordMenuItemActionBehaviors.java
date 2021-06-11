@@ -18,13 +18,14 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.menu.behavior.MenuItemActionBehaviorParams;
 import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
-import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.SelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -169,19 +170,41 @@ public class ContainerRecordMenuItemActionBehaviors {
 		}
 	}
 
+	public void deleteContent(ContainerRecord containerRecord, MenuItemActionBehaviorParams params) {
+		deleteContent(asList(containerRecord), params);
+	}
+
+	public void deleteContent(List<ContainerRecord> containerRecords, MenuItemActionBehaviorParams params) {
+		Button deleteButton = new ConfirmDialogButton($("ContainerRecordMenuItemActionBehaviors.deleteContent.confirmationTitle")) {
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("ContainerRecordMenuItemActionBehaviors.deleteContent.confirmationMessage");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+
+			}
+		};
+
+		deleteButton.click();
+	}
+
 	public void delete(ContainerRecord container, MenuItemActionBehaviorParams params) {
 		Button deleteButton = new DeleteButton($("delete"), false) {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
+				BaseView view = params.getView();
 				try {
 					recordServices.logicallyDelete(container.getWrappedRecord(), params.getUser());
-					if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
+					if (BehaviorsUtil.reloadIfSearchView(view) || BehaviorsUtil.reloadIfWasSearchView(view)) {
 						return;
 					} else {
-						params.getView().navigate().to(CoreViews.class).home();
+						view.navigate().to(CoreViews.class).home();
 					}
 				} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-					params.getView().showErrorMessage(MessageUtils.toMessage(e));
+					view.showErrorMessage(MessageUtils.toMessage(e));
 				}
 			}
 
@@ -217,8 +240,8 @@ public class ContainerRecordMenuItemActionBehaviors {
 	}
 
 	public void generateReport(ContainerRecord container, MenuItemActionBehaviorParams params) {
-		RMSelectionPanelReportPresenter reportPresenter =
-				new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
+		SelectionPanelReportPresenter reportPresenter =
+				new SelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
 					@Override
 					public String getSelectedSchemaType() {
 						return ContainerRecord.SCHEMA_TYPE;
@@ -231,7 +254,7 @@ public class ContainerRecordMenuItemActionBehaviors {
 				};
 
 		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), appLayerFactory,
-				params.getView().getCollection(), false, false, reportPresenter, params.getView().getSessionContext()) {
+				params.getView().getCollection(), reportPresenter, params.getView().getSessionContext()) {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				setRecordVoList(params.getRecordVO());

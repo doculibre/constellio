@@ -2,10 +2,11 @@ package com.constellio.model.services.schemas.builders;
 
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
-import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizationsStructureFactory;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -24,7 +25,7 @@ import com.constellio.model.services.schemas.calculators.PrincipalConceptsIntIds
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
 import com.constellio.model.services.schemas.calculators.SecondaryConceptsIntIdsCalculator;
 import com.constellio.model.services.schemas.calculators.TokensCalculator2;
-import com.constellio.model.services.schemas.calculators.TokensCalculator4;
+import com.constellio.model.services.schemas.calculators.TokensCalculator5;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 
 import java.util.HashMap;
@@ -35,6 +36,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static java.util.Arrays.asList;
 
 public class CommonMetadataBuilder {
@@ -79,6 +81,7 @@ public class CommonMetadataBuilder {
 	public static final String ATTACHED_PRINCIPAL_ANCESTORS_INT_IDS = "attachedPrincipalAncestorsIntIds";
 	public static final String DETACHED_PRINCIPALS_ANCESTORS_INT_IDS = "detachedPrincipalAncestorsIntIds";
 	public static final String PRINCIPALS_ANCESTORS_INT_IDS = "principalAncestorsIntIds";
+	public static final String NESTED_AUTHORIZATIONS = "nestedAuthorizations";
 
 
 	private interface MetadataCreator {
@@ -190,8 +193,8 @@ public class CommonMetadataBuilder {
 				if (isTypeWithCalculators(schema)) {
 
 					if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-						&& types.hasSchemaType(Authorization.SCHEMA_TYPE)) {
-						metadataBuilder.defineDataEntry().asCalculated(TokensCalculator4.class);
+						&& types.hasSchemaType(RecordAuthorization.SCHEMA_TYPE)) {
+						metadataBuilder.defineDataEntry().asCalculated(TokensCalculator5.class);
 
 					} else {
 						metadataBuilder.defineDataEntry().asCalculated(TokensCalculator2.class);
@@ -547,6 +550,17 @@ public class CommonMetadataBuilder {
 				if (isTypeWithCalculators(builder)) {
 					metadataBuilder.defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
 				}
+				for (Language language : types.getLanguages()) {
+					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
+				}
+			}
+		});
+
+		metadata.put(NESTED_AUTHORIZATIONS, new MetadataCreator() {
+			@Override
+			public void define(MetadataSchemaBuilder builder, MetadataSchemaTypesBuilder types) {
+				MetadataBuilder metadataBuilder = builder.createSystemReserved(NESTED_AUTHORIZATIONS)
+						.setType(STRUCTURE).defineStructureFactory(NestedRecordAuthorizationsStructureFactory.class).setEssentialInSummary(true);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}

@@ -585,16 +585,16 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify("collection1", new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.createNewSchemaType("type1").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
-				types.createNewSchemaType("type2").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+				types.createNewSchemaTypeWithSecurity("type1").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+				types.createNewSchemaTypeWithSecurity("type2").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
 			}
 		});
 
 		getModelLayerFactory().getMetadataSchemasManager().modify("collection2", new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.createNewSchemaType("type1").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
-				types.createNewSchemaType("type2").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+				types.createNewSchemaTypeWithSecurity("type1").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+				types.createNewSchemaTypeWithSecurity("type2").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
 			}
 		});
 
@@ -692,7 +692,7 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify("collection1", new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.createNewSchemaType("type1").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+				types.createNewSchemaTypeWithSecurity("type1").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
 			}
 		});
 
@@ -855,10 +855,10 @@ public class RecordsCachesDataStoreAcceptanceTest extends ConstellioTest {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 
-				MetadataSchemaBuilder typeSchema1 = types.createNewSchemaType("type1")
+				MetadataSchemaBuilder typeSchema1 = types.createNewSchemaTypeWithSecurity("type1")
 						.setRecordCacheType(fullyCached ? FULLY_CACHED : SUMMARY_CACHED_WITHOUT_VOLATILE).getDefaultSchema();
 
-				MetadataSchemaBuilder typeSchema2 = types.createNewSchemaType("type2")
+				MetadataSchemaBuilder typeSchema2 = types.createNewSchemaTypeWithSecurity("type2")
 						.setRecordCacheType(fullyCached ? FULLY_CACHED : SUMMARY_CACHED_WITHOUT_VOLATILE).getDefaultSchema();
 
 

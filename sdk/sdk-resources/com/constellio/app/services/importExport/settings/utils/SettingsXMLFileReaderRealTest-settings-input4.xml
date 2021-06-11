@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+    <configs>
+        <config key="documentRetentionRules" value="true"/>
+        <config key="enforceCategoryAndRuleRelationshipInFolder" value="false"/>
+        <config key="calculatedCloseDate" value="false"/>
+        <config key="calculatedCloseDateNumberOfYearWhenFixedRule" value="2015"/>
+        <config key="closeDateRequiredDaysBeforeYearEnd" value="15"/>
+        <config key="yearEndDate" value="02/28"/>
+    </configs>
+    <sequences>
+        <sequence key="1" value="12"/>
+        <sequence key="2" value="10"/>
+        <sequence key="3" value="23"/>
+        <sequence key="4" value="51"/>
+    </sequences>
+    <collection-settings code="zeCollection">
+        <valueLists>
+            <valueList code="ddvUSRvl1" title="domaine1" classifiedTypes="document,folder" codeMode="DISABLED"
+                       hierarchical="false"/>
+            <valueList code="ddvUSRvl2" title="domaine2" classifiedTypes="document" codeMode="FACULTATIVE"
+                       hierarchical="false"/>
+            <valueList code="ddvUSRvl3" title="domaine3" classifiedTypes="" codeMode="REQUIRED_AND_UNIQUE"
+                       hierarchical="true"/>
+            <valueList code="ddvUSRvl4" title="domaine4" classifiedTypes="" hierarchical="false"/>
+        </valueLists>
+        <taxonomies>
+            <taxonomy code="taxoT1Type" title="taxo1Titre1" visibleInHomePage="false" classifiedTypes="document,folder"
+                      groups="group1" users="user1,user2"/>
+            <taxonomy code="taxoT2Type" title="taxo1Titre2" visibleInHomePage="true" classifiedTypes="" groups=""
+                      users=""/>
+        </taxonomies>
+        <types>
+            <type code="folder" label="Dossier">
+                <tabs>
+                    <tab code="zeTab" value="Mon onglet"/>
+                    <tab code="default" value="Métadonnées"/>
+                </tabs>
+                <default-schema>
+                    <!--
+                    1. ImportedMetadataManualDataEntry.java
+                    2. ImportedMetadataSequenceDataEntry.java : un des deux argument est null. JAMAIS LES DEUX !!
+                    3. ImportedMetadataJEXLDataEntry.java
+                    4. ImportedMetadataCalculatedDataEntry.java
+                    5. ImportedMetadataCopiedDataEntry.java
+                    6. Parameterized calculators
+                    -->
+                    <!-- manual -->
+                    <metadata code="m1" title="titre m1" labelFR="titre m1" type="STRING"
+                              enabledIn="default,custom1,custom2" requiredIn="custom1" visibleInFormIn="default,custom1"
+                              duplicable="true" enabled="true"
+                              inputMask="9999-9999" multiLingual="true" essential="true" essentialInSummary="true"
+                              recordAutocomplete="true" searchable="true" sortable="true" unique="true"
+                              unmodifiable="true"
+                              advanceSearchable="true" multivalue="true" required="true" tab="zeTab"/>
+                    <!-- jexl -->
+                    <metadata code="m2" title="titre m2" labelFR="titre m2" type="STRING"
+                              enabledIn="default,custom1,custom2" requiredIn="custom1" visibleInFormIn="default,custom1"
+                              duplicable="true" enabled="true"
+                              inputMask="9999-9999" multiLingual="true" essential="true" essentialInSummary="true"
+                              recordAutocomplete="true" searchable="true" sortable="true" unique="true"
+                              unmodifiable="true"
+                              advanceSearchable="true" multivalue="true" required="true" tab="zeTab">
+                        <data-entry type="jexl" pattern="## This is a comment on the first line
+				'Prefixe ' + title+ ' Suffixe'
+				## This is a comment on the last line"/>
+                    </metadata>
+                    <!-- calculated without arguments -->
+                    <metadata code="m3" title="titre m3" labelFR="titre m3" type="STRING"
+                              enabledIn="default,custom1,custom2" requiredIn="custom1"
+                              visibleInFormIn="default,custom1">
+                        <data-entry type="calculated"
+                                    calculator="com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator"/>
+                    </metadata>
+                    <!-- copied -->
+                    <metadata code="m4" title="titre m4" labelFR="titre m4" type="STRING"
+                              enabledIn="default,custom1,custom2" requiredIn="custom1"
+                              visibleInFormIn="default,custom1">
+                        <data-entry type="copied" referenceMetadata="category" copiedMetadata="title"/>
+                    </metadata>
+                    <!-- metadataProvidingSequenceCode -->
+                    <metadata code="m5" title="titre m5" labelFR="titre m5" type="STRING"
+                              enabledIn="default,custom1,custom2" requiredIn="custom1"
+                              visibleInFormIn="default,custom1">
+                        <data-entry type="sequence" metadataProvidingSequenceCode="id"/>
+                    </metadata>
+                    <!-- fixedSequenceCode -->
+                    <metadata code="m6" title="titre m6" labelFR="titre m6" type="STRING" duplicable="true"
+                              enabled="true" inputMask="9999-9999"
+                              multiLingual="true" essential="true" essentialInSummary="true" recordAutocomplete="true"
+                              searchable="true" sortable="true" unique="true" unmodifiable="true"
+                              advanceSearchable="true"
+                              multivalue="true" required="true" tab="zeTab">
+                        <data-entry type="sequence" fixedSequenceCode="zeSequence"/>
+                    </metadata>
+                </default-schema>
+                <schemas>
+                    <schema code="custom1">
+                        <metadata code="m7" title="Titre m7" labelFR="Titre m7" type="STRING"
+                                  enabledIn="default,custom1,custom2" multivalue="true"
+                                  requiredIn="custom1"/>
+                    </schema>
+                </schemas>
+            </type>
+            <type code="document" label="Document">
+                <tabs>
+                    <tab code="anotherTab" value="Mon nouvel onglet"/>
+                    <tab code="default" value="Métadonnées"/>
+                </tabs>
+                <default-schema>
+                    <metadata code="m4" title="titre m4" labelFR="titre m4" type="STRING" enabledIn="custom3"
+                              requiredIn="custom3"
+                              visibleInForm="true"/>
+                </default-schema>
+                <schemas>
+                    <schema code="custom3">
+                        <metadata code="m5" title="titre m5" labelFR="titre m5" type="STRING" duplicable="true"
+                                  enabled="true" essential="true"
+                                  searchable="true" sortable="true" unique="true" unmodifiable="true"
+                                  advanceSearchable="true"
+                                  multivalue="true" required="true" tab="anotherTab"/>
+                        <metadata code="m6" title="Titre m6" type="STRING" multivalue="true"/>
+                    </schema>
+                </schemas>
+            </type>
+        </types>
+    </collection-settings>
+    <collection-settings code="anotherCollection">
+        <valueLists>
+            <valueList code="ddvUSRvl4" title="domaine4" classifiedTypes="" codeMode="DISABLED" hierarchical="true"/>
+        </valueLists>
+        <taxonomies>
+            <taxonomy code="taxoT3Type" title="taxo1Titre3" classifiedTypes="document,folder" groups="group1"
+                      users="user1,user2"/>
+        </taxonomies>
+        <types>
+            <type code="folder" label="Dossier">
+                <tabs>
+                    <tab code="zeTab" value="Mon onglet"/>
+                    <tab code="default" value="Métadonnées"/>
+                </tabs>
+                <default-schema>
+                    <metadata code="m7" title="Titre m7" type="STRING" enabledIn="default,custom1,custom2"
+                              requiredIn="custom1"
+                              visibleInFormIn="default,custom1"/>
+                    <metadata code="m8" title="Titre m8" type="STRING" enabledIn="default,custom1,custom2"
+                              requiredIn="custom1"
+                              visibleInFormIn="default,custom1">
+                        <data-entry type="advancedSequence" advancedSequenceCalculator="Fibonacci"/>
+                    </metadata>
+                    <metadata code="m2" title="titre m2-anotherCollection " type="STRING" duplicable="true"
+                              enabled="true"
+                              inputMask="9999-9999" multiLingual="true" essential="true" essentialInSummary="true"
+                              recordAutocomplete="true" searchable="true" sortable="true" unique="true"
+                              unmodifiable="true"
+                              advanceSearchable="true" multivalue="true" required="true" tab="zeTab"/>
+                </default-schema>
+                <schemas>
+                    <schema code="custom1">
+                        <metadata code="m3" title="Titre m3" type="STRING" enabledIn="default,custom1,custom2"
+                                  multivalue="true"
+                                  requiredIn="custom1"/>
+                    </schema>
+                </schemas>
+            </type>
+            <type code="document" label="Document">
+                <tabs>
+                    <tab code="anotherTab" value="Mon nouvel onglet"/>
+                    <tab code="default" value="Métadonnées"/>
+                </tabs>
+                <default-schema>
+                    <metadata code="m4" title="titre m4" type="STRING" enabledIn="custom3" requiredIn="custom3"
+                              visibleInForm="true"/>
+                </default-schema>
+                <schemas>
+                    <schema code="custom3">
+                        <metadata code="m5" title="titre m5" type="STRING" duplicable="true" enabled="true"
+                                  essential="true"
+                                  searchable="true" sortable="true" unique="true" unmodifiable="true"
+                                  advanceSearchable="true"
+                                  multivalue="true" required="true" tab="anotherTab"/>
+                        <metadata code="m6" title="Titre m6" type="STRING" multivalue="true"/>
+                    </schema>
+                </schemas>
+            </type>
+        </types>
+    </collection-settings>
+</settings>

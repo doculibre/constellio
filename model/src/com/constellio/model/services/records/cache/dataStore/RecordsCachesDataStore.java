@@ -1,11 +1,11 @@
 package com.constellio.model.services.records.cache.dataStore;
 
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.CacheStat;
 import com.constellio.data.utils.LazyMergingIterator;
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.cache.ByteArrayRecordDTO.ByteArrayRecordDTOWithIntegerId;
@@ -203,7 +203,11 @@ public class RecordsCachesDataStore implements Closeable {
 	}
 
 	public Stream<RecordDTO> stream(byte collection, short schemaType) {
-		return stream(true, collection, schemaType);
+		return stream(true, collection, schemaType, false);
+	}
+
+	public Stream<RecordDTO> streamSortedById(byte collection, short schemaType) {
+		return stream(true, collection, schemaType, true);
 	}
 
 	public List<RecordDTO> list(byte collectionId, short typeId) {
@@ -229,8 +233,8 @@ public class RecordsCachesDataStore implements Closeable {
 		return StreamSupport.stream(spliteratorUnknownSize(iterator(autoClosedStream, collection), DISTINCT + NONNULL + IMMUTABLE), false);
 	}
 
-	public Stream<RecordDTO> stream(boolean autoClosedStream, byte collection, short schemaType) {
-		return StreamSupport.stream(spliteratorUnknownSize(iterator(autoClosedStream, collection, schemaType), DISTINCT + NONNULL + IMMUTABLE), false);
+	public Stream<RecordDTO> stream(boolean autoClosedStream, byte collection, short schemaType, boolean sortedById) {
+		return StreamSupport.stream(spliteratorUnknownSize(iterator(autoClosedStream, collection, schemaType, sortedById), DISTINCT + NONNULL + IMMUTABLE), false);
 	}
 
 	public Stream<RecordDTO> stream(byte collectionId, List<String> ids) {
@@ -269,9 +273,9 @@ public class RecordsCachesDataStore implements Closeable {
 	}
 
 
-	public Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId) {
+	public Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId, boolean sortedById) {
 		return new LazyMergingIterator<>(
-				intIdsDataStore.iterator(autoClosedIterator, collectionId, typeId),
+				intIdsDataStore.iterator(autoClosedIterator, collectionId, typeId, sortedById),
 				stringIdsDataStore.iterator(collectionId, typeId));
 	}
 
@@ -291,7 +295,9 @@ public class RecordsCachesDataStore implements Closeable {
 	}
 
 	public void close() {
-		intIdsDataStore.close();
+		if (intIdsDataStore != null) {
+			intIdsDataStore.close();
+		}
 		intIdsDataStore = null;
 		stringIdsDataStore = null;
 	}

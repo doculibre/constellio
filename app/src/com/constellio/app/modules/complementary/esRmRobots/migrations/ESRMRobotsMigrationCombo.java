@@ -43,7 +43,7 @@ public class ESRMRobotsMigrationCombo implements ComboMigrationScript {
 
 	@Override
 	public String getVersion() {
-		return getVersions().get(getVersions().size() - 1).getVersion();
+		return "combo";
 	}
 
 	GeneratedESRMRobotsMigrationCombo generatedComboMigration;

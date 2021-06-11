@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -182,7 +183,7 @@ public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements Searc
 				metadataField.setRequired(true);
 				metadataField.setNullSelectionAllowed(false);
 
-				final TextField valueField = new TextField($("SearchBoostByMetadataView.valueField"));
+				final TextField valueField = new BaseTextField($("SearchBoostByMetadataView.valueField"));
 				valueField.setRequired(true);
 				valueField.setId("valueField");
 				valueField.addStyleName("valueField");

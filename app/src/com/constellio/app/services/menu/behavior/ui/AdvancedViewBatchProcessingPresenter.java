@@ -229,7 +229,7 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 
 		LogicalSearchQuery logicalSearchQuery = buildBatchProcessLogicalSearchQuery();
 		long numFound = searchServices.query(logicalSearchQuery).getNumFound();
-		logicalSearchQuery = logicalSearchQuery.filteredWithUser(user, CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS);
+		logicalSearchQuery = logicalSearchQuery.filteredWithUserRead(user, CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS);
 		SPEQueryResponse speQueryResponse = searchServices.query(logicalSearchQuery);
 		long numFoundWithFilter = speQueryResponse.getNumFound();
 
@@ -297,7 +297,7 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-				.filteredWithUser(user).filteredWithUserWrite(user)
+				.filteredWithUserRead(user).filteredWithUserWrite(user)
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		return query;
 	}
@@ -306,7 +306,7 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-				.filteredWithUser(user).filteredWithUserWrite(user)
+				.filteredWithUserRead(user).filteredWithUserWrite(user)
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		return query;
 	}
@@ -314,7 +314,7 @@ public class AdvancedViewBatchProcessingPresenter implements BatchProcessingPres
 	private LogicalSearchQuery buildLogicalSearchQueryWithAllRecords() {
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
-				.filteredWithUser(user).filteredWithUserWrite(user)
+				.filteredWithUserRead(user).filteredWithUserWrite(user)
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
 		return query;
 	}

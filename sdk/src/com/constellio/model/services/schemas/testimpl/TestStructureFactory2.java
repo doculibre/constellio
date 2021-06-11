@@ -1,9 +1,9 @@
 package com.constellio.model.services.schemas.testimpl;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 
-public class TestStructureFactory2 implements StructureFactory {
+public class TestStructureFactory2 implements CombinedStructureFactory {
 	@Override
 	public ModifiableStructure build(String string) {
 		return new ZeModifiableStructure(string);

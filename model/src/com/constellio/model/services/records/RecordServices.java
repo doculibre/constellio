@@ -12,14 +12,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.cache.RecordsCaches;
-import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -36,13 +33,18 @@ public interface RecordServices {
 	void add(Supplier<Record> record, User user)
 			throws RecordServicesException;
 
+	/**
+	 * Do not use, used execute and set a modification impact handling mode
+	 * com.constellio.model.entities.records.RecordUpdateOptions#impactHandlingMode
+	 */
+	@Deprecated
 	List<BatchProcess> executeHandlingImpactsAsync(Transaction transaction)
 			throws RecordServicesException;
 
 	void executeInBatch(Transaction transaction)
 			throws RecordServicesException;
 
-	void execute(Transaction transaction)
+	TransactionResponse execute(Transaction transaction)
 			throws RecordServicesException;
 
 	void execute(MultiCollectionTransaction transaction) throws RecordServicesException;
@@ -53,10 +55,12 @@ public interface RecordServices {
 		execute(tx);
 	}
 
+	/**
+	 * Do not use, used execute and set a modification impact handling mode
+	 * com.constellio.model.entities.records.RecordUpdateOptions#impactHandlingMode
+	 */
+	@Deprecated
 	void executeWithoutImpactHandling(Transaction transaction)
-			throws RecordServicesException;
-
-	void executeWithImpactHandler(Transaction transaction, RecordModificationImpactHandler handler)
 			throws RecordServicesException;
 
 	<T extends Supplier<Record>> void update(Stream<T> stream, Consumer<T> action)
@@ -109,7 +113,11 @@ public interface RecordServices {
 
 	Record realtimeGetById(String dataStore, String id, Long version, boolean callExtensions);
 
-	Record realtimeGetRecordSummaryById(String id, boolean callExtensions);
+	default Record realtimeGetRecordSummaryById(String id, boolean callExtensions) {
+		return realtimeGetRecordSummaryById(id, null, callExtensions);
+	}
+
+	Record realtimeGetRecordSummaryById(String id, Long version, boolean callExtensions);
 
 	default List<Record> realtimeGetRecordById(List<String> ids, boolean callExtensions) {
 		List<Record> records = new ArrayList<>();
@@ -181,6 +189,10 @@ public interface RecordServices {
 		return realtimeGetRecordSummaryById(id, true);
 	}
 
+	default Record realtimeGetRecordSummaryById(String id, Long version) {
+		return realtimeGetRecordSummaryById(id, version, true);
+	}
+
 	default Record realtimeGetRecordById(String id) {
 		return realtimeGetRecordById(id, true);
 	}
@@ -196,6 +208,14 @@ public interface RecordServices {
 
 	default Record getDocumentById(String id) {
 		return getDocumentById(id, true);
+	}
+
+	default Record getDocumentByIdOrNull(String id) {
+		try {
+			return getDocumentById(id, true);
+		} catch (NoSuchRecordWithId e) {
+			return null;
+		}
 	}
 
 	default Record getDocumentById(String id, User user) {
@@ -251,12 +271,6 @@ public interface RecordServices {
 
 	List<BatchProcess> updateAsync(Supplier<Record> record, RecordUpdateOptions options)
 			throws RecordServicesException;
-
-	ModificationImpactCalculatorResponse calculateImpactOfModification(Transaction transaction,
-																	   TaxonomiesManager taxonomiesManager,
-																	   SearchServices searchServices,
-																	   MetadataSchemaTypes metadataSchemaTypes,
-																	   boolean executedAfterTransaction);
 
 	RecordsCaches getRecordsCaches();
 

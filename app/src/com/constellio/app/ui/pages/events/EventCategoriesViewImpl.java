@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.events;
 
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
@@ -33,6 +34,7 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 	public static final String REINDEX_AND_RESTART_BUTTON = "reindexAndRestartButton";
 	public static final String RECORDS_REQUEST_LINK_BUTTON = "recordRequestLinkButton";
 	public static final String SIGNED_DOCUMENTS = "signedDocumentsLinkButton";
+	public static final String SCANNED_DOCUMENTS = "scannedDocumentsLinkButton";
 
 	private boolean agentEventsVisible;
 
@@ -92,6 +94,12 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 		Button signedDocs = newSignedDocumentLink();
 		signedDocs.addStyleName(SIGNED_DOCUMENTS);
 		layout.addComponent(signedDocs);
+
+		if (Toggle.WEB_SCANNING_ENABLED.isEnabled()) {
+			Button scannedDocuments = newScannedDocumentLink();
+			scannedDocuments.addStyleName(SCANNED_DOCUMENTS);
+			layout.addComponent(scannedDocuments);
+		}
 
 		Button filingSpaceEventsLink = newByFilingSpaceEventsLink();
 		filingSpaceEventsLink.addStyleName(FILING_SPACE_EVENTS_LINK_BUTTON);
@@ -156,6 +164,10 @@ public class EventCategoriesViewImpl extends BaseViewImpl implements EventCatego
 
 	private Button newSignedDocumentLink() {
 		return createLink($("ListEventsView.signedDoc"), EventCategory.SIGNED_DOCUMENTS, "document_certificate");
+	}
+
+	private Button newScannedDocumentLink() {
+		return createLink($("ListEventsView.scannedDocument"), EventCategory.SCANNED_DOCUMENTS, "document_scanner");
 	}
 
 	private Button newCurrentlyBorrowedFoldersLink() {

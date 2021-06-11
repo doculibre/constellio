@@ -2,6 +2,7 @@ package com.constellio.app.ui.framework.components.viewers.pdftron;
 
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.model.entities.records.wrappers.User;
@@ -16,7 +17,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -64,7 +64,7 @@ public class PdfTronSignatureAuthenticationWindowButton extends WindowButton {
 		fieldsLayout.setSpacing(true);
 		fieldsLayout.addStyleName("fields");
 
-		TextField usernameField = new TextField($("LoginView.username"));
+		BaseTextField usernameField = new BaseTextField($("LoginView.username"));
 		usernameField.setIcon(FontAwesome.USER);
 		usernameField.setMaxLength(100);
 		usernameField.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);

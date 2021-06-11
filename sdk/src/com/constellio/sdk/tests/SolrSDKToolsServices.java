@@ -228,16 +228,20 @@ public class SolrSDKToolsServices {
 			StringBuilder sb = new StringBuilder();
 
 			for (String removedKey : results.getRemovedEntries()) {
-				sb.append(
-						"\n\t* The field '" + removedKey + "' with value '" + dataBefore.get(removedKey) + "' was removed");
+				if (!removedKey.equals("autocomplete_ss")) {
+					sb.append(
+							"\n\t* The field '" + removedKey + "' with value '" + dataBefore.get(removedKey) + "' was removed");
+				}
 			}
 
 			for (String addedKey : results.getNewEntries()) {
-				sb.append("\n\t* The field '" + addedKey + "' with value '" + dataAfter.get(addedKey) + "' was added");
+				if (!addedKey.equals("autocomplete_ss")) {
+					sb.append("\n\t* The field '" + addedKey + "' with value '" + dataAfter.get(addedKey) + "' was added");
+				}
 			}
 
 			for (ModifiedEntry<String, Object> entry : results.getModifiedEntries()) {
-				if (!entry.getKey().equals("jasperfile_s")) {
+				if (!entry.getKey().equals("jasperfile_s") && !entry.getKey().equals("autocomplete_ss")) {
 					sb.append("\n\t* The field '" + entry.getKey() + "' with value '" + entry.getValueBefore()
 							  + "' was modified to '" + entry.getValueAfter() + "'");
 				}

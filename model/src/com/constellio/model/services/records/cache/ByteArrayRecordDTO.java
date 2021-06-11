@@ -9,6 +9,7 @@ import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.dto.records.StringRecordId;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.services.records.cache.dataStore.FileSystemRecordsValuesCacheDataStore;
 import com.constellio.model.services.schemas.MetadataSchemaProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -111,7 +112,13 @@ public abstract class ByteArrayRecordDTO implements Map<String, Object>, RecordD
 
 		@Override
 		public byte[] get() {
-			return SummaryCacheSingletons.dataStore.get(tenantId).loadIntKeyPersistedData(id);
+			FileSystemRecordsValuesCacheDataStore tenantDataStore = SummaryCacheSingletons.dataStore.get(tenantId);
+
+			if (tenantDataStore == null) {
+				throw new RuntimeException("No such datastore for tenant " + tenantId + ". Available tenants : " + SummaryCacheSingletons.dataStore.keySet());
+			}
+
+			return tenantDataStore.loadIntKeyPersistedData(id);
 		}
 
 		@Override

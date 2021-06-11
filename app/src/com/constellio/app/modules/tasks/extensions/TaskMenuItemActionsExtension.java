@@ -33,7 +33,7 @@ public class TaskMenuItemActionsExtension extends MenuItemActionsExtension {
 
 	private TaskMenuItemServices taskMenuItemServices;
 
-	private static final String CONSULTATION_LINK = "CONSULTATION_LINK";
+	public static final String CONSULTATION_LINK = "CONSULTATION_LINK";
 
 	public TaskMenuItemActionsExtension(String collection, AppLayerFactory appLayerFactory) {
 		tasksSchema = new TasksSchemasRecordsServices(collection, appLayerFactory);

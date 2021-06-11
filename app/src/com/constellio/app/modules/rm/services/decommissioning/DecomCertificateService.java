@@ -140,6 +140,7 @@ public class DecomCertificateService {
 		try {
 			outputStream = new FileOutputStream(tempFile);
 			builder.write(outputStream);
+			IOUtils.closeQuietly(outputStream);
 			inputStream = new FileInputStream(tempFile);
 			ContentVersionDataSummary contentVersion = contentManager.upload(inputStream, filename).getContentVersionDataSummary();
 			Content content = contentManager.createMajor(user, filename, contentVersion);

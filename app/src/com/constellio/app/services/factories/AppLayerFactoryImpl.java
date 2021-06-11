@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
+import com.constellio.app.services.actionDisplayManager.MenusDisplayManager;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.background.AppLayerBackgroundThreadsManager;
@@ -51,6 +52,7 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TenantUtils;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.systemLogger.SystemLogger;
 import com.constellio.model.entities.Language;
@@ -66,6 +68,7 @@ import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexationParams;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,8 +78,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import static com.constellio.model.services.records.reindexing.ReindexationParams.recalculateAndRewriteSchemaTypesInBackground;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFactory {
 
@@ -101,6 +103,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	private List<InitUIListener> initUIListeners;
 
 	private SystemGlobalConfigsManager systemGlobalConfigsManager;
+
+	private MenusDisplayManager menusDisplayManager;
 
 	private SystemLocalConfigsManager systemLocalConfigsManager;
 
@@ -165,12 +169,14 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 
 		this.systemGlobalConfigsManager = add(new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory()));
+		this.menusDisplayManager = add(new MenusDisplayManager(this.modelLayerFactory));
+
 		this.systemLocalConfigsManager = add(new SystemLocalConfigsManager(new FoldersLocator().getLocalConfigsFile(), systemGlobalConfigsManager));
 		this.collectionsManager = add(
 				new CollectionsManager(this, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
 		migrationServicesDelayed.set(newMigrationServices());
 		try {
-			newMigrationServices().migrate(null, false);
+			newMigrationServices().migrate(false);
 		} catch (OptimisticLockingConfiguration e) {
 			throw new RuntimeException(e);
 
@@ -283,6 +289,12 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		getModelLayerFactory().getRecordsCaches().register(new SavedSearchRecordsCachesHook(10_000));
 
 		SystemLogger.info("Application started");
+
+		if (systemLocalConfigsManager.isMarkedForReindexing()) {
+			//Will be handled during postInitialize, but we want to already freeze the system to prevent logins during
+			//initialize() and postInitialize()
+			systemGlobalConfigsManager.blockSystemDuringReindexing();
+		}
 	}
 
 	private void normalStartupInMultiTenantSystem() {
@@ -369,7 +381,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		try {
 			try {
 				collectionsManager.initializeModulesResources();
-				newMigrationServices().migrate(null, false);
+				newMigrationServices().migrate(false);
 			} catch (OptimisticLockingConfiguration optimisticLockingConfiguration) {
 				throw new RuntimeException(optimisticLockingConfiguration);
 			}
@@ -410,11 +422,10 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 		modelLayerFactory.getBatchProcessesController().start();
 
-		ReindexingServices reindexingServices = modelLayerFactory.newReindexingServices();
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		for (Map.Entry<String, Set<String>> entry : typesWithNewScriptsInCollections.entrySet()) {
 			List<MetadataSchemaType> types = schemasManager.getSchemaTypes(entry.getKey(), new ArrayList<>(entry.getValue()));
-			reindexingServices.reindexCollections(recalculateAndRewriteSchemaTypesInBackground(types));
+			modelLayerFactory.getBatchProcessesManager().reindexInBackground(types);
 		}
 
 	}
@@ -441,6 +452,23 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		}
 
 		if (systemLocalConfigsManager.isMarkedForReindexing()) {
+
+			AtomicBoolean currentlyReindexing = new AtomicBoolean(true);
+			new Thread() {
+				@Override
+				public void run() {
+					while (currentlyReindexing.get()) {
+
+						systemGlobalConfigsManager.blockSystemDuringReindexing();
+						try {
+							Thread.sleep(60_000);
+						} catch (InterruptedException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				}
+			}.start();
+
 			systemLocalConfigsManager.setMarkedForReindexing(false);
 
 			try {
@@ -456,6 +484,14 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 				systemGlobalConfigsManager.setReindexingRequired(true);
 				systemGlobalConfigsManager.setLastReindexingFailed(true);
 				dataLayerFactory.getSecondTransactionLogManager().moveLastBackupAsCurrentLog();
+			} finally {
+				currentlyReindexing.set(false);
+				try {
+					systemGlobalConfigsManager.unblockSystemDuringReindexing();
+
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
 			}
 		}
 		systemLocalConfigsManager.setRestartRequired(false);
@@ -534,6 +570,11 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		return new MigrationServices(new ConstellioEIM(), this, modulesManager, pluginManager);
 	}
 
+	@Override
+	public MenusDisplayManager getMenusDisplayManager() {
+		return menusDisplayManager;
+	}
+
 	public ConstellioModulesManager getModulesManager() {
 		return modulesManager;
 	}
@@ -556,5 +597,16 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	public AppLayerBackgroundThreadsManager getAppLayerBackgroundThreadsManager() {
 		return appLayerBackgroundThreadsManager;
+	}
+
+	public boolean isReindexing() {
+		boolean reindexing = ReindexingServices.isReindexing();
+
+		if (!reindexing) {
+			LocalDateTime lastReindexingSignal = systemGlobalConfigsManager.getLastSystemReindexingSignal();
+			reindexing = lastReindexingSignal != null && lastReindexingSignal.isAfter(TimeProvider.getLocalDateTime().minusMinutes(2));
+		}
+
+		return reindexing;
 	}
 }

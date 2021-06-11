@@ -4,6 +4,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExporter;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.services.records.cache.PersistedIdsServices;
+import com.constellio.model.services.records.cache.PersistedSortValuesServices;
 import org.joda.time.LocalDate;
 
 
@@ -22,7 +24,13 @@ public class CreateBaseSaveStateBackgroundAction implements Runnable {
 
 		if (!isOfficeHours()
 			&& (lastGenerate.isBefore(TimeProvider.getLocalDate().minusDays(5)))
-			&& FoldersLocator.usingAppWrapper()) {
+			&& FoldersLocator.usingAppWrapper()
+			&& !appLayerFactory.getModelLayerFactory().getDataLayerFactory().isDistributed()
+			&& !appLayerFactory.isReindexing()
+			&& !PersistedIdsServices.isRunning()
+			&& !PersistedSortValuesServices.isRunning()
+			&& !appLayerFactory.getModelLayerFactory().getRecordsCaches().areSummaryCachesInitialized()
+		) {
 			new SystemStateExporter(appLayerFactory).createSavestateBaseFileInVault(false);
 			lastGenerate = TimeProvider.getLocalDate();
 		}

@@ -5,6 +5,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.DataProvider.DataRefreshListener;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.ObjectProperty;
@@ -74,7 +75,12 @@ public class RecordVOWithDistinctSchemaTypesLazyContainer extends LazyQueryConta
 					for (MetadataSchemaVO metadataSchemaVO : dataProvider.getSchemas()) {
 						MetadataVO metadata = metadataSchemaVO.getMetadata(reportMetadata);
 						propertiesIds.add(metadata.getLocalCode());
-						super.addProperty(metadata.getLocalCode(), metadata.getJavaType(), null, true, true);
+						if(metadata.getType() == MetadataValueType.TEXT) {
+							// Text metadata are not sortable !
+							super.addProperty(metadata.getLocalCode(), metadata.getJavaType(), null, true, false);
+						} else {
+							super.addProperty(metadata.getLocalCode(), metadata.getJavaType(), null, true, true);
+						}
 					}
 				}
 			}

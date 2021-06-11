@@ -31,21 +31,23 @@ public class RMMigrationTo9_1_0_13 extends MigrationHelper implements MigrationS
 		this.migrationResourcesProvider = migrationResourcesProvider;
 		this.appLayerFactory = appLayerFactory;
 
-		reloadEmailTemplates();
+		reloadEmailTemplates(collection, migrationResourcesProvider, appLayerFactory);
 	}
 
-	private void reloadEmailTemplates() {
+	public static void reloadEmailTemplates(String collection, MigrationResourcesProvider migrationResourcesProvider,
+											AppLayerFactory appLayerFactory) {
 		// Template is changed for a new template because the new one now include document and box instead of folder only.
 		// The previous template was remindReturnBorrowedFolderTemplate.html/remindReturnBorrowedFolderTemplate_en.html.
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager()
 				.getCollectionLanguages(collection).get(0).equals("en")) {
-			reloadEmailTemplate("remindReturnBorrowedRecordTemplate_en.html", RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
+			reloadEmailTemplate(collection, migrationResourcesProvider, appLayerFactory, "remindReturnBorrowedRecordTemplate_en.html", RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
 		} else {
-			reloadEmailTemplate("remindReturnBorrowedRecordTemplate.html", RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
+			reloadEmailTemplate(collection, migrationResourcesProvider, appLayerFactory, "remindReturnBorrowedRecordTemplate.html", RMEmailTemplateConstants.REMIND_BORROW_TEMPLATE_ID);
 		}
 	}
 
-	private void reloadEmailTemplate(final String templateFileName, final String templateId) {
+	private static void reloadEmailTemplate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+									 AppLayerFactory appLayerFactory, final String templateFileName, final String templateId) {
 		final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 
 		try {

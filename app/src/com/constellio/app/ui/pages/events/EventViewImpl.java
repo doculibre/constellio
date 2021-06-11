@@ -32,6 +32,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -400,7 +401,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 
 	@Override
 	public String getCollection() {
-		if (EventType.ATTEMPTED_OPEN_SESSION.equals(presenter.getEventType())) {
+		if (MapUtils.isNotEmpty(parameters) && EventType.ATTEMPTED_OPEN_SESSION.equals(presenter.getEventType())) {
 			return com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 		}
 		return super.getCollection();

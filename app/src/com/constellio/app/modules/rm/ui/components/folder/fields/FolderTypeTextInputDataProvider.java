@@ -83,7 +83,7 @@ public class FolderTypeTextInputDataProvider extends RecordTextInputDataProvider
 			if (writeAccess) {
 				query.filteredWithUserWrite(user);
 			} else {
-				query.filteredWithUser(user);
+				query.filteredWithUserRead(user);
 			}
 		}
 		return getModelLayerFactory().newSearchServices().query(query);

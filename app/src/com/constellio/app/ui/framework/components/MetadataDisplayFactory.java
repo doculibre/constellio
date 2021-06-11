@@ -23,6 +23,7 @@ import com.constellio.app.ui.framework.components.converters.JodaDateToStringCon
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.display.EnumWithSmallCodeDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.display.UrlLink;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -31,8 +32,12 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
 import com.constellio.model.entities.schemas.StructureFactory;
+import com.constellio.model.entities.structures.UrlsStructure;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.util.converter.StringToDoubleConverter;
 import com.vaadin.data.util.converter.StringToIntegerConverter;
 import com.vaadin.server.ExternalResource;
@@ -93,6 +98,14 @@ public class MetadataDisplayFactory implements Serializable {
 			displayComponent = null;
 		} else if (metadataVO.isMultivalue() && structureFactory != null && structureFactory instanceof CommentFactory) {
 			displayComponent = new RecordCommentsDisplayImpl(recordVO, metadataCode);
+		} else if (structureFactory instanceof SeparatedStructureFactory) {
+			SeparatedStructureFactory factory = (SeparatedStructureFactory) structureFactory;
+			if (displayValue != null) {
+				String mainValue = (String) factory.toFields((ModifiableStructure) displayValue).get(factory.getMainValueFieldName());
+				displayComponent = new Label(mainValue);
+			} else {
+				displayComponent = null;
+			}
 		} else if (displayValue == null) {
 			displayComponent = null;
 		} else if (displayValue instanceof Collection<?>) {
@@ -145,6 +158,8 @@ public class MetadataDisplayFactory implements Serializable {
 
 		if (displayValue == null) {
 			displayComponent = null;
+		} else if (displayValue instanceof Component) {
+			displayComponent = (Component) displayValue;
 		} else if ((displayValue instanceof String) && StringUtils.isBlank(displayValue.toString())) {
 			displayComponent = null;
 		} else {
@@ -195,7 +210,16 @@ public class MetadataDisplayFactory implements Serializable {
 					((Label) displayComponent).setConverter(new StringToIntegerConverter());
 					break;
 				case STRING:
-					if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
+					if (metadata.codeMatches(Schemas.IDENTIFIER.getCode())) {
+						String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
+
+						ConstellioEIMConfigs eimConfigs = new ConstellioEIMConfigs(ConstellioFactories.getInstance().getModelLayerFactory());
+						if (eimConfigs.isLeadingZerosHiddenWhenDisplayingID()) {
+							stringValue = StringUtils.stripStart(stringValue, "0");
+						}
+
+						displayComponent = new Label(stringValue, ContentMode.HTML);
+					} else if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
 						displayComponent = null;
 					} else if (MetadataInputType.URL.equals(metadataInputType)) {
 						String url = displayValue.toString();
@@ -225,7 +249,11 @@ public class MetadataDisplayFactory implements Serializable {
 					}
 					break;
 				case STRUCTURE:
-					displayComponent = new Label(displayValue.toString());
+					if (displayValue instanceof UrlsStructure) {
+						displayComponent = newUrlsStructureComponent((UrlsStructure) displayValue);
+					} else {
+						displayComponent = new Label(displayValue.toString());
+					}
 					break;
 				case CONTENT:
 					ContentVersionVO contentVersionVO = (ContentVersionVO) displayValue;
@@ -304,6 +332,29 @@ public class MetadataDisplayFactory implements Serializable {
 			verticalLayout.addComponent(elementDisplayComponent);
 		}
 		return verticalLayout;
+	}
+
+	private Component newUrlsStructureComponent(UrlsStructure urlsStructure) {
+		Component component;
+
+		String description = urlsStructure.get(UrlsStructure.DESCRIPTION_KEY);
+		String url = urlsStructure.get(UrlsStructure.URL_KEY);
+
+		if (description == null) {
+			description = url;
+		}
+
+		if (description != null) {
+			if (url != null) {
+				component = new UrlLink(description, urlsStructure.get(UrlsStructure.URL_KEY));
+			} else {
+				component = new Label(description);
+			}
+		} else {
+			component = new Label(urlsStructure.toString());
+		}
+
+		return component;
 	}
 
 	private boolean hasCurrentUserRightsOnTaxonomy(String taxonomyCode) {

@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTest {
 	private static Logger LOGGER = LoggerFactory.getLogger(SolrServerFactoryAcceptanceTest.class);
 
+	//TODO Fail with Solr6
 	@Test
 	public void whenSettingUpSolrCollectionsThenTheirConfigurationAreStoredInThePathStartsWithTheCollectionName() {
 		for (BigVaultServer server : getConstellioFactories().getDataLayerFactory().getSolrServers().getServers()) {
@@ -26,6 +27,7 @@ public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTes
 		}
 	}
 
+	//TODO Fail with Solr6
 	@Test
 	public void whenCreatingASolrServerThenTheWriteAccessIsProvided()
 			throws OptimisticLockingConfiguration {
@@ -46,6 +48,7 @@ public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTes
 
 	}
 
+	//TODO Fail with Solr6
 	@Test
 	public void whenCreateASolrServerThenItCanBeReloaded()
 			throws Exception {
@@ -54,12 +57,14 @@ public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTes
 		givenSynonymFeatureEnabledWhenIndexingDocumentsAndSearchForAWordThenAllDocumentsContainTheWordAndItsSynonymAreReturned();
 	}
 
+	//TODO Fail with Solr6
 	@Test
 	public void whenChangingSolrConfiguraitonInTestThenOtherTestsAreNotAffectedFirst()
 			throws OptimisticLockingConfiguration {
 		doAModification();
 	}
 
+	//TODO Fail with Solr6
 	@Test
 	public void whenChangingSolrConfiguraitonInTestThenOtherTestsAreNotAffectedSecond()
 			throws OptimisticLockingConfiguration {

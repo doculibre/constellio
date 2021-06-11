@@ -67,7 +67,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder createUserDocumentType(MetadataSchemaTypesBuilder typesBuilder,
 															 MetadataSchemaTypeBuilder userSchemaType) {
-		MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(UserDocument.SCHEMA_TYPE);
+		MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaTypeWithSecurity(UserDocument.SCHEMA_TYPE);
 		MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
 		type.setSecurity(false);
 		defaultSchema.createUndeletable(UserDocument.USER).defineReferencesTo(userSchemaType);
@@ -77,7 +77,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder createEventSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
-		MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(Event.SCHEMA_TYPE);
+		MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaTypeWithSecurity(Event.SCHEMA_TYPE);
 		MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
 
 		//FIXME labels
@@ -117,7 +117,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private void createCollectionSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
-		typesBuilder.createNewSchemaType(Collection.SCHEMA_TYPE);
+		typesBuilder.createNewSchemaTypeWithSecurity(Collection.SCHEMA_TYPE);
 		MetadataSchemaBuilder collectionSchema = typesBuilder.getSchemaType("collection").getDefaultSchema();
 		collectionSchema.createUndeletable(Collection.NAME).setType(STRING);
 		collectionSchema.createUndeletable(Collection.CODE).setType(STRING).setUniqueValue(true).setUnmodifiable(true);
@@ -126,7 +126,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder createUserSchemaType(MetadataSchemaTypesBuilder typesBuilder,
 														   MetadataSchemaTypeBuilder groupSchemaType) {
-		typesBuilder.createNewSchemaType(User.SCHEMA_TYPE);
+		typesBuilder.createNewSchemaTypeWithSecurity(User.SCHEMA_TYPE);
 		MetadataSchemaTypeBuilder userSchemaType = typesBuilder.getSchemaType("user");
 		MetadataSchemaBuilder userSchema = userSchemaType.getDefaultSchema();
 		userSchema.createUndeletable(User.USERNAME).setType(STRING).setUniqueValue(true)
@@ -164,7 +164,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder createGroupSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
-		MetadataSchemaTypeBuilder groupSchemaType = typesBuilder.createNewSchemaType(Group.SCHEMA_TYPE);
+		MetadataSchemaTypeBuilder groupSchemaType = typesBuilder.createNewSchemaTypeWithSecurity(Group.SCHEMA_TYPE);
 		MetadataSchemaBuilder groupSchema = groupSchemaType.getDefaultSchema();
 		groupSchema.get(Group.TITLE).setSchemaAutocomplete(true);
 		groupSchema.createUndeletable(Group.CODE).setType(STRING).setUniqueValue(true).setSchemaAutocomplete(true);
@@ -177,7 +177,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	private MetadataSchemaTypeBuilder createTaskSchemaType(MetadataSchemaTypesBuilder typesBuilder,
 														   MetadataSchemaTypeBuilder userSchema) {
-		MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.createNewSchemaType(WorkflowTask.SCHEMA_TYPE);
+		MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.createNewSchemaTypeWithSecurity(WorkflowTask.SCHEMA_TYPE);
 		MetadataSchemaBuilder taskSchema = taskSchemaType.getDefaultSchema();
 		taskSchema.createUndeletable(WorkflowTask.ASSIGNED_TO).setType(REFERENCE).defineReferencesTo(userSchema);
 		taskSchema.createUndeletable(WorkflowTask.ASSIGNED_ON).setType(DATE_TIME);

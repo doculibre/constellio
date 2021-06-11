@@ -1,7 +1,14 @@
 package com.constellio.app.modules.tasks.migrations;
 
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.model.entities.schemas.RecordCacheType;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.security.roles.RolesManager;
+
+import static java.util.Arrays.asList;
+
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.modules.tasks.model.calculators.DecisionsTasksCalculator;
@@ -18,9 +25,8 @@ import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollowerFactory;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminderFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizationsStructureFactory;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.entities.structures.MapStringStringStructureFactory;
 import com.constellio.model.services.contents.ContentFactory;
@@ -30,18 +36,22 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
 import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
-import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator2;
 import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
 import com.constellio.model.services.schemas.calculators.DefaultTokensOfHierarchyCalculator;
+import com.constellio.model.services.schemas.calculators.IntegerAttachedPrincipalConceptsAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.IntegerDetachedPrincipalConceptsAncestorsCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
 import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
+import com.constellio.model.services.schemas.calculators.PrincipalAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.PrincipalConceptsIntIdsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
-import com.constellio.model.services.schemas.calculators.TokensCalculator4;
+import com.constellio.model.services.schemas.calculators.SecondaryConceptsIntIdsCalculator;
+import com.constellio.model.services.schemas.calculators.TokensCalculator5;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.schemas.validators.PercentageValidator;
-import com.constellio.model.services.security.roles.RolesManager;
-
-import static java.util.Arrays.asList;
+import com.constellio.model.services.schemas.validators.metadatas.IllegalCharactersValidator;
+import java.lang.String;
 
 public final class GeneratedTasksMigrationCombo {
   String collection;
@@ -67,16 +77,24 @@ public final class GeneratedTasksMigrationCombo {
     MetadataSchemaBuilder authorizationDetailsSchema = authorizationDetailsSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder capsuleSchemaType = typesBuilder.getSchemaType("capsule");
     MetadataSchemaBuilder capsuleSchema = capsuleSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder conversationSchemaType = typesBuilder.getSchemaType("conversation");
+    MetadataSchemaBuilder conversationSchema = conversationSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder ddvCapsuleLanguageSchemaType = typesBuilder.getSchemaType("ddvCapsuleLanguage");
     MetadataSchemaBuilder ddvCapsuleLanguageSchema = ddvCapsuleLanguageSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder ddvSourceSchemaType = typesBuilder.getSchemaType("ddvSource");
+    MetadataSchemaBuilder ddvSourceSchema = ddvSourceSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder emailToSendSchemaType = typesBuilder.getSchemaType("emailToSend");
     MetadataSchemaBuilder emailToSendSchema = emailToSendSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.getSchemaType("event");
     MetadataSchemaBuilder eventSchema = eventSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder externalAccessUrlSchemaType = typesBuilder.getSchemaType("externalAccessUrl");
+    MetadataSchemaBuilder externalAccessUrlSchema = externalAccessUrlSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder facetSchemaType = typesBuilder.getSchemaType("facet");
     MetadataSchemaBuilder facet_fieldSchema = facetSchemaType.getCustomSchema("field");
     MetadataSchemaBuilder facet_querySchema = facetSchemaType.getCustomSchema("query");
     MetadataSchemaBuilder facetSchema = facetSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder messageSchemaType = typesBuilder.getSchemaType("message");
+    MetadataSchemaBuilder messageSchema = messageSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder printableSchemaType = typesBuilder.getSchemaType("printable");
     MetadataSchemaBuilder printableSchema = printableSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder reportSchemaType = typesBuilder.getSchemaType("report");
@@ -101,29 +119,33 @@ public final class GeneratedTasksMigrationCombo {
     MetadataSchemaBuilder userDocumentSchema = userDocumentSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder userFolderSchemaType = typesBuilder.getSchemaType("userFolder");
     MetadataSchemaBuilder userFolderSchema = userFolderSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder ddvTaskStatusSchemaType = typesBuilder.createNewSchemaType("ddvTaskStatus",false).setSecurity(false);
+    MetadataSchemaTypeBuilder ddvTaskStatusSchemaType = typesBuilder.createNewSchemaTypeWithSecurity("ddvTaskStatus",false).setSecurity(false);
     MetadataSchemaBuilder ddvTaskStatusSchema = ddvTaskStatusSchemaType.getDefaultSchema();
     ddvTaskStatusSchema.defineValidators().add(TaskStatusValidator.class);
-    MetadataSchemaTypeBuilder ddvTaskTypeSchemaType = typesBuilder.createNewSchemaType("ddvTaskType",false).setSecurity(false);
+    MetadataSchemaTypeBuilder ddvTaskTypeSchemaType = typesBuilder.createNewSchemaTypeWithSecurity("ddvTaskType",false).setSecurity(false);
     MetadataSchemaBuilder ddvTaskTypeSchema = ddvTaskTypeSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder userTaskSchemaType = typesBuilder.createNewSchemaType("userTask",false).setSmallCode("t");
+    MetadataSchemaTypeBuilder userTaskSchemaType = typesBuilder.createNewSchemaTypeWithSecurity("userTask",false).setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE).setSmallCode("t");
     MetadataSchemaBuilder userTaskSchema = userTaskSchemaType.getDefaultSchema();
     userTaskSchema.defineValidators().add(TaskValidator.class);
-    MetadataSchemaTypeBuilder workflowSchemaType = typesBuilder.createNewSchemaType("workflow",false).setSecurity(false);
+    MetadataSchemaTypeBuilder workflowSchemaType = typesBuilder.createNewSchemaTypeWithSecurity("workflow",false).setSecurity(false);
     MetadataSchemaBuilder workflowSchema = workflowSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder workflowInstanceSchemaType = typesBuilder.createNewSchemaType("workflowInstance",false).setSecurity(false);
+    MetadataSchemaTypeBuilder workflowInstanceSchemaType = typesBuilder.createNewSchemaTypeWithSecurity("workflowInstance",false).setSecurity(false);
     MetadataSchemaBuilder workflowInstanceSchema = workflowInstanceSchemaType.getDefaultSchema();
     createCollectionSchemaTypeMetadatas(typesBuilder,collectionSchemaType, collectionSchema);
     createGroupSchemaTypeMetadatas(typesBuilder,groupSchemaType, groupSchema);
     createUserSchemaTypeMetadatas(typesBuilder,userSchemaType, userSchema);
     createAuthorizationDetailsSchemaTypeMetadatas(typesBuilder,authorizationDetailsSchemaType, authorizationDetailsSchema);
     createCapsuleSchemaTypeMetadatas(typesBuilder,capsuleSchemaType, capsuleSchema);
+    createConversationSchemaTypeMetadatas(typesBuilder,conversationSchemaType, conversationSchema);
     createDdvCapsuleLanguageSchemaTypeMetadatas(typesBuilder,ddvCapsuleLanguageSchemaType, ddvCapsuleLanguageSchema);
+    createDdvSourceSchemaTypeMetadatas(typesBuilder,ddvSourceSchemaType, ddvSourceSchema);
     createDdvTaskStatusSchemaTypeMetadatas(typesBuilder,ddvTaskStatusSchemaType, ddvTaskStatusSchema);
     createDdvTaskTypeSchemaTypeMetadatas(typesBuilder,ddvTaskTypeSchemaType, ddvTaskTypeSchema);
     createEmailToSendSchemaTypeMetadatas(typesBuilder,emailToSendSchemaType, emailToSendSchema);
     createEventSchemaTypeMetadatas(typesBuilder,eventSchemaType, eventSchema);
+    createExternalAccessUrlSchemaTypeMetadatas(typesBuilder,externalAccessUrlSchemaType, externalAccessUrlSchema);
     createFacetSchemaTypeMetadatas(typesBuilder,facetSchemaType, facet_fieldSchema, facet_querySchema, facetSchema);
+    createMessageSchemaTypeMetadatas(typesBuilder,messageSchemaType, messageSchema);
     createPrintableSchemaTypeMetadatas(typesBuilder,printableSchemaType, printableSchema);
     createReportSchemaTypeMetadatas(typesBuilder,reportSchemaType, reportSchema);
     createSavedSearchSchemaTypeMetadatas(typesBuilder,savedSearchSchemaType, savedSearchSchema);
@@ -138,26 +160,38 @@ public final class GeneratedTasksMigrationCombo {
     createWorkflowInstanceSchemaTypeMetadatas(typesBuilder,workflowInstanceSchemaType, workflowInstanceSchema);
     ddvTaskStatusSchema.get("allReferences").defineDataEntry().asCalculated(AllReferencesCalculator.class);
     ddvTaskStatusSchema.get("allRemovedAuths").defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
-    ddvTaskStatusSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    ddvTaskStatusSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+    ddvTaskStatusSchema.get("attachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerAttachedPrincipalConceptsAncestorsCalculator.class);
     ddvTaskStatusSchema.get("autocomplete").defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+    ddvTaskStatusSchema.get("detachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerDetachedPrincipalConceptsAncestorsCalculator.class);
     ddvTaskStatusSchema.get("path").defineDataEntry().asCalculated(PathCalculator.class);
     ddvTaskStatusSchema.get("pathParts").defineDataEntry().asCalculated(PathPartsCalculator.class);
+    ddvTaskStatusSchema.get("principalAncestorsIntIds").defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
+    ddvTaskStatusSchema.get("principalConceptsIntIds").defineDataEntry().asCalculated(PrincipalConceptsIntIdsCalculator.class);
     ddvTaskStatusSchema.get("principalpath").defineDataEntry().asCalculated(PrincipalPathCalculator.class);
-    ddvTaskStatusSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator4.class);
+    ddvTaskStatusSchema.get("secondaryConceptsIntIds").defineDataEntry().asCalculated(SecondaryConceptsIntIdsCalculator.class);
+    ddvTaskStatusSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator5.class);
     ddvTaskStatusSchema.get("tokensHierarchy").defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
     ddvTaskTypeSchema.get("allReferences").defineDataEntry().asCalculated(AllReferencesCalculator.class);
     ddvTaskTypeSchema.get("allRemovedAuths").defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
-    ddvTaskTypeSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    ddvTaskTypeSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+    ddvTaskTypeSchema.get("attachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerAttachedPrincipalConceptsAncestorsCalculator.class);
     ddvTaskTypeSchema.get("autocomplete").defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+    ddvTaskTypeSchema.get("detachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerDetachedPrincipalConceptsAncestorsCalculator.class);
     ddvTaskTypeSchema.get("path").defineDataEntry().asCalculated(PathCalculator.class);
     ddvTaskTypeSchema.get("pathParts").defineDataEntry().asCalculated(PathPartsCalculator.class);
+    ddvTaskTypeSchema.get("principalAncestorsIntIds").defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
+    ddvTaskTypeSchema.get("principalConceptsIntIds").defineDataEntry().asCalculated(PrincipalConceptsIntIdsCalculator.class);
     ddvTaskTypeSchema.get("principalpath").defineDataEntry().asCalculated(PrincipalPathCalculator.class);
-    ddvTaskTypeSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator4.class);
+    ddvTaskTypeSchema.get("secondaryConceptsIntIds").defineDataEntry().asCalculated(SecondaryConceptsIntIdsCalculator.class);
+    ddvTaskTypeSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator5.class);
     ddvTaskTypeSchema.get("tokensHierarchy").defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
     userTaskSchema.get("allReferences").defineDataEntry().asCalculated(AllReferencesCalculator.class);
     userTaskSchema.get("allRemovedAuths").defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
-    userTaskSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    userTaskSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+    userTaskSchema.get("attachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerAttachedPrincipalConceptsAncestorsCalculator.class);
     userTaskSchema.get("autocomplete").defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+    userTaskSchema.get("detachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerDetachedPrincipalConceptsAncestorsCalculator.class);
     userTaskSchema.get("hidden").defineDataEntry().asCalculated(TaskHiddenStatusCalculator.class);
     userTaskSchema.get("isLate").defineDataEntry().asCalculated(TaskIsLateCalculator.class);
     userTaskSchema.get("nextReminderOn").defineDataEntry().asCalculated(TaskNextReminderOnCalculator.class);
@@ -165,7 +199,10 @@ public final class GeneratedTasksMigrationCombo {
     userTaskSchema.get("parentTaskDueDate").defineDataEntry().asCopied(userTaskSchema.get("parentTask"), typesBuilder.getMetadata("userTask_default_dueDate"));
     userTaskSchema.get("path").defineDataEntry().asCalculated(PathCalculator.class);
     userTaskSchema.get("pathParts").defineDataEntry().asCalculated(PathPartsCalculator.class);
+    userTaskSchema.get("principalAncestorsIntIds").defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
+    userTaskSchema.get("principalConceptsIntIds").defineDataEntry().asCalculated(PrincipalConceptsIntIdsCalculator.class);
     userTaskSchema.get("principalpath").defineDataEntry().asCalculated(PrincipalPathCalculator.class);
+    userTaskSchema.get("secondaryConceptsIntIds").defineDataEntry().asCalculated(SecondaryConceptsIntIdsCalculator.class);
     userTaskSchema.get("statusType").defineDataEntry().asCopied(userTaskSchema.get("status"), typesBuilder.getMetadata("ddvTaskStatus_default_statusType"));
     userTaskSchema.get("taskFollowersIds").defineDataEntry().asCalculated(TaskFollowersCalculator.class);
     userTaskSchema.get("tokens").defineDataEntry().asCalculated(TaskTokensCalculator2.class);
@@ -173,22 +210,291 @@ public final class GeneratedTasksMigrationCombo {
     userTaskSchema.get("visibleInTrees").defineDataEntry().asCalculated(TaskVisibleInTreesCalculator.class);
     workflowSchema.get("allReferences").defineDataEntry().asCalculated(AllReferencesCalculator.class);
     workflowSchema.get("allRemovedAuths").defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
-    workflowSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    workflowSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+    workflowSchema.get("attachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerAttachedPrincipalConceptsAncestorsCalculator.class);
     workflowSchema.get("autocomplete").defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+    workflowSchema.get("detachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerDetachedPrincipalConceptsAncestorsCalculator.class);
     workflowSchema.get("path").defineDataEntry().asCalculated(PathCalculator.class);
     workflowSchema.get("pathParts").defineDataEntry().asCalculated(PathPartsCalculator.class);
+    workflowSchema.get("principalAncestorsIntIds").defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
+    workflowSchema.get("principalConceptsIntIds").defineDataEntry().asCalculated(PrincipalConceptsIntIdsCalculator.class);
     workflowSchema.get("principalpath").defineDataEntry().asCalculated(PrincipalPathCalculator.class);
-    workflowSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator4.class);
+    workflowSchema.get("secondaryConceptsIntIds").defineDataEntry().asCalculated(SecondaryConceptsIntIdsCalculator.class);
+    workflowSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator5.class);
     workflowSchema.get("tokensHierarchy").defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
     workflowInstanceSchema.get("allReferences").defineDataEntry().asCalculated(AllReferencesCalculator.class);
     workflowInstanceSchema.get("allRemovedAuths").defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
-    workflowInstanceSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    workflowInstanceSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+    workflowInstanceSchema.get("attachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerAttachedPrincipalConceptsAncestorsCalculator.class);
     workflowInstanceSchema.get("autocomplete").defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+    workflowInstanceSchema.get("detachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerDetachedPrincipalConceptsAncestorsCalculator.class);
     workflowInstanceSchema.get("path").defineDataEntry().asCalculated(PathCalculator.class);
     workflowInstanceSchema.get("pathParts").defineDataEntry().asCalculated(PathPartsCalculator.class);
+    workflowInstanceSchema.get("principalAncestorsIntIds").defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
+    workflowInstanceSchema.get("principalConceptsIntIds").defineDataEntry().asCalculated(PrincipalConceptsIntIdsCalculator.class);
     workflowInstanceSchema.get("principalpath").defineDataEntry().asCalculated(PrincipalPathCalculator.class);
-    workflowInstanceSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator4.class);
+    workflowInstanceSchema.get("secondaryConceptsIntIds").defineDataEntry().asCalculated(SecondaryConceptsIntIdsCalculator.class);
+    workflowInstanceSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator5.class);
     workflowInstanceSchema.get("tokensHierarchy").defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
+  }
+
+  private void createCapsuleSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder capsuleSchemaType, MetadataSchemaBuilder capsuleSchema) {
+  }
+
+  private void createDdvTaskTypeSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvTaskTypeSchemaType, MetadataSchemaBuilder ddvTaskTypeSchema) {
+    MetadataBuilder ddvTaskType_abbreviation = ddvTaskTypeSchema.create("abbreviation").setType(MetadataValueType.STRING);
+    ddvTaskType_abbreviation.setUndeletable(true);
+    ddvTaskType_abbreviation.setMultiLingual(true);
+    ddvTaskType_abbreviation.setSearchable(true);
+    ddvTaskType_abbreviation.defineValidators().add(IllegalCharactersValidator.class);
+    MetadataBuilder ddvTaskType_allReferences = ddvTaskTypeSchema.create("allReferences").setType(MetadataValueType.STRING);
+    ddvTaskType_allReferences.setMultivalue(true);
+    ddvTaskType_allReferences.setSystemReserved(true);
+    ddvTaskType_allReferences.setUndeletable(true);
+    ddvTaskType_allReferences.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_allRemovedAuths = ddvTaskTypeSchema.create("allRemovedAuths").setType(MetadataValueType.STRING);
+    ddvTaskType_allRemovedAuths.setMultivalue(true);
+    ddvTaskType_allRemovedAuths.setSystemReserved(true);
+    ddvTaskType_allRemovedAuths.setUndeletable(true);
+    ddvTaskType_allRemovedAuths.setEssential(true);
+    ddvTaskType_allRemovedAuths.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_attachedAncestors = ddvTaskTypeSchema.create("attachedAncestors").setType(MetadataValueType.STRING);
+    ddvTaskType_attachedAncestors.setMultivalue(true);
+    ddvTaskType_attachedAncestors.setSystemReserved(true);
+    ddvTaskType_attachedAncestors.setUndeletable(true);
+    ddvTaskType_attachedAncestors.setEssential(true);
+    ddvTaskType_attachedAncestors.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_attachedPrincipalAncestorsIntIds = ddvTaskTypeSchema.create("attachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    ddvTaskType_attachedPrincipalAncestorsIntIds.setMultivalue(true);
+    ddvTaskType_attachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    ddvTaskType_attachedPrincipalAncestorsIntIds.setUndeletable(true);
+    ddvTaskType_attachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    ddvTaskType_attachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
+    MetadataBuilder ddvTaskType_autocomplete = ddvTaskTypeSchema.create("autocomplete").setType(MetadataValueType.STRING);
+    ddvTaskType_autocomplete.setMultivalue(true);
+    ddvTaskType_autocomplete.setSystemReserved(true);
+    ddvTaskType_autocomplete.setUndeletable(true);
+    ddvTaskType_autocomplete.setEssential(true);
+    ddvTaskType_autocomplete.setMultiLingual(true);
+    MetadataBuilder ddvTaskType_caption = ddvTaskTypeSchema.create("caption").setType(MetadataValueType.STRING);
+    ddvTaskType_caption.setSystemReserved(true);
+    ddvTaskType_caption.setUndeletable(true);
+    ddvTaskType_caption.setMultiLingual(false);
+    ddvTaskType_caption.setSortable(true);
+    MetadataBuilder ddvTaskType_code = ddvTaskTypeSchema.create("code").setType(MetadataValueType.STRING);
+    ddvTaskType_code.setDefaultRequirement(true);
+    ddvTaskType_code.setUndeletable(true);
+    ddvTaskType_code.setSchemaAutocomplete(true);
+    ddvTaskType_code.setSearchable(true);
+    ddvTaskType_code.setUniqueValue(true);
+    ddvTaskType_code.defineValidators().add(IllegalCharactersValidator.class);
+    MetadataBuilder ddvTaskType_comments = ddvTaskTypeSchema.create("comments").setType(MetadataValueType.STRUCTURE);
+    ddvTaskType_comments.setMultivalue(true);
+    ddvTaskType_comments.defineStructureFactory(CommentFactory.class);
+    MetadataBuilder ddvTaskType_createdBy = ddvTaskTypeSchema.create("createdBy").setType(MetadataValueType.REFERENCE);
+    ddvTaskType_createdBy.setSystemReserved(true);
+    ddvTaskType_createdBy.setUndeletable(true);
+    ddvTaskType_createdBy.setMultiLingual(false);
+    ddvTaskType_createdBy.defineReferencesTo(types.getSchemaType("user"));
+    MetadataBuilder ddvTaskType_createdOn = ddvTaskTypeSchema.create("createdOn").setType(MetadataValueType.DATE_TIME);
+    ddvTaskType_createdOn.setSystemReserved(true);
+    ddvTaskType_createdOn.setUndeletable(true);
+    ddvTaskType_createdOn.setMultiLingual(false);
+    ddvTaskType_createdOn.setSortable(true);
+    MetadataBuilder ddvTaskType_deleted = ddvTaskTypeSchema.create("deleted").setType(MetadataValueType.BOOLEAN);
+    ddvTaskType_deleted.setSystemReserved(true);
+    ddvTaskType_deleted.setUndeletable(true);
+    ddvTaskType_deleted.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_denyTokens = ddvTaskTypeSchema.create("denyTokens").setType(MetadataValueType.STRING);
+    ddvTaskType_denyTokens.setMultivalue(true);
+    ddvTaskType_denyTokens.setSystemReserved(true);
+    ddvTaskType_denyTokens.setUndeletable(true);
+    ddvTaskType_denyTokens.setMultiLingual(false);
+    ddvTaskType_denyTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder ddvTaskType_description = ddvTaskTypeSchema.create("description").setType(MetadataValueType.TEXT);
+    ddvTaskType_description.setUndeletable(true);
+    ddvTaskType_description.setMultiLingual(true);
+    ddvTaskType_description.setSearchable(true);
+    MetadataBuilder ddvTaskType_detachedPrincipalAncestorsIntIds = ddvTaskTypeSchema.create("detachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    ddvTaskType_detachedPrincipalAncestorsIntIds.setMultivalue(true);
+    ddvTaskType_detachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    ddvTaskType_detachedPrincipalAncestorsIntIds.setUndeletable(true);
+    ddvTaskType_detachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    ddvTaskType_detachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
+    MetadataBuilder ddvTaskType_detachedauthorizations = ddvTaskTypeSchema.create("detachedauthorizations").setType(MetadataValueType.BOOLEAN);
+    ddvTaskType_detachedauthorizations.setSystemReserved(true);
+    ddvTaskType_detachedauthorizations.setUndeletable(true);
+    ddvTaskType_detachedauthorizations.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_errorOnPhysicalDeletion = ddvTaskTypeSchema.create("errorOnPhysicalDeletion").setType(MetadataValueType.BOOLEAN);
+    ddvTaskType_errorOnPhysicalDeletion.setSystemReserved(true);
+    ddvTaskType_errorOnPhysicalDeletion.setUndeletable(true);
+    ddvTaskType_errorOnPhysicalDeletion.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_estimatedSize = ddvTaskTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
+    ddvTaskType_estimatedSize.setSystemReserved(true);
+    ddvTaskType_estimatedSize.setUndeletable(true);
+    ddvTaskType_estimatedSize.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_hidden = ddvTaskTypeSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
+    ddvTaskType_hidden.setSystemReserved(true);
+    ddvTaskType_hidden.setUndeletable(true);
+    ddvTaskType_hidden.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_id = ddvTaskTypeSchema.create("id").setType(MetadataValueType.STRING);
+    ddvTaskType_id.setDefaultRequirement(true);
+    ddvTaskType_id.setSystemReserved(true);
+    ddvTaskType_id.setUndeletable(true);
+    ddvTaskType_id.setMultiLingual(false);
+    ddvTaskType_id.setSearchable(true);
+    ddvTaskType_id.setSortable(true);
+    ddvTaskType_id.setUniqueValue(true);
+    ddvTaskType_id.setUnmodifiable(true);
+    MetadataBuilder ddvTaskType_legacyIdentifier = ddvTaskTypeSchema.create("legacyIdentifier").setType(MetadataValueType.STRING);
+    ddvTaskType_legacyIdentifier.setDefaultRequirement(true);
+    ddvTaskType_legacyIdentifier.setSystemReserved(true);
+    ddvTaskType_legacyIdentifier.setUndeletable(true);
+    ddvTaskType_legacyIdentifier.setMultiLingual(false);
+    ddvTaskType_legacyIdentifier.setSearchable(true);
+    ddvTaskType_legacyIdentifier.setUniqueValue(true);
+    ddvTaskType_legacyIdentifier.setUnmodifiable(true);
+    MetadataBuilder ddvTaskType_linkedSchema = ddvTaskTypeSchema.create("linkedSchema").setType(MetadataValueType.STRING);
+    MetadataBuilder ddvTaskType_logicallyDeletedOn = ddvTaskTypeSchema.create("logicallyDeletedOn").setType(MetadataValueType.DATE_TIME);
+    ddvTaskType_logicallyDeletedOn.setSystemReserved(true);
+    ddvTaskType_logicallyDeletedOn.setUndeletable(true);
+    ddvTaskType_logicallyDeletedOn.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_manualTokens = ddvTaskTypeSchema.create("manualTokens").setType(MetadataValueType.STRING);
+    ddvTaskType_manualTokens.setMultivalue(true);
+    ddvTaskType_manualTokens.setSystemReserved(true);
+    ddvTaskType_manualTokens.setUndeletable(true);
+    ddvTaskType_manualTokens.setMultiLingual(false);
+    ddvTaskType_manualTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder ddvTaskType_markedForParsing = ddvTaskTypeSchema.create("markedForParsing").setType(MetadataValueType.BOOLEAN);
+    ddvTaskType_markedForParsing.setSystemReserved(true);
+    ddvTaskType_markedForParsing.setUndeletable(true);
+    ddvTaskType_markedForParsing.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_markedForPreviewConversion = ddvTaskTypeSchema.create("markedForPreviewConversion").setType(MetadataValueType.BOOLEAN);
+    ddvTaskType_markedForPreviewConversion.setSystemReserved(true);
+    ddvTaskType_markedForPreviewConversion.setUndeletable(true);
+    ddvTaskType_markedForPreviewConversion.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_markedForReindexing = ddvTaskTypeSchema.create("markedForReindexing").setType(MetadataValueType.BOOLEAN);
+    ddvTaskType_markedForReindexing.setSystemReserved(true);
+    ddvTaskType_markedForReindexing.setUndeletable(true);
+    ddvTaskType_markedForReindexing.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_migrationDataVersion = ddvTaskTypeSchema.create("migrationDataVersion").setType(MetadataValueType.NUMBER);
+    ddvTaskType_migrationDataVersion.setSystemReserved(true);
+    ddvTaskType_migrationDataVersion.setUndeletable(true);
+    ddvTaskType_migrationDataVersion.setMultiLingual(false);
+    ddvTaskType_migrationDataVersion.setEssentialInSummary(true);
+    MetadataBuilder ddvTaskType_modifiedBy = ddvTaskTypeSchema.create("modifiedBy").setType(MetadataValueType.REFERENCE);
+    ddvTaskType_modifiedBy.setSystemReserved(true);
+    ddvTaskType_modifiedBy.setUndeletable(true);
+    ddvTaskType_modifiedBy.setMultiLingual(false);
+    ddvTaskType_modifiedBy.defineReferencesTo(types.getSchemaType("user"));
+    MetadataBuilder ddvTaskType_modifiedOn = ddvTaskTypeSchema.create("modifiedOn").setType(MetadataValueType.DATE_TIME);
+    ddvTaskType_modifiedOn.setSystemReserved(true);
+    ddvTaskType_modifiedOn.setUndeletable(true);
+    ddvTaskType_modifiedOn.setMultiLingual(false);
+    ddvTaskType_modifiedOn.setSortable(true);
+    MetadataBuilder ddvTaskType_nestedAuthorizations = ddvTaskTypeSchema.create("nestedAuthorizations").setType(MetadataValueType.STRUCTURE);
+    ddvTaskType_nestedAuthorizations.setSystemReserved(true);
+    ddvTaskType_nestedAuthorizations.setUndeletable(true);
+    ddvTaskType_nestedAuthorizations.setMultiLingual(false);
+    ddvTaskType_nestedAuthorizations.setEssentialInSummary(true);
+    ddvTaskType_nestedAuthorizations.defineStructureFactory(NestedRecordAuthorizationsStructureFactory.class);
+    MetadataBuilder ddvTaskType_path = ddvTaskTypeSchema.create("path").setType(MetadataValueType.STRING);
+    ddvTaskType_path.setMultivalue(true);
+    ddvTaskType_path.setSystemReserved(true);
+    ddvTaskType_path.setUndeletable(true);
+    ddvTaskType_path.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_pathParts = ddvTaskTypeSchema.create("pathParts").setType(MetadataValueType.STRING);
+    ddvTaskType_pathParts.setMultivalue(true);
+    ddvTaskType_pathParts.setSystemReserved(true);
+    ddvTaskType_pathParts.setUndeletable(true);
+    ddvTaskType_pathParts.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_principalAncestorsIntIds = ddvTaskTypeSchema.create("principalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    ddvTaskType_principalAncestorsIntIds.setMultivalue(true);
+    ddvTaskType_principalAncestorsIntIds.setSystemReserved(true);
+    ddvTaskType_principalAncestorsIntIds.setUndeletable(true);
+    ddvTaskType_principalAncestorsIntIds.setMultiLingual(false);
+    ddvTaskType_principalAncestorsIntIds.setEssentialInSummary(true);
+    MetadataBuilder ddvTaskType_principalConceptsIntIds = ddvTaskTypeSchema.create("principalConceptsIntIds").setType(MetadataValueType.INTEGER);
+    ddvTaskType_principalConceptsIntIds.setMultivalue(true);
+    ddvTaskType_principalConceptsIntIds.setSystemReserved(true);
+    ddvTaskType_principalConceptsIntIds.setUndeletable(true);
+    ddvTaskType_principalConceptsIntIds.setMultiLingual(false);
+    ddvTaskType_principalConceptsIntIds.setEssentialInSummary(true);
+    MetadataBuilder ddvTaskType_principalpath = ddvTaskTypeSchema.create("principalpath").setType(MetadataValueType.STRING);
+    ddvTaskType_principalpath.setSystemReserved(true);
+    ddvTaskType_principalpath.setUndeletable(true);
+    ddvTaskType_principalpath.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_removedauthorizations = ddvTaskTypeSchema.create("removedauthorizations").setType(MetadataValueType.STRING);
+    ddvTaskType_removedauthorizations.setMultivalue(true);
+    ddvTaskType_removedauthorizations.setSystemReserved(true);
+    ddvTaskType_removedauthorizations.setUndeletable(true);
+    ddvTaskType_removedauthorizations.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_schema = ddvTaskTypeSchema.create("schema").setType(MetadataValueType.STRING);
+    ddvTaskType_schema.setDefaultRequirement(true);
+    ddvTaskType_schema.setSystemReserved(true);
+    ddvTaskType_schema.setUndeletable(true);
+    ddvTaskType_schema.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_secondaryConceptsIntIds = ddvTaskTypeSchema.create("secondaryConceptsIntIds").setType(MetadataValueType.INTEGER);
+    ddvTaskType_secondaryConceptsIntIds.setMultivalue(true);
+    ddvTaskType_secondaryConceptsIntIds.setSystemReserved(true);
+    ddvTaskType_secondaryConceptsIntIds.setUndeletable(true);
+    ddvTaskType_secondaryConceptsIntIds.setMultiLingual(false);
+    ddvTaskType_secondaryConceptsIntIds.setEssentialInSummary(true);
+    MetadataBuilder ddvTaskType_shareDenyTokens = ddvTaskTypeSchema.create("shareDenyTokens").setType(MetadataValueType.STRING);
+    ddvTaskType_shareDenyTokens.setMultivalue(true);
+    ddvTaskType_shareDenyTokens.setSystemReserved(true);
+    ddvTaskType_shareDenyTokens.setUndeletable(true);
+    ddvTaskType_shareDenyTokens.setMultiLingual(false);
+    ddvTaskType_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder ddvTaskType_shareTokens = ddvTaskTypeSchema.create("shareTokens").setType(MetadataValueType.STRING);
+    ddvTaskType_shareTokens.setMultivalue(true);
+    ddvTaskType_shareTokens.setSystemReserved(true);
+    ddvTaskType_shareTokens.setUndeletable(true);
+    ddvTaskType_shareTokens.setMultiLingual(false);
+    ddvTaskType_shareTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder ddvTaskType_title = ddvTaskTypeSchema.create("title").setType(MetadataValueType.STRING);
+    ddvTaskType_title.setDefaultRequirement(true);
+    ddvTaskType_title.setUndeletable(true);
+    ddvTaskType_title.setMultiLingual(true);
+    ddvTaskType_title.setSchemaAutocomplete(true);
+    ddvTaskType_title.setSearchable(true);
+    ddvTaskType_title.setUniqueValue(true);
+    ddvTaskType_title.defineValidators().add(IllegalCharactersValidator.class);
+    MetadataBuilder ddvTaskType_tokens = ddvTaskTypeSchema.create("tokens").setType(MetadataValueType.STRING);
+    ddvTaskType_tokens.setMultivalue(true);
+    ddvTaskType_tokens.setSystemReserved(true);
+    ddvTaskType_tokens.setUndeletable(true);
+    ddvTaskType_tokens.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_tokensHierarchy = ddvTaskTypeSchema.create("tokensHierarchy").setType(MetadataValueType.STRING);
+    ddvTaskType_tokensHierarchy.setMultivalue(true);
+    ddvTaskType_tokensHierarchy.setSystemReserved(true);
+    ddvTaskType_tokensHierarchy.setUndeletable(true);
+    ddvTaskType_tokensHierarchy.setMultiLingual(false);
+    MetadataBuilder ddvTaskType_visibleInTrees = ddvTaskTypeSchema.create("visibleInTrees").setType(MetadataValueType.BOOLEAN);
+    ddvTaskType_visibleInTrees.setSystemReserved(true);
+    ddvTaskType_visibleInTrees.setUndeletable(true);
+    ddvTaskType_visibleInTrees.setMultiLingual(false);
+  }
+
+  private void createSavedSearchSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder savedSearchSchemaType, MetadataSchemaBuilder savedSearchSchema) {
+  }
+
+  private void createUserDocumentSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder userDocumentSchemaType, MetadataSchemaBuilder userDocumentSchema) {
+  }
+
+  private void createDdvCapsuleLanguageSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvCapsuleLanguageSchemaType, MetadataSchemaBuilder ddvCapsuleLanguageSchema) {
+  }
+
+  private void createEmailToSendSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder emailToSendSchemaType, MetadataSchemaBuilder emailToSendSchema) {
+  }
+
+  private void createEventSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder eventSchemaType, MetadataSchemaBuilder eventSchema) {
+  }
+
+  private void createConversationSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder conversationSchemaType, MetadataSchemaBuilder conversationSchema) {
+  }
+
+  private void createGroupSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder groupSchemaType, MetadataSchemaBuilder groupSchema) {
   }
 
   private void createWorkflowInstanceSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder workflowInstanceSchemaType, MetadataSchemaBuilder workflowInstanceSchema) {
@@ -209,6 +515,12 @@ public final class GeneratedTasksMigrationCombo {
     workflowInstance_attachedAncestors.setUndeletable(true);
     workflowInstance_attachedAncestors.setEssential(true);
     workflowInstance_attachedAncestors.setMultiLingual(false);
+    MetadataBuilder workflowInstance_attachedPrincipalAncestorsIntIds = workflowInstanceSchema.create("attachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    workflowInstance_attachedPrincipalAncestorsIntIds.setMultivalue(true);
+    workflowInstance_attachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    workflowInstance_attachedPrincipalAncestorsIntIds.setUndeletable(true);
+    workflowInstance_attachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    workflowInstance_attachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder workflowInstance_autocomplete = workflowInstanceSchema.create("autocomplete").setType(MetadataValueType.STRING);
     workflowInstance_autocomplete.setMultivalue(true);
     workflowInstance_autocomplete.setSystemReserved(true);
@@ -240,6 +552,12 @@ public final class GeneratedTasksMigrationCombo {
     workflowInstance_denyTokens.setUndeletable(true);
     workflowInstance_denyTokens.setMultiLingual(false);
     workflowInstance_denyTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder workflowInstance_detachedPrincipalAncestorsIntIds = workflowInstanceSchema.create("detachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    workflowInstance_detachedPrincipalAncestorsIntIds.setMultivalue(true);
+    workflowInstance_detachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    workflowInstance_detachedPrincipalAncestorsIntIds.setUndeletable(true);
+    workflowInstance_detachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    workflowInstance_detachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder workflowInstance_detachedauthorizations = workflowInstanceSchema.create("detachedauthorizations").setType(MetadataValueType.BOOLEAN);
     workflowInstance_detachedauthorizations.setSystemReserved(true);
     workflowInstance_detachedauthorizations.setUndeletable(true);
@@ -312,6 +630,12 @@ public final class GeneratedTasksMigrationCombo {
     workflowInstance_modifiedOn.setUndeletable(true);
     workflowInstance_modifiedOn.setMultiLingual(false);
     workflowInstance_modifiedOn.setSortable(true);
+    MetadataBuilder workflowInstance_nestedAuthorizations = workflowInstanceSchema.create("nestedAuthorizations").setType(MetadataValueType.STRUCTURE);
+    workflowInstance_nestedAuthorizations.setSystemReserved(true);
+    workflowInstance_nestedAuthorizations.setUndeletable(true);
+    workflowInstance_nestedAuthorizations.setMultiLingual(false);
+    workflowInstance_nestedAuthorizations.setEssentialInSummary(true);
+    workflowInstance_nestedAuthorizations.defineStructureFactory(NestedRecordAuthorizationsStructureFactory.class);
     MetadataBuilder workflowInstance_path = workflowInstanceSchema.create("path").setType(MetadataValueType.STRING);
     workflowInstance_path.setMultivalue(true);
     workflowInstance_path.setSystemReserved(true);
@@ -322,6 +646,18 @@ public final class GeneratedTasksMigrationCombo {
     workflowInstance_pathParts.setSystemReserved(true);
     workflowInstance_pathParts.setUndeletable(true);
     workflowInstance_pathParts.setMultiLingual(false);
+    MetadataBuilder workflowInstance_principalAncestorsIntIds = workflowInstanceSchema.create("principalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    workflowInstance_principalAncestorsIntIds.setMultivalue(true);
+    workflowInstance_principalAncestorsIntIds.setSystemReserved(true);
+    workflowInstance_principalAncestorsIntIds.setUndeletable(true);
+    workflowInstance_principalAncestorsIntIds.setMultiLingual(false);
+    workflowInstance_principalAncestorsIntIds.setEssentialInSummary(true);
+    MetadataBuilder workflowInstance_principalConceptsIntIds = workflowInstanceSchema.create("principalConceptsIntIds").setType(MetadataValueType.INTEGER);
+    workflowInstance_principalConceptsIntIds.setMultivalue(true);
+    workflowInstance_principalConceptsIntIds.setSystemReserved(true);
+    workflowInstance_principalConceptsIntIds.setUndeletable(true);
+    workflowInstance_principalConceptsIntIds.setMultiLingual(false);
+    workflowInstance_principalConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder workflowInstance_principalpath = workflowInstanceSchema.create("principalpath").setType(MetadataValueType.STRING);
     workflowInstance_principalpath.setSystemReserved(true);
     workflowInstance_principalpath.setUndeletable(true);
@@ -336,6 +672,12 @@ public final class GeneratedTasksMigrationCombo {
     workflowInstance_schema.setSystemReserved(true);
     workflowInstance_schema.setUndeletable(true);
     workflowInstance_schema.setMultiLingual(false);
+    MetadataBuilder workflowInstance_secondaryConceptsIntIds = workflowInstanceSchema.create("secondaryConceptsIntIds").setType(MetadataValueType.INTEGER);
+    workflowInstance_secondaryConceptsIntIds.setMultivalue(true);
+    workflowInstance_secondaryConceptsIntIds.setSystemReserved(true);
+    workflowInstance_secondaryConceptsIntIds.setUndeletable(true);
+    workflowInstance_secondaryConceptsIntIds.setMultiLingual(false);
+    workflowInstance_secondaryConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder workflowInstance_shareDenyTokens = workflowInstanceSchema.create("shareDenyTokens").setType(MetadataValueType.STRING);
     workflowInstance_shareDenyTokens.setMultivalue(true);
     workflowInstance_shareDenyTokens.setSystemReserved(true);
@@ -376,7 +718,7 @@ public final class GeneratedTasksMigrationCombo {
     workflowInstance_workflow.defineReferencesTo(types.getSchemaType("workflow"));
   }
 
-  private void createCapsuleSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder capsuleSchemaType, MetadataSchemaBuilder capsuleSchema) {
+  private void createExternalAccessUrlSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder externalAccessUrlSchemaType, MetadataSchemaBuilder externalAccessUrlSchema) {
   }
 
   private void createWorkflowSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder workflowSchemaType, MetadataSchemaBuilder workflowSchema) {
@@ -397,6 +739,12 @@ public final class GeneratedTasksMigrationCombo {
     workflow_attachedAncestors.setUndeletable(true);
     workflow_attachedAncestors.setEssential(true);
     workflow_attachedAncestors.setMultiLingual(false);
+    MetadataBuilder workflow_attachedPrincipalAncestorsIntIds = workflowSchema.create("attachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    workflow_attachedPrincipalAncestorsIntIds.setMultivalue(true);
+    workflow_attachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    workflow_attachedPrincipalAncestorsIntIds.setUndeletable(true);
+    workflow_attachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    workflow_attachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder workflow_autocomplete = workflowSchema.create("autocomplete").setType(MetadataValueType.STRING);
     workflow_autocomplete.setMultivalue(true);
     workflow_autocomplete.setSystemReserved(true);
@@ -430,6 +778,12 @@ public final class GeneratedTasksMigrationCombo {
     workflow_denyTokens.setUndeletable(true);
     workflow_denyTokens.setMultiLingual(false);
     workflow_denyTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder workflow_detachedPrincipalAncestorsIntIds = workflowSchema.create("detachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    workflow_detachedPrincipalAncestorsIntIds.setMultivalue(true);
+    workflow_detachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    workflow_detachedPrincipalAncestorsIntIds.setUndeletable(true);
+    workflow_detachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    workflow_detachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder workflow_detachedauthorizations = workflowSchema.create("detachedauthorizations").setType(MetadataValueType.BOOLEAN);
     workflow_detachedauthorizations.setSystemReserved(true);
     workflow_detachedauthorizations.setUndeletable(true);
@@ -500,6 +854,12 @@ public final class GeneratedTasksMigrationCombo {
     workflow_modifiedOn.setUndeletable(true);
     workflow_modifiedOn.setMultiLingual(false);
     workflow_modifiedOn.setSortable(true);
+    MetadataBuilder workflow_nestedAuthorizations = workflowSchema.create("nestedAuthorizations").setType(MetadataValueType.STRUCTURE);
+    workflow_nestedAuthorizations.setSystemReserved(true);
+    workflow_nestedAuthorizations.setUndeletable(true);
+    workflow_nestedAuthorizations.setMultiLingual(false);
+    workflow_nestedAuthorizations.setEssentialInSummary(true);
+    workflow_nestedAuthorizations.defineStructureFactory(NestedRecordAuthorizationsStructureFactory.class);
     MetadataBuilder workflow_path = workflowSchema.create("path").setType(MetadataValueType.STRING);
     workflow_path.setMultivalue(true);
     workflow_path.setSystemReserved(true);
@@ -510,6 +870,18 @@ public final class GeneratedTasksMigrationCombo {
     workflow_pathParts.setSystemReserved(true);
     workflow_pathParts.setUndeletable(true);
     workflow_pathParts.setMultiLingual(false);
+    MetadataBuilder workflow_principalAncestorsIntIds = workflowSchema.create("principalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    workflow_principalAncestorsIntIds.setMultivalue(true);
+    workflow_principalAncestorsIntIds.setSystemReserved(true);
+    workflow_principalAncestorsIntIds.setUndeletable(true);
+    workflow_principalAncestorsIntIds.setMultiLingual(false);
+    workflow_principalAncestorsIntIds.setEssentialInSummary(true);
+    MetadataBuilder workflow_principalConceptsIntIds = workflowSchema.create("principalConceptsIntIds").setType(MetadataValueType.INTEGER);
+    workflow_principalConceptsIntIds.setMultivalue(true);
+    workflow_principalConceptsIntIds.setSystemReserved(true);
+    workflow_principalConceptsIntIds.setUndeletable(true);
+    workflow_principalConceptsIntIds.setMultiLingual(false);
+    workflow_principalConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder workflow_principalpath = workflowSchema.create("principalpath").setType(MetadataValueType.STRING);
     workflow_principalpath.setSystemReserved(true);
     workflow_principalpath.setUndeletable(true);
@@ -524,6 +896,12 @@ public final class GeneratedTasksMigrationCombo {
     workflow_schema.setSystemReserved(true);
     workflow_schema.setUndeletable(true);
     workflow_schema.setMultiLingual(false);
+    MetadataBuilder workflow_secondaryConceptsIntIds = workflowSchema.create("secondaryConceptsIntIds").setType(MetadataValueType.INTEGER);
+    workflow_secondaryConceptsIntIds.setMultivalue(true);
+    workflow_secondaryConceptsIntIds.setSystemReserved(true);
+    workflow_secondaryConceptsIntIds.setUndeletable(true);
+    workflow_secondaryConceptsIntIds.setMultiLingual(false);
+    workflow_secondaryConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder workflow_shareDenyTokens = workflowSchema.create("shareDenyTokens").setType(MetadataValueType.STRING);
     workflow_shareDenyTokens.setMultivalue(true);
     workflow_shareDenyTokens.setSystemReserved(true);
@@ -560,200 +938,7 @@ public final class GeneratedTasksMigrationCombo {
   private void createCollectionSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder collectionSchemaType, MetadataSchemaBuilder collectionSchema) {
   }
 
-  private void createDdvTaskTypeSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvTaskTypeSchemaType, MetadataSchemaBuilder ddvTaskTypeSchema) {
-    MetadataBuilder ddvTaskType_abbreviation = ddvTaskTypeSchema.create("abbreviation").setType(MetadataValueType.STRING);
-    ddvTaskType_abbreviation.setUndeletable(true);
-    ddvTaskType_abbreviation.setMultiLingual(true);
-    ddvTaskType_abbreviation.setSearchable(true);
-    MetadataBuilder ddvTaskType_allReferences = ddvTaskTypeSchema.create("allReferences").setType(MetadataValueType.STRING);
-    ddvTaskType_allReferences.setMultivalue(true);
-    ddvTaskType_allReferences.setSystemReserved(true);
-    ddvTaskType_allReferences.setUndeletable(true);
-    ddvTaskType_allReferences.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_allRemovedAuths = ddvTaskTypeSchema.create("allRemovedAuths").setType(MetadataValueType.STRING);
-    ddvTaskType_allRemovedAuths.setMultivalue(true);
-    ddvTaskType_allRemovedAuths.setSystemReserved(true);
-    ddvTaskType_allRemovedAuths.setUndeletable(true);
-    ddvTaskType_allRemovedAuths.setEssential(true);
-    ddvTaskType_allRemovedAuths.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_attachedAncestors = ddvTaskTypeSchema.create("attachedAncestors").setType(MetadataValueType.STRING);
-    ddvTaskType_attachedAncestors.setMultivalue(true);
-    ddvTaskType_attachedAncestors.setSystemReserved(true);
-    ddvTaskType_attachedAncestors.setUndeletable(true);
-    ddvTaskType_attachedAncestors.setEssential(true);
-    ddvTaskType_attachedAncestors.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_autocomplete = ddvTaskTypeSchema.create("autocomplete").setType(MetadataValueType.STRING);
-    ddvTaskType_autocomplete.setMultivalue(true);
-    ddvTaskType_autocomplete.setSystemReserved(true);
-    ddvTaskType_autocomplete.setUndeletable(true);
-    ddvTaskType_autocomplete.setEssential(true);
-    ddvTaskType_autocomplete.setMultiLingual(true);
-    MetadataBuilder ddvTaskType_caption = ddvTaskTypeSchema.create("caption").setType(MetadataValueType.STRING);
-    ddvTaskType_caption.setSystemReserved(true);
-    ddvTaskType_caption.setUndeletable(true);
-    ddvTaskType_caption.setMultiLingual(false);
-    ddvTaskType_caption.setSortable(true);
-    MetadataBuilder ddvTaskType_code = ddvTaskTypeSchema.create("code").setType(MetadataValueType.STRING);
-    ddvTaskType_code.setDefaultRequirement(true);
-    ddvTaskType_code.setUndeletable(true);
-    ddvTaskType_code.setSchemaAutocomplete(true);
-    ddvTaskType_code.setSearchable(true);
-    ddvTaskType_code.setUniqueValue(true);
-    MetadataBuilder ddvTaskType_comments = ddvTaskTypeSchema.create("comments").setType(MetadataValueType.STRUCTURE);
-    ddvTaskType_comments.setMultivalue(true);
-    ddvTaskType_comments.defineStructureFactory(CommentFactory.class);
-    MetadataBuilder ddvTaskType_createdBy = ddvTaskTypeSchema.create("createdBy").setType(MetadataValueType.REFERENCE);
-    ddvTaskType_createdBy.setSystemReserved(true);
-    ddvTaskType_createdBy.setUndeletable(true);
-    ddvTaskType_createdBy.setMultiLingual(false);
-    ddvTaskType_createdBy.defineReferencesTo(types.getSchemaType("user"));
-    MetadataBuilder ddvTaskType_createdOn = ddvTaskTypeSchema.create("createdOn").setType(MetadataValueType.DATE_TIME);
-    ddvTaskType_createdOn.setSystemReserved(true);
-    ddvTaskType_createdOn.setUndeletable(true);
-    ddvTaskType_createdOn.setMultiLingual(false);
-    ddvTaskType_createdOn.setSortable(true);
-    MetadataBuilder ddvTaskType_deleted = ddvTaskTypeSchema.create("deleted").setType(MetadataValueType.BOOLEAN);
-    ddvTaskType_deleted.setSystemReserved(true);
-    ddvTaskType_deleted.setUndeletable(true);
-    ddvTaskType_deleted.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_denyTokens = ddvTaskTypeSchema.create("denyTokens").setType(MetadataValueType.STRING);
-    ddvTaskType_denyTokens.setMultivalue(true);
-    ddvTaskType_denyTokens.setSystemReserved(true);
-    ddvTaskType_denyTokens.setUndeletable(true);
-    ddvTaskType_denyTokens.setMultiLingual(false);
-    ddvTaskType_denyTokens.defineValidators().add(ManualTokenValidator.class);
-    MetadataBuilder ddvTaskType_description = ddvTaskTypeSchema.create("description").setType(MetadataValueType.TEXT);
-    ddvTaskType_description.setUndeletable(true);
-    ddvTaskType_description.setMultiLingual(true);
-    ddvTaskType_description.setSearchable(true);
-    MetadataBuilder ddvTaskType_detachedauthorizations = ddvTaskTypeSchema.create("detachedauthorizations").setType(MetadataValueType.BOOLEAN);
-    ddvTaskType_detachedauthorizations.setSystemReserved(true);
-    ddvTaskType_detachedauthorizations.setUndeletable(true);
-    ddvTaskType_detachedauthorizations.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_errorOnPhysicalDeletion = ddvTaskTypeSchema.create("errorOnPhysicalDeletion").setType(MetadataValueType.BOOLEAN);
-    ddvTaskType_errorOnPhysicalDeletion.setSystemReserved(true);
-    ddvTaskType_errorOnPhysicalDeletion.setUndeletable(true);
-    ddvTaskType_errorOnPhysicalDeletion.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_estimatedSize = ddvTaskTypeSchema.create("estimatedSize").setType(MetadataValueType.INTEGER);
-    ddvTaskType_estimatedSize.setSystemReserved(true);
-    ddvTaskType_estimatedSize.setUndeletable(true);
-    ddvTaskType_estimatedSize.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_hidden = ddvTaskTypeSchema.create("hidden").setType(MetadataValueType.BOOLEAN);
-    ddvTaskType_hidden.setSystemReserved(true);
-    ddvTaskType_hidden.setUndeletable(true);
-    ddvTaskType_hidden.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_id = ddvTaskTypeSchema.create("id").setType(MetadataValueType.STRING);
-    ddvTaskType_id.setDefaultRequirement(true);
-    ddvTaskType_id.setSystemReserved(true);
-    ddvTaskType_id.setUndeletable(true);
-    ddvTaskType_id.setMultiLingual(false);
-    ddvTaskType_id.setSearchable(true);
-    ddvTaskType_id.setSortable(true);
-    ddvTaskType_id.setUniqueValue(true);
-    ddvTaskType_id.setUnmodifiable(true);
-    MetadataBuilder ddvTaskType_legacyIdentifier = ddvTaskTypeSchema.create("legacyIdentifier").setType(MetadataValueType.STRING);
-    ddvTaskType_legacyIdentifier.setDefaultRequirement(true);
-    ddvTaskType_legacyIdentifier.setSystemReserved(true);
-    ddvTaskType_legacyIdentifier.setUndeletable(true);
-    ddvTaskType_legacyIdentifier.setMultiLingual(false);
-    ddvTaskType_legacyIdentifier.setSearchable(true);
-    ddvTaskType_legacyIdentifier.setUniqueValue(true);
-    ddvTaskType_legacyIdentifier.setUnmodifiable(true);
-    MetadataBuilder ddvTaskType_linkedSchema = ddvTaskTypeSchema.create("linkedSchema").setType(MetadataValueType.STRING);
-    MetadataBuilder ddvTaskType_logicallyDeletedOn = ddvTaskTypeSchema.create("logicallyDeletedOn").setType(MetadataValueType.DATE_TIME);
-    ddvTaskType_logicallyDeletedOn.setSystemReserved(true);
-    ddvTaskType_logicallyDeletedOn.setUndeletable(true);
-    ddvTaskType_logicallyDeletedOn.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_manualTokens = ddvTaskTypeSchema.create("manualTokens").setType(MetadataValueType.STRING);
-    ddvTaskType_manualTokens.setMultivalue(true);
-    ddvTaskType_manualTokens.setSystemReserved(true);
-    ddvTaskType_manualTokens.setUndeletable(true);
-    ddvTaskType_manualTokens.setMultiLingual(false);
-    ddvTaskType_manualTokens.defineValidators().add(ManualTokenValidator.class);
-    MetadataBuilder ddvTaskType_markedForParsing = ddvTaskTypeSchema.create("markedForParsing").setType(MetadataValueType.BOOLEAN);
-    ddvTaskType_markedForParsing.setSystemReserved(true);
-    ddvTaskType_markedForParsing.setUndeletable(true);
-    ddvTaskType_markedForParsing.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_markedForPreviewConversion = ddvTaskTypeSchema.create("markedForPreviewConversion").setType(MetadataValueType.BOOLEAN);
-    ddvTaskType_markedForPreviewConversion.setSystemReserved(true);
-    ddvTaskType_markedForPreviewConversion.setUndeletable(true);
-    ddvTaskType_markedForPreviewConversion.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_markedForReindexing = ddvTaskTypeSchema.create("markedForReindexing").setType(MetadataValueType.BOOLEAN);
-    ddvTaskType_markedForReindexing.setSystemReserved(true);
-    ddvTaskType_markedForReindexing.setUndeletable(true);
-    ddvTaskType_markedForReindexing.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_migrationDataVersion = ddvTaskTypeSchema.create("migrationDataVersion").setType(MetadataValueType.NUMBER);
-    ddvTaskType_migrationDataVersion.setSystemReserved(true);
-    ddvTaskType_migrationDataVersion.setUndeletable(true);
-    ddvTaskType_migrationDataVersion.setMultiLingual(false);
-    ddvTaskType_migrationDataVersion.setEssentialInSummary(true);
-    MetadataBuilder ddvTaskType_modifiedBy = ddvTaskTypeSchema.create("modifiedBy").setType(MetadataValueType.REFERENCE);
-    ddvTaskType_modifiedBy.setSystemReserved(true);
-    ddvTaskType_modifiedBy.setUndeletable(true);
-    ddvTaskType_modifiedBy.setMultiLingual(false);
-    ddvTaskType_modifiedBy.defineReferencesTo(types.getSchemaType("user"));
-    MetadataBuilder ddvTaskType_modifiedOn = ddvTaskTypeSchema.create("modifiedOn").setType(MetadataValueType.DATE_TIME);
-    ddvTaskType_modifiedOn.setSystemReserved(true);
-    ddvTaskType_modifiedOn.setUndeletable(true);
-    ddvTaskType_modifiedOn.setMultiLingual(false);
-    ddvTaskType_modifiedOn.setSortable(true);
-    MetadataBuilder ddvTaskType_path = ddvTaskTypeSchema.create("path").setType(MetadataValueType.STRING);
-    ddvTaskType_path.setMultivalue(true);
-    ddvTaskType_path.setSystemReserved(true);
-    ddvTaskType_path.setUndeletable(true);
-    ddvTaskType_path.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_pathParts = ddvTaskTypeSchema.create("pathParts").setType(MetadataValueType.STRING);
-    ddvTaskType_pathParts.setMultivalue(true);
-    ddvTaskType_pathParts.setSystemReserved(true);
-    ddvTaskType_pathParts.setUndeletable(true);
-    ddvTaskType_pathParts.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_principalpath = ddvTaskTypeSchema.create("principalpath").setType(MetadataValueType.STRING);
-    ddvTaskType_principalpath.setSystemReserved(true);
-    ddvTaskType_principalpath.setUndeletable(true);
-    ddvTaskType_principalpath.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_removedauthorizations = ddvTaskTypeSchema.create("removedauthorizations").setType(MetadataValueType.STRING);
-    ddvTaskType_removedauthorizations.setMultivalue(true);
-    ddvTaskType_removedauthorizations.setSystemReserved(true);
-    ddvTaskType_removedauthorizations.setUndeletable(true);
-    ddvTaskType_removedauthorizations.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_schema = ddvTaskTypeSchema.create("schema").setType(MetadataValueType.STRING);
-    ddvTaskType_schema.setDefaultRequirement(true);
-    ddvTaskType_schema.setSystemReserved(true);
-    ddvTaskType_schema.setUndeletable(true);
-    ddvTaskType_schema.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_shareDenyTokens = ddvTaskTypeSchema.create("shareDenyTokens").setType(MetadataValueType.STRING);
-    ddvTaskType_shareDenyTokens.setMultivalue(true);
-    ddvTaskType_shareDenyTokens.setSystemReserved(true);
-    ddvTaskType_shareDenyTokens.setUndeletable(true);
-    ddvTaskType_shareDenyTokens.setMultiLingual(false);
-    ddvTaskType_shareDenyTokens.defineValidators().add(ManualTokenValidator.class);
-    MetadataBuilder ddvTaskType_shareTokens = ddvTaskTypeSchema.create("shareTokens").setType(MetadataValueType.STRING);
-    ddvTaskType_shareTokens.setMultivalue(true);
-    ddvTaskType_shareTokens.setSystemReserved(true);
-    ddvTaskType_shareTokens.setUndeletable(true);
-    ddvTaskType_shareTokens.setMultiLingual(false);
-    ddvTaskType_shareTokens.defineValidators().add(ManualTokenValidator.class);
-    MetadataBuilder ddvTaskType_title = ddvTaskTypeSchema.create("title").setType(MetadataValueType.STRING);
-    ddvTaskType_title.setDefaultRequirement(true);
-    ddvTaskType_title.setUndeletable(true);
-    ddvTaskType_title.setMultiLingual(true);
-    ddvTaskType_title.setSchemaAutocomplete(true);
-    ddvTaskType_title.setSearchable(true);
-    ddvTaskType_title.setUniqueValue(true);
-    MetadataBuilder ddvTaskType_tokens = ddvTaskTypeSchema.create("tokens").setType(MetadataValueType.STRING);
-    ddvTaskType_tokens.setMultivalue(true);
-    ddvTaskType_tokens.setSystemReserved(true);
-    ddvTaskType_tokens.setUndeletable(true);
-    ddvTaskType_tokens.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_tokensHierarchy = ddvTaskTypeSchema.create("tokensHierarchy").setType(MetadataValueType.STRING);
-    ddvTaskType_tokensHierarchy.setMultivalue(true);
-    ddvTaskType_tokensHierarchy.setSystemReserved(true);
-    ddvTaskType_tokensHierarchy.setUndeletable(true);
-    ddvTaskType_tokensHierarchy.setMultiLingual(false);
-    MetadataBuilder ddvTaskType_visibleInTrees = ddvTaskTypeSchema.create("visibleInTrees").setType(MetadataValueType.BOOLEAN);
-    ddvTaskType_visibleInTrees.setSystemReserved(true);
-    ddvTaskType_visibleInTrees.setUndeletable(true);
-    ddvTaskType_visibleInTrees.setMultiLingual(false);
+  private void createMessageSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder messageSchemaType, MetadataSchemaBuilder messageSchema) {
   }
 
   private void createPrintableSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder printableSchemaType, MetadataSchemaBuilder printableSchema) {
@@ -796,6 +981,12 @@ public final class GeneratedTasksMigrationCombo {
     userTask_attachedAncestors.setUndeletable(true);
     userTask_attachedAncestors.setEssential(true);
     userTask_attachedAncestors.setMultiLingual(false);
+    MetadataBuilder userTask_attachedPrincipalAncestorsIntIds = userTaskSchema.create("attachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    userTask_attachedPrincipalAncestorsIntIds.setMultivalue(true);
+    userTask_attachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    userTask_attachedPrincipalAncestorsIntIds.setUndeletable(true);
+    userTask_attachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    userTask_attachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder userTask_autocomplete = userTaskSchema.create("autocomplete").setType(MetadataValueType.STRING);
     userTask_autocomplete.setMultivalue(true);
     userTask_autocomplete.setSystemReserved(true);
@@ -841,6 +1032,12 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder userTask_description = userTaskSchema.create("description").setType(MetadataValueType.TEXT);
     userTask_description.setUndeletable(true);
     userTask_description.setSearchable(true);
+    MetadataBuilder userTask_detachedPrincipalAncestorsIntIds = userTaskSchema.create("detachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    userTask_detachedPrincipalAncestorsIntIds.setMultivalue(true);
+    userTask_detachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    userTask_detachedPrincipalAncestorsIntIds.setUndeletable(true);
+    userTask_detachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    userTask_detachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder userTask_detachedauthorizations = userTaskSchema.create("detachedauthorizations").setType(MetadataValueType.BOOLEAN);
     userTask_detachedauthorizations.setSystemReserved(true);
     userTask_detachedauthorizations.setUndeletable(true);
@@ -898,6 +1095,7 @@ public final class GeneratedTasksMigrationCombo {
     userTask_manualTokens.setSystemReserved(true);
     userTask_manualTokens.setUndeletable(true);
     userTask_manualTokens.setMultiLingual(false);
+    userTask_manualTokens.setEssentialInSummary(true);
     userTask_manualTokens.defineValidators().add(ManualTokenValidator.class);
     MetadataBuilder userTask_markedForParsing = userTaskSchema.create("markedForParsing").setType(MetadataValueType.BOOLEAN);
     userTask_markedForParsing.setSystemReserved(true);
@@ -928,6 +1126,12 @@ public final class GeneratedTasksMigrationCombo {
     userTask_modifiedOn.setUndeletable(true);
     userTask_modifiedOn.setMultiLingual(false);
     userTask_modifiedOn.setSortable(true);
+    MetadataBuilder userTask_nestedAuthorizations = userTaskSchema.create("nestedAuthorizations").setType(MetadataValueType.STRUCTURE);
+    userTask_nestedAuthorizations.setSystemReserved(true);
+    userTask_nestedAuthorizations.setUndeletable(true);
+    userTask_nestedAuthorizations.setMultiLingual(false);
+    userTask_nestedAuthorizations.setEssentialInSummary(true);
+    userTask_nestedAuthorizations.defineStructureFactory(NestedRecordAuthorizationsStructureFactory.class);
     MetadataBuilder userTask_nextReminderOn = userTaskSchema.create("nextReminderOn").setType(MetadataValueType.DATE);
     userTask_nextReminderOn.setUndeletable(true);
     MetadataBuilder userTask_nextTaskCreated = userTaskSchema.create("nextTaskCreated").setType(MetadataValueType.BOOLEAN);
@@ -956,6 +1160,18 @@ public final class GeneratedTasksMigrationCombo {
     userTask_pathParts.setSystemReserved(true);
     userTask_pathParts.setUndeletable(true);
     userTask_pathParts.setMultiLingual(false);
+    MetadataBuilder userTask_principalAncestorsIntIds = userTaskSchema.create("principalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    userTask_principalAncestorsIntIds.setMultivalue(true);
+    userTask_principalAncestorsIntIds.setSystemReserved(true);
+    userTask_principalAncestorsIntIds.setUndeletable(true);
+    userTask_principalAncestorsIntIds.setMultiLingual(false);
+    userTask_principalAncestorsIntIds.setEssentialInSummary(true);
+    MetadataBuilder userTask_principalConceptsIntIds = userTaskSchema.create("principalConceptsIntIds").setType(MetadataValueType.INTEGER);
+    userTask_principalConceptsIntIds.setMultivalue(true);
+    userTask_principalConceptsIntIds.setSystemReserved(true);
+    userTask_principalConceptsIntIds.setUndeletable(true);
+    userTask_principalConceptsIntIds.setMultiLingual(false);
+    userTask_principalConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder userTask_principalpath = userTaskSchema.create("principalpath").setType(MetadataValueType.STRING);
     userTask_principalpath.setSystemReserved(true);
     userTask_principalpath.setUndeletable(true);
@@ -988,6 +1204,12 @@ public final class GeneratedTasksMigrationCombo {
     userTask_schema.setSystemReserved(true);
     userTask_schema.setUndeletable(true);
     userTask_schema.setMultiLingual(false);
+    MetadataBuilder userTask_secondaryConceptsIntIds = userTaskSchema.create("secondaryConceptsIntIds").setType(MetadataValueType.INTEGER);
+    userTask_secondaryConceptsIntIds.setMultivalue(true);
+    userTask_secondaryConceptsIntIds.setSystemReserved(true);
+    userTask_secondaryConceptsIntIds.setUndeletable(true);
+    userTask_secondaryConceptsIntIds.setMultiLingual(false);
+    userTask_secondaryConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder userTask_shareDenyTokens = userTaskSchema.create("shareDenyTokens").setType(MetadataValueType.STRING);
     userTask_shareDenyTokens.setMultivalue(true);
     userTask_shareDenyTokens.setSystemReserved(true);
@@ -1051,6 +1273,7 @@ public final class GeneratedTasksMigrationCombo {
     userTask_tokensHierarchy.setSystemReserved(true);
     userTask_tokensHierarchy.setUndeletable(true);
     userTask_tokensHierarchy.setMultiLingual(false);
+    userTask_tokensHierarchy.setEssentialInSummary(true);
     MetadataBuilder userTask_type = userTaskSchema.create("type").setType(MetadataValueType.REFERENCE);
     userTask_type.setUndeletable(true);
     userTask_type.defineReferencesTo(asList(types.getSchema("ddvTaskType_default")));
@@ -1067,13 +1290,7 @@ public final class GeneratedTasksMigrationCombo {
     userTask_workflowInstance.defineReferencesTo(types.getSchemaType("workflowInstance"));
   }
 
-  private void createSavedSearchSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder savedSearchSchemaType, MetadataSchemaBuilder savedSearchSchema) {
-  }
-
   private void createAuthorizationDetailsSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder authorizationDetailsSchemaType, MetadataSchemaBuilder authorizationDetailsSchema) {
-  }
-
-  private void createUserDocumentSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder userDocumentSchemaType, MetadataSchemaBuilder userDocumentSchema) {
   }
 
   private void createTaskSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder taskSchemaType, MetadataSchemaBuilder task_approvalSchema, MetadataSchemaBuilder taskSchema) {
@@ -1083,12 +1300,14 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder task_approval_assignedOn = task_approvalSchema.get("assignedOn");
     MetadataBuilder task_approval_assignedTo = task_approvalSchema.get("assignedTo");
     MetadataBuilder task_approval_attachedAncestors = task_approvalSchema.get("attachedAncestors");
+    MetadataBuilder task_approval_attachedPrincipalAncestorsIntIds = task_approvalSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder task_approval_autocomplete = task_approvalSchema.get("autocomplete");
     MetadataBuilder task_approval_caption = task_approvalSchema.get("caption");
     MetadataBuilder task_approval_createdBy = task_approvalSchema.get("createdBy");
     MetadataBuilder task_approval_createdOn = task_approvalSchema.get("createdOn");
     MetadataBuilder task_approval_deleted = task_approvalSchema.get("deleted");
     MetadataBuilder task_approval_denyTokens = task_approvalSchema.get("denyTokens");
+    MetadataBuilder task_approval_detachedPrincipalAncestorsIntIds = task_approvalSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
     MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
     MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
@@ -1106,11 +1325,15 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder task_approval_migrationDataVersion = task_approvalSchema.get("migrationDataVersion");
     MetadataBuilder task_approval_modifiedBy = task_approvalSchema.get("modifiedBy");
     MetadataBuilder task_approval_modifiedOn = task_approvalSchema.get("modifiedOn");
+    MetadataBuilder task_approval_nestedAuthorizations = task_approvalSchema.get("nestedAuthorizations");
     MetadataBuilder task_approval_path = task_approvalSchema.get("path");
     MetadataBuilder task_approval_pathParts = task_approvalSchema.get("pathParts");
+    MetadataBuilder task_approval_principalAncestorsIntIds = task_approvalSchema.get("principalAncestorsIntIds");
+    MetadataBuilder task_approval_principalConceptsIntIds = task_approvalSchema.get("principalConceptsIntIds");
     MetadataBuilder task_approval_principalpath = task_approvalSchema.get("principalpath");
     MetadataBuilder task_approval_removedauthorizations = task_approvalSchema.get("removedauthorizations");
     MetadataBuilder task_approval_schema = task_approvalSchema.get("schema");
+    MetadataBuilder task_approval_secondaryConceptsIntIds = task_approvalSchema.get("secondaryConceptsIntIds");
     MetadataBuilder task_approval_shareDenyTokens = task_approvalSchema.get("shareDenyTokens");
     MetadataBuilder task_approval_shareTokens = task_approvalSchema.get("shareTokens");
     MetadataBuilder task_approval_title = task_approvalSchema.get("title");
@@ -1121,11 +1344,15 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder task_approval_workflowRecordIdentifiers = task_approvalSchema.get("workflowRecordIdentifiers");
   }
 
+  private void createDdvSourceSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvSourceSchemaType, MetadataSchemaBuilder ddvSourceSchema) {
+  }
+
   private void createDdvTaskStatusSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvTaskStatusSchemaType, MetadataSchemaBuilder ddvTaskStatusSchema) {
     MetadataBuilder ddvTaskStatus_abbreviation = ddvTaskStatusSchema.create("abbreviation").setType(MetadataValueType.STRING);
     ddvTaskStatus_abbreviation.setUndeletable(true);
     ddvTaskStatus_abbreviation.setMultiLingual(true);
     ddvTaskStatus_abbreviation.setSearchable(true);
+    ddvTaskStatus_abbreviation.defineValidators().add(IllegalCharactersValidator.class);
     MetadataBuilder ddvTaskStatus_allReferences = ddvTaskStatusSchema.create("allReferences").setType(MetadataValueType.STRING);
     ddvTaskStatus_allReferences.setMultivalue(true);
     ddvTaskStatus_allReferences.setSystemReserved(true);
@@ -1143,6 +1370,12 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskStatus_attachedAncestors.setUndeletable(true);
     ddvTaskStatus_attachedAncestors.setEssential(true);
     ddvTaskStatus_attachedAncestors.setMultiLingual(false);
+    MetadataBuilder ddvTaskStatus_attachedPrincipalAncestorsIntIds = ddvTaskStatusSchema.create("attachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    ddvTaskStatus_attachedPrincipalAncestorsIntIds.setMultivalue(true);
+    ddvTaskStatus_attachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    ddvTaskStatus_attachedPrincipalAncestorsIntIds.setUndeletable(true);
+    ddvTaskStatus_attachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    ddvTaskStatus_attachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder ddvTaskStatus_autocomplete = ddvTaskStatusSchema.create("autocomplete").setType(MetadataValueType.STRING);
     ddvTaskStatus_autocomplete.setMultivalue(true);
     ddvTaskStatus_autocomplete.setSystemReserved(true);
@@ -1161,6 +1394,7 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskStatus_code.setSearchable(true);
     ddvTaskStatus_code.setUniqueValue(true);
     ddvTaskStatus_code.setUnmodifiable(true);
+    ddvTaskStatus_code.defineValidators().add(IllegalCharactersValidator.class);
     MetadataBuilder ddvTaskStatus_comments = ddvTaskStatusSchema.create("comments").setType(MetadataValueType.STRUCTURE);
     ddvTaskStatus_comments.setMultivalue(true);
     ddvTaskStatus_comments.defineStructureFactory(CommentFactory.class);
@@ -1188,6 +1422,12 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskStatus_description.setUndeletable(true);
     ddvTaskStatus_description.setMultiLingual(true);
     ddvTaskStatus_description.setSearchable(true);
+    MetadataBuilder ddvTaskStatus_detachedPrincipalAncestorsIntIds = ddvTaskStatusSchema.create("detachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    ddvTaskStatus_detachedPrincipalAncestorsIntIds.setMultivalue(true);
+    ddvTaskStatus_detachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    ddvTaskStatus_detachedPrincipalAncestorsIntIds.setUndeletable(true);
+    ddvTaskStatus_detachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    ddvTaskStatus_detachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder ddvTaskStatus_detachedauthorizations = ddvTaskStatusSchema.create("detachedauthorizations").setType(MetadataValueType.BOOLEAN);
     ddvTaskStatus_detachedauthorizations.setSystemReserved(true);
     ddvTaskStatus_detachedauthorizations.setUndeletable(true);
@@ -1258,6 +1498,12 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskStatus_modifiedOn.setUndeletable(true);
     ddvTaskStatus_modifiedOn.setMultiLingual(false);
     ddvTaskStatus_modifiedOn.setSortable(true);
+    MetadataBuilder ddvTaskStatus_nestedAuthorizations = ddvTaskStatusSchema.create("nestedAuthorizations").setType(MetadataValueType.STRUCTURE);
+    ddvTaskStatus_nestedAuthorizations.setSystemReserved(true);
+    ddvTaskStatus_nestedAuthorizations.setUndeletable(true);
+    ddvTaskStatus_nestedAuthorizations.setMultiLingual(false);
+    ddvTaskStatus_nestedAuthorizations.setEssentialInSummary(true);
+    ddvTaskStatus_nestedAuthorizations.defineStructureFactory(NestedRecordAuthorizationsStructureFactory.class);
     MetadataBuilder ddvTaskStatus_path = ddvTaskStatusSchema.create("path").setType(MetadataValueType.STRING);
     ddvTaskStatus_path.setMultivalue(true);
     ddvTaskStatus_path.setSystemReserved(true);
@@ -1268,6 +1514,18 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskStatus_pathParts.setSystemReserved(true);
     ddvTaskStatus_pathParts.setUndeletable(true);
     ddvTaskStatus_pathParts.setMultiLingual(false);
+    MetadataBuilder ddvTaskStatus_principalAncestorsIntIds = ddvTaskStatusSchema.create("principalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    ddvTaskStatus_principalAncestorsIntIds.setMultivalue(true);
+    ddvTaskStatus_principalAncestorsIntIds.setSystemReserved(true);
+    ddvTaskStatus_principalAncestorsIntIds.setUndeletable(true);
+    ddvTaskStatus_principalAncestorsIntIds.setMultiLingual(false);
+    ddvTaskStatus_principalAncestorsIntIds.setEssentialInSummary(true);
+    MetadataBuilder ddvTaskStatus_principalConceptsIntIds = ddvTaskStatusSchema.create("principalConceptsIntIds").setType(MetadataValueType.INTEGER);
+    ddvTaskStatus_principalConceptsIntIds.setMultivalue(true);
+    ddvTaskStatus_principalConceptsIntIds.setSystemReserved(true);
+    ddvTaskStatus_principalConceptsIntIds.setUndeletable(true);
+    ddvTaskStatus_principalConceptsIntIds.setMultiLingual(false);
+    ddvTaskStatus_principalConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder ddvTaskStatus_principalpath = ddvTaskStatusSchema.create("principalpath").setType(MetadataValueType.STRING);
     ddvTaskStatus_principalpath.setSystemReserved(true);
     ddvTaskStatus_principalpath.setUndeletable(true);
@@ -1282,6 +1540,12 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskStatus_schema.setSystemReserved(true);
     ddvTaskStatus_schema.setUndeletable(true);
     ddvTaskStatus_schema.setMultiLingual(false);
+    MetadataBuilder ddvTaskStatus_secondaryConceptsIntIds = ddvTaskStatusSchema.create("secondaryConceptsIntIds").setType(MetadataValueType.INTEGER);
+    ddvTaskStatus_secondaryConceptsIntIds.setMultivalue(true);
+    ddvTaskStatus_secondaryConceptsIntIds.setSystemReserved(true);
+    ddvTaskStatus_secondaryConceptsIntIds.setUndeletable(true);
+    ddvTaskStatus_secondaryConceptsIntIds.setMultiLingual(false);
+    ddvTaskStatus_secondaryConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder ddvTaskStatus_shareDenyTokens = ddvTaskStatusSchema.create("shareDenyTokens").setType(MetadataValueType.STRING);
     ddvTaskStatus_shareDenyTokens.setMultivalue(true);
     ddvTaskStatus_shareDenyTokens.setSystemReserved(true);
@@ -1305,6 +1569,7 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskStatus_title.setSchemaAutocomplete(true);
     ddvTaskStatus_title.setSearchable(true);
     ddvTaskStatus_title.setUniqueValue(true);
+    ddvTaskStatus_title.defineValidators().add(IllegalCharactersValidator.class);
     MetadataBuilder ddvTaskStatus_tokens = ddvTaskStatusSchema.create("tokens").setType(MetadataValueType.STRING);
     ddvTaskStatus_tokens.setMultivalue(true);
     ddvTaskStatus_tokens.setSystemReserved(true);
@@ -1324,16 +1589,7 @@ public final class GeneratedTasksMigrationCombo {
   private void createUserFolderSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder userFolderSchemaType, MetadataSchemaBuilder userFolderSchema) {
   }
 
-  private void createDdvCapsuleLanguageSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvCapsuleLanguageSchemaType, MetadataSchemaBuilder ddvCapsuleLanguageSchema) {
-  }
-
   private void createReportSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder reportSchemaType, MetadataSchemaBuilder reportSchema) {
-  }
-
-  private void createEmailToSendSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder emailToSendSchemaType, MetadataSchemaBuilder emailToSendSchema) {
-  }
-
-  private void createEventSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder eventSchemaType, MetadataSchemaBuilder eventSchema) {
   }
 
   private void createSearchEventSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder searchEventSchemaType, MetadataSchemaBuilder searchEventSchema) {
@@ -1343,6 +1599,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_allReferences = temporaryRecord_batchProcessReportSchema.get("allReferences");
     MetadataBuilder temporaryRecord_batchProcessReport_allRemovedAuths = temporaryRecord_batchProcessReportSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_batchProcessReport_attachedAncestors = temporaryRecord_batchProcessReportSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_batchProcessReport_attachedPrincipalAncestorsIntIds = temporaryRecord_batchProcessReportSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_autocomplete = temporaryRecord_batchProcessReportSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_batchProcessReport_caption = temporaryRecord_batchProcessReportSchema.get("caption");
     MetadataBuilder temporaryRecord_batchProcessReport_content = temporaryRecord_batchProcessReportSchema.get("content");
@@ -1352,6 +1609,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_deleted = temporaryRecord_batchProcessReportSchema.get("deleted");
     MetadataBuilder temporaryRecord_batchProcessReport_denyTokens = temporaryRecord_batchProcessReportSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_batchProcessReport_destructionDate = temporaryRecord_batchProcessReportSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_batchProcessReport_detachedPrincipalAncestorsIntIds = temporaryRecord_batchProcessReportSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_detachedauthorizations = temporaryRecord_batchProcessReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_errorOnPhysicalDeletion = temporaryRecord_batchProcessReportSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema.get("estimatedSize");
@@ -1366,11 +1624,15 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_migrationDataVersion = temporaryRecord_batchProcessReportSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_batchProcessReport_modifiedBy = temporaryRecord_batchProcessReportSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_batchProcessReport_modifiedOn = temporaryRecord_batchProcessReportSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_batchProcessReport_nestedAuthorizations = temporaryRecord_batchProcessReportSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_path = temporaryRecord_batchProcessReportSchema.get("path");
     MetadataBuilder temporaryRecord_batchProcessReport_pathParts = temporaryRecord_batchProcessReportSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_batchProcessReport_principalAncestorsIntIds = temporaryRecord_batchProcessReportSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_batchProcessReport_principalConceptsIntIds = temporaryRecord_batchProcessReportSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_principalpath = temporaryRecord_batchProcessReportSchema.get("principalpath");
     MetadataBuilder temporaryRecord_batchProcessReport_removedauthorizations = temporaryRecord_batchProcessReportSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_schema = temporaryRecord_batchProcessReportSchema.get("schema");
+    MetadataBuilder temporaryRecord_batchProcessReport_secondaryConceptsIntIds = temporaryRecord_batchProcessReportSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_shareDenyTokens = temporaryRecord_batchProcessReportSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_batchProcessReport_shareTokens = temporaryRecord_batchProcessReportSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_batchProcessReport_title = temporaryRecord_batchProcessReportSchema.get("title");
@@ -1380,6 +1642,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_allReferences = temporaryRecord_exportAuditSchema.get("allReferences");
     MetadataBuilder temporaryRecord_exportAudit_allRemovedAuths = temporaryRecord_exportAuditSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_exportAudit_attachedAncestors = temporaryRecord_exportAuditSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_exportAudit_attachedPrincipalAncestorsIntIds = temporaryRecord_exportAuditSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_autocomplete = temporaryRecord_exportAuditSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_exportAudit_caption = temporaryRecord_exportAuditSchema.get("caption");
     MetadataBuilder temporaryRecord_exportAudit_content = temporaryRecord_exportAuditSchema.get("content");
@@ -1389,6 +1652,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_deleted = temporaryRecord_exportAuditSchema.get("deleted");
     MetadataBuilder temporaryRecord_exportAudit_denyTokens = temporaryRecord_exportAuditSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_exportAudit_destructionDate = temporaryRecord_exportAuditSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_exportAudit_detachedPrincipalAncestorsIntIds = temporaryRecord_exportAuditSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_detachedauthorizations = temporaryRecord_exportAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_errorOnPhysicalDeletion = temporaryRecord_exportAuditSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
@@ -1403,11 +1667,15 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_migrationDataVersion = temporaryRecord_exportAuditSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_exportAudit_modifiedBy = temporaryRecord_exportAuditSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_exportAudit_modifiedOn = temporaryRecord_exportAuditSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_exportAudit_nestedAuthorizations = temporaryRecord_exportAuditSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_exportAudit_path = temporaryRecord_exportAuditSchema.get("path");
     MetadataBuilder temporaryRecord_exportAudit_pathParts = temporaryRecord_exportAuditSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_exportAudit_principalAncestorsIntIds = temporaryRecord_exportAuditSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_exportAudit_principalConceptsIntIds = temporaryRecord_exportAuditSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_principalpath = temporaryRecord_exportAuditSchema.get("principalpath");
     MetadataBuilder temporaryRecord_exportAudit_removedauthorizations = temporaryRecord_exportAuditSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_schema = temporaryRecord_exportAuditSchema.get("schema");
+    MetadataBuilder temporaryRecord_exportAudit_secondaryConceptsIntIds = temporaryRecord_exportAuditSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_shareDenyTokens = temporaryRecord_exportAuditSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_exportAudit_shareTokens = temporaryRecord_exportAuditSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_exportAudit_title = temporaryRecord_exportAuditSchema.get("title");
@@ -1417,6 +1685,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_allReferences = temporaryRecord_importAuditSchema.get("allReferences");
     MetadataBuilder temporaryRecord_importAudit_allRemovedAuths = temporaryRecord_importAuditSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_importAudit_attachedAncestors = temporaryRecord_importAuditSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_importAudit_attachedPrincipalAncestorsIntIds = temporaryRecord_importAuditSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_importAudit_autocomplete = temporaryRecord_importAuditSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_importAudit_caption = temporaryRecord_importAuditSchema.get("caption");
     MetadataBuilder temporaryRecord_importAudit_content = temporaryRecord_importAuditSchema.get("content");
@@ -1426,6 +1695,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_deleted = temporaryRecord_importAuditSchema.get("deleted");
     MetadataBuilder temporaryRecord_importAudit_denyTokens = temporaryRecord_importAuditSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_importAudit_destructionDate = temporaryRecord_importAuditSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_importAudit_detachedPrincipalAncestorsIntIds = temporaryRecord_importAuditSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_importAudit_detachedauthorizations = temporaryRecord_importAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_errorOnPhysicalDeletion = temporaryRecord_importAuditSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
@@ -1440,11 +1710,15 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_migrationDataVersion = temporaryRecord_importAuditSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_importAudit_modifiedBy = temporaryRecord_importAuditSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_importAudit_modifiedOn = temporaryRecord_importAuditSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_importAudit_nestedAuthorizations = temporaryRecord_importAuditSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_importAudit_path = temporaryRecord_importAuditSchema.get("path");
     MetadataBuilder temporaryRecord_importAudit_pathParts = temporaryRecord_importAuditSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_importAudit_principalAncestorsIntIds = temporaryRecord_importAuditSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_importAudit_principalConceptsIntIds = temporaryRecord_importAuditSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_importAudit_principalpath = temporaryRecord_importAuditSchema.get("principalpath");
     MetadataBuilder temporaryRecord_importAudit_removedauthorizations = temporaryRecord_importAuditSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_schema = temporaryRecord_importAuditSchema.get("schema");
+    MetadataBuilder temporaryRecord_importAudit_secondaryConceptsIntIds = temporaryRecord_importAuditSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_importAudit_shareDenyTokens = temporaryRecord_importAuditSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_importAudit_shareTokens = temporaryRecord_importAuditSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_importAudit_title = temporaryRecord_importAuditSchema.get("title");
@@ -1454,6 +1728,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_allReferences = temporaryRecord_scriptReportSchema.get("allReferences");
     MetadataBuilder temporaryRecord_scriptReport_allRemovedAuths = temporaryRecord_scriptReportSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_scriptReport_attachedAncestors = temporaryRecord_scriptReportSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_scriptReport_attachedPrincipalAncestorsIntIds = temporaryRecord_scriptReportSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_autocomplete = temporaryRecord_scriptReportSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_scriptReport_caption = temporaryRecord_scriptReportSchema.get("caption");
     MetadataBuilder temporaryRecord_scriptReport_content = temporaryRecord_scriptReportSchema.get("content");
@@ -1463,6 +1738,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_deleted = temporaryRecord_scriptReportSchema.get("deleted");
     MetadataBuilder temporaryRecord_scriptReport_denyTokens = temporaryRecord_scriptReportSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_scriptReport_destructionDate = temporaryRecord_scriptReportSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_scriptReport_detachedPrincipalAncestorsIntIds = temporaryRecord_scriptReportSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_detachedauthorizations = temporaryRecord_scriptReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_errorOnPhysicalDeletion = temporaryRecord_scriptReportSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
@@ -1477,11 +1753,15 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_migrationDataVersion = temporaryRecord_scriptReportSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_scriptReport_modifiedBy = temporaryRecord_scriptReportSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_scriptReport_modifiedOn = temporaryRecord_scriptReportSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_scriptReport_nestedAuthorizations = temporaryRecord_scriptReportSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_scriptReport_path = temporaryRecord_scriptReportSchema.get("path");
     MetadataBuilder temporaryRecord_scriptReport_pathParts = temporaryRecord_scriptReportSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_scriptReport_principalAncestorsIntIds = temporaryRecord_scriptReportSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_scriptReport_principalConceptsIntIds = temporaryRecord_scriptReportSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_principalpath = temporaryRecord_scriptReportSchema.get("principalpath");
     MetadataBuilder temporaryRecord_scriptReport_removedauthorizations = temporaryRecord_scriptReportSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_schema = temporaryRecord_scriptReportSchema.get("schema");
+    MetadataBuilder temporaryRecord_scriptReport_secondaryConceptsIntIds = temporaryRecord_scriptReportSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_shareDenyTokens = temporaryRecord_scriptReportSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_scriptReport_shareTokens = temporaryRecord_scriptReportSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_scriptReport_title = temporaryRecord_scriptReportSchema.get("title");
@@ -1491,6 +1771,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_allReferences = temporaryRecord_vaultScanReportSchema.get("allReferences");
     MetadataBuilder temporaryRecord_vaultScanReport_allRemovedAuths = temporaryRecord_vaultScanReportSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_vaultScanReport_attachedAncestors = temporaryRecord_vaultScanReportSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_vaultScanReport_attachedPrincipalAncestorsIntIds = temporaryRecord_vaultScanReportSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_autocomplete = temporaryRecord_vaultScanReportSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_vaultScanReport_caption = temporaryRecord_vaultScanReportSchema.get("caption");
     MetadataBuilder temporaryRecord_vaultScanReport_content = temporaryRecord_vaultScanReportSchema.get("content");
@@ -1500,6 +1781,7 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_deleted = temporaryRecord_vaultScanReportSchema.get("deleted");
     MetadataBuilder temporaryRecord_vaultScanReport_denyTokens = temporaryRecord_vaultScanReportSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_vaultScanReport_destructionDate = temporaryRecord_vaultScanReportSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_vaultScanReport_detachedPrincipalAncestorsIntIds = temporaryRecord_vaultScanReportSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_detachedauthorizations = temporaryRecord_vaultScanReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_errorOnPhysicalDeletion = temporaryRecord_vaultScanReportSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
@@ -1514,11 +1796,15 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_migrationDataVersion = temporaryRecord_vaultScanReportSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_vaultScanReport_modifiedBy = temporaryRecord_vaultScanReportSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_vaultScanReport_modifiedOn = temporaryRecord_vaultScanReportSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_vaultScanReport_nestedAuthorizations = temporaryRecord_vaultScanReportSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_path = temporaryRecord_vaultScanReportSchema.get("path");
     MetadataBuilder temporaryRecord_vaultScanReport_pathParts = temporaryRecord_vaultScanReportSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_vaultScanReport_principalAncestorsIntIds = temporaryRecord_vaultScanReportSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_vaultScanReport_principalConceptsIntIds = temporaryRecord_vaultScanReportSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_principalpath = temporaryRecord_vaultScanReportSchema.get("principalpath");
     MetadataBuilder temporaryRecord_vaultScanReport_removedauthorizations = temporaryRecord_vaultScanReportSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_schema = temporaryRecord_vaultScanReportSchema.get("schema");
+    MetadataBuilder temporaryRecord_vaultScanReport_secondaryConceptsIntIds = temporaryRecord_vaultScanReportSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_shareDenyTokens = temporaryRecord_vaultScanReportSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_vaultScanReport_shareTokens = temporaryRecord_vaultScanReportSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_vaultScanReport_title = temporaryRecord_vaultScanReportSchema.get("title");
@@ -1536,6 +1822,9 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder user_defaultFollowerWhenCreatingTask = userSchema.create("defaultFollowerWhenCreatingTask").setType(MetadataValueType.STRUCTURE);
     user_defaultFollowerWhenCreatingTask.setUndeletable(true);
     user_defaultFollowerWhenCreatingTask.defineStructureFactory(TaskFollowerFactory.class);
+    MetadataBuilder user_delegationTaskUser = userSchema.create("delegationTaskUser").setType(MetadataValueType.REFERENCE);
+    user_delegationTaskUser.setUndeletable(true);
+    user_delegationTaskUser.defineReferencesTo(asList(types.getSchema("user_default")));
   }
 
   private void createFacetSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder facetSchemaType, MetadataSchemaBuilder facet_fieldSchema, MetadataSchemaBuilder facet_querySchema, MetadataSchemaBuilder facetSchema) {
@@ -1543,12 +1832,14 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder facet_field_allReferences = facet_fieldSchema.get("allReferences");
     MetadataBuilder facet_field_allRemovedAuths = facet_fieldSchema.get("allRemovedAuths");
     MetadataBuilder facet_field_attachedAncestors = facet_fieldSchema.get("attachedAncestors");
+    MetadataBuilder facet_field_attachedPrincipalAncestorsIntIds = facet_fieldSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_field_autocomplete = facet_fieldSchema.get("autocomplete");
     MetadataBuilder facet_field_caption = facet_fieldSchema.get("caption");
     MetadataBuilder facet_field_createdBy = facet_fieldSchema.get("createdBy");
     MetadataBuilder facet_field_createdOn = facet_fieldSchema.get("createdOn");
     MetadataBuilder facet_field_deleted = facet_fieldSchema.get("deleted");
     MetadataBuilder facet_field_denyTokens = facet_fieldSchema.get("denyTokens");
+    MetadataBuilder facet_field_detachedPrincipalAncestorsIntIds = facet_fieldSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_field_detachedauthorizations = facet_fieldSchema.get("detachedauthorizations");
     MetadataBuilder facet_field_elementPerPage = facet_fieldSchema.get("elementPerPage");
     MetadataBuilder facet_field_errorOnPhysicalDeletion = facet_fieldSchema.get("errorOnPhysicalDeletion");
@@ -1566,15 +1857,19 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder facet_field_migrationDataVersion = facet_fieldSchema.get("migrationDataVersion");
     MetadataBuilder facet_field_modifiedBy = facet_fieldSchema.get("modifiedBy");
     MetadataBuilder facet_field_modifiedOn = facet_fieldSchema.get("modifiedOn");
+    MetadataBuilder facet_field_nestedAuthorizations = facet_fieldSchema.get("nestedAuthorizations");
     MetadataBuilder facet_field_openByDefault = facet_fieldSchema.get("openByDefault");
     MetadataBuilder facet_field_order = facet_fieldSchema.get("order");
     MetadataBuilder facet_field_orderResult = facet_fieldSchema.get("orderResult");
     MetadataBuilder facet_field_pages = facet_fieldSchema.get("pages");
     MetadataBuilder facet_field_path = facet_fieldSchema.get("path");
     MetadataBuilder facet_field_pathParts = facet_fieldSchema.get("pathParts");
+    MetadataBuilder facet_field_principalAncestorsIntIds = facet_fieldSchema.get("principalAncestorsIntIds");
+    MetadataBuilder facet_field_principalConceptsIntIds = facet_fieldSchema.get("principalConceptsIntIds");
     MetadataBuilder facet_field_principalpath = facet_fieldSchema.get("principalpath");
     MetadataBuilder facet_field_removedauthorizations = facet_fieldSchema.get("removedauthorizations");
     MetadataBuilder facet_field_schema = facet_fieldSchema.get("schema");
+    MetadataBuilder facet_field_secondaryConceptsIntIds = facet_fieldSchema.get("secondaryConceptsIntIds");
     MetadataBuilder facet_field_shareDenyTokens = facet_fieldSchema.get("shareDenyTokens");
     MetadataBuilder facet_field_shareTokens = facet_fieldSchema.get("shareTokens");
     MetadataBuilder facet_field_title = facet_fieldSchema.get("title");
@@ -1586,12 +1881,14 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder facet_query_allReferences = facet_querySchema.get("allReferences");
     MetadataBuilder facet_query_allRemovedAuths = facet_querySchema.get("allRemovedAuths");
     MetadataBuilder facet_query_attachedAncestors = facet_querySchema.get("attachedAncestors");
+    MetadataBuilder facet_query_attachedPrincipalAncestorsIntIds = facet_querySchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_query_autocomplete = facet_querySchema.get("autocomplete");
     MetadataBuilder facet_query_caption = facet_querySchema.get("caption");
     MetadataBuilder facet_query_createdBy = facet_querySchema.get("createdBy");
     MetadataBuilder facet_query_createdOn = facet_querySchema.get("createdOn");
     MetadataBuilder facet_query_deleted = facet_querySchema.get("deleted");
     MetadataBuilder facet_query_denyTokens = facet_querySchema.get("denyTokens");
+    MetadataBuilder facet_query_detachedPrincipalAncestorsIntIds = facet_querySchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_query_detachedauthorizations = facet_querySchema.get("detachedauthorizations");
     MetadataBuilder facet_query_elementPerPage = facet_querySchema.get("elementPerPage");
     MetadataBuilder facet_query_errorOnPhysicalDeletion = facet_querySchema.get("errorOnPhysicalDeletion");
@@ -1609,15 +1906,19 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder facet_query_migrationDataVersion = facet_querySchema.get("migrationDataVersion");
     MetadataBuilder facet_query_modifiedBy = facet_querySchema.get("modifiedBy");
     MetadataBuilder facet_query_modifiedOn = facet_querySchema.get("modifiedOn");
+    MetadataBuilder facet_query_nestedAuthorizations = facet_querySchema.get("nestedAuthorizations");
     MetadataBuilder facet_query_openByDefault = facet_querySchema.get("openByDefault");
     MetadataBuilder facet_query_order = facet_querySchema.get("order");
     MetadataBuilder facet_query_orderResult = facet_querySchema.get("orderResult");
     MetadataBuilder facet_query_pages = facet_querySchema.get("pages");
     MetadataBuilder facet_query_path = facet_querySchema.get("path");
     MetadataBuilder facet_query_pathParts = facet_querySchema.get("pathParts");
+    MetadataBuilder facet_query_principalAncestorsIntIds = facet_querySchema.get("principalAncestorsIntIds");
+    MetadataBuilder facet_query_principalConceptsIntIds = facet_querySchema.get("principalConceptsIntIds");
     MetadataBuilder facet_query_principalpath = facet_querySchema.get("principalpath");
     MetadataBuilder facet_query_removedauthorizations = facet_querySchema.get("removedauthorizations");
     MetadataBuilder facet_query_schema = facet_querySchema.get("schema");
+    MetadataBuilder facet_query_secondaryConceptsIntIds = facet_querySchema.get("secondaryConceptsIntIds");
     MetadataBuilder facet_query_shareDenyTokens = facet_querySchema.get("shareDenyTokens");
     MetadataBuilder facet_query_shareTokens = facet_querySchema.get("shareTokens");
     MetadataBuilder facet_query_title = facet_querySchema.get("title");
@@ -1625,9 +1926,6 @@ public final class GeneratedTasksMigrationCombo {
     MetadataBuilder facet_query_tokensHierarchy = facet_querySchema.get("tokensHierarchy");
     MetadataBuilder facet_query_usedByModule = facet_querySchema.get("usedByModule");
     MetadataBuilder facet_query_visibleInTrees = facet_querySchema.get("visibleInTrees");
-  }
-
-  private void createGroupSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder groupSchemaType, MetadataSchemaBuilder groupSchema) {
   }
 
   public void applySchemasDisplay(SchemasDisplayManager manager) {
@@ -1666,6 +1964,6 @@ public final class GeneratedTasksMigrationCombo {
 
   public void applyGeneratedRoles() {
     RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();;
-	  rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageGlobalLinks", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.unlimitedBatchProcess", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.viewSystemState", "tasks.manageWorkflows", "tasks.startWorkflows")));
+    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.editAllAnnotation", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageGlobalLinks", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.unlimitedBatchProcess", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.viewSystemState", "tasks.manageWorkflows", "tasks.startWorkflows")));
   }
 }

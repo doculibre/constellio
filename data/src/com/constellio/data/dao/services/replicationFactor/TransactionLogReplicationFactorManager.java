@@ -11,9 +11,11 @@ public class TransactionLogReplicationFactorManager implements StatefulService, 
 
 	protected DataLayerSystemExtensions extensions;
 
-	private DataLayerFactory dataLayerFactory;
+	private final DataLayerFactory dataLayerFactory;
 	private ReplicationFactorTransactionWriteService replicationFactorTransactionWriteService;
 	private ReplicationFactorTransactionReadService replicationFactorTransactionReadService;
+	private boolean enabled = true;
+	private boolean degraded = false;
 
 	public TransactionLogReplicationFactorManager(DataLayerFactory dataLayerFactory,
 												  DataLayerSystemExtensions extensions) {
@@ -21,9 +23,23 @@ public class TransactionLogReplicationFactorManager implements StatefulService, 
 		this.extensions = extensions;
 	}
 
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public boolean isDegraded() {
+		return degraded;
+	}
+
+	public TransactionLogReplicationFactorManager setEnabled(boolean enabled) {
+		this.enabled = enabled;
+		return this;
+	}
+
 	@Override
 	public void afterAdd(BigVaultServerTransaction transaction, TransactionResponseDTO responseDTO) {
-		if (responseDTO != null && responseDTO.getRf() != -1 && responseDTO.getRf() < getMinimalReplicationFactor()) {
+		degraded = enabled && responseDTO != null && responseDTO.getRf() != -1 && responseDTO.getRf() < getMinimalReplicationFactor();
+		if (degraded) {
 			replicationFactorTransactionWriteService.add(transaction, responseDTO);
 		}
 	}

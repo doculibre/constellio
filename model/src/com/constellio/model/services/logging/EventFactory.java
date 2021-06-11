@@ -71,7 +71,7 @@ public class EventFactory {
 		return event;
 	}
 
-	public Event newSignedRecordEvent(Record record, User user, String reason, LocalDateTime eventDateTime) {
+	public Event newSignatureEvent(String type, Record record, User user, String reason, LocalDateTime eventDateTime) {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
 		Event event = schemasRecords.newEvent();
 
@@ -79,7 +79,7 @@ public class EventFactory {
 		String ipAddress = user.getLastIPAddress();
 		event.setIp(ipAddress);
 
-		event.setType(EventType.SIGN_DOCUMENT);
+		event.setType(type);
 		event.setCreatedOn(eventDateTime);
 
 		setRecordMetadata(event, record);

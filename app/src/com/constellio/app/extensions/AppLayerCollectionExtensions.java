@@ -4,8 +4,10 @@ import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
+import com.constellio.app.api.extensions.DataProviderFactoryExtension;
 import com.constellio.app.api.extensions.DocumentViewButtonExtension;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
+import com.constellio.app.api.extensions.ExportServicesExtension;
 import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention;
 import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
 import com.constellio.app.api.extensions.FieldBindingExtention;
@@ -25,12 +27,14 @@ import com.constellio.app.api.extensions.RecordSecurityExtension;
 import com.constellio.app.api.extensions.RecordTextInputDataProviderExtension;
 import com.constellio.app.api.extensions.ReportTemplateExtension;
 import com.constellio.app.api.extensions.SIPExtension;
+import com.constellio.app.api.extensions.SchemaRecordFormExtension;
 import com.constellio.app.api.extensions.SchemaTypesPageExtension;
 import com.constellio.app.api.extensions.SearchCriterionExtension;
 import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
+import com.constellio.app.api.extensions.XmlDataSourceExtension;
 import com.constellio.app.api.extensions.XmlGeneratorExtension;
 import com.constellio.app.api.extensions.params.AddComponentToSearchResultParams;
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
@@ -97,9 +101,11 @@ import com.constellio.app.extensions.menu.MenuItemActionsExtension;
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.UserHavePermissionOnRecordExtension;
+import com.constellio.app.extensions.records.params.AddSyntheticMetadataValuesParams;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.extensions.records.params.GetRecordsToSaveInSameTransactionAsParentRecordParams;
 import com.constellio.app.extensions.records.params.HasUserReadAccessParams;
 import com.constellio.app.extensions.records.params.IsMetadataSpecialCaseToNotBeShownParams;
 import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFormParams;
@@ -113,6 +119,7 @@ import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension;
 import com.constellio.app.extensions.ui.ViewableRecordVOTablePanelExtension.ViewableRecordVOTablePanelExtensionParams;
 import com.constellio.app.modules.rm.extensions.params.RMSchemaTypesPageExtensionExclusionByPropertyParams;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
@@ -154,7 +161,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
 
@@ -230,9 +239,10 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<MenuItemActionsExtension> menuItemActionsExtensions = new VaultBehaviorsList<>();
 
+	@Deprecated
 	public VaultBehaviorsList<XmlGeneratorExtension> xmlGeneratorExtensions = new VaultBehaviorsList<>();
 
-	public VaultBehaviorsList<SchemaRecordExtention> schemaRecordExtentions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<SchemaRecordExtention> schemaRecordExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<UserFolderExtension> userFolderExtensions = new VaultBehaviorsList<>();
 
@@ -248,9 +258,18 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<RecordAuthorisationPageExtension> recordAuthorisationPageExtensions = new VaultBehaviorsList<>();
 
+	public VaultBehaviorsList<DataProviderFactoryExtension> dataProviderFactoryExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<ExportServicesExtension> exportServicesExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<SchemaRecordFormExtension> schemaRecordFormExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<XmlDataSourceExtension> xmlDataSourceExtensions = new VaultBehaviorsList<>();
+
 	//Key : schema type code
 	//Values : record's code
 	public KeyListMap<String, String> lockedRecords = new KeyListMap<>();
+	public KeyListMap<String, String> physicallyLockedRecords = new KeyListMap<>();
 
 	public <T extends ModuleExtensions> T forModule(String moduleId) {
 		return (T) moduleExtensionsMap.get(moduleId);
@@ -320,6 +339,39 @@ public class AppLayerCollectionExtensions {
 		return null;
 	}
 
+	public List<MetadataValueVO> addSyntheticMetadataValues(AddSyntheticMetadataValuesParams params) {
+		List<MetadataValueVO> syntheticMetadataValueVOs = new ArrayList<>();
+
+		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
+			List<MetadataValueVO> extensionsSyntheticMetadataValueVOs = recordAppExtension.addSyntheticMetadataValues(params);
+
+			if (extensionsSyntheticMetadataValueVOs != null) {
+				syntheticMetadataValueVOs.addAll(extensionsSyntheticMetadataValueVOs
+						.stream()
+						.filter(Objects::nonNull).collect(Collectors.toList()));
+			}
+		}
+
+		return syntheticMetadataValueVOs;
+	}
+
+	public List<Record> getRecordsToSaveInSameTransactionAsParentRecord(
+			GetRecordsToSaveInSameTransactionAsParentRecordParams params) {
+		Set<Record> allRecordsToSave = new HashSet<>();
+
+		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
+			List<Record> recordsToSave = recordAppExtension.getRecordsToSaveInSameTransactionAsParentRecord(params);
+
+			if (recordsToSave != null) {
+				allRecordsToSave.addAll(recordsToSave
+						.stream()
+						.filter(Objects::nonNull).collect(Collectors.toList()));
+			}
+		}
+
+		return new ArrayList<>(allRecordsToSave);
+	}
+
 	public void buildRecordVO(BuildRecordVOParams params) {
 		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
 			recordAppExtension.buildRecordVO(params);
@@ -351,6 +403,16 @@ public class AppLayerCollectionExtensions {
 			Resource thumbnailResource = recordAppExtension.getThumbnailResourceForRecordVO(params);
 			if (thumbnailResource != null) {
 				return thumbnailResource;
+			}
+		}
+		return null;
+	}
+
+	public List<String> getThumbnailStylesForRecordVO(GetIconPathParams params) {
+		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
+			List<String> styles = recordAppExtension.getThumbnailStylesForRecordVO(params);
+			if (styles != null) {
+				return styles;
 			}
 		}
 		return null;
@@ -1043,13 +1105,13 @@ public class AppLayerCollectionExtensions {
 
 
 	public boolean isEditActionPossibleOnSchemaRecord(final Record record, final User user) {
-		return schemaRecordExtentions.getBooleanValue(true,
+		return schemaRecordExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isEditActionPossible(
 						new SchemaRecordExtensionActionPossibleParams(record, user)));
 	}
 
 	public boolean isDeleteActionPossibleOnSchemaRecord(final Record record, final User user) {
-		return schemaRecordExtentions.getBooleanValue(true,
+		return schemaRecordExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isDeleteActionPossible(
 						new SchemaRecordExtensionActionPossibleParams(record, user)));
 	}
@@ -1116,7 +1178,7 @@ public class AppLayerCollectionExtensions {
 
 
 	public boolean isSequencesActionPossibleOnSchemaRecord(Record record, User user) {
-		return schemaRecordExtentions.getBooleanValue(true,
+		return schemaRecordExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isSequencesActionPossible(
 						new SchemaRecordExtensionActionPossibleParams(record, user)));
 	}

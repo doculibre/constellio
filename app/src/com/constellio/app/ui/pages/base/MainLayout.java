@@ -17,4 +17,6 @@ public interface MainLayout extends Serializable {
 
 	ConstellioMenu getMenu();
 
+	void scrollToTop();
+
 }

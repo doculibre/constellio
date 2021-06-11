@@ -709,7 +709,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 	}
 
 
-	Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId) {
+	Iterator<RecordDTO> iterator(boolean autoClosedIterator, byte collectionId, short typeId, boolean sortedById) {
 
 		int collectionIndex = collectionId - Byte.MIN_VALUE;
 
@@ -717,7 +717,22 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 			return Collections.emptyIterator();
 		}
 
-		IntArrayList typeIndexes = typesIndexes[collectionIndex][typeId];
+		IntArrayList typeIndexes;
+
+		if (sortedById) {
+			IntArrayList unsortedTypeIndexes = typesIndexes[collectionIndex][typeId];
+			if (unsortedTypeIndexes == null) {
+				return Collections.emptyIterator();
+			}
+
+			typeIndexes = new IntArrayList(unsortedTypeIndexes.size());
+			for (int i = 0; i < unsortedTypeIndexes.size(); i++) {
+				typeIndexes.add(unsortedTypeIndexes.get(i));
+			}
+			typeIndexes.sortThis();
+		} else {
+			typeIndexes = typesIndexes[collectionIndex][typeId];
+		}
 
 		if (typeIndexes == null) {
 			return Collections.emptyIterator();
@@ -765,7 +780,7 @@ public class IntegerIdsMemoryEfficientRecordsCachesDataStore {
 		String metadataDataStoreCode = schemasManager.getMetadata(collectionId, typeId, metadataId).getDataStoreCode();
 
 		List<RecordDTO> dtos = new ArrayList<>();
-		iterator(autoClosedIterator, collectionId, typeId).forEachRemaining(dto -> {
+		iterator(autoClosedIterator, collectionId, typeId, false).forEachRemaining(dto -> {
 			if (LangUtils.isEqual(dto.getFields().get(metadataDataStoreCode), value)) {
 				dtos.add(dto);
 			}

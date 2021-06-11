@@ -4,8 +4,8 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -34,7 +34,7 @@ public class CoreMigrationTo_9_0_1_4 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
-			typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA).create(Authorization.SHARED_BY)
+			typesBuilder.getSchema(RecordAuthorization.DEFAULT_SCHEMA).create(RecordAuthorization.SHARED_BY)
 					.setType(STRING).setCacheIndex(true);
 			typesBuilder.getSchema(Event.DEFAULT_SCHEMA).create(Event.SHARED_BY)
 					.setType(STRING);

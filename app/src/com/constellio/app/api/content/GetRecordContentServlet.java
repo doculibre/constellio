@@ -154,10 +154,12 @@ public class GetRecordContentServlet extends HttpServlet {
 					response.setContentLength(contentLength);
 				}
 
-				// forces download
-				String headerKey = "Content-Disposition";
-				String headerValue = String.format("attachment; filename=\"%s\"", filename);
-				response.setHeader(headerKey, headerValue);
+				// Forces download
+				response.setHeader("Content-Disposition", String.format("attachment; filename=\"%s\"", filename));
+				// Set standard HTTP/1.1 no-cache headers.
+				response.setHeader("Cache-Control", "private, no-store, no-cache, must-revalidate");
+				// Set standard HTTP/1.0 no-cache header.
+				response.setHeader("Pragma", "no-cache");
 
 				try (OutputStream out = response.getOutputStream()) {
 					IOUtils.copy(in, out);

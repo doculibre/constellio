@@ -4,6 +4,8 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
+import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 import java.util.Arrays;
@@ -19,9 +21,12 @@ public class AllowedMetadataUtil {
 
 		List<MetadataValueType> restrictedType = Arrays.asList(MetadataValueType.STRUCTURE, MetadataValueType.CONTENT);
 
+		List<Class<? extends StructureFactory>> allowedStructureType = Arrays.asList(SeparatedStructureFactory.class);
+
 		List<String> localCodes = new SchemaUtils().toMetadataLocalCodes(restrictedMetadata);
 
-		result = !restrictedType.contains(metadataVO.getType());
+		result = !restrictedType.contains(metadataVO.getType()) ||
+				 allowedStructureType.stream().anyMatch(ast -> ast.isInstance(metadataVO.getStructureFactory()));
 		result = result && !localCodes.contains(metadataVO.getCode());//getLocalcode()
 
 		return result;

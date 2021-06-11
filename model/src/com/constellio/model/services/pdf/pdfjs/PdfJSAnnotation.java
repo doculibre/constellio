@@ -1,11 +1,13 @@
 package com.constellio.model.services.pdf.pdfjs;
 
-import com.constellio.model.services.pdf.PdfAnnotation;
+import java.awt.Rectangle;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.json.JSONObject;
 
-import java.awt.*;
+import com.constellio.model.services.pdf.PdfAnnotation;
 
 public class PdfJSAnnotation extends PdfAnnotation {
 
@@ -28,9 +30,18 @@ public class PdfJSAnnotation extends PdfAnnotation {
 		float heightPercent = (float) annotationJson.getDouble("height");
 
 		// 1 based in PDF, 0 based in PDFBox
-		PDRectangle pageRectangle = pdDocument.getPage(page).getMediaBox();
-		float pageWidth = pageRectangle.getWidth();
-		float pageHeight = pageRectangle.getHeight();
+		PDPage pdPage = pdDocument.getPage(page);
+		int rotation = pdPage.getRotation();
+		PDRectangle mediaBox = pdPage.getMediaBox();
+		float pageWidth;
+		float pageHeight;
+		if (rotation == 90 || rotation == -90 || rotation == 270) {
+			pageWidth = mediaBox.getHeight();
+			pageHeight = mediaBox.getWidth();
+		} else {
+			pageWidth = mediaBox.getWidth();
+			pageHeight = mediaBox.getHeight();
+		}
 
 		float widthRectangle = (widthPercent / 100) * pageWidth;
 		float heightRectangle = (heightPercent / 100) * pageHeight;

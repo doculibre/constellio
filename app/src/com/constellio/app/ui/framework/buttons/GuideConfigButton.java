@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.buttons;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.guide.GuideManager;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.vaadin.navigator.View;
 import com.vaadin.server.ThemeResource;
@@ -62,7 +63,7 @@ public class GuideConfigButton extends WindowButton {
 			windowLayout.addComponent(new Label(labelText));
 
 			HorizontalLayout cellLayout = new HorizontalLayout();
-			TextField inputField = new TextField();
+			BaseTextField inputField = new BaseTextField();
 			inputField.setId(languageCode);
 			inputField.setInputPrompt($("MainLayout.guideConfigButton.toolTip"));
 			inputField.setWidth("400px");

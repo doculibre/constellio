@@ -158,6 +158,8 @@ public class EventType {
 
 	public static final String SIGN_DOCUMENT = "sign_document";
 
+	public static final String SIGNATURE_REQUEST = "signature_request";
+
 	//decommissiong
 	public static final String DECOMMISSIONING_LIST = "decommissioningList";
 
@@ -190,4 +192,9 @@ public class EventType {
 
 	//batch process
 	public static final String BATCH_PROCESS_CREATED = "created_batch_process";
+
+	// FIXME should be in plugin, extension/refactor needed
+	public static final String EMPTY_DOCUMENT = "empty_document";
+
+	public static final String SCANNED_DOCUMENT = "scanned_document";
 }

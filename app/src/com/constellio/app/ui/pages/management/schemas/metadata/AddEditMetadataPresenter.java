@@ -21,7 +21,10 @@ import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.framework.components.dialogs.ConfirmDialogProperties;
+import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.pages.management.schemas.metadata.reports.UniqueMetadataDuplicateExcelReportFactory;
+import com.constellio.app.ui.pages.management.schemas.metadata.reports.UniqueMetadataDuplicateExcelReportParameters;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.comparators.AbstractTextComparator;
@@ -29,6 +32,7 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
@@ -41,6 +45,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.InvalidCodeFormat;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -56,14 +61,13 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.jgoodies.common.base.Strings;
-import com.vaadin.ui.UI;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,7 +76,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -340,12 +347,36 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				});
 	}
 
-	public boolean isShowUniqueComboBox() {
+	private List<Record> listRecordsWhereMetadataIsUsed() {
+		if (metadataCode.isEmpty()) {
+			return new ArrayList<>();
+		}
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 		LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(types.getSchemaType(schemaTypeCode))
 				.returnAll();
 		Metadata metadata = types.getMetadata(metadataCode);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+		return modelLayerFactory.newSearchServices().query(logicalSearchQuery)
+				.getRecords().stream().filter(r -> r.get(metadata) != null).collect(Collectors.toList());
+
+	}
+
+	private boolean shouldDisplayInputMaskWarning(FormMetadataVO formMetadataVO) {
+		try {
+			String oldInputMask = types.getMetadata(metadataCode).getInputMask();
+			if (formMetadataVO.getInputMask() == null || formMetadataVO.getInputMask().isEmpty()) {
+				return false;
+			}
+			return !(Objects.equals(oldInputMask, formMetadataVO.getInputMask()))
+				   && listRecordsWhereMetadataIsUsed().size() >= 1;
+		} catch (InvalidCodeFormat e) {
+			return false;
+		}
+	}
+
+	public boolean isShowUniqueComboBox() {
+
+		LogicalSearchQuery logicalSearchQuery = buildCheckUnicityLogicalSearchQuery();
 		logicalSearchQuery.setNumberOfRows(0);
 		logicalSearchQuery.addFieldFacet(metadata.getDataStoreCode());
 
@@ -357,6 +388,14 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			}
 		}
 		return true;
+	}
+
+	private LogicalSearchQuery buildCheckUnicityLogicalSearchQuery() {
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(types.getSchemaType(schemaTypeCode))
+				.returnAll();
+
+		return new LogicalSearchQuery(logicalSearchCondition);
 	}
 
 
@@ -728,42 +767,74 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.searchable");
 				}
 
-				ConfirmDialog.show(UI.getCurrent(), $("AddEditMetadataPresenter.saveButton.title"), confirmDialogMessage,
-						$("confirm"), $("cancel"), new ConfirmDialog.Listener() {
-							@Override
-							public void onClose(ConfirmDialog dialog) {
-								if (dialog.isConfirmed()) {
+				view.showConfirmDialog(ConfirmDialogProperties.builder()
+						.title($("AddEditMetadataPresenter.saveButton.title"))
+						.message(confirmDialogMessage)
+						.okCaption($("confirm"))
+						.cancelCaption($("cancel"))
+						.onCloseListener(confirmDialogResults -> {
+							switch (confirmDialogResults) {
+								case OK:
 									builder.setSearchable(formMetadataVO.isSearchable());
 									builder.setSortable(formMetadataVO.isSortable());
 
 									saveButtonClicked(formMetadataVO, true, schemaCode,
 											schemasManager, types, code, reindexRequired, cacheRebuildRequired, builder);
-								}
+									break;
+								case CANCEL:
+									//Do nothing. Stays in the form
+									break;
 							}
-						});
+
+						}).build());
 
 			} else if (cacheRebuildRequired) {
 				String confirmDialogMessage = $("AddEditMetadataPresenter.saveButton.cacheRebuildRequired");
 
-				ConfirmDialog.show(UI.getCurrent(), $("AddEditMetadataPresenter.saveButton.cacheRebuildRequiredTitle"), confirmDialogMessage,
-						$("confirm"), $("cancel"), new ConfirmDialog.Listener() {
-							@Override
-							public void onClose(ConfirmDialog dialog) {
-								if (dialog.isConfirmed()) {
+				view.showConfirmDialog(ConfirmDialogProperties.builder()
+						.title($("AddEditMetadataPresenter.saveButton.cacheRebuildRequiredTitle"))
+						.message(confirmDialogMessage)
+						.okCaption($("confirm"))
+						.cancelCaption($("cancel"))
+						.onCloseListener(confirmDialogResults -> {
+							switch (confirmDialogResults) {
+								case OK:
 									saveButtonClicked(formMetadataVO, true, schemaCode,
 											schemasManager, types, code, reindexRequired, cacheRebuildRequired, builder);
-								}
+									break;
+								case CANCEL:
+									//Do nothing. Stays in the form
+									break;
 							}
-						});
 
+						}).build());
 			} else {
 				isSaveButtonClicked = true;
 			}
 		} else {
 			isSaveButtonClicked = true;
 		}
+		if (shouldDisplayInputMaskWarning(formMetadataVO)) {
 
-		if (isSaveButtonClicked) {
+			view.showConfirmDialog(ConfirmDialogProperties.builder()
+					.title($("warning"))
+					.message($("AddEditMetadataPresenter.saveButton.maskWarning"))
+					.okCaption($("confirm"))
+					.cancelCaption($("cancel"))
+					.onCloseListener(confirmDialogResults -> {
+						switch (confirmDialogResults) {
+							case OK:
+								saveButtonClicked(formMetadataVO, true, schemaCode,
+										schemasManager, types, code,
+										false, false, builder);
+								break;
+							case CANCEL:
+								//Do nothing. Stays in the form
+								break;
+						}
+
+					}).build());
+		} else if (isSaveButtonClicked) {
 			saveButtonClicked(formMetadataVO, true, schemaCode,
 					schemasManager, types, code,
 					false, false, builder);
@@ -1131,5 +1202,35 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			}
 		}
 		return retVal;
+	}
+
+	public void printDuplicateReport(BiConsumer<ReportWriter, String> reportViewCallback) {
+		LogicalSearchQuery logicalSearchQuery = buildCheckUnicityLogicalSearchQuery();
+		logicalSearchQuery.setNumberOfRows(0);
+		logicalSearchQuery.addFieldFacet(metadata.getDataStoreCode());
+
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+
+		List<String> duplicatedValues = searchServices.query(logicalSearchQuery)
+				.getFieldFacetValues(metadata.getDataStoreCode()).stream().filter(facetValue -> facetValue.getQuantity() > 1).map(FacetValue::getValue).collect(Collectors.toList());
+
+		Map<String, List<Record>> duplicateMap = duplicatedValues.stream().collect(Collectors.toMap(duplicatedValue -> duplicatedValue, duplicatedValue -> new ArrayList<>()));
+
+		logicalSearchQuery.setNumberOfRows(LogicalSearchQuery.DEFAULT_NUMBER_OF_ROWS);
+		logicalSearchQuery.getFacetFilters().selectedFieldFacetValues(metadata.getDataStoreCode(), duplicatedValues);
+		searchServices.search(logicalSearchQuery).forEach(record -> {
+			record.getValues(metadata).forEach(metadataValue -> {
+				if (duplicateMap.containsKey(metadataValue)) {
+					duplicateMap.get(metadataValue).add(record);
+				}
+			});
+		});
+
+		UniqueMetadataDuplicateExcelReportParameters parameters = new UniqueMetadataDuplicateExcelReportParameters(metadata, duplicateMap, getCurrentLocale());
+		UniqueMetadataDuplicateExcelReportFactory excelReportFactory = new UniqueMetadataDuplicateExcelReportFactory();
+
+		if (reportViewCallback != null) {
+			reportViewCallback.accept(excelReportFactory.getReportBuilder(parameters), excelReportFactory.getFilename(parameters));
+		}
 	}
 }

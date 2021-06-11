@@ -1,7 +1,9 @@
 package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.enums.TemplateVersionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.reports.printable.PrintableExtension;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
@@ -26,6 +28,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -124,12 +127,16 @@ public class ReportTabButtonPresenterAcceptanceTest extends ConstellioTest {
 
 			PrintableReport defaultFolderReport = rm.newPrintableReport();
 			PrintableReport defaultDocumentReport = rm.newPrintableReport();
-			defaultDocumentReport.setTitle("default document report").set(PrintableReport.RECORD_TYPE, "document")
+			defaultDocumentReport.setTitle("default document report").set(PrintableReport.RECORD_TYPE, Document.SCHEMA_TYPE)
 					.set(PrintableReport.RECORD_SCHEMA, Document.DEFAULT_SCHEMA)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
-			defaultFolderReport.setTitle("default folder report").set(PrintableReport.RECORD_TYPE, "dossier")
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
+			defaultFolderReport.setTitle("default folder report").set(PrintableReport.RECORD_TYPE, Folder.SCHEMA_TYPE)
 					.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			Transaction t = new Transaction();
 			t.addAll(defaultFolderReport, defaultDocumentReport);
@@ -140,7 +147,7 @@ public class ReportTabButtonPresenterAcceptanceTest extends ConstellioTest {
 			MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
 			List<RecordVO> availableReports = presenter
 					.getAllAvailableReport(builder.build(rm.defaultFolderSchema(), RecordVO.VIEW_MODE.DISPLAY, sessionContext));
-			assertThat(availableReports).extracting("id").containsOnly(defaultFolderReport.getId());
+			assertThat(availableReports).extracting("id").contains(defaultFolderReport.getId());
 		} finally {
 			ioServices.closeQuietly(jasperInputStream);
 		}
@@ -160,12 +167,16 @@ public class ReportTabButtonPresenterAcceptanceTest extends ConstellioTest {
 
 			PrintableReport report1 = rm.newPrintableReport();
 			PrintableReport report2 = rm.newPrintableReport();
-			report1.setTitle("report 1").set(PrintableReport.RECORD_TYPE, "document")
+			report1.setTitle("report 1").set(PrintableReport.RECORD_TYPE, Folder.SCHEMA_TYPE)
 					.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
-			report2.setTitle("report 2").set(PrintableReport.RECORD_TYPE, "dossier")
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
+			report2.setTitle("report 2").set(PrintableReport.RECORD_TYPE, Folder.SCHEMA_TYPE)
 					.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA)
-					.set(PrintableReport.JASPERFILE, jasperFileContent);
+					.set(PrintableReport.JASPERFILE, jasperFileContent)
+					.set(PrintableReport.SUPPORTED_EXTENSIONS, Arrays.asList(PrintableExtension.PDF))
+					.set(PrintableReport.TEMPLATE_VERSION, TemplateVersionType.CONSTELLIO_5);
 
 			Transaction t = new Transaction();
 			t.addAll(report1, report2);
@@ -176,7 +187,7 @@ public class ReportTabButtonPresenterAcceptanceTest extends ConstellioTest {
 			MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
 			List<RecordVO> availableReports = presenter
 					.getAllAvailableReport(builder.build(rm.defaultFolderSchema(), RecordVO.VIEW_MODE.DISPLAY, sessionContext));
-			assertThat(availableReports).extracting("id").containsOnly(report1.getId(), report2.getId());
+			assertThat(availableReports).extracting("id").contains(report1.getId(), report2.getId());
 		} finally {
 			ioServices.closeQuietly(jasperInputStream);
 		}

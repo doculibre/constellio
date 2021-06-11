@@ -32,7 +32,6 @@ import com.constellio.sdk.tests.MockedNavigation;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 
 import java.util.Locale;
@@ -41,6 +40,9 @@ import java.util.Map;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -264,7 +266,9 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension1);
 		getAppLayerFactory().getExtensions().forCollection(zeCollection).recordAppExtensions.add(recordAppExtension2);
 
-		FolderMenuItemActionBehaviorsOverrite folderMenuItemActionBehaviors = new FolderMenuItemActionBehaviorsOverrite(zeCollection, getAppLayerFactory());
+		FolderMenuItemActionBehaviorsOverrite folderMenuItemActionBehaviors = spy(new FolderMenuItemActionBehaviorsOverrite(zeCollection, getAppLayerFactory()));
+
+		doReturn(true).when(folderMenuItemActionBehaviors).reloadIfSearch(displayFolderView);
 
 		folderMenuItemActionBehaviors.deleteFolder(folder, "reason", new MenuItemActionBehaviorParams() {
 			@Override
@@ -283,7 +287,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 			}
 		});
 
-		verify(recordAppExtension1, times(1)).notifyFolderDeleted(Matchers.any(FolderDeletionEvent.class));
-		verify(recordAppExtension2, times(1)).notifyFolderDeleted(Matchers.any(FolderDeletionEvent.class));
+		verify(recordAppExtension1, times(1)).notifyFolderDeleted(any(FolderDeletionEvent.class));
+		verify(recordAppExtension2, times(1)).notifyFolderDeleted(any(FolderDeletionEvent.class));
 	}
 }

@@ -143,7 +143,7 @@ public class i18n {
 				if (args.get("suffix") != null) {
 					message = message + args.get("suffix");
 				}
-				if (args != null) {
+				if (args != null && message != null) {
 					for (String argName : args.keySet()) {
 						Object argValue = args.get(argName);
 						if (argValue instanceof String) {
@@ -163,7 +163,9 @@ public class i18n {
 								}
 							}
 
-							message = message.replace("{" + argName + "}", label);
+							if (label != null) {
+								message = message.replace("{" + argName + "}", label);
+							}
 						} else if (argValue instanceof EnumWithSmallCode) {
 							EnumWithSmallCode enumWithSmallCode = (EnumWithSmallCode) argValue;
 							message = message.replace("{" + argName + "}",
@@ -318,6 +320,18 @@ public class i18n {
 
 		for (ValidationError error : errors.getValidationWarnings()) {
 			messages.add($(error));
+		}
+		return messages;
+	}
+
+	public static List<String> asListOfMessages(ValidationErrors errors, Locale locale) {
+		List<String> messages = new ArrayList<>();
+		for (ValidationError error : errors.getValidationErrors()) {
+			messages.add($(error, locale));
+		}
+
+		for (ValidationError error : errors.getValidationWarnings()) {
+			messages.add($(error, locale));
 		}
 		return messages;
 	}

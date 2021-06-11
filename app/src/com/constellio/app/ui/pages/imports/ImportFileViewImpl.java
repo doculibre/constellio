@@ -40,6 +40,7 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 	private EnumWithSmallCodeComboBox mode;
 	private VerticalLayout messagesLayout;
 	private CheckBox allowReferencesToNonExistingUsersCheckBox;
+	private CheckBox mergeExistingRecordWithSameLegacyId;
 	private int total;
 
 	public ImportFileViewImpl() {
@@ -78,6 +79,9 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 		allowReferencesToNonExistingUsersCheckBox = new CheckBox($("ImportFileView.allowReferencesToNonExistingUsersCheckBox"));
 		allowReferencesToNonExistingUsersCheckBox.setValue(false);
 
+		mergeExistingRecordWithSameLegacyId = new CheckBox($("ImportFileView.mergeExistingRecordWithSameLegacyId"));
+		mergeExistingRecordWithSameLegacyId.setValue(false);
+
 		progressBar = new ProgressBar();
 		progressBar.setIndeterminate(true);
 		progressBar.setVisible(false);
@@ -92,7 +96,7 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 		legacyIdIndexDisabledWarning = new Label($("ImportFileView.legacyIdIndexDisabledWarning"));
 		legacyIdIndexDisabledWarning.addStyleName("system-state-component-important-message");
 		legacyIdIndexDisabledWarning.setVisible(presenter.isLegacyIdIndexDisabledWarningVisible());
-		mainLayout.addComponents(legacyIdIndexDisabledWarning, mode, allowReferencesToNonExistingUsersCheckBox, uploadField, uploadButton, progressBar, messagesPanel);
+		mainLayout.addComponents(legacyIdIndexDisabledWarning, mode, allowReferencesToNonExistingUsersCheckBox, mergeExistingRecordWithSameLegacyId, uploadField, uploadButton, progressBar, messagesPanel);
 		mainLayout.setExpandRatio(messagesPanel, 1);
 		//mainLayout.setComponentAlignment(exampleExcelFileLink, Alignment.TOP_RIGHT);
 		mainLayout.setComponentAlignment(uploadButton, Alignment.BOTTOM_RIGHT);
@@ -165,5 +169,9 @@ public class ImportFileViewImpl extends BaseViewImpl implements ImportFileView {
 
 	public boolean isAllowingReferencesToNonExistingUsers() {
 		return Boolean.TRUE.equals(allowReferencesToNonExistingUsersCheckBox.getValue());
+	}
+
+	public boolean isMergeExistingRecordWithSameLegacyId() {
+		return Boolean.TRUE.equals(mergeExistingRecordWithSameLegacyId.getValue());
 	}
 }

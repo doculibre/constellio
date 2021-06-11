@@ -5,6 +5,7 @@ import com.constellio.data.dao.services.solr.SolrServerFactory;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+import org.apache.solr.client.solrj.io.SolrClientCache;
 import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.core.CoreContainer;
 
@@ -88,6 +89,11 @@ public class EmbeddedSolrServerFactory implements SolrServerFactory {
 			coreContainer.shutdown();
 			coreContainer = null;
 		}
+	}
+
+	@Override
+	public SolrClientCache getSolrClientCache() {
+		throw new UnsupportedOperationException("Unsupported");
 	}
 
 	@Override

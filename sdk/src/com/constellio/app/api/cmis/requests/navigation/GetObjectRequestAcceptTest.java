@@ -2,6 +2,8 @@ package com.constellio.app.api.cmis.requests.navigation;
 
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
+import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestCalculatedSeparatedStructureCalculator;
+import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestCalculatedSeparatedStructureFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
@@ -52,8 +54,13 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 		taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
 
+		defineSchemasManager().using(zeCollectionSchemas.with(schemaTypes -> {
+			schemaTypes.getSchema(com.constellio.app.modules.rm.wrappers.Folder.DEFAULT_SCHEMA)
+					.create("separatedStructure")
+					.defineStructureFactory(TestCalculatedSeparatedStructureFactory.class)
+					.defineDataEntry().asCalculated(TestCalculatedSeparatedStructureCalculator.class);
+		}));
 
-		defineSchemasManager().using(zeCollectionSchemas);
 		CmisAcceptanceTestSetup.allSchemaTypesSupported(getAppLayerFactory());
 		users.setUp(userServices, zeCollection);
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
@@ -132,12 +139,14 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 		assertThat(object).isNotNull();
 		assertThat(object.getId()).isEqualTo("folder1");
 		assertThat(object.getProperty("id").<String>getValue()).isEqualTo("folder1");
-		assertThat(object.getProperty("title").<String>getValue()).isEqualTo("folder1");
+		String title = object.getProperty("title").<String>getValue();
+		assertThat(title).isEqualTo("folder1");
 		assertThat(object.getProperty("schema").<String>getValue()).isEqualTo("folder_default");
 		assertThat(object.getProperty("path").getFirstValue()).isEqualTo(
 				"/taxo1/zetaxo1_fond1/zetaxo1_fond1_1/zetaxo1_category1/folder1");
 		assertThat(object.getProperty(PropertyIds.PARENT_ID).<String>getValue()).isEqualTo("zetaxo1_category1");
 		assertThat(object.getProperty(PropertyIds.PATH).<String>getValue()).isNotNull();
+		assertThat(object.getProperty("separatedStructure").<String>getValue()).isEqualTo("Analysis of title '" + title + "'");
 	}
 
 	private void thenCategoryTwoObjectHasCorrectFields(CmisObject object) {

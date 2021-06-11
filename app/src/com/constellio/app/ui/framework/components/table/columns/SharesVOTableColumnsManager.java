@@ -1,7 +1,7 @@
 package com.constellio.app.ui.framework.components.table.columns;
 
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
-import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.vaadin.ui.Table;
 
 import java.util.ArrayList;
@@ -21,11 +21,11 @@ public class SharesVOTableColumnsManager extends RecordVOTableColumnsManager {
 	protected List<String> getDefaultVisibleColumnIds(Table table) {
 		ArrayList<String> defaultVisibleColumns = new ArrayList<>();
 
-		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Authorization.PRINCIPALS);
-		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Authorization.SHARED_BY);
-		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Authorization.ROLES);
-		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Authorization.START_DATE);
-		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, Authorization.END_DATE);
+		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, RecordAuthorization.PRINCIPALS);
+		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, RecordAuthorization.SHARED_BY);
+		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, RecordAuthorization.ROLES);
+		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, RecordAuthorization.START_DATE);
+		defaultVisibleColumns = addColumnIfNotAlreadyIn(defaultVisibleColumns, RecordAuthorization.END_DATE);
 
 		return defaultVisibleColumns;
 	}
@@ -34,10 +34,10 @@ public class SharesVOTableColumnsManager extends RecordVOTableColumnsManager {
 														String metadataLocalCode) {
 
 		ArrayList<String> allVisibleColumns = new ArrayList<>(defaultVisibleColumnIds);
-		if (!defaultVisibleColumnIds.contains(com.constellio.model.entities.records.wrappers.Authorization.DEFAULT_SCHEMA + "_" +
+		if (!defaultVisibleColumnIds.contains(com.constellio.model.entities.records.wrappers.RecordAuthorization.DEFAULT_SCHEMA + "_" +
 											  metadataLocalCode)) {
 
-			allVisibleColumns.add(com.constellio.model.entities.records.wrappers.Authorization.DEFAULT_SCHEMA
+			allVisibleColumns.add(com.constellio.model.entities.records.wrappers.RecordAuthorization.DEFAULT_SCHEMA
 								  + "_" + metadataLocalCode);
 		}
 		return allVisibleColumns;

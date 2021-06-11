@@ -93,7 +93,7 @@ public class ConsolidatedPdfWindow extends BaseWindow implements PollListener {
 		setClosable(false);
 	}
 
-	private void addTabSheet(String pdfFileName, List<String> documentIds, boolean withMetadata) {
+	private void addTabSheet(String pdfFileName, List<String> documentIds, boolean withMetadata, boolean asPdfA) {
 		restoreMinimized();
 
 		if (pdfTabPanels.containsKey(pdfFileName)) {
@@ -106,7 +106,7 @@ public class ConsolidatedPdfWindow extends BaseWindow implements PollListener {
 			}
 		}
 
-		PdfStatusViewImpl panel = new PdfStatusViewImpl(pdfFileName, documentIds, withMetadata);
+		PdfStatusViewImpl panel = new PdfStatusViewImpl(pdfFileName, documentIds, withMetadata, asPdfA);
 		panel.addPdfGenerationCompletedListener(new PdfStatusViewImpl.PdfGenerationCompletedListener() {
 			@Override
 			public void firePdfGenerationCompleted(PdfStatusViewImpl panel, boolean errorOccurred) {
@@ -195,10 +195,10 @@ public class ConsolidatedPdfWindow extends BaseWindow implements PollListener {
 		}
 	}
 
-	public void createPdf(String pdfName, List<String> documentIds, boolean withMetadata) {
+	public void createPdf(String pdfName, List<String> documentIds, boolean withMetadata, boolean asPdfA) {
 		checkNotNull(StringUtils.trimToNull(pdfName), "PDF file name is mandatory");
 		checkArgument(!CollectionUtils.isEmpty(documentIds), "Document ids is mandatory and must not be empty");
-		addTabSheet(pdfName, documentIds, withMetadata);
+		addTabSheet(pdfName, documentIds, withMetadata, asPdfA);
 		show();
 	}
 

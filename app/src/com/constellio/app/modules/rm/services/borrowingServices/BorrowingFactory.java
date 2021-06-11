@@ -1,12 +1,12 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import org.joda.time.LocalDateTime;
 
 import java.util.StringTokenizer;
 
-public class BorrowingFactory implements StructureFactory {
+public class BorrowingFactory implements CombinedStructureFactory {
 
 	private static final String NULL = "~null~";
 

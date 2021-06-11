@@ -6,9 +6,11 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAuthorization;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -143,8 +145,8 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				for (String collection : asList(zeCollection, anotherCollection)) {
 					RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
 					MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
-					if (!cache.isConfigured(Authorization.SCHEMA_TYPE)) {
-						cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
+					if (!cache.isConfigured(RecordAuthorization.SCHEMA_TYPE)) {
+						cache.configureCache(permanentCache(types.getSchemaType(RecordAuthorization.SCHEMA_TYPE)));
 					}
 					if (!cache.isConfigured(User.SCHEMA_TYPE)) {
 						cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
@@ -331,7 +333,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 					setup.administrativeUnit.type(), setup.category.type(), setup.classificationStation.type(),
 					setup.documentSchema.type());
 
-			return assertThat(searchServices.searchRecordIds(query(from(types).returnAll()).filteredWithUser(getUser())));
+			return assertThat(searchServices.searchRecordIds(query(from(types).returnAll()).filteredWithUserRead(getUser())));
 		}
 
 		public ListAssert<String> assertThatAllFoldersAndDocuments() {
@@ -488,7 +490,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		boolean hasAccessUsingWrapperMethod = user.hasReadAccess().on(record);
 
 		boolean wasEnabled = Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.enable();
-		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUser(user)
+		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUserRead(user)
 				.setCondition(fromAllSchemasIn(zeCollection).where(IDENTIFIER).isEqualTo(record)));
 		Toggle.VALIDATE_CACHE_EXECUTION_SERVICE_USING_SOLR.set(wasEnabled);
 
@@ -734,6 +736,10 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		LocalDate end;
 
+		boolean nested = false;
+
+		boolean cascade = true;
+
 		public VerifiedAuthorization(String recordId) {
 			this.recordId = recordId;
 		}
@@ -803,6 +809,12 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			return this;
 		}
 
+		public VerifiedAuthorization nestedInRecordWithoutCascade() {
+			nested = true;
+			cascade = false;
+			return this;
+		}
+
 		public String getRecordId() {
 			return recordId;
 		}
@@ -851,7 +863,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 		List<String> authorizations = new ArrayList<>();
 
-		for (Authorization details : schemas.searchSolrAuthorizationDetailss(ALL)) {
+		for (Authorization details : schemas.searchAuthorizations(ALL)) {
 			authorizations.add(details.getId());
 			try {
 				recordServices.getDocumentById(details.getTarget());
@@ -880,7 +892,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	protected ListAssert<String> assertThatAllAuthorizationsIds() {
 		List<String> authorizations = new ArrayList<>();
-		for (Authorization details : schemas.searchSolrAuthorizationDetailss(ALL)) {
+		for (Authorization details : schemas.searchAuthorizations(ALL)) {
 			authorizations.add(details.getId());
 		}
 		return assertThat(authorizations);
@@ -889,7 +901,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	protected ListAssert<VerifiedAuthorization> assertThatAllAuthorizations() {
 
 		List<VerifiedAuthorization> authorizations = new ArrayList<>();
-		for (Authorization details : schemas.searchSolrAuthorizationDetailss(ALL)) {
+		for (Authorization details : schemas.searchAuthorizations(ALL)) {
 			Authorization authorization = services.getAuthorization(zeCollection, details.getId());
 
 			List<String> removedOnRecords = searchServices.searchRecordIds(fromAllSchemasIn(zeCollection).where(
@@ -928,10 +940,19 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			List<String> removedOnRecords = searchServices.searchRecordIds(fromAllSchemasIn(zeCollection).where(
 					REMOVED_AUTHORIZATIONS).isEqualTo(authorization.getId()));
 
-			authorizations.add(authOnRecord(authorization.getTarget())
+			VerifiedAuthorization verifiedAuth = authOnRecord(authorization.getTarget())
 					.forPrincipalIds(authorization.getPrincipals())
 					.givingRoles(authorization.getRoles().toArray(new String[0]))
-					.removedOnRecords(removedOnRecords.toArray(new String[0])));
+					.removedOnRecords(removedOnRecords.toArray(new String[0]));
+
+			if (authorization instanceof NestedRecordAuthorization) {
+				if (!authorization.isCascading()) {
+					verifiedAuth.nestedInRecordWithoutCascade();
+				} else {
+					throw new RuntimeException("TODO! - non cascading nested auth are currently not supported");
+				}
+			}
+			authorizations.add(verifiedAuth);
 		}
 		return assertThat(authorizations).usingFieldByFieldElementComparator();
 
@@ -1152,12 +1173,12 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(folderSchema).returnAll());
-		query.filteredWithUser(user);
+		query.filteredWithUserRead(user);
 		recordIds.addAll(searchServices.searchRecordIds(query));
 
 		query = new LogicalSearchQuery();
 		query.setCondition(from(documentSchema).returnAll());
-		query.filteredWithUser(user);
+		query.filteredWithUserRead(user);
 		recordIds.addAll(searchServices.searchRecordIds(query));
 		return recordIds;
 	}
@@ -1221,6 +1242,15 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return copies;
 	}
 
+	protected void detachWithoutCopy(String recordId) {
+		services.detachWithoutCopy(get(recordId));
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	protected Group createGroup(String name) {
 		userServices.createGroup(ZE_GROUP, req -> req.setName(name).addCollections(zeCollection));
 		return userServices.getGroupInCollection(ZE_GROUP, zeCollection);
@@ -1262,7 +1292,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 				LogicalSearchQuery query = new LogicalSearchQuery()
 						.setCondition(fromAllSchemasIn(user.getCollection()).returnAll())
-						.filteredWithUser(user);
+						.filteredWithUserRead(user);
 				List<String> results = searchServices.searchRecordIds(query);
 
 				assertThat(results).containsAll(recordIds);
@@ -1280,7 +1310,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 				LogicalSearchQuery query = new LogicalSearchQuery()
 						.setCondition(fromAllSchemasIn(user.getCollection()).returnAll())
-						.filteredWithUser(user);
+						.filteredWithUserRead(user);
 				List<String> results = searchServices.searchRecordIds(query);
 
 				assertThat(results).doesNotContainAnyElementsOf(recordIds);

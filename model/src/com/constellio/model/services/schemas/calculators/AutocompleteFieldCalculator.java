@@ -9,10 +9,16 @@ import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
+import com.constellio.model.entities.schemas.AbstractMapBasedSeparatedStructureFactory.MapBasedStructure;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
+import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.google.common.base.Strings;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,11 +52,20 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 		Iterator<Pair<Metadata, Object>> iterator = autocompleteMetadatasValues.iterateWithValues();
 
 		while (iterator.hasNext()) {
-			splitInLowerCasedTermsRemovingAccents(words, iterator.next().getValue(), autocompleteSplitCriteria);
+			Pair<Metadata, Object> metadataAndValue = iterator.next();
+			if (metadataAndValue.getKey().getLocalCode().equals(Schemas.IDENTIFIER.getLocalCode()) && metadataAndValue.getValue() != null) {
+				splitInLowerCasedTermsRemovingAccents(words, metadataAndValue.getKey(), StringUtils.stripStart((String) metadataAndValue.getValue(), "0"), autocompleteSplitCriteria);
+			}
+			splitInLowerCasedTermsRemovingAccents(words, metadataAndValue.getKey(), metadataAndValue.getValue(), autocompleteSplitCriteria);
 		}
 	}
 
 	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words, Object value,
+															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
+		splitInLowerCasedTermsRemovingAccents(words, null, value, autocompleteSplitCriteria);
+	}
+
+	public static void splitInLowerCasedTermsRemovingAccents(Set<String> words, Metadata metadata, Object value,
 															 AutocompleteSplitCriteria autocompleteSplitCriteria) {
 		String regex = autocompleteSplitCriteria.getRegex();
 
@@ -61,6 +76,10 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 		} else if (value instanceof String) {
 			splitInLowerCasedTermsRemovingAccents(words, (String) value, regex);
 
+		} else if (valueIsSeparatedStructure(metadata, value)) {
+			SeparatedStructureFactory factory = (SeparatedStructureFactory) metadata.getStructureFactory();
+			String displayValue = "" + factory.toFields((ModifiableStructure) value).get(factory.getMainValueFieldName());
+			splitInLowerCasedTermsRemovingAccents(words, displayValue, regex);
 		}
 	}
 
@@ -69,9 +88,15 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 			   && ((List) value).get(0) instanceof String;
 	}
 
+	private static boolean valueIsSeparatedStructure(Metadata metadata, Object value) {
+		return value instanceof MapBasedStructure &&
+			   metadata != null && metadata.getStructureFactory() instanceof SeparatedStructureFactory;
+	}
+
 	private static void splitInLowerCasedTermsRemovingAccents(Set<String> words, String value, String regex) {
 		if (value != null) {
-			String cleanedValue = AccentApostropheCleaner.removeAccents(value).toLowerCase();
+			String cleanedValue = AccentApostropheCleaner.removeAccents(value)
+					.replace("(", "").replace(")", "").toLowerCase();
 			for (String word : cleanedValue.split(regex)) {
 				if (!Strings.isNullOrEmpty(word)) {
 					words.add(word);
@@ -104,7 +129,9 @@ public class AutocompleteFieldCalculator extends AbstractMetadataValueCalculator
 
 		@Override
 		public boolean isDependentOf(Metadata metadata, Metadata caclulatedMetadata) {
-			return metadata.isSchemaAutocomplete() && metadata.getType().isStringOrText();
+			return metadata.isSchemaAutocomplete() &&
+				   (metadata.getType().isStringOrText() || (metadata.getType() == MetadataValueType.STRUCTURE &&
+															metadata.getStructureFactory() instanceof StructureFactory));
 		}
 
 		@Override

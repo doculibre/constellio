@@ -3,7 +3,6 @@ package com.constellio.data.dao.services.contents;
 import com.constellio.data.dao.services.contents.ContentDao.DaoFileConsumer;
 import com.constellio.data.dao.services.contents.ContentDao.DaoFileFunction;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.io.File;
@@ -11,8 +10,8 @@ import java.util.Optional;
 
 import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 
-@AllArgsConstructor
 public class DaoFile {
+
 
 	@Getter
 	String id;
@@ -26,8 +25,31 @@ public class DaoFile {
 
 	boolean isDirectory;
 
+	Boolean cachedExistStatus;
+
 	@Getter
 	ContentDao contentDao;
+
+	public DaoFile(String id, String name, long length, long lastModified, boolean isDirectory,
+				   ContentDao contentDao) {
+		this.id = id;
+		this.name = name;
+		this.length = length;
+		this.lastModified = lastModified;
+		this.isDirectory = isDirectory;
+		this.contentDao = contentDao;
+	}
+
+	public DaoFile(String id, String name, long length, long lastModified, boolean isDirectory,
+				   ContentDao contentDao, Boolean cachedExistStatus) {
+		this.id = id;
+		this.name = name;
+		this.length = length;
+		this.lastModified = lastModified;
+		this.isDirectory = isDirectory;
+		this.contentDao = contentDao;
+		this.cachedExistStatus = cachedExistStatus;
+	}
 
 	public long lastModifed() {
 		return lastModified;
@@ -55,7 +77,11 @@ public class DaoFile {
 	}
 
 	public boolean exists() {
-		return contentDao.isDocumentExisting(id);
+		if (cachedExistStatus == null) {
+			return cachedExistStatus = contentDao.isDocumentExisting(id);
+		} else {
+			return cachedExistStatus;
+		}
 	}
 
 	public <T> T readonlyFunction(DaoFileFunction<T> function) throws ContentDaoException_NoSuchContent {

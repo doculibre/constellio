@@ -137,7 +137,7 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 		when(mockedFactories.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(anyString()).getSchemaTypes()).thenReturn(new ArrayList<MetadataSchemaType>());
 		when(mockedFactories.getModelLayerFactory().getDataLayerFactory().getUniqueIdGenerator()).thenReturn(uniqueIdGenerator);
 
-		when(metadataSchemaTypesBuilder.createNewSchemaType(anyString())).thenReturn(metadataSchemaTypeBuilder);
+		when(metadataSchemaTypesBuilder.createNewSchemaTypeWithSecurity(anyString())).thenReturn(metadataSchemaTypeBuilder);
 		when(metadataSchemaTypeBuilder.getDefaultSchema()).thenReturn(metadataSchemaBuilder);
 
 		when(metadataSchemaBuilder.getMetadata(anyString())).thenReturn(metadataBuilder);

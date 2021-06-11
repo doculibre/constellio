@@ -84,7 +84,7 @@ public class LDAPTokenTestConfig {
 				getUsersWithoutGroupsBaseContextList(),
 				getUserFilterGroupsList(),
 				isMembershipAutomaticDerivationActivated(),
-				selectedCollectionsCodes);
+				selectedCollectionsCodes, false, false, false);
 	}
 
 	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
@@ -101,6 +101,6 @@ public class LDAPTokenTestConfig {
 				getGroupBaseContextList(),
 				getUsersWithoutGroupsBaseContextList(),
 				getUserFilterGroupsList(),
-				isMembershipAutomaticDerivationActivated());
+				isMembershipAutomaticDerivationActivated(), false, false, false);
 	}
 }

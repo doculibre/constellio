@@ -150,16 +150,16 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_Z robin selecting-document false",
 				"categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false",
+				"categoryId_Z robin visible-actives false",
 				"categoryId_Z sasquatch selecting-document false",
 				"categoryId_Z sasquatch selecting-folder false",
-				"categoryId_Z sasquatch visible false",
+				"categoryId_Z sasquatch visible-actives false",
 				"unitId_30 robin selecting-document false",
 				"unitId_30 robin selecting-folder false",
-				"unitId_30 robin visible false",
+				"unitId_30 robin visible-actives false",
 				"unitId_30 sasquatch selecting-document false",
 				"unitId_30 sasquatch selecting-folder false",
-				"unitId_30 sasquatch visible false"
+				"unitId_30 sasquatch visible-actives false"
 		);
 
 		recordServices.add(rm.newFolderWithId("newFolder2")
@@ -172,16 +172,16 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_Z robin selecting-document false",
 				"categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false",
+				"categoryId_Z robin visible-actives false",
 				"categoryId_Z sasquatch selecting-document false",
 				"categoryId_Z sasquatch selecting-folder false",
-				"categoryId_Z sasquatch visible false",
+				"categoryId_Z sasquatch visible-actives false",
 				"unitId_30 robin selecting-document false",
 				"unitId_30 robin selecting-folder false",
-				"unitId_30 robin visible false",
+				"unitId_30 robin visible-actives false",
 				"unitId_30 sasquatch selecting-document false",
 				"unitId_30 sasquatch selecting-folder false",
-				"unitId_30 sasquatch visible false"
+				"unitId_30 sasquatch visible-actives false"
 		);
 
 		recordServices.add(rm.newFolderWithId("newFolder3")
@@ -192,16 +192,16 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_Z robin selecting-document false",
 				"categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false",
+				"categoryId_Z robin visible-actives false",
 				"categoryId_Z sasquatch selecting-document false",
 				"categoryId_Z sasquatch selecting-folder false",
-				"categoryId_Z sasquatch visible false",
+				"categoryId_Z sasquatch visible-actives false",
 				"unitId_30 robin selecting-document false",
 				"unitId_30 robin selecting-folder false",
-				"unitId_30 robin visible false",
+				"unitId_30 robin visible-actives false",
 				"unitId_30 sasquatch selecting-document false",
 				"unitId_30 sasquatch selecting-folder false",
-				"unitId_30 sasquatch visible false"
+				"unitId_30 sasquatch visible-actives false"
 		);
 
 	}
@@ -214,9 +214,9 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false",
+				"categoryId_X robin visible-actives false",
 				"unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false"
+				"unitId_10 robin visible-actives false"
 		);
 
 	}
@@ -230,7 +230,7 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		recordServices.update(folder1.setCategoryEntered(records.categoryId_X120));
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
-				"categoryId_X110 sasquatch visible true"
+				"categoryId_X110 sasquatch visible-actives true"
 		);
 
 		recordServices.update(folder1.setCategoryEntered(records.categoryId_Z120)
@@ -238,23 +238,23 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true",
-				"categoryId_X100 sasquatch visible true",
+				"categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true",
 				"categoryId_Z robin selecting-document false",
 				"categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false",
+				"categoryId_Z robin visible-actives false",
 				"categoryId_Z sasquatch selecting-document false",
 				"categoryId_Z sasquatch selecting-folder false",
-				"categoryId_Z sasquatch visible false",
+				"categoryId_Z sasquatch visible-actives false",
 				"unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true",
-				"unitId_10a sasquatch visible true",
+				"unitId_10 sasquatch visible-actives true",
+				"unitId_10a sasquatch visible-actives true",
 				"unitId_30 robin selecting-document false",
 				"unitId_30 robin selecting-folder false",
-				"unitId_30 robin visible false",
+				"unitId_30 robin visible-actives false",
 				"unitId_30 sasquatch selecting-document false",
 				"unitId_30 sasquatch selecting-folder false",
-				"unitId_30 sasquatch visible false"
+				"unitId_30 sasquatch visible-actives false"
 		);
 
 	}
@@ -266,12 +266,12 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		recordServices.logicallyDelete(record(FOLDER1), User.GOD);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true",
-				"categoryId_X100 sasquatch visible true",
-				"categoryId_X110 sasquatch visible true",
+				"categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true",
 				"unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true",
-				"unitId_10a sasquatch visible true"
+				"unitId_10 sasquatch visible-actives true",
+				"unitId_10a sasquatch visible-actives true"
 		);
 	}
 
@@ -282,12 +282,12 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		recordServices.physicallyDeleteNoMatterTheStatus(record(FOLDER1), User.GOD, new RecordPhysicalDeleteOptions());
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true",
-				"categoryId_X100 sasquatch visible true",
-				"categoryId_X110 sasquatch visible true",
+				"categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true",
 				"unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true",
-				"unitId_10a sasquatch visible true"
+				"unitId_10 sasquatch visible-actives true",
+				"unitId_10a sasquatch visible-actives true"
 		);
 	}
 
@@ -298,28 +298,28 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		recordServices.update(rm.getFolder(FOLDER1).setActualTransferDate(date(2016, 1, 1)));
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true",
-				"categoryId_X100 sasquatch visible true",
-				"categoryId_X110 sasquatch visible true",
+				"categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true",
 				"unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true",
-				"unitId_10a sasquatch visible true"
+				"unitId_10 sasquatch visible-actives true",
+				"unitId_10a sasquatch visible-actives true"
 		);
 
 		recordServices.update(rm.getFolder(FOLDER1).setActualTransferDate(null));
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false",
+				"categoryId_X robin visible-actives false",
 				"categoryId_X sasquatch selecting-document false",
-				"categoryId_X sasquatch visible false",
-				"categoryId_X100 sasquatch visible false",
+				"categoryId_X sasquatch visible-actives false",
+				"categoryId_X100 sasquatch visible-actives false",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false",
+				"unitId_10 robin visible-actives false",
 				"unitId_10 sasquatch selecting-document false",
-				"unitId_10 sasquatch visible false",
-				"unitId_10a sasquatch visible false"
+				"unitId_10 sasquatch visible-actives false",
+				"unitId_10a sasquatch visible-actives false"
 		);
 
 	}
@@ -333,17 +333,17 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		cache.invalidateUser(robin);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false", "categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false", "categoryId_Z robin selecting-document false",
-				"categoryId_Z robin selecting-folder false", "categoryId_Z robin visible false",
+				"categoryId_X robin visible-actives false", "categoryId_Z robin selecting-document false",
+				"categoryId_Z robin selecting-folder false", "categoryId_Z robin visible-actives false",
 				"unitId_10 admin selecting-document false", "unitId_10 alice selecting-document false",
 				"unitId_10 bob selecting-document false", "unitId_10 charles selecting-document false",
 				"unitId_10 chuck selecting-document false", "unitId_10 dakota selecting-document false",
 				"unitId_10 edouard selecting-document false", "unitId_10 edouard selecting-folder false",
-				"unitId_10 edouard visible false", "unitId_10 gandalf selecting-document false",
+				"unitId_10 edouard visible-actives false", "unitId_10 gandalf selecting-document false",
 				"unitId_10 robin selecting-document false", "unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false", "unitId_10 sasquatch selecting-document false",
+				"unitId_10 robin visible-actives false", "unitId_10 sasquatch selecting-document false",
 				"unitId_30 robin selecting-document false", "unitId_30 robin selecting-folder false",
-				"unitId_30 robin visible false"
+				"unitId_30 robin visible-actives false"
 		);
 
 		authServices.execute(modifyAuthorizationOnRecord(auth, records.getUnit10())
@@ -352,31 +352,31 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		cache.invalidateUser(sasquatch);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false", "categoryId_X robin selecting-folder true",
-				"categoryId_X robin visible true", "categoryId_X sasquatch selecting-document false",
-				"categoryId_X sasquatch selecting-folder true", "categoryId_X sasquatch visible true",
-				"categoryId_X100 robin visible true", "categoryId_X100 sasquatch visible true",
-				"categoryId_X110 robin visible true", "categoryId_X110 sasquatch visible true",
+				"categoryId_X robin visible-actives true", "categoryId_X sasquatch selecting-document false",
+				"categoryId_X sasquatch selecting-folder true", "categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 robin visible-actives true", "categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 robin visible-actives true", "categoryId_X110 sasquatch visible-actives true",
 				"categoryId_Z robin selecting-document false", "categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false", "categoryId_Z sasquatch selecting-document false",
-				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible false",
+				"categoryId_Z robin visible-actives false", "categoryId_Z sasquatch selecting-document false",
+				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible-actives false",
 				"unitId_10 admin selecting-document false", "unitId_10 admin selecting-folder true",
-				"unitId_10 admin visible true", "unitId_10 alice selecting-document false",
-				"unitId_10 alice selecting-folder true", "unitId_10 alice visible true", "unitId_10 bob selecting-document false",
-				"unitId_10 bob selecting-folder true", "unitId_10 bob visible true", "unitId_10 charles selecting-document false",
-				"unitId_10 charles selecting-folder true", "unitId_10 charles visible true",
+				"unitId_10 admin visible-actives true", "unitId_10 alice selecting-document false",
+				"unitId_10 alice selecting-folder true", "unitId_10 alice visible-actives true", "unitId_10 bob selecting-document false",
+				"unitId_10 bob selecting-folder true", "unitId_10 bob visible-actives true", "unitId_10 charles selecting-document false",
+				"unitId_10 charles selecting-folder true", "unitId_10 charles visible-actives true",
 				"unitId_10 chuck selecting-document false", "unitId_10 chuck selecting-folder true",
-				"unitId_10 chuck visible true", "unitId_10 dakota selecting-document false",
-				"unitId_10 dakota selecting-folder true", "unitId_10 dakota visible true",
+				"unitId_10 chuck visible-actives true", "unitId_10 dakota selecting-document false",
+				"unitId_10 dakota selecting-folder true", "unitId_10 dakota visible-actives true",
 				"unitId_10 edouard selecting-document false", "unitId_10 edouard selecting-folder false",
-				"unitId_10 edouard visible false", "unitId_10 gandalf selecting-document false",
-				"unitId_10 gandalf selecting-folder true", "unitId_10 gandalf visible true",
+				"unitId_10 edouard visible-actives false", "unitId_10 gandalf selecting-document false",
+				"unitId_10 gandalf selecting-folder true", "unitId_10 gandalf visible-actives true",
 				"unitId_10 robin selecting-document false", "unitId_10 robin selecting-folder true",
-				"unitId_10 robin visible true", "unitId_10 sasquatch selecting-document false",
-				"unitId_10 sasquatch selecting-folder true", "unitId_10 sasquatch visible true", "unitId_10a robin visible true",
-				"unitId_10a sasquatch visible true", "unitId_30 robin selecting-document false",
-				"unitId_30 robin selecting-folder false", "unitId_30 robin visible false",
+				"unitId_10 robin visible-actives true", "unitId_10 sasquatch selecting-document false",
+				"unitId_10 sasquatch selecting-folder true", "unitId_10 sasquatch visible-actives true", "unitId_10a robin visible-actives true",
+				"unitId_10a sasquatch visible-actives true", "unitId_30 robin selecting-document false",
+				"unitId_30 robin selecting-folder false", "unitId_30 robin visible-actives false",
 				"unitId_30 sasquatch selecting-document false", "unitId_30 sasquatch selecting-folder false",
-				"unitId_30 sasquatch visible false"
+				"unitId_30 sasquatch visible-actives false"
 		);
 
 		authServices.execute(modifyAuthorizationOnRecord(auth, record(FOLDER1))
@@ -385,62 +385,62 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		cache.invalidateUser(sasquatch);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X admin selecting-document false", "categoryId_X admin selecting-folder true",
-				"categoryId_X admin visible true", "categoryId_X alice selecting-document false",
-				"categoryId_X alice selecting-folder true", "categoryId_X alice visible true",
+				"categoryId_X admin visible-actives true", "categoryId_X alice selecting-document false",
+				"categoryId_X alice selecting-folder true", "categoryId_X alice visible-actives true",
 				"categoryId_X bob selecting-document false", "categoryId_X bob selecting-folder true",
-				"categoryId_X bob visible true", "categoryId_X charles selecting-document false",
-				"categoryId_X charles selecting-folder true", "categoryId_X charles visible true",
+				"categoryId_X bob visible-actives true", "categoryId_X charles selecting-document false",
+				"categoryId_X charles selecting-folder true", "categoryId_X charles visible-actives true",
 				"categoryId_X chuck selecting-document false", "categoryId_X chuck selecting-folder true",
-				"categoryId_X chuck visible true", "categoryId_X dakota selecting-document false",
-				"categoryId_X dakota selecting-folder true", "categoryId_X dakota visible true",
+				"categoryId_X chuck visible-actives true", "categoryId_X dakota selecting-document false",
+				"categoryId_X dakota selecting-folder true", "categoryId_X dakota visible-actives true",
 				"categoryId_X edouard selecting-document false", "categoryId_X edouard selecting-folder false",
-				"categoryId_X edouard visible false", "categoryId_X gandalf selecting-document false",
-				"categoryId_X gandalf selecting-folder true", "categoryId_X gandalf visible true",
+				"categoryId_X edouard visible-actives false", "categoryId_X gandalf selecting-document false",
+				"categoryId_X gandalf selecting-folder true", "categoryId_X gandalf visible-actives true",
 				"categoryId_X robin selecting-document false", "categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false", "categoryId_X sasquatch selecting-document false",
-				"categoryId_X sasquatch selecting-folder true", "categoryId_X sasquatch visible true",
-				"categoryId_X100 admin visible true", "categoryId_X100 alice visible true", "categoryId_X100 bob visible true",
-				"categoryId_X100 charles visible true", "categoryId_X100 chuck visible true",
-				"categoryId_X100 dakota visible true", "categoryId_X100 gandalf visible true",
-				"categoryId_X100 sasquatch visible true", "categoryId_X110 admin visible true",
-				"categoryId_X110 alice visible true", "categoryId_X110 bob visible true", "categoryId_X110 charles visible true",
-				"categoryId_X110 chuck visible true", "categoryId_X110 dakota visible true",
-				"categoryId_X110 gandalf visible true", "categoryId_X110 sasquatch visible true",
+				"categoryId_X robin visible-actives false", "categoryId_X sasquatch selecting-document false",
+				"categoryId_X sasquatch selecting-folder true", "categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 admin visible-actives true", "categoryId_X100 alice visible-actives true", "categoryId_X100 bob visible-actives true",
+				"categoryId_X100 charles visible-actives true", "categoryId_X100 chuck visible-actives true",
+				"categoryId_X100 dakota visible-actives true", "categoryId_X100 gandalf visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true", "categoryId_X110 admin visible-actives true",
+				"categoryId_X110 alice visible-actives true", "categoryId_X110 bob visible-actives true", "categoryId_X110 charles visible-actives true",
+				"categoryId_X110 chuck visible-actives true", "categoryId_X110 dakota visible-actives true",
+				"categoryId_X110 gandalf visible-actives true", "categoryId_X110 sasquatch visible-actives true",
 				"categoryId_Z robin selecting-document false", "categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false", "categoryId_Z sasquatch selecting-document false",
-				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible false",
+				"categoryId_Z robin visible-actives false", "categoryId_Z sasquatch selecting-document false",
+				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible-actives false",
 				"unitId_10 admin selecting-document false", "unitId_10 admin selecting-folder true",
-				"unitId_10 admin visible true", "unitId_10 alice selecting-document false",
-				"unitId_10 alice selecting-folder true", "unitId_10 alice visible true", "unitId_10 bob selecting-document false",
-				"unitId_10 bob selecting-folder true", "unitId_10 bob visible true", "unitId_10 charles selecting-document false",
-				"unitId_10 charles selecting-folder true", "unitId_10 charles visible true",
+				"unitId_10 admin visible-actives true", "unitId_10 alice selecting-document false",
+				"unitId_10 alice selecting-folder true", "unitId_10 alice visible-actives true", "unitId_10 bob selecting-document false",
+				"unitId_10 bob selecting-folder true", "unitId_10 bob visible-actives true", "unitId_10 charles selecting-document false",
+				"unitId_10 charles selecting-folder true", "unitId_10 charles visible-actives true",
 				"unitId_10 chuck selecting-document false", "unitId_10 chuck selecting-folder true",
-				"unitId_10 chuck visible true", "unitId_10 dakota selecting-document false",
-				"unitId_10 dakota selecting-folder true", "unitId_10 dakota visible true",
+				"unitId_10 chuck visible-actives true", "unitId_10 dakota selecting-document false",
+				"unitId_10 dakota selecting-folder true", "unitId_10 dakota visible-actives true",
 				"unitId_10 edouard selecting-document false", "unitId_10 edouard selecting-folder false",
-				"unitId_10 edouard visible false", "unitId_10 gandalf selecting-document false",
-				"unitId_10 gandalf selecting-folder true", "unitId_10 gandalf visible true",
+				"unitId_10 edouard visible-actives false", "unitId_10 gandalf selecting-document false",
+				"unitId_10 gandalf selecting-folder true", "unitId_10 gandalf visible-actives true",
 				"unitId_10 robin selecting-document false", "unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false", "unitId_10 sasquatch selecting-document false",
-				"unitId_10 sasquatch selecting-folder true", "unitId_10 sasquatch visible true", "unitId_10a admin visible true",
-				"unitId_10a alice visible true", "unitId_10a bob visible true", "unitId_10a charles visible true",
-				"unitId_10a chuck visible true", "unitId_10a dakota visible true", "unitId_10a gandalf visible true",
-				"unitId_10a sasquatch visible true", "unitId_30 robin selecting-document false",
-				"unitId_30 robin selecting-folder false", "unitId_30 robin visible false",
+				"unitId_10 robin visible-actives false", "unitId_10 sasquatch selecting-document false",
+				"unitId_10 sasquatch selecting-folder true", "unitId_10 sasquatch visible-actives true", "unitId_10a admin visible-actives true",
+				"unitId_10a alice visible-actives true", "unitId_10a bob visible-actives true", "unitId_10a charles visible-actives true",
+				"unitId_10a chuck visible-actives true", "unitId_10a dakota visible-actives true", "unitId_10a gandalf visible-actives true",
+				"unitId_10a sasquatch visible-actives true", "unitId_30 robin selecting-document false",
+				"unitId_30 robin selecting-folder false", "unitId_30 robin visible-actives false",
 				"unitId_30 sasquatch selecting-document false", "unitId_30 sasquatch selecting-folder false",
-				"unitId_30 sasquatch visible false"
+				"unitId_30 sasquatch visible-actives false"
 		);
 
 		authServices.execute(authorizationDeleteRequest(auth, zeCollection));
 		cache.invalidateUser(robin);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false", "categoryId_X robin selecting-folder true",
-				"categoryId_X robin visible true", "categoryId_X100 robin visible true", "categoryId_X110 robin visible true",
+				"categoryId_X robin visible-actives true", "categoryId_X100 robin visible-actives true", "categoryId_X110 robin visible-actives true",
 				"categoryId_Z robin selecting-document false", "categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false", "unitId_10 robin selecting-document false",
-				"unitId_10 robin selecting-folder true", "unitId_10 robin visible true", "unitId_10a robin visible true",
+				"categoryId_Z robin visible-actives false", "unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder true", "unitId_10 robin visible-actives true", "unitId_10a robin visible-actives true",
 				"unitId_30 robin selecting-document false", "unitId_30 robin selecting-folder false",
-				"unitId_30 robin visible false"
+				"unitId_30 robin visible-actives false"
 		);
 	}
 
@@ -456,37 +456,37 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		cache.invalidateUser(sasquatch);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X alice selecting-document false", "categoryId_X alice selecting-folder true",
-				"categoryId_X alice visible true", "categoryId_X edouard selecting-document false",
-				"categoryId_X edouard selecting-folder false", "categoryId_X edouard visible false",
+				"categoryId_X alice visible-actives true", "categoryId_X edouard selecting-document false",
+				"categoryId_X edouard selecting-folder false", "categoryId_X edouard visible-actives false",
 				"categoryId_X gandalf selecting-document false", "categoryId_X gandalf selecting-folder true",
-				"categoryId_X gandalf visible true", "categoryId_X sasquatch selecting-document false",
-				"categoryId_X sasquatch selecting-folder true", "categoryId_X sasquatch visible true",
-				"categoryId_X100 alice visible true", "categoryId_X100 gandalf visible true",
-				"categoryId_X100 sasquatch visible true", "categoryId_X110 alice visible true",
-				"categoryId_X110 gandalf visible true", "categoryId_X110 sasquatch visible true",
+				"categoryId_X gandalf visible-actives true", "categoryId_X sasquatch selecting-document false",
+				"categoryId_X sasquatch selecting-folder true", "categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 alice visible-actives true", "categoryId_X100 gandalf visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true", "categoryId_X110 alice visible-actives true",
+				"categoryId_X110 gandalf visible-actives true", "categoryId_X110 sasquatch visible-actives true",
 				"categoryId_Z alice selecting-document false", "categoryId_Z alice selecting-folder false",
-				"categoryId_Z alice visible false", "categoryId_Z edouard selecting-document false",
-				"categoryId_Z edouard selecting-folder false", "categoryId_Z edouard visible false",
+				"categoryId_Z alice visible-actives false", "categoryId_Z edouard selecting-document false",
+				"categoryId_Z edouard selecting-folder false", "categoryId_Z edouard visible-actives false",
 				"categoryId_Z gandalf selecting-document false", "categoryId_Z gandalf selecting-folder false",
-				"categoryId_Z gandalf visible false", "categoryId_Z sasquatch selecting-document false",
-				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible false",
+				"categoryId_Z gandalf visible-actives false", "categoryId_Z sasquatch selecting-document false",
+				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible-actives false",
 				"unitId_10 admin selecting-document false", "unitId_10 alice selecting-document false",
-				"unitId_10 alice selecting-folder true", "unitId_10 alice visible true", "unitId_10 bob selecting-document false",
+				"unitId_10 alice selecting-folder true", "unitId_10 alice visible-actives true", "unitId_10 bob selecting-document false",
 				"unitId_10 charles selecting-document false", "unitId_10 chuck selecting-document false",
 				"unitId_10 dakota selecting-document false", "unitId_10 edouard selecting-document false",
-				"unitId_10 edouard selecting-folder false", "unitId_10 edouard visible false",
+				"unitId_10 edouard selecting-folder false", "unitId_10 edouard visible-actives false",
 				"unitId_10 gandalf selecting-document false", "unitId_10 gandalf selecting-folder true",
-				"unitId_10 gandalf visible true", "unitId_10 robin selecting-document false",
-				"unitId_10 robin selecting-folder false", "unitId_10 robin visible false",
+				"unitId_10 gandalf visible-actives true", "unitId_10 robin selecting-document false",
+				"unitId_10 robin selecting-folder false", "unitId_10 robin visible-actives false",
 				"unitId_10 sasquatch selecting-document false", "unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true", "unitId_10a alice visible true", "unitId_10a gandalf visible true",
-				"unitId_10a sasquatch visible true", "unitId_30 alice selecting-document false",
-				"unitId_30 alice selecting-folder false", "unitId_30 alice visible false",
+				"unitId_10 sasquatch visible-actives true", "unitId_10a alice visible-actives true", "unitId_10a gandalf visible-actives true",
+				"unitId_10a sasquatch visible-actives true", "unitId_30 alice selecting-document false",
+				"unitId_30 alice selecting-folder false", "unitId_30 alice visible-actives false",
 				"unitId_30 edouard selecting-document false", "unitId_30 edouard selecting-folder false",
-				"unitId_30 edouard visible false", "unitId_30 gandalf selecting-document false",
-				"unitId_30 gandalf selecting-folder false", "unitId_30 gandalf visible false",
+				"unitId_30 edouard visible-actives false", "unitId_30 gandalf selecting-document false",
+				"unitId_30 gandalf selecting-folder false", "unitId_30 gandalf visible-actives false",
 				"unitId_30 sasquatch selecting-document false", "unitId_30 sasquatch selecting-folder false",
-				"unitId_30 sasquatch visible false"
+				"unitId_30 sasquatch visible-actives false"
 		);
 
 		authServices.execute(modifyAuthorizationOnRecord(auth, records.getUnit10())
@@ -502,59 +502,59 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X alice selecting-document false", "categoryId_X alice selecting-folder true",
-				"categoryId_X alice visible true", "categoryId_X charles selecting-document false",
-				"categoryId_X charles selecting-folder true", "categoryId_X charles visible true",
+				"categoryId_X alice visible-actives true", "categoryId_X charles selecting-document false",
+				"categoryId_X charles selecting-folder true", "categoryId_X charles visible-actives true",
 				"categoryId_X dakota selecting-document false", "categoryId_X dakota selecting-folder true",
-				"categoryId_X dakota visible true", "categoryId_X edouard selecting-document false",
-				"categoryId_X edouard selecting-folder true", "categoryId_X edouard visible true",
+				"categoryId_X dakota visible-actives true", "categoryId_X edouard selecting-document false",
+				"categoryId_X edouard selecting-folder true", "categoryId_X edouard visible-actives true",
 				"categoryId_X gandalf selecting-document false", "categoryId_X gandalf selecting-folder true",
-				"categoryId_X gandalf visible true", "categoryId_X robin selecting-document false",
-				"categoryId_X robin selecting-folder false", "categoryId_X robin visible false",
+				"categoryId_X gandalf visible-actives true", "categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder false", "categoryId_X robin visible-actives false",
 				"categoryId_X sasquatch selecting-document false", "categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true", "categoryId_X100 alice visible true",
-				"categoryId_X100 charles visible true", "categoryId_X100 dakota visible true",
-				"categoryId_X100 edouard visible true", "categoryId_X100 gandalf visible true",
-				"categoryId_X100 sasquatch visible true", "categoryId_X110 alice visible true",
-				"categoryId_X110 charles visible true", "categoryId_X110 dakota visible true",
-				"categoryId_X110 edouard visible true", "categoryId_X110 gandalf visible true",
-				"categoryId_X110 sasquatch visible true", "categoryId_Z alice selecting-document false",
-				"categoryId_Z alice selecting-folder false", "categoryId_Z alice visible false",
+				"categoryId_X sasquatch visible-actives true", "categoryId_X100 alice visible-actives true",
+				"categoryId_X100 charles visible-actives true", "categoryId_X100 dakota visible-actives true",
+				"categoryId_X100 edouard visible-actives true", "categoryId_X100 gandalf visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true", "categoryId_X110 alice visible-actives true",
+				"categoryId_X110 charles visible-actives true", "categoryId_X110 dakota visible-actives true",
+				"categoryId_X110 edouard visible-actives true", "categoryId_X110 gandalf visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true", "categoryId_Z alice selecting-document false",
+				"categoryId_Z alice selecting-folder false", "categoryId_Z alice visible-actives false",
 				"categoryId_Z charles selecting-document false", "categoryId_Z charles selecting-folder false",
-				"categoryId_Z charles visible false", "categoryId_Z dakota selecting-document false",
-				"categoryId_Z dakota selecting-folder false", "categoryId_Z dakota visible false",
+				"categoryId_Z charles visible-actives false", "categoryId_Z dakota selecting-document false",
+				"categoryId_Z dakota selecting-folder false", "categoryId_Z dakota visible-actives false",
 				"categoryId_Z edouard selecting-document false", "categoryId_Z edouard selecting-folder false",
-				"categoryId_Z edouard visible false", "categoryId_Z gandalf selecting-document false",
-				"categoryId_Z gandalf selecting-folder false", "categoryId_Z gandalf visible false",
+				"categoryId_Z edouard visible-actives false", "categoryId_Z gandalf selecting-document false",
+				"categoryId_Z gandalf selecting-folder false", "categoryId_Z gandalf visible-actives false",
 				"categoryId_Z robin selecting-document false", "categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false", "categoryId_Z sasquatch selecting-document false",
-				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible false",
+				"categoryId_Z robin visible-actives false", "categoryId_Z sasquatch selecting-document false",
+				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible-actives false",
 				"unitId_10 admin selecting-document false", "unitId_10 admin selecting-folder true",
-				"unitId_10 admin visible true", "unitId_10 alice selecting-document false",
-				"unitId_10 alice selecting-folder true", "unitId_10 alice visible true", "unitId_10 bob selecting-document false",
-				"unitId_10 bob selecting-folder true", "unitId_10 bob visible true", "unitId_10 charles selecting-document false",
-				"unitId_10 charles selecting-folder true", "unitId_10 charles visible true",
+				"unitId_10 admin visible-actives true", "unitId_10 alice selecting-document false",
+				"unitId_10 alice selecting-folder true", "unitId_10 alice visible-actives true", "unitId_10 bob selecting-document false",
+				"unitId_10 bob selecting-folder true", "unitId_10 bob visible-actives true", "unitId_10 charles selecting-document false",
+				"unitId_10 charles selecting-folder true", "unitId_10 charles visible-actives true",
 				"unitId_10 chuck selecting-document false", "unitId_10 chuck selecting-folder true",
-				"unitId_10 chuck visible true", "unitId_10 dakota selecting-document false",
-				"unitId_10 dakota selecting-folder true", "unitId_10 dakota visible true",
+				"unitId_10 chuck visible-actives true", "unitId_10 dakota selecting-document false",
+				"unitId_10 dakota selecting-folder true", "unitId_10 dakota visible-actives true",
 				"unitId_10 edouard selecting-document false", "unitId_10 edouard selecting-folder true",
-				"unitId_10 edouard visible true", "unitId_10 gandalf selecting-document false",
-				"unitId_10 gandalf selecting-folder true", "unitId_10 gandalf visible true",
+				"unitId_10 edouard visible-actives true", "unitId_10 gandalf selecting-document false",
+				"unitId_10 gandalf selecting-folder true", "unitId_10 gandalf visible-actives true",
 				"unitId_10 robin selecting-document false", "unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false", "unitId_10 sasquatch selecting-document false",
-				"unitId_10 sasquatch selecting-folder true", "unitId_10 sasquatch visible true", "unitId_10a alice visible true",
-				"unitId_10a charles visible true", "unitId_10a dakota visible true", "unitId_10a edouard visible true",
-				"unitId_10a gandalf visible true", "unitId_10a sasquatch visible true",
+				"unitId_10 robin visible-actives false", "unitId_10 sasquatch selecting-document false",
+				"unitId_10 sasquatch selecting-folder true", "unitId_10 sasquatch visible-actives true", "unitId_10a alice visible-actives true",
+				"unitId_10a charles visible-actives true", "unitId_10a dakota visible-actives true", "unitId_10a edouard visible-actives true",
+				"unitId_10a gandalf visible-actives true", "unitId_10a sasquatch visible-actives true",
 				"unitId_30 alice selecting-document false", "unitId_30 alice selecting-folder false",
-				"unitId_30 alice visible false", "unitId_30 charles selecting-document false",
-				"unitId_30 charles selecting-folder false", "unitId_30 charles visible false",
+				"unitId_30 alice visible-actives false", "unitId_30 charles selecting-document false",
+				"unitId_30 charles selecting-folder false", "unitId_30 charles visible-actives false",
 				"unitId_30 dakota selecting-document false", "unitId_30 dakota selecting-folder false",
-				"unitId_30 dakota visible false", "unitId_30 edouard selecting-document false",
-				"unitId_30 edouard selecting-folder false", "unitId_30 edouard visible false",
+				"unitId_30 dakota visible-actives false", "unitId_30 edouard selecting-document false",
+				"unitId_30 edouard selecting-folder false", "unitId_30 edouard visible-actives false",
 				"unitId_30 gandalf selecting-document false", "unitId_30 gandalf selecting-folder false",
-				"unitId_30 gandalf visible false", "unitId_30 robin selecting-document false",
-				"unitId_30 robin selecting-folder false", "unitId_30 robin visible false",
+				"unitId_30 gandalf visible-actives false", "unitId_30 robin selecting-document false",
+				"unitId_30 robin selecting-folder false", "unitId_30 robin visible-actives false",
 				"unitId_30 sasquatch selecting-document false", "unitId_30 sasquatch selecting-folder false",
-				"unitId_30 sasquatch visible false"
+				"unitId_30 sasquatch visible-actives false"
 		);
 
 		authServices.execute(modifyAuthorizationOnRecord(auth, records.getUnit10())
@@ -569,58 +569,58 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		cache.invalidateUser(robin);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X alice selecting-document false", "categoryId_X alice selecting-folder true",
-				"categoryId_X alice visible true", "categoryId_X charles selecting-document false",
-				"categoryId_X charles selecting-folder true", "categoryId_X charles visible true",
+				"categoryId_X alice visible-actives true", "categoryId_X charles selecting-document false",
+				"categoryId_X charles selecting-folder true", "categoryId_X charles visible-actives true",
 				"categoryId_X dakota selecting-document false", "categoryId_X dakota selecting-folder true",
-				"categoryId_X dakota visible true", "categoryId_X edouard selecting-document false",
-				"categoryId_X edouard selecting-folder false", "categoryId_X edouard visible false",
+				"categoryId_X dakota visible-actives true", "categoryId_X edouard selecting-document false",
+				"categoryId_X edouard selecting-folder false", "categoryId_X edouard visible-actives false",
 				"categoryId_X gandalf selecting-document false", "categoryId_X gandalf selecting-folder true",
-				"categoryId_X gandalf visible true", "categoryId_X robin selecting-document false",
-				"categoryId_X robin selecting-folder true", "categoryId_X robin visible true",
+				"categoryId_X gandalf visible-actives true", "categoryId_X robin selecting-document false",
+				"categoryId_X robin selecting-folder true", "categoryId_X robin visible-actives true",
 				"categoryId_X sasquatch selecting-document false", "categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true", "categoryId_X100 alice visible true",
-				"categoryId_X100 charles visible true", "categoryId_X100 dakota visible true",
-				"categoryId_X100 gandalf visible true", "categoryId_X100 robin visible true",
-				"categoryId_X100 sasquatch visible true", "categoryId_X110 alice visible true",
-				"categoryId_X110 charles visible true", "categoryId_X110 dakota visible true",
-				"categoryId_X110 gandalf visible true", "categoryId_X110 robin visible true",
-				"categoryId_X110 sasquatch visible true", "categoryId_Z alice selecting-document false",
-				"categoryId_Z alice selecting-folder false", "categoryId_Z alice visible false",
+				"categoryId_X sasquatch visible-actives true", "categoryId_X100 alice visible-actives true",
+				"categoryId_X100 charles visible-actives true", "categoryId_X100 dakota visible-actives true",
+				"categoryId_X100 gandalf visible-actives true", "categoryId_X100 robin visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true", "categoryId_X110 alice visible-actives true",
+				"categoryId_X110 charles visible-actives true", "categoryId_X110 dakota visible-actives true",
+				"categoryId_X110 gandalf visible-actives true", "categoryId_X110 robin visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true", "categoryId_Z alice selecting-document false",
+				"categoryId_Z alice selecting-folder false", "categoryId_Z alice visible-actives false",
 				"categoryId_Z charles selecting-document false", "categoryId_Z charles selecting-folder false",
-				"categoryId_Z charles visible false", "categoryId_Z dakota selecting-document false",
-				"categoryId_Z dakota selecting-folder false", "categoryId_Z dakota visible false",
+				"categoryId_Z charles visible-actives false", "categoryId_Z dakota selecting-document false",
+				"categoryId_Z dakota selecting-folder false", "categoryId_Z dakota visible-actives false",
 				"categoryId_Z edouard selecting-document false", "categoryId_Z edouard selecting-folder false",
-				"categoryId_Z edouard visible false", "categoryId_Z gandalf selecting-document false",
-				"categoryId_Z gandalf selecting-folder false", "categoryId_Z gandalf visible false",
+				"categoryId_Z edouard visible-actives false", "categoryId_Z gandalf selecting-document false",
+				"categoryId_Z gandalf selecting-folder false", "categoryId_Z gandalf visible-actives false",
 				"categoryId_Z robin selecting-document false", "categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false", "categoryId_Z sasquatch selecting-document false",
-				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible false",
+				"categoryId_Z robin visible-actives false", "categoryId_Z sasquatch selecting-document false",
+				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible-actives false",
 				"unitId_10 admin selecting-document false", "unitId_10 admin selecting-folder true",
-				"unitId_10 admin visible true", "unitId_10 alice selecting-document false",
-				"unitId_10 alice selecting-folder true", "unitId_10 alice visible true", "unitId_10 bob selecting-document false",
-				"unitId_10 bob selecting-folder true", "unitId_10 bob visible true", "unitId_10 charles selecting-document false",
-				"unitId_10 charles selecting-folder true", "unitId_10 charles visible true",
+				"unitId_10 admin visible-actives true", "unitId_10 alice selecting-document false",
+				"unitId_10 alice selecting-folder true", "unitId_10 alice visible-actives true", "unitId_10 bob selecting-document false",
+				"unitId_10 bob selecting-folder true", "unitId_10 bob visible-actives true", "unitId_10 charles selecting-document false",
+				"unitId_10 charles selecting-folder true", "unitId_10 charles visible-actives true",
 				"unitId_10 chuck selecting-document false", "unitId_10 chuck selecting-folder true",
-				"unitId_10 chuck visible true", "unitId_10 dakota selecting-document false",
-				"unitId_10 dakota selecting-folder true", "unitId_10 dakota visible true",
+				"unitId_10 chuck visible-actives true", "unitId_10 dakota selecting-document false",
+				"unitId_10 dakota selecting-folder true", "unitId_10 dakota visible-actives true",
 				"unitId_10 edouard selecting-document false", "unitId_10 edouard selecting-folder false",
-				"unitId_10 edouard visible false", "unitId_10 gandalf selecting-document false",
-				"unitId_10 gandalf selecting-folder true", "unitId_10 gandalf visible true",
+				"unitId_10 edouard visible-actives false", "unitId_10 gandalf selecting-document false",
+				"unitId_10 gandalf selecting-folder true", "unitId_10 gandalf visible-actives true",
 				"unitId_10 robin selecting-document false", "unitId_10 robin selecting-folder true",
-				"unitId_10 robin visible true", "unitId_10 sasquatch selecting-document false",
-				"unitId_10 sasquatch selecting-folder true", "unitId_10 sasquatch visible true", "unitId_10a alice visible true",
-				"unitId_10a charles visible true", "unitId_10a dakota visible true", "unitId_10a gandalf visible true",
-				"unitId_10a robin visible true", "unitId_10a sasquatch visible true", "unitId_30 alice selecting-document false",
-				"unitId_30 alice selecting-folder false", "unitId_30 alice visible false",
+				"unitId_10 robin visible-actives true", "unitId_10 sasquatch selecting-document false",
+				"unitId_10 sasquatch selecting-folder true", "unitId_10 sasquatch visible-actives true", "unitId_10a alice visible-actives true",
+				"unitId_10a charles visible-actives true", "unitId_10a dakota visible-actives true", "unitId_10a gandalf visible-actives true",
+				"unitId_10a robin visible-actives true", "unitId_10a sasquatch visible-actives true", "unitId_30 alice selecting-document false",
+				"unitId_30 alice selecting-folder false", "unitId_30 alice visible-actives false",
 				"unitId_30 charles selecting-document false", "unitId_30 charles selecting-folder false",
-				"unitId_30 charles visible false", "unitId_30 dakota selecting-document false",
-				"unitId_30 dakota selecting-folder false", "unitId_30 dakota visible false",
+				"unitId_30 charles visible-actives false", "unitId_30 dakota selecting-document false",
+				"unitId_30 dakota selecting-folder false", "unitId_30 dakota visible-actives false",
 				"unitId_30 edouard selecting-document false", "unitId_30 edouard selecting-folder false",
-				"unitId_30 edouard visible false", "unitId_30 gandalf selecting-document false",
-				"unitId_30 gandalf selecting-folder false", "unitId_30 gandalf visible false",
+				"unitId_30 edouard visible-actives false", "unitId_30 gandalf selecting-document false",
+				"unitId_30 gandalf selecting-folder false", "unitId_30 gandalf visible-actives false",
 				"unitId_30 robin selecting-document false", "unitId_30 robin selecting-folder false",
-				"unitId_30 robin visible false", "unitId_30 sasquatch selecting-document false",
-				"unitId_30 sasquatch selecting-folder false", "unitId_30 sasquatch visible false"
+				"unitId_30 robin visible-actives false", "unitId_30 sasquatch selecting-document false",
+				"unitId_30 sasquatch selecting-folder false", "unitId_30 sasquatch visible-actives false"
 		);
 
 		authServices.execute(authorizationDeleteRequest(auth, zeCollection));
@@ -630,38 +630,38 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		cache.invalidateUser(gandalf);
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X alice selecting-document false", "categoryId_X alice selecting-folder true",
-				"categoryId_X alice visible true", "categoryId_X edouard selecting-document false",
-				"categoryId_X edouard selecting-folder true", "categoryId_X edouard visible true",
+				"categoryId_X alice visible-actives true", "categoryId_X edouard selecting-document false",
+				"categoryId_X edouard selecting-folder true", "categoryId_X edouard visible-actives true",
 				"categoryId_X gandalf selecting-document false", "categoryId_X gandalf selecting-folder true",
-				"categoryId_X gandalf visible true", "categoryId_X sasquatch selecting-document false",
-				"categoryId_X sasquatch selecting-folder true", "categoryId_X sasquatch visible true",
-				"categoryId_X100 alice visible true", "categoryId_X100 edouard visible true",
-				"categoryId_X100 gandalf visible true", "categoryId_X100 sasquatch visible true",
-				"categoryId_X110 alice visible true", "categoryId_X110 edouard visible true",
-				"categoryId_X110 gandalf visible true", "categoryId_X110 sasquatch visible true",
+				"categoryId_X gandalf visible-actives true", "categoryId_X sasquatch selecting-document false",
+				"categoryId_X sasquatch selecting-folder true", "categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 alice visible-actives true", "categoryId_X100 edouard visible-actives true",
+				"categoryId_X100 gandalf visible-actives true", "categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 alice visible-actives true", "categoryId_X110 edouard visible-actives true",
+				"categoryId_X110 gandalf visible-actives true", "categoryId_X110 sasquatch visible-actives true",
 				"categoryId_Z alice selecting-document false", "categoryId_Z alice selecting-folder false",
-				"categoryId_Z alice visible false", "categoryId_Z edouard selecting-document false",
-				"categoryId_Z edouard selecting-folder false", "categoryId_Z edouard visible false",
+				"categoryId_Z alice visible-actives false", "categoryId_Z edouard selecting-document false",
+				"categoryId_Z edouard selecting-folder false", "categoryId_Z edouard visible-actives false",
 				"categoryId_Z gandalf selecting-document false", "categoryId_Z gandalf selecting-folder false",
-				"categoryId_Z gandalf visible false", "categoryId_Z sasquatch selecting-document false",
-				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible false",
-				"unitId_10 admin selecting-folder true", "unitId_10 admin visible true",
+				"categoryId_Z gandalf visible-actives false", "categoryId_Z sasquatch selecting-document false",
+				"categoryId_Z sasquatch selecting-folder false", "categoryId_Z sasquatch visible-actives false",
+				"unitId_10 admin selecting-folder true", "unitId_10 admin visible-actives true",
 				"unitId_10 alice selecting-document false", "unitId_10 alice selecting-folder true",
-				"unitId_10 alice visible true", "unitId_10 bob selecting-folder true", "unitId_10 bob visible true",
-				"unitId_10 charles selecting-folder true", "unitId_10 charles visible true",
-				"unitId_10 chuck selecting-folder true", "unitId_10 chuck visible true", "unitId_10 dakota selecting-folder true",
-				"unitId_10 dakota visible true", "unitId_10 edouard selecting-document false",
-				"unitId_10 edouard selecting-folder true", "unitId_10 edouard visible true",
+				"unitId_10 alice visible-actives true", "unitId_10 bob selecting-folder true", "unitId_10 bob visible-actives true",
+				"unitId_10 charles selecting-folder true", "unitId_10 charles visible-actives true",
+				"unitId_10 chuck selecting-folder true", "unitId_10 chuck visible-actives true", "unitId_10 dakota selecting-folder true",
+				"unitId_10 dakota visible-actives true", "unitId_10 edouard selecting-document false",
+				"unitId_10 edouard selecting-folder true", "unitId_10 edouard visible-actives true",
 				"unitId_10 gandalf selecting-document false", "unitId_10 gandalf selecting-folder true",
-				"unitId_10 gandalf visible true", "unitId_10 sasquatch selecting-document false",
-				"unitId_10 sasquatch selecting-folder true", "unitId_10 sasquatch visible true", "unitId_10a alice visible true",
-				"unitId_10a edouard visible true", "unitId_10a gandalf visible true", "unitId_10a sasquatch visible true",
+				"unitId_10 gandalf visible-actives true", "unitId_10 sasquatch selecting-document false",
+				"unitId_10 sasquatch selecting-folder true", "unitId_10 sasquatch visible-actives true", "unitId_10a alice visible-actives true",
+				"unitId_10a edouard visible-actives true", "unitId_10a gandalf visible-actives true", "unitId_10a sasquatch visible-actives true",
 				"unitId_30 alice selecting-document false", "unitId_30 alice selecting-folder false",
-				"unitId_30 alice visible false", "unitId_30 edouard selecting-document false",
-				"unitId_30 edouard selecting-folder false", "unitId_30 edouard visible false",
+				"unitId_30 alice visible-actives false", "unitId_30 edouard selecting-document false",
+				"unitId_30 edouard selecting-folder false", "unitId_30 edouard visible-actives false",
 				"unitId_30 gandalf selecting-document false", "unitId_30 gandalf selecting-folder false",
-				"unitId_30 gandalf visible false", "unitId_30 sasquatch selecting-document false",
-				"unitId_30 sasquatch selecting-folder false", "unitId_30 sasquatch visible false"
+				"unitId_30 gandalf visible-actives false", "unitId_30 sasquatch selecting-document false",
+				"unitId_30 sasquatch selecting-folder false", "unitId_30 sasquatch visible-actives false"
 		);
 	}
 
@@ -673,11 +673,11 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false",
+				"categoryId_X robin visible-actives false",
 				"categoryId_X sasquatch selecting-document false",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false",
+				"unitId_10 robin visible-actives false",
 				"unitId_10 sasquatch selecting-document false"
 		);
 
@@ -686,22 +686,22 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder true",
-				"categoryId_X robin visible true",
+				"categoryId_X robin visible-actives true",
 				"categoryId_X sasquatch selecting-document false",
 				"categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true",
-				"categoryId_X100 robin visible true",
-				"categoryId_X100 sasquatch visible true",
-				"categoryId_X110 robin visible true",
-				"categoryId_X110 sasquatch visible true",
+				"categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 robin visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 robin visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder true",
-				"unitId_10 robin visible true",
+				"unitId_10 robin visible-actives true",
 				"unitId_10 sasquatch selecting-document false",
 				"unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true",
-				"unitId_10a robin visible true",
-				"unitId_10a sasquatch visible true"
+				"unitId_10 sasquatch visible-actives true",
+				"unitId_10a robin visible-actives true",
+				"unitId_10a sasquatch visible-actives true"
 		);
 
 		authServices.execute(modifyAuthorizationOnRecord(auth, record(FOLDER1))
@@ -709,37 +709,37 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false",
+				"categoryId_X robin visible-actives false",
 				"categoryId_X sasquatch selecting-document false",
 				"categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true",
-				"categoryId_X100 sasquatch visible true",
-				"categoryId_X110 sasquatch visible true",
+				"categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false",
+				"unitId_10 robin visible-actives false",
 				"unitId_10 sasquatch selecting-document false",
 				"unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true",
-				"unitId_10a sasquatch visible true"
+				"unitId_10 sasquatch visible-actives true",
+				"unitId_10a sasquatch visible-actives true"
 		);
 
 		authServices.execute(authorizationDeleteRequest(auth, zeCollection));
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-folder true",
-				"categoryId_X robin visible true",
+				"categoryId_X robin visible-actives true",
 				"categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true",
-				"categoryId_X100 robin visible true",
-				"categoryId_X100 sasquatch visible true",
-				"categoryId_X110 robin visible true",
-				"categoryId_X110 sasquatch visible true",
+				"categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 robin visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 robin visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true",
 				"unitId_10 robin selecting-folder true",
-				"unitId_10 robin visible true",
+				"unitId_10 robin visible-actives true",
 				"unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true",
-				"unitId_10a robin visible true",
-				"unitId_10a sasquatch visible true"
+				"unitId_10 sasquatch visible-actives true",
+				"unitId_10a robin visible-actives true",
+				"unitId_10a sasquatch visible-actives true"
 		);
 	}
 
@@ -755,16 +755,16 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false",
+				"categoryId_X robin visible-actives false",
 				"categoryId_Z robin selecting-document false",
 				"categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false",
+				"categoryId_Z robin visible-actives false",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false",
+				"unitId_10 robin visible-actives false",
 				"unitId_30 robin selecting-document false",
 				"unitId_30 robin selecting-folder false",
-				"unitId_30 robin visible false"
+				"unitId_30 robin visible-actives false"
 		);
 
 		recordServices.update(userServices.getUserInCollection(robin, zeCollection).setAddress("2020 rue du Finfin"));
@@ -775,19 +775,19 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder true",
-				"categoryId_X robin visible true",
-				"categoryId_X100 robin visible true",
-				"categoryId_X110 robin visible true",
+				"categoryId_X robin visible-actives true",
+				"categoryId_X100 robin visible-actives true",
+				"categoryId_X110 robin visible-actives true",
 				"categoryId_Z robin selecting-document false",
 				"categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false",
+				"categoryId_Z robin visible-actives false",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder true",
-				"unitId_10 robin visible true",
-				"unitId_10a robin visible true",
+				"unitId_10 robin visible-actives true",
+				"unitId_10a robin visible-actives true",
 				"unitId_30 robin selecting-document false",
 				"unitId_30 robin selecting-folder false",
-				"unitId_30 robin visible false"
+				"unitId_30 robin visible-actives false"
 		);
 
 	}
@@ -805,32 +805,32 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().containsOnly(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false",
+				"categoryId_X robin visible-actives false",
 				"categoryId_Z robin selecting-document false",
 				"categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false",
+				"categoryId_Z robin visible-actives false",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false",
+				"unitId_10 robin visible-actives false",
 				"unitId_30 robin selecting-document false",
 				"unitId_30 robin selecting-folder false",
-				"unitId_30 robin visible false"
+				"unitId_30 robin visible-actives false"
 		);
 
 		recordServices.update(robinUser.setUserGroups(new ArrayList<String>()));
 		assertThatInvalidatedEntriesSinceLastCheck().containsOnly(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false",
+				"categoryId_X robin visible-actives false",
 				"categoryId_Z robin selecting-document false",
 				"categoryId_Z robin selecting-folder false",
-				"categoryId_Z robin visible false",
+				"categoryId_Z robin visible-actives false",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false",
+				"unitId_10 robin visible-actives false",
 				"unitId_30 robin selecting-document false",
 				"unitId_30 robin selecting-folder false",
-				"unitId_30 robin visible false"
+				"unitId_30 robin visible-actives false"
 		);
 
 	}
@@ -863,11 +863,11 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false",
+				"categoryId_X robin visible-actives false",
 				"categoryId_X sasquatch selecting-document false",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false",
+				"unitId_10 robin visible-actives false",
 				"unitId_10 sasquatch selecting-document false"
 		);
 
@@ -876,22 +876,22 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder true",
-				"categoryId_X robin visible true",
+				"categoryId_X robin visible-actives true",
 				"categoryId_X sasquatch selecting-document false",
 				"categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true",
-				"categoryId_X100 robin visible true",
-				"categoryId_X100 sasquatch visible true",
-				"categoryId_X110 robin visible true",
-				"categoryId_X110 sasquatch visible true",
+				"categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 robin visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 robin visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder true",
-				"unitId_10 robin visible true",
+				"unitId_10 robin visible-actives true",
 				"unitId_10 sasquatch selecting-document false",
 				"unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true",
-				"unitId_10a robin visible true",
-				"unitId_10a sasquatch visible true"
+				"unitId_10 sasquatch visible-actives true",
+				"unitId_10a robin visible-actives true",
+				"unitId_10a sasquatch visible-actives true"
 		);
 
 		authServices.execute(modifyAuthorizationOnRecord(auth, record(FOLDER1))
@@ -899,56 +899,56 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false",
+				"categoryId_X robin visible-actives false",
 				"categoryId_X sasquatch selecting-document false",
 				"categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true",
-				"categoryId_X100 sasquatch visible true",
-				"categoryId_X110 sasquatch visible true",
+				"categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false",
+				"unitId_10 robin visible-actives false",
 				"unitId_10 sasquatch selecting-document false",
 				"unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true",
-				"unitId_10a sasquatch visible true"
+				"unitId_10 sasquatch visible-actives true",
+				"unitId_10a sasquatch visible-actives true"
 		);
 
 		authServices.execute(authorizationDeleteRequest(auth, zeCollection));
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-folder true",
-				"categoryId_X robin visible true",
+				"categoryId_X robin visible-actives true",
 				"categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true",
-				"categoryId_X100 robin visible true",
-				"categoryId_X100 sasquatch visible true",
-				"categoryId_X110 robin visible true",
-				"categoryId_X110 sasquatch visible true",
+				"categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 robin visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 robin visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true",
 				"unitId_10 robin selecting-folder true",
-				"unitId_10 robin visible true",
+				"unitId_10 robin visible-actives true",
 				"unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true",
-				"unitId_10a robin visible true",
-				"unitId_10a sasquatch visible true"
+				"unitId_10 sasquatch visible-actives true",
+				"unitId_10a robin visible-actives true",
+				"unitId_10a sasquatch visible-actives true"
 		);
 
 		authServices.reset(record(FOLDER1));
 		assertThatInvalidatedEntriesSinceLastCheck().contains(
 				"categoryId_X robin selecting-document false",
 				"categoryId_X robin selecting-folder false",
-				"categoryId_X robin visible false",
+				"categoryId_X robin visible-actives false",
 				"categoryId_X sasquatch selecting-document false",
 				"categoryId_X sasquatch selecting-folder true",
-				"categoryId_X sasquatch visible true",
-				"categoryId_X100 sasquatch visible true",
-				"categoryId_X110 sasquatch visible true",
+				"categoryId_X sasquatch visible-actives true",
+				"categoryId_X100 sasquatch visible-actives true",
+				"categoryId_X110 sasquatch visible-actives true",
 				"unitId_10 robin selecting-document false",
 				"unitId_10 robin selecting-folder false",
-				"unitId_10 robin visible false",
+				"unitId_10 robin visible-actives false",
 				"unitId_10 sasquatch selecting-document false",
 				"unitId_10 sasquatch selecting-folder true",
-				"unitId_10 sasquatch visible true",
-				"unitId_10a sasquatch visible true"
+				"unitId_10 sasquatch visible-actives true",
+				"unitId_10a sasquatch visible-actives true"
 		);
 	}
 

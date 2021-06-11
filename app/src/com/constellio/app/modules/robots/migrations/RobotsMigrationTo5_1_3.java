@@ -35,7 +35,7 @@ public class RobotsMigrationTo5_1_3 implements MigrationScript {
 		}
 
 		private void createRobotLogSchemaType(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder robot) {
-			MetadataSchemaTypeBuilder robotLog = types.createNewSchemaType(RobotLog.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder robotLog = types.createNewSchemaTypeWithSecurity(RobotLog.SCHEMA_TYPE);
 			MetadataSchemaBuilder schema = robotLog.getDefaultSchema();
 
 			schema.createUndeletable(RobotLog.ROBOT).defineReferencesTo(robot).setDefaultRequirement(true).setEssential(true);

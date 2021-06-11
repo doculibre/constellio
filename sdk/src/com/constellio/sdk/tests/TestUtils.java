@@ -1,17 +1,20 @@
 package com.constellio.sdk.tests;
 
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.SolrRecordDTO;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.factories.LayerFactory;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.data.events.SDKEventBusSendingDelayedService;
 import com.constellio.data.events.SDKEventBusSendingService;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.utils.RunnableWithException;
 import com.constellio.data.utils.ThrowingRunnable;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
@@ -1310,7 +1313,8 @@ public class TestUtils {
 				&& !link.getFromMetadata().getCode().startsWith("user_")
 				&& !link.getFromMetadata().getCode().startsWith("userDocument_")
 				&& !link.getFromMetadata().getCode().startsWith("user_")
-				&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
+				&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")
+				&& !link.getFromMetadata().getCode().startsWith("message_")) {
 				Tuple tuple = new Tuple(link.getFromMetadata().getCode(), link.getToMetadata().getCode(), link.getLevel());
 				tuples.add(tuple);
 			}
@@ -1483,6 +1487,48 @@ public class TestUtils {
 
 		public ValidationErrorAssert hasErrorWithFrenchMessage(String englishMessages) {
 			assertThat(TestUtils.englishMessages(errors)).containsOnly(englishMessages);
+			return this;
+		}
+
+	}
+
+	public static SolrUsageAssert assertThatSolrUsage(LayerFactory layerFactory, RunnableWithException runnable) throws Exception {
+
+		DataLayerFactory dataLayerFactory = null;
+		if (layerFactory instanceof DataLayerFactory) {
+			dataLayerFactory = (DataLayerFactory) layerFactory;
+		}
+		if (layerFactory instanceof ModelLayerFactory) {
+			dataLayerFactory = ((ModelLayerFactory) layerFactory).getDataLayerFactory();
+		}
+		if (layerFactory instanceof AppLayerFactory) {
+			dataLayerFactory = ((AppLayerFactory) layerFactory).getModelLayerFactory().getDataLayerFactory();
+		}
+
+		GetByIdCounter getByIdCounter = new GetByIdCounter(dataLayerFactory, ConstellioTest.getInstance().getClass());
+
+		runnable.run();
+
+		return new SolrUsageAssert(getByIdCounter.countNewCalls());
+
+	}
+
+
+
+	@AllArgsConstructor
+	public static class SolrUsageAssert {
+
+		int getByIdsCount;
+
+		public 	SolrUsageAssert hasGetByIdsCountEqualTo(int eq) {
+			if (eq != getByIdsCount) {
+
+
+
+
+				assertThat(getByIdsCount).describedAs("Get by ids count").isEqualTo(eq);
+			}
+
 			return this;
 		}
 

@@ -28,6 +28,9 @@ public interface ConfigManager {
 
 	PropertiesConfiguration getProperties(String path);
 
+	/**
+	 * Performance warning : there is no cache hit if the value if null. Prefer using getXML/getProperties in sensitive classes
+	 */
 	boolean exist(String path);
 
 	boolean folderExist(String path);

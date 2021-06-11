@@ -25,6 +25,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.VisibilityStatusFilter;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Component;
@@ -82,7 +83,15 @@ public class LookupRecordField extends LookupField<String> {
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated,
 							 boolean isShowAllIfHasAccessToManageSecurity, boolean includeLogicallyDeleted,
 							 List<String> idsToIgnore) {
-		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated, false, includeLogicallyDeleted).addIdToToIgnore(idsToIgnore),
+		this( schemaTypeCode,  schemaCode,  writeAccess,  showDeactivated,
+		 isShowAllIfHasAccessToManageSecurity,  includeLogicallyDeleted,
+		 idsToIgnore,VisibilityStatusFilter.ALL);
+	}
+
+	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated,
+							 boolean isShowAllIfHasAccessToManageSecurity, boolean includeLogicallyDeleted,
+							 List<String> idsToIgnore, VisibilityStatusFilter visibilityStatusFilter) {
+		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated, false, includeLogicallyDeleted, visibilityStatusFilter).addIdToToIgnore(idsToIgnore),
 				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, isShowAllIfHasAccessToManageSecurity));
 		this.isShowDeactivated = showDeactivated;
 		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());

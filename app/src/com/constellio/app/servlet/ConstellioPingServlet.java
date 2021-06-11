@@ -3,8 +3,6 @@ package com.constellio.app.servlet;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.ping.PingServices;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
-import com.constellio.model.services.records.reindexing.SystemReindexingInfos;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -66,9 +64,10 @@ public class ConstellioPingServlet extends HttpServlet {
 	}
 
 	private void getConstellioStatus(PrintWriter pw) {
-		SystemReindexingInfos reindexingInfos = ReindexingServices.getReindexingInfos();
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstanceIfAlreadyStarted().getAppLayerFactory();
+		boolean reindexing = appLayerFactory.isReindexing();
 
-		if (reindexingInfos != null) {
+		if (reindexing) {
 			pw.append("Constellio status : online (reindexing)");
 			pw.append("\n");
 

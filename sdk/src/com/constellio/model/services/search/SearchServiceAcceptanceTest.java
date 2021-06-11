@@ -24,6 +24,8 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RecordCacheType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesAcceptanceTest.TestSeparatedStructure;
+import com.constellio.model.services.records.RecordServicesAcceptanceTest.TestSeparatedStructureFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -38,13 +40,13 @@ import com.constellio.model.services.search.moreLikeThis.MoreLikeThisClustering;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
 import com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.QueryCounter;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
@@ -73,9 +75,11 @@ import java.util.Set;
 
 import static com.constellio.data.dao.services.records.DataStore.EVENTS;
 import static com.constellio.data.dao.services.records.DataStore.RECORDS;
+import static com.constellio.model.entities.records.Record.GetMetadataOption.ONLY_MAIN_STRUCTURE_VALUE;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.GetRecordOptions.RETURNING_SUMMARY;
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 import static com.constellio.model.services.search.VisibilityStatusFilter.HIDDENS;
 import static com.constellio.model.services.search.VisibilityStatusFilter.VISIBLES;
@@ -88,6 +92,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollectionInDataStore;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_CACHE;
+import static com.constellio.model.services.search.query.logical.QueryExecutionMethod.USE_SOLR;
 import static com.constellio.sdk.tests.TestUtils.ids;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
@@ -98,6 +104,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchab
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -302,7 +309,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		List<String> stringMetadatasOfRecordsWhenIteratingAsc = new ArrayList<>();
 		Iterator<Record> recordIterator = searchServices.recordsIterator(new LogicalSearchQuery(from(zeSchema.type()).returnAll())
-				.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR), 5);
+				.setQueryExecutionMethod(USE_SOLR), 5);
 		while (recordIterator.hasNext()) {
 			Record record = recordIterator.next();
 			stringMetadatasOfRecordsWhenIteratingAsc.add(record.<String>get(zeSchema.stringMetadata()));
@@ -314,7 +321,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		List<String> stringMetadatasOfRecordsWhenIteratingDesc = new ArrayList<>();
 		recordIterator = searchServices.reverseRecordsIterator(new LogicalSearchQuery(from(zeSchema.type()).returnAll())
-				.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR), 5);
+				.setQueryExecutionMethod(USE_SOLR), 5);
 		while (recordIterator.hasNext()) {
 			Record record = recordIterator.next();
 			stringMetadatasOfRecordsWhenIteratingDesc.add(record.<String>get(zeSchema.stringMetadata()));
@@ -648,7 +655,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		LogicalSearchQuery query = new LogicalSearchQuery(from(zeSchema.instance()).returnAll())
 				.addFieldFacet(zeSchema.numberMetadata().getDataStoreCode());
 
-		Map<String, List<FacetValue>> facets = searchServices.query(query).getFieldFacetValues();
+		SPEQueryResponse response = searchServices.query(query);
+		Map<String, List<FacetValue>> facets = response.getFieldFacetValues();
 		assertThat(facets.keySet()).containsOnly(zeSchema.numberMetadata().getDataStoreCode());
 		assertThat(facets.get(zeSchema.numberMetadata().getDataStoreCode())).hasSize(3);
 	}
@@ -710,7 +718,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(zeSchema.booleanMetadata()));
-		query.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR);
+		query.setQueryExecutionMethod(USE_SOLR);
 		List<Record> records = searchServices.search(query);
 
 		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));
@@ -740,10 +748,18 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));
 		List<String> textValue1 = records.get(0).get(zeSchema.multivaluedLargeTextMetadata());
-		assertThat(textValue1).contains("52124500");
 
+		boolean containFirstId = textValue1.contains("52124500");
+		boolean containSecondId = textValue1.contains("52124500432");
 		List<String> textValue2 = records.get(1).get(zeSchema.multivaluedLargeTextMetadata());
-		assertThat(textValue2).contains("52124500432");
+
+		if (containFirstId) {
+			assertThat(textValue2).contains("52124500432");
+		} else if (containSecondId) {
+			assertThat(textValue2).contains("52124500");
+		} else {
+			fail("results does not contain the right informations");
+		}
 	}
 
 	@Test
@@ -764,7 +780,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
 		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(zeSchema.stringMetadata()));
-		query.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR);
+		query.setQueryExecutionMethod(USE_SOLR);
 		List<Record> records = searchServices.search(query);
 
 		assertThat(ids(records)).containsOnly(TestUtils.idsArray(expectedRecord, expectedRecord2));
@@ -3253,6 +3269,257 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		HashSet uniqueAnalyzedFields = new HashSet<>(analyzedFields);
 		assertThat(uniqueAnalyzedFields).hasSize(analyzedFields.size());
 		assertThat(uniqueAnalyzedFields).doesNotContain("dateMetadata.search_ss");
+	}
+
+	@Test
+	public void givenNotCachedSeparatedStructureMetadatasWhenSearchingThenFindingValuesUsingSearchField() throws Exception {
+
+		/**
+		 * Using TestSeparatedStructureFactory declaired in RecordServicesAcceptanceTest,
+		 * this structure has declared the field 'value2' has the search field
+		 */
+
+		defineSchemasManager().using(schema.with((MetadataSchemaTypesBuilder b) -> {
+			b.getSchemaType("zeSchemaType").setRecordCacheType(RecordCacheType.NOT_CACHED);
+			b.getDefaultSchema("zeSchemaType").create("structureMetadata")
+					.defineStructureFactory(TestSeparatedStructureFactory.class).setSearchable(true);
+		}));
+		Metadata metadata = zeSchema.metadata("structureMetadata");
+
+		//Creating a record with a structure
+		Record record1 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Gandalf").setMainValue("Leblanc"));
+
+		Record record2 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Gandalf").setMainValue("Legris"));
+
+		Record record3 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Francis").setMainValue("Leblanc"));
+
+		Record record4 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Édouard").setMainValue("Lachance"));
+
+		recordServices.execute(new Transaction(record1, record2, record3, record4));
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
+
+		//Trying some case sensitive searches
+		assertThat(searchServices.searchRecordIds(from(schema.zeDefaultSchemaType()).where(metadata).isEqualTo("Leblanc")))
+			.containsOnly(record1.getId(), record3.getId());
+		assertThat(searchServices.searchRecordIds(from(schema.zeDefaultSchemaType()).where(metadata).isEqualTo("Legris")))
+				.containsOnly(record2.getId());
+		assertThat(searchServices.searchRecordIds(from(schema.zeDefaultSchemaType()).where(metadata).isStartingWithText("Le")))
+				.containsOnly(record1.getId(), record2.getId(), record3.getId());
+
+		//Trying search with data from other structure fields, no results
+		assertThat(searchServices.searchRecordIds(from(schema.zeDefaultSchemaType()).where(metadata).isContainingText("Gandalf"))).isEmpty();
+
+		//Trying some case insensitive searches, only works if prefering analyzed fields
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schema.zeDefaultSchemaType()).where(metadata).isEqualTo("leblanc"));
+
+		assertThat(searchServices.searchRecordIds(query)).isEmpty();
+		assertThat(searchServices.searchRecordIds(query.setPreferAnalyzedFields(true))).containsOnly(record1.getId(), record3.getId());
+	}
+
+	@Test
+	public void givenSummaryCachedSeparatedStructureMetadatasWhenSearchingThenFindingValuesUsingSearchField() throws Exception {
+
+		/**
+		 * Using TestSeparatedStructureFactory declaired in RecordServicesAcceptanceTest,
+		 * this structure has declared the field 'value2' has the search field
+		 */
+
+		defineSchemasManager().using(schema.with((MetadataSchemaTypesBuilder b) -> {
+			b.getSchemaType("zeSchemaType").setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
+			b.getDefaultSchema("zeSchemaType").create("structureMetadata")
+					.defineStructureFactory(TestSeparatedStructureFactory.class).setSearchable(true).setAvailableInSummary(true);
+		}));
+		Metadata metadata = zeSchema.metadata("structureMetadata");
+
+		//Creating a record with a structure
+		Record record1 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Gandalf").setMainValue("Leblanc"));
+
+		Record record2 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Gandalf").setMainValue("Legris"));
+
+		Record record3 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Francis").setMainValue("Leblanc"));
+
+		Record record4 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Édouard").setMainValue("Lachance"));
+
+		recordServices.execute(new Transaction(record1, record2, record3, record4));
+
+		Record record1Summary = recordServices.get(record1.getId(), RETURNING_SUMMARY);
+		assertThat(record1Summary.<String>get(metadata, ONLY_MAIN_STRUCTURE_VALUE)).isEqualTo("Leblanc");
+		assertThat(record1Summary.<TestSeparatedStructure>get(metadata).getMainValue()).isEqualTo("Leblanc");
+
+		//Only main value is kept in cache
+		assertThat(record1Summary.<TestSeparatedStructure>get(metadata).getExtraValue()).isNull();
+
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
+
+		QueryCounter counter = new QueryCounter(getDataLayerFactory());
+
+		//Trying some case sensitive searches
+		assertThat(searchServices.searchRecordIds(
+				new LogicalSearchQuery(from(schema.zeDefaultSchemaType()).where(metadata).isEqualTo("Leblanc")).setQueryExecutionMethod(USE_CACHE)))
+				.containsOnly(record1.getId(), record3.getId());
+		assertThat(searchServices.searchRecordIds(new LogicalSearchQuery(from(schema.zeDefaultSchemaType()).where(metadata).isEqualTo("Legris")).setQueryExecutionMethod(USE_CACHE)))
+				.containsOnly(record2.getId());
+		assertThat(searchServices.searchRecordIds(new LogicalSearchQuery(from(schema.zeDefaultSchemaType()).where(metadata).isStartingWithText("Le")).setQueryExecutionMethod(USE_CACHE)))
+				.containsOnly(record1.getId(), record2.getId(), record3.getId());
+
+		//Trying some case insensitive searches, only works if prefering analyzed fields
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schema.zeDefaultSchemaType()).where(metadata).isEqualTo("leblanc"));
+
+		query.setQueryExecutionMethod(USE_CACHE);
+		assertThat(searchServices.searchRecordIds(query)).isEmpty();
+
+		assertThat(counter.newQueryCalls()).isZero();
+	}
+
+	@Test
+	public void givenFullyCachedSeparatedStructureMetadatasWhenSearchingThenFindingValuesUsingSearchField() throws Exception {
+
+		/**
+		 * Using TestSeparatedStructureFactory declaired in RecordServicesAcceptanceTest,
+		 * this structure has declared the field 'value2' has the search field
+		 */
+
+		defineSchemasManager().using(schema.with((MetadataSchemaTypesBuilder b) -> {
+			b.getSchemaType("zeSchemaType").setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			b.getDefaultSchema("zeSchemaType").create("structureMetadata")
+					.defineStructureFactory(TestSeparatedStructureFactory.class).setSearchable(true);
+		}));
+		Metadata metadata = zeSchema.metadata("structureMetadata");
+
+		//Creating a record with a structure
+		Record record1 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Gandalf").setMainValue("Leblanc"));
+
+		Record record2 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Gandalf").setMainValue("Legris"));
+
+		Record record3 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Francis").setMainValue("Leblanc"));
+
+		Record record4 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setExtraValue("Édouard").setMainValue("Lachance"));
+
+		recordServices.execute(new Transaction(record1, record2, record3, record4));
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
+		QueryCounter counter = new QueryCounter(getDataLayerFactory());
+
+		//Trying some case sensitive searches
+		assertThat(searchServices.searchRecordIds(from(schema.zeDefaultSchemaType()).where(metadata).isEqualTo("Leblanc")))
+				.containsOnly(record1.getId(), record3.getId());
+		assertThat(searchServices.searchRecordIds(from(schema.zeDefaultSchemaType()).where(metadata).isEqualTo("Legris")))
+				.containsOnly(record2.getId());
+		assertThat(searchServices.searchRecordIds(from(schema.zeDefaultSchemaType()).where(metadata).isStartingWithText("Le")))
+				.containsOnly(record1.getId(), record2.getId(), record3.getId());
+
+		//Trying search with data from other structure fields, no results
+
+		//Trying some case insensitive searches, only works if prefering analyzed fields
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schema.zeDefaultSchemaType()).where(metadata).isEqualTo("leblanc"));
+
+		assertThat(searchServices.searchRecordIds(query)).isEmpty();
+		assertThat(counter.newQueryCalls()).isZero();
+		assertThat(searchServices.searchRecordIds(query.setPreferAnalyzedFields(true))).containsOnly(record1.getId(), record3.getId());
+		assertThat(searchServices.searchRecordIds(from(schema.zeDefaultSchemaType()).where(metadata).isContainingText("Gandalf"))).isEmpty();
+
+
+	}
+
+
+	@Test
+	public void givenNotCachedSeparatedStructureMetadatasWhenSortingThenFindingValuesUsingSearchField() throws Exception {
+
+		/**
+		 * Using TestSeparatedStructureFactory declaired in RecordServicesAcceptanceTest,
+		 * this structure has declared the field 'value2' has the search field
+		 */
+
+		defineSchemasManager().using(schema.with((MetadataSchemaTypesBuilder b) -> {
+			b.getSchemaType("zeSchemaType").setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			b.getDefaultSchema("zeSchemaType").create("structureMetadata")
+					.defineStructureFactory(TestSeparatedStructureFactory.class).setSortable(true);
+		}));
+		Metadata metadata = zeSchema.metadata("structureMetadata");
+
+		//Creating a record with a structure
+		Record record1 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setMainValue("A100"));
+
+		Record record2 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setMainValue("A10"));
+
+		Record record3 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setMainValue("A1"));
+
+		Record record4 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setMainValue("A20"));
+
+		recordServices.execute(new Transaction(record1, record2, record3, record4));
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schema.zeDefaultSchemaType()).returnAll());
+		query.sortAsc(metadata);
+
+
+		//Trying some case sensitive searches
+		assertThat(searchServices.searchRecordIds(query))
+				.isEqualTo(asList(record3.getId(), record2.getId(), record4.getId(), record1.getId()));
+
+		//Trying some case sensitive searches
+		assertThat(searchServices.searchRecordIds(query))
+				.isEqualTo(asList(record3.getId(), record2.getId(), record4.getId(), record1.getId()));
+	}
+
+	@Test
+	public void givenFullyCachedSeparatedStructureMetadatasWhenSortingThenFindingValuesUsingSearchField() throws Exception {
+
+		/**
+		 * Using TestSeparatedStructureFactory declaired in RecordServicesAcceptanceTest,
+		 * this structure has declared the field 'value2' has the search field
+		 */
+
+		defineSchemasManager().using(schema.with((MetadataSchemaTypesBuilder b) -> {
+			b.getSchemaType("zeSchemaType").setRecordCacheType(RecordCacheType.FULLY_CACHED);
+			b.getDefaultSchema("zeSchemaType").create("structureMetadata")
+					.defineStructureFactory(TestSeparatedStructureFactory.class).setSortable(true);
+		}));
+		Metadata metadata = zeSchema.metadata("structureMetadata");
+
+		//Creating a record with a structure
+		Record record1 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setMainValue("A100"));
+
+		Record record2 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setMainValue("A10"));
+
+		Record record3 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setMainValue("A1"));
+
+		Record record4 = recordServices.newRecordWithSchema(schema.zeDefaultSchema())
+				.set(metadata, new TestSeparatedStructure().setMainValue("A20"));
+
+		recordServices.execute(new Transaction(record1, record2, record3, record4));
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryDebuggingMode(true);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(schema.zeDefaultSchemaType()).returnAll());
+		query.sortAsc(metadata);
+
+
+		//Trying some case sensitive searches
+		assertThat(searchServices.searchRecordIds(query))
+				.isEqualTo(asList(record3.getId(), record2.getId(), record4.getId(), record1.getId()));
 	}
 
 	private void givenRecordsFromTwoSchemasTypesWithReferences()

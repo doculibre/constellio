@@ -1,5 +1,6 @@
 package com.constellio.app.services.schemas.bulkImport;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportValidationErrorsBehavior;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
@@ -19,13 +20,18 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
@@ -47,6 +53,7 @@ import com.constellio.model.services.records.ContentImportVersion;
 import com.constellio.model.services.records.RecordMetadataValidatorParams;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.RecordValidationServices;
 import com.constellio.model.services.records.SimpleImportContent;
@@ -151,6 +158,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	List<ImportDataBuilder> zeSchemaTypeRecords = new ArrayList<>();
 	List<ImportDataBuilder> anotherSchemaTypeRecords = new ArrayList<>();
 	List<ImportDataBuilder> thirdSchemaTypeRecords = new ArrayList<>();
+	List<ImportDataBuilder> usersToImport = new ArrayList<>();
+	List<ImportDataBuilder> groupsToImport = new ArrayList<>();
 	Map<String, List<ImportDataBuilder>> data = new HashMap<>();
 
 	ContentManager contentManager;
@@ -241,7 +250,6 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		public void build(BuildParams params) {
 		}
 	};
-
 	RecordImportExtension otherTypeBehavior = new RecordImportExtension() {
 
 		@Override
@@ -268,7 +276,6 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
 		configure(new ModelLayerConfigurationAlteration() {
 			@Override
 			public void alter(InMemoryModelLayerConfiguration configuration) {
@@ -276,7 +283,6 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 				configuration.setDeleteUnusedContentEnabled(false);
 			}
 		});
-
 		givenHashingEncodingIs(BASE64_URL_ENCODED);
 		prepareSystem(
 				withZeCollection()
@@ -288,6 +294,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		data.put(zeSchema.typeCode(), zeSchemaTypeRecords);
 		data.put(anotherSchema.typeCode(), anotherSchemaTypeRecords);
 		data.put(thirdSchema.typeCode(), thirdSchemaTypeRecords);
+		data.put(Group.SCHEMA_TYPE, groupsToImport);
+		data.put(User.SCHEMA_TYPE, usersToImport);
 
 		importDataProvider = new DummyImportDataProvider(data);
 
@@ -300,6 +308,172 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		extensions.forCollection(zeCollection).recordImportExtensions.add(otherTypeBehavior);
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
+	}
+
+	@Test
+	public void whenImportingNewUsersWithoutCredentials()
+			throws Exception {
+		RMSchemasRecordsServices rm =  new RMSchemasRecordsServices(Collection.SYSTEM_COLLECTION, getModelLayerFactory());
+		defineSchemasManager().using(schemas.andCustomSchema());
+
+		groupsToImport.add(defaultSchemaData().setId("3")
+				.addField(Group.CODE, "groupCode")
+				.addField(Group.TITLE, "groupTitle")
+				.addField(Group.STATUS, GlobalGroupStatus.ACTIVE.getCode()));
+
+		groupsToImport.add(defaultSchemaData().setId("4")
+				.addField(Group.CODE, "groupCode2")
+				.addField(Group.TITLE, "groupTitle2")
+				.addField(Group.STATUS, GlobalGroupStatus.ACTIVE.getCode()));
+
+		usersToImport.add(defaultSchemaData().setId("1")
+				.addField(User.FIRSTNAME, "John")
+				.addField(User.LASTNAME, "Doe")
+				.addField(User.USERNAME, "johndoe")
+				.addField(User.GROUPS, asList("3"))
+				.addField(User.EMAIL, "John.Doe@constellio.com")
+				.addField(User.STATUS, UserCredentialStatus.ACTIVE.getCode()));
+
+		usersToImport.add(defaultSchemaData().setId("2")
+				.addField(User.FIRSTNAME, "Jane")
+				.addField(User.LASTNAME, "Doe")
+				.addField(User.USERNAME, "janedoe")
+				.addField(User.GROUPS, asList("4"))
+				.addField(User.EMAIL, "Jane.Doe@constellio.com")
+				.addField(User.STATUS, UserCredentialStatus.ACTIVE.getCode()));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+		groupsToImport.clear();
+		usersToImport.clear();
+
+		Group groupRecord = wrapGroup(recordWithLegacyId("3"));
+		assertThat(groupRecord.getLegacyId()).isEqualTo("3");
+		assertThat(groupRecord.getCode()).isEqualTo("groupCode");
+		assertThat(groupRecord.getTitle()).isEqualTo("groupTitle");
+		assertThat(groupRecord.getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
+
+		groupRecord = wrapGroup(recordWithLegacyId("4"));
+		assertThat(groupRecord.getLegacyId()).isEqualTo("4");
+		assertThat(groupRecord.getCode()).isEqualTo("groupCode2");
+		assertThat(groupRecord.getTitle()).isEqualTo("groupTitle2");
+		assertThat(groupRecord.getStatus()).isEqualTo(GlobalGroupStatus.ACTIVE);
+
+		User record = wrapUser(recordWithLegacyId("1"));
+		assertThat(record.getLegacyId()).isEqualTo("1");
+		assertThat(record.getFirstName()).isEqualTo("John");
+		assertThat(record.getLastName()).isEqualTo("Doe");
+		assertThat(record.getUsername()).isEqualTo("johndoe");
+		List<String> groups = record.getUserGroups();
+		assertThat(groups.size()).isEqualTo(1);
+		assertThat(wrapGroup(rm.get(groups.get(0))).getLegacyId()).isEqualTo("3");
+		assertThat(wrapGroup(rm.get(groups.get(0))).getTitle()).isEqualTo("groupTitle");
+		assertThat(record.getEmail()).isEqualTo("John.Doe@constellio.com");
+		assertThat(record.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+
+		record = wrapUser(recordWithLegacyId("2"));
+		assertThat(record.getLegacyId()).isEqualTo("2");
+		assertThat(record.getFirstName()).isEqualTo("Jane");
+		assertThat(record.getLastName()).isEqualTo("Doe");
+		assertThat(record.getUsername()).isEqualTo("janedoe");
+		groups = record.getUserGroups();
+		assertThat(groups.size()).isEqualTo(1);
+		assertThat(wrapGroup(rm.get(groups.get(0))).getLegacyId()).isEqualTo("4");
+		assertThat(wrapGroup(rm.get(groups.get(0))).getTitle()).isEqualTo("groupTitle2");
+		assertThat(record.getEmail()).isEqualTo("Jane.Doe@constellio.com");
+		assertThat(record.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+
+		UserCredential userCredential = rm.wrapUserCredential(getModelLayerFactory().newSearchServices().searchSingleResult(fromAllSchemasIn(Collection.SYSTEM_COLLECTION).where(rm.credentialUsername()).isEqualTo("johndoe")));
+		assertThat(userCredential.getUsername()).isEqualTo("johndoe");
+		assertThat(userCredential.getFirstName()).isEqualTo("John");
+		assertThat(userCredential.getLastName()).isEqualTo("Doe");
+		assertThat(userCredential.getEmail()).isEqualTo("John.Doe@constellio.com");
+
+		userCredential = rm.wrapUserCredential(getModelLayerFactory().newSearchServices().searchSingleResult(fromAllSchemasIn(Collection.SYSTEM_COLLECTION).where(rm.credentialUsername()).isEqualTo("janedoe")));
+		assertThat(userCredential.getUsername()).isEqualTo("janedoe");
+		assertThat(userCredential.getFirstName()).isEqualTo("Jane");
+		assertThat(userCredential.getLastName()).isEqualTo("Doe");
+		assertThat(userCredential.getEmail()).isEqualTo("Jane.Doe@constellio.com");
+
+	}
+
+	@Test
+	public void whenImportingExistingUsersWithNewValues()
+			throws Exception {
+		RMSchemasRecordsServices rm =  new RMSchemasRecordsServices(Collection.SYSTEM_COLLECTION, getModelLayerFactory());
+		defineSchemasManager().using(schemas.andCustomSchema());
+
+		usersToImport.add(defaultSchemaData().setId("1")
+				.addField(User.FIRSTNAME, "John")
+				.addField(User.LASTNAME, "Doe")
+				.addField(User.USERNAME, "johndoe")
+				.addField(User.EMAIL, "John.Doe@constellio.com")
+				.addField(User.STATUS, UserCredentialStatus.ACTIVE.getCode()));
+		usersToImport.add(defaultSchemaData().setId("2")
+				.addField(User.FIRSTNAME, "Jane")
+				.addField(User.LASTNAME, "Doe")
+				.addField(User.USERNAME, "janedoe")
+				.addField(User.EMAIL, "Jane.Doe@constellio.com")
+				.addField(User.STATUS, UserCredentialStatus.ACTIVE.getCode()));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+		usersToImport.clear();
+
+		User record = wrapUser(recordWithLegacyId("1"));
+		assertThat(record.getLegacyId()).isEqualTo("1");
+		assertThat(record.getFirstName()).isEqualTo("John");
+		assertThat(record.getLastName()).isEqualTo("Doe");
+		assertThat(record.getUsername()).isEqualTo("johndoe");
+		assertThat(record.getEmail()).isEqualTo("John.Doe@constellio.com");
+		assertThat(record.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+
+		record = wrapUser(recordWithLegacyId("2"));
+		assertThat(record.getLegacyId()).isEqualTo("2");
+		assertThat(record.getFirstName()).isEqualTo("Jane");
+		assertThat(record.getLastName()).isEqualTo("Doe");
+		assertThat(record.getUsername()).isEqualTo("janedoe");
+		assertThat(record.getEmail()).isEqualTo("Jane.Doe@constellio.com");
+		assertThat(record.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+
+		usersToImport.add(defaultSchemaData().setId("3")
+				.addField(User.FIRSTNAME, "updatedFirstName")
+				.addField(User.LASTNAME, "updatedLastName")
+				.addField(User.USERNAME, "janedoe")
+				.addField(User.EMAIL, "updatedEmail@constellio.com")
+				.addField(User.STATUS, UserCredentialStatus.ACTIVE.getCode()));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+		usersToImport.clear();
+
+		record = wrapUser(recordWithLegacyId("3"));
+		assertThat(record.getLegacyId()).isEqualTo("3");
+		assertThat(record.getFirstName()).isEqualTo("updatedFirstName");
+		assertThat(record.getLastName()).isEqualTo("updatedLastName");
+		assertThat(record.getUsername()).isEqualTo("janedoe");
+		assertThat(record.getEmail()).isEqualTo("updatedEmail@constellio.com");
+		assertThat(record.getStatus()).isEqualTo(UserCredentialStatus.ACTIVE);
+
+
+
+	}
+
+	@Test
+	public void whenImportingIntegerMetadata()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withANumberMetadata()
+				.withAnIntegerMetadata());
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
+				.addField(zeSchema.numberMetadata().getLocalCode(), "6.66")
+				.addField(zeSchema.integerMetadata().getLocalCode(), "7"));
+		bulkImport(importDataProvider, progressionListener, admin);
+
+		Record record = recordWithLegacyId("1");
+		assertThat(record.<Double>get(zeSchema.numberMetadata())).isEqualTo(6.66);
+		assertThat(record.<Integer>get(zeSchema.integerMetadata())).isEqualTo(7);
+
+
 	}
 
 	@Test
@@ -828,19 +1002,19 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 		ImportDataBuilder authorizationWithValidTarget = defaultSchemaData().setId("1")
 				.addField("roles", Arrays.asList("U"))
-				.addField(Authorization.TARGET_SCHEMA_TYPE, zeSchema.typeCode())
+				.addField(RecordAuthorization.TARGET_SCHEMA_TYPE, zeSchema.typeCode())
 				.addField("target", VALID_TARGET_ID);
 
 		ImportDataBuilder authorizationWithInvalidTarget = defaultSchemaData().setId("2")
 				.addField("roles", Arrays.asList("U"))
-				.addField(Authorization.TARGET_SCHEMA_TYPE, zeSchema.typeCode())
+				.addField(RecordAuthorization.TARGET_SCHEMA_TYPE, zeSchema.typeCode())
 				.addField("target", INVALID_TARGET_ID);
 
 		ImportDataBuilder targetRecord = defaultSchemaData().setId(VALID_TARGET_ID);
 
 		importDataProvider.add(zeSchema.typeCode(), targetRecord);
-		importDataProvider.add(Authorization.SCHEMA_TYPE, authorizationWithValidTarget);
-		importDataProvider.add(Authorization.SCHEMA_TYPE, authorizationWithInvalidTarget);
+		importDataProvider.add(RecordAuthorization.SCHEMA_TYPE, authorizationWithValidTarget);
+		importDataProvider.add(RecordAuthorization.SCHEMA_TYPE, authorizationWithInvalidTarget);
 
 		try {
 			bulkImport(importDataProvider, progressionListener, admin);
@@ -2764,6 +2938,113 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenImportingUsingUniqueMultivalueWithoutDuplicateThenImportedCorrectly() throws Exception {
+		final String uniqueMultivalueCode = "uniqueMultivalue";
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.with((schemaTypes) -> {
+
+					MetadataBuilder uniqueMultivalueMetadataBuilder = schemaTypes.getSchemaType(zeSchema.typeCode())
+							.createMetadata(uniqueMultivalueCode);
+
+					uniqueMultivalueMetadataBuilder
+							.addLabel(Language.French, "A Unique Multivalue metadata")
+							.setType(STRING)
+							.setMultivalue(true)
+							.setUniqueValue(true);
+				}));
+
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record A").set(uniqueMultivalueCode, Arrays.asList("v1", "v2")));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record B").set(uniqueMultivalueCode, Arrays.asList("v3", "v4")));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record C").set(uniqueMultivalueCode, Arrays.asList("v5", "v6")));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 1").addField(uniqueMultivalueCode, Arrays.asList("v7", "v8")));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("43").addField("title", "Record 2").addField(uniqueMultivalueCode, Arrays.asList("v9", "v10")));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("44").addField("title", "Record 3").addField(uniqueMultivalueCode, Arrays.asList("v11", "v12")));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+	}
+
+	@Test
+	public void givenImportingUsingUniqueMultivalueWithoutDuplicateThenValidationErrorIsThrown()
+			throws RecordServicesException {
+		final String uniqueMultivalueCode = "uniqueMultivalue";
+		String duplicateWithExistingRecord = "duplicateWithExistingRecord";
+		String duplicateWithImportedRecord = "duplicateWithImportedRecord";
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.with((schemaTypes) -> {
+
+					MetadataBuilder uniqueMultivalueMetadataBuilder = schemaTypes.getSchemaType(zeSchema.typeCode())
+							.createMetadata(uniqueMultivalueCode);
+
+					uniqueMultivalueMetadataBuilder
+							.addLabel(Language.French, "A Unique Multivalue metadata")
+							.setType(STRING)
+							.setMultivalue(true)
+							.setUniqueValue(true);
+				}));
+
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record A").set(uniqueMultivalueCode, Arrays.asList("v1", "v2")));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record B").set(uniqueMultivalueCode, Arrays.asList(duplicateWithExistingRecord, "v4")));
+		recordServices.add(new TestRecord(zeSchema).set(TITLE, "existing record C").set(uniqueMultivalueCode, Arrays.asList("v5", "v6")));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 1").addField(uniqueMultivalueCode, Arrays.asList(duplicateWithExistingRecord, "v7", "v8")));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("43").addField("title", "Record 2").addField(uniqueMultivalueCode, Arrays.asList("v9", "v10", duplicateWithImportedRecord)));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("44").addField("title", "Record 3").addField(uniqueMultivalueCode, Arrays.asList(duplicateWithImportedRecord, "v12")));
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin, BulkImportParams.PERMISSIVE()
+					.setWarningsForInvalidFacultativeMetadatas(false));
+			fail("Validation exception expected");
+		} catch (ValidationException e) {
+			e.printStackTrace();
+			assertThat(extractingSimpleCodeAndParameters(e, "legacyId", "metadata", "value")).containsOnly(
+					tuple("MetadataUniqueValidator_nonUniqueMetadata", "42", null, duplicateWithExistingRecord),
+					tuple("RecordsImportServices_metadataNotUnique", "44", uniqueMultivalueCode, duplicateWithImportedRecord)
+
+			);
+			assertThat(extractingWarningsSimpleCodeAndParameters(e, "legacyId", "metadata")).isEmpty();
+		}
+	}
+
+	@Test
+	public void givenImportingUsingUniqueMultivalueMetadataResolversThenImportedCorrectly()
+			throws Exception {
+		final String uniqueMultivalueCode = "uniqueMultivalue";
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.with((schemaTypes) -> {
+
+					MetadataBuilder uniqueMultivalueMetadataBuilder = schemaTypes.getSchemaType(zeSchema.typeCode())
+							.createMetadata(uniqueMultivalueCode);
+
+					uniqueMultivalueMetadataBuilder
+							.addLabel(Language.French, "A Unique Multivalue metadata")
+							.setType(STRING)
+							.setMultivalue(true)
+							.setUniqueValue(true);
+				}));
+
+		recordServices.add(new TestRecord(zeSchema, "1").set(TITLE, "existing record A").set(uniqueMultivalueCode, Arrays.asList("v1", "v2")));
+
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField(uniqueMultivalueCode, Arrays.asList("v3", "v4")));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("40")
+				.addField("referenceFromAnotherSchemaToZeSchema", uniqueMultivalueCode + ":v1"));
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("41")
+				.addField("referenceFromAnotherSchemaToZeSchema", uniqueMultivalueCode + ":v3"));
+
+
+		bulkImport(importDataProvider, progressionListener, admin);
+	}
+
+	@Test
 	public void givenImportingUsingUniqueCalculatedMetadataOfCachedRecordsWhenFallbackOnTransactionCacheThenResolveDependencies()
 			throws Exception {
 
@@ -3046,7 +3327,6 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	@Test
 	public void whenImportingValueOfDynamicSequenceMetadatasThenSetAndIncrementSequences()
 			throws Exception {
-		//TODO AFTER-TEST-VALIDATION-SEQ
 		givenDisabledAfterTestValidations();
 		defineSchemasManager().using(schemas.andCustomSchema()
 				.withAStringMetadata()
@@ -3757,6 +4037,59 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 		assertThat(recordWithLegacyId("parentRecord")).isNotNull();
 		assertThat(recordWithLegacyId("childRecord")).isNotNull();
+	}
+
+	@Test
+	public void givenDuplicateLegacyIdWhenDoNoMergeThenException()
+			throws Exception {
+
+		defineSchemasManager().using(schemas);
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2"));
+
+		bulkImport(importDataProvider, progressionListener, admin, new BulkImportParams());
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.extractingMetadatas("legacyIdentifier", "title").containsOnly(
+				tuple("1", "Record 1"),
+				tuple("2", "Record 2")
+		);
+
+		zeSchemaTypeRecords.clear();
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1a"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2a"));
+
+		bulkImport(importDataProvider, progressionListener, admin, new BulkImportParams());
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.extractingMetadatas("legacyIdentifier", "title").containsOnly(
+				tuple("1", "Record 1a"),
+				tuple("2", "Record 2a")
+		);
+
+		zeSchemaTypeRecords.clear();
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1b"));
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2b"));
+
+		importDataProvider.dataOptionsMap
+				.put(zeSchema.typeCode(), new ImportDataOptions());
+
+		BulkImportParams bulkImportParams = new BulkImportParams();
+		bulkImportParams.setMergeExistingRecordWithSameLegacyId(false);
+
+		Exception e = null;
+		try {
+			bulkImport(importDataProvider, progressionListener, admin, bulkImportParams);
+		} catch (ValidationException validationException) {
+			e = validationException;
+		}
+		assertThat(e != null);
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.extractingMetadatas("legacyIdentifier", "title").containsOnly(
+				tuple("1", "Record 1a"),
+				tuple("2", "Record 2a"));
 	}
 
 

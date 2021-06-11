@@ -102,7 +102,7 @@ public class SchemaTypeImportServices implements ImportServices {
 		int skipped = 0;
 
 		List<String> importedSchemas = importDataProvider.getAvailableSchemaTypes();
-
+		
 		for (String importedSchema : importedSchemas) {
 			Iterator<ImportData> importDataIterator = importDataProvider.newDataIterator(importedSchema);
 			Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
@@ -297,7 +297,7 @@ public class SchemaTypeImportServices implements ImportServices {
 		try {
 			builder = types.getSchemaType(code);
 		} catch (MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType e) {
-			builder = types.createNewSchemaType(code);//"USR" +
+			builder = types.createNewSchemaTypeWithSecurity(code);//"USR" +
 		}
 		for (String language : appLayerFactory.getCollectionsManager().getCollectionLanguages(collection)) {
 			builder.addLabel(Language.withCode(language), title);
@@ -367,7 +367,7 @@ public class SchemaTypeImportServices implements ImportServices {
 		try {
 			return types.getSchemaType(schemaTypeCode);
 		} catch (MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType e) {
-			return types.createNewSchemaType(schemaTypeCode);
+			return types.createNewSchemaTypeWithSecurity(schemaTypeCode);
 		}
 	}
 

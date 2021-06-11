@@ -517,6 +517,13 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 					break;
 
+				case "advancedSequence":
+					String advancedSequenceCalculatorClass = dataEntryElem.getAttributeValue("advancedSequenceCalculator");
+					if (advancedSequenceCalculatorClass != null) {
+						dataEntry = ImportedDataEntry.asAdvancedSequence(advancedSequenceCalculatorClass);
+					}
+					break;
+
 				default:
 					break;
 			}

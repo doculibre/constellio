@@ -176,7 +176,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 				ConstellioFactories factories = view.getConstellioFactories();
 				try {
 					setSystemLanguage(setupLocaleCode);
-					Record collectionRecord = factories.getAppLayerFactory().getCollectionsManager().createCollectionInCurrentVersion(
+					Record collectionRecord = factories.getAppLayerFactory().getCollectionsManager().createCollection(
 							collectionCode, languages);
 					Collection collection = new Collection(collectionRecord,
 							modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collectionCode));

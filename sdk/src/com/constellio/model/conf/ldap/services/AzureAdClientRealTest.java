@@ -1,10 +1,18 @@
 package com.constellio.model.conf.ldap.services;
 
-import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.user.LDAPGroup;
-import com.constellio.model.conf.ldap.user.LDAPUser;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.AdditionalMatchers.not;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -12,16 +20,10 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.user.LDAPGroup;
+import com.constellio.model.conf.ldap.user.LDAPUser;
 
 public class AzureAdClientRealTest {
 	@Mock
@@ -32,7 +34,7 @@ public class AzureAdClientRealTest {
 
 	@Mock
 	AzureRequestHelper azureRequestHelper;
-
+	
 	@Before
 	public void setUp()
 			throws Exception {
@@ -48,13 +50,16 @@ public class AzureAdClientRealTest {
 
 	@Test
 	public void whenGroupHasTwoDepthSubGroupThenReturnGroupsAndUsersFromDepth() {
-		Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.enable();
+		boolean fetchSubGroups = true;
+		boolean ignoreRegexForSubGroups = false;
 		when(azureRequestHelper.getGroupMembersResponse(anyString())).thenReturn(subGroupArrayObjectDepth0())
 				.thenReturn(asList(new JSONArray("[]")))
 				.thenReturn(subGroupArrayObjectDepth1()).thenReturn(asList(new JSONArray("[]")));
 		when(azureRequestHelper.getObjectResponseByUrl(anyString())).thenReturn(subGroupObjectDepth0())
 				.thenReturn(userObject1()).thenReturn(subGroupObjectDepth2()).thenReturn(subGroupObjectDepth1())
 				.thenReturn(userObject2()).thenReturn(subGroupObjectDepth3()).thenReturn(userObject3());
+		when(ldapUserSyncConfiguration.isFetchSubGroups()).thenReturn(fetchSubGroups);
+		when(ldapUserSyncConfiguration.isIgnoreRegexForSubGroups()).thenReturn(ignoreRegexForSubGroups);
 
 		AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration, azureRequestHelper));
 
@@ -89,14 +94,18 @@ public class AzureAdClientRealTest {
 	}
 
 	@Test
-	public void whenGroupHasTwoDepthSubGroupButToggleIsFalse() {
-		Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.disable();
+	public void whenGroupHasTwoDepthSubGroupButFetchSubGroupsDisabled() {
+		boolean fetchSubGroups = false;
+		boolean ignoreRegexForSubGroups = false;
+		
 		when(azureRequestHelper.getGroupMembersResponse(anyString())).thenReturn(subGroupArrayObjectDepth0())
 				.thenReturn(asList(new JSONArray("[]")))
 				.thenReturn(subGroupArrayObjectDepth1()).thenReturn(asList(new JSONArray("[]")));
 		when(azureRequestHelper.getObjectResponseByUrl(anyString())).thenReturn(subGroupObjectDepth0())
 				.thenReturn(userObject1()).thenReturn(subGroupObjectDepth2()).thenReturn(subGroupObjectDepth1())
 				.thenReturn(userObject2()).thenReturn(subGroupObjectDepth3()).thenReturn(userObject3());
+		when(ldapUserSyncConfiguration.isFetchSubGroups()).thenReturn(fetchSubGroups);
+		when(ldapUserSyncConfiguration.isIgnoreRegexForSubGroups()).thenReturn(ignoreRegexForSubGroups);
 
 		AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration, azureRequestHelper));
 
@@ -110,6 +119,120 @@ public class AzureAdClientRealTest {
 		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7088dfbb2e49").getSimpleName()).isEqualTo("groupADMain");
 
 		assertThat(ldapUsers).hasSize(0);
+	}
+
+	@Test
+	public void whenGetUserAndUsernameTypeConfigIsEmail() {
+		when(ldapUserSyncConfiguration.getUsernameType()).thenReturn("E");
+		boolean fetchSubGroups = true;
+		boolean ignoreRegexForSubGroups = false;
+		when(azureRequestHelper.getGroupMembersResponse(anyString())).thenReturn(subGroupArrayObjectDepth0())
+				.thenReturn(asList(new JSONArray("[]")))
+				.thenReturn(subGroupArrayObjectDepth1()).thenReturn(asList(new JSONArray("[]")));
+		when(azureRequestHelper.getObjectResponseByUrl(anyString())).thenReturn(subGroupObjectDepth0())
+				.thenReturn(userObject1()).thenReturn(subGroupObjectDepth2()).thenReturn(subGroupObjectDepth1())
+				.thenReturn(userObject2()).thenReturn(subGroupObjectDepth3()).thenReturn(userObject3());
+		when(ldapUserSyncConfiguration.isFetchSubGroups()).thenReturn(fetchSubGroups);
+		when(ldapUserSyncConfiguration.isIgnoreRegexForSubGroups()).thenReturn(ignoreRegexForSubGroups);
+
+		AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration, azureRequestHelper));
+
+		final Map<String, LDAPGroup> ldapGroups = new HashMap<>();
+		final Map<String, LDAPUser> ldapUsers = new HashMap<>();
+
+		azureAdClientSpy.getSubGroupsAndTheirUsers(mainGroupObject(), ldapGroups, ldapUsers);
+		ldapGroups.put(mainGroupObject().getDistinguishedName(), mainGroupObject());
+
+		assertThat(ldapGroups).hasSize(5);
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7099dfbb2e49").getSimpleName()).isEqualTo("subgroupAD0");
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7044dfbb2e49").getSimpleName()).isEqualTo("subgroupAD3");
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7033dfbb2e49").getSimpleName()).isEqualTo("subgroupAD1");
+
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7099dfbb2e49").getMemberOf())
+				.containsAll(asList("ebe521da-209b-492a-a6b6-7088dfbb2e49"));
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7055dfbb2e49").getMemberOf())
+				.containsAll(asList("ebe521da-209b-492a-a6b6-7088dfbb2e49"));
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7033dfbb2e49").getMemberOf())
+				.containsAll(asList("ebe521da-209b-492a-a6b6-7055dfbb2e49"));
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7044dfbb2e49").getMemberOf())
+				.containsAll(asList("ebe521da-209b-492a-a6b6-7055dfbb2e49"));
+
+		assertThat(ldapUsers.get("c7a50570-11c7-40de-9665-f24d3f34cff4").getUserGroups().get(0).getDistinguishedName())
+				.isEqualTo("ebe521da-209b-492a-a6b6-7055dfbb2e49");
+
+		assertThat(ldapUsers).hasSize(3);
+		assertThat(ldapUsers.get("d328706d-7abc-4229-be52-172bd5e7aa2d").getName()).contains("mailNameUserAD1");
+		assertThat(ldapUsers.get("c7a50570-11c7-40de-9665-f24d3f34cff4").getName()).isEqualTo("mailNameUserAD2");
+		assertThat(ldapUsers.get("1f38c9fd-dabb-481e-a5a9-0064745c1843").getName()).isEqualTo("mailNameUserAD3");
+	}
+	
+	@Test
+	public void givenIgnoreRegexForSubGroupsEnabledWhenGroupMatchesRegexButSubGroupDoesntThenReturnSubGroup() {
+		boolean fetchSubGroups = true;
+		boolean ignoreRegexForSubGroups = true;
+		when(azureRequestHelper.getGroupMembersResponse(anyString())).thenReturn(subGroupArrayObjectDepth0())
+				.thenReturn(asList(new JSONArray("[]")))
+				.thenReturn(subGroupArrayObjectDepth1()).thenReturn(asList(new JSONArray("[]")));
+		when(azureRequestHelper.getObjectResponseByUrl(anyString())).thenReturn(subGroupObjectDepth0())
+				.thenReturn(userObject1()).thenReturn(subGroupObjectDepth2()).thenReturn(subGroupObjectDepth1())
+				.thenReturn(userObject2()).thenReturn(subGroupObjectDepth3()).thenReturn(userObject3());
+		when(ldapUserSyncConfiguration.isGroupAccepted("groupADMain")).thenReturn(true);
+		when(ldapUserSyncConfiguration.isGroupAccepted(not(eq("groupADMain")))).thenReturn(false);
+		when(ldapUserSyncConfiguration.isFetchSubGroups()).thenReturn(fetchSubGroups);
+		when(ldapUserSyncConfiguration.isIgnoreRegexForSubGroups()).thenReturn(ignoreRegexForSubGroups);
+
+		AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration, azureRequestHelper));
+
+		final Map<String, LDAPGroup> ldapGroups = new HashMap<>();
+		final Map<String, LDAPUser> ldapUsers = new HashMap<>();
+
+		azureAdClientSpy.getSubGroupsAndTheirUsers(mainGroupObject(), ldapGroups, ldapUsers);
+		ldapGroups.put(mainGroupObject().getDistinguishedName(), mainGroupObject());
+
+		assertThat(ldapGroups).hasSize(5);
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7099dfbb2e49").getSimpleName()).isEqualTo("subgroupAD0");
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7044dfbb2e49").getSimpleName()).isEqualTo("subgroupAD3");
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7033dfbb2e49").getSimpleName()).isEqualTo("subgroupAD1");
+
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7099dfbb2e49").getMemberOf())
+				.containsAll(asList("ebe521da-209b-492a-a6b6-7088dfbb2e49"));
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7055dfbb2e49").getMemberOf())
+				.containsAll(asList("ebe521da-209b-492a-a6b6-7088dfbb2e49"));
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7033dfbb2e49").getMemberOf())
+				.containsAll(asList("ebe521da-209b-492a-a6b6-7055dfbb2e49"));
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7044dfbb2e49").getMemberOf())
+				.containsAll(asList("ebe521da-209b-492a-a6b6-7055dfbb2e49"));
+
+		assertThat(ldapUsers).hasSize(3);
+		assertThat(ldapUsers.get("c7a50570-11c7-40de-9665-f24d3f34cff4").getUserGroups().get(0).getDistinguishedName())
+				.isEqualTo("ebe521da-209b-492a-a6b6-7055dfbb2e49");
+	}
+	
+	@Test
+	public void givenIgnoreRegexForSubGroupsDisabledWhenGroupMatchesRegexButSubGroupDoesntThenReturnNoSubGroup() {
+		boolean fetchSubGroups = true;
+		boolean ignoreRegexForSubGroups = false;
+		when(azureRequestHelper.getGroupMembersResponse(anyString())).thenReturn(subGroupArrayObjectDepth0())
+				.thenReturn(asList(new JSONArray("[]")))
+				.thenReturn(subGroupArrayObjectDepth1()).thenReturn(asList(new JSONArray("[]")));
+		when(azureRequestHelper.getObjectResponseByUrl(anyString())).thenReturn(subGroupObjectDepth0())
+				.thenReturn(userObject1()).thenReturn(subGroupObjectDepth2()).thenReturn(subGroupObjectDepth1())
+				.thenReturn(userObject2()).thenReturn(subGroupObjectDepth3()).thenReturn(userObject3());
+		when(ldapUserSyncConfiguration.isGroupAccepted("groupADMain")).thenReturn(true);
+		when(ldapUserSyncConfiguration.isGroupAccepted(not(eq("groupADMain")))).thenReturn(false);
+		when(ldapUserSyncConfiguration.isFetchSubGroups()).thenReturn(fetchSubGroups);
+		when(ldapUserSyncConfiguration.isIgnoreRegexForSubGroups()).thenReturn(ignoreRegexForSubGroups);
+
+		AzureAdClient azureAdClientSpy = spy(new AzureAdClient(ldapServerConfiguration, ldapUserSyncConfiguration, azureRequestHelper));
+
+		final Map<String, LDAPGroup> ldapGroups = new HashMap<>();
+		final Map<String, LDAPUser> ldapUsers = new HashMap<>();
+
+		azureAdClientSpy.getSubGroupsAndTheirUsers(mainGroupObject(), ldapGroups, ldapUsers);
+		ldapGroups.put(mainGroupObject().getDistinguishedName(), mainGroupObject());
+
+		assertThat(ldapGroups).hasSize(1);
+		assertThat(ldapGroups.get("ebe521da-209b-492a-a6b6-7088dfbb2e49").getSimpleName()).isEqualTo("groupADMain");
 	}
 
 	private LDAPGroup mainGroupObject() {
@@ -178,7 +301,7 @@ public class AzureAdClientRealTest {
 		String groupJson = "{\"url\": \"Microsoft.DirectoryServices.User\", " +
 						   "\"objectId\": \"c7a50570-11c7-40de-9665-f24d3f34cff4\", \"displayName\": \"userAD2\"," +
 						   "\"mailNickname\": \"mailNameUserAD2\", \"surname\": \"surnameUserAD2\"," +
-						   "\"givenName\": \"givenNameUserAD2\", \"userPrincipalName\": \"UserAD1@doculibre.ca\"," +
+						   "\"givenName\": \"givenNameUserAD2\", \"userPrincipalName\": \"UserAD2@doculibre.ca\"," +
 						   "\"accountEnabled\": \"true\", \"department\": \"dep1\"," +
 						   "\"refreshTokensValidFromDateTime\": \"2020-01-01\"" +
 						   "}";
@@ -189,7 +312,7 @@ public class AzureAdClientRealTest {
 		String groupJson = "{\"url\": \"Microsoft.DirectoryServices.User\", " +
 						   "\"objectId\": \"1f38c9fd-dabb-481e-a5a9-0064745c1843\", \"displayName\": \"userAD3\"," +
 						   "\"mailNickname\": \"mailNameUserAD3\", \"surname\": \"surnameUserAD3\"," +
-						   "\"givenName\": \"givenNameUserAD3\", \"userPrincipalName\": \"UserAD1@doculibre.ca\"," +
+						   "\"givenName\": \"givenNameUserAD3\", \"userPrincipalName\": \"UserAD3@doculibre.ca\"," +
 						   "\"accountEnabled\": \"true\", \"department\": \"dep1\"," +
 						   "\"refreshTokensValidFromDateTime\": \"2020-01-01\"" +
 						   "}";
@@ -202,5 +325,9 @@ public class AzureAdClientRealTest {
 		String groupObjectId = groupJsonObject.optString("objectId");
 		String groupDisplayName = groupJsonObject.optString("displayName");
 		return new LDAPGroup(groupDisplayName, groupObjectId);
+	}
+	
+	private void setFetchSubGroups(boolean fetchSubGroups) {
+		
 	}
 }

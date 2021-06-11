@@ -226,14 +226,18 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 		query.clearSort();
 
 		List<MetadataSchema> schemas = getSchemas();
-		MetadataSchema schema = !schemas.isEmpty() ? schemas.get(0) : null;
-		if (schema != null) {
+
+		if (!schemas.isEmpty()) {
 			for (int i = 0; i < propertyId.length; i++) {
 				Metadata metadata;
 				MetadataVO metadataVO = propertyId[i];
-				if (schema.hasMetadataWithCode(metadataVO.getCode())) {
-					metadata = schema.getMetadata(metadataVO.getCode());
 
+				metadata = schemas.stream()
+						.filter(s -> s.hasMetadataWithCode(metadataVO.getCode()))
+						.map(s -> s.getMetadata(metadataVO.getCode()))
+						.findFirst().orElse(null);
+
+				if (metadata != null) {
 					if (ascending[i]) {
 						query = query.sortAsc(metadata);
 					} else {
@@ -242,7 +246,6 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 				}
 			}
 		}
-
 	}
 
 	public int getQTime() {

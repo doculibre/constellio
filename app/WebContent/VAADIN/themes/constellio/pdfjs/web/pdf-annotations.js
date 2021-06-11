@@ -107,6 +107,9 @@ PDFAnnotations.prototype.parseAnnotationJSON = function(json) {
 		annotation = new Annotation();
 	}
 	annotation.fromJSON(json);
+	if (!annotation.getX() || !annotation.getY()) {
+		annotation = null;
+	}
 	return annotation;
 };	
 
@@ -118,9 +121,11 @@ PDFAnnotations.prototype.toJSON = function() {
         var pageAnnotations = this.pagesAndAnnotations[pageWithAnnotation];
         var pageAnnotationsJSON = [];
 		for (var j = 0; j < pageAnnotations.length; j++) {
-            var pageAnnotation = pageAnnotations[j];
-            var pageAnnotationJSON = pageAnnotation.toJSON();
-            pageAnnotationsJSON.push(pageAnnotationJSON);
+			var pageAnnotation = pageAnnotations[j];
+			if (pageAnnotation.getX() && pageAnnotation.getY()) {
+				var pageAnnotationJSON = pageAnnotation.toJSON();
+				pageAnnotationsJSON.push(pageAnnotationJSON);
+			}
         }
         pagesAndAnnotationsJSON[pageWithAnnotation] = pageAnnotationsJSON;
     }        

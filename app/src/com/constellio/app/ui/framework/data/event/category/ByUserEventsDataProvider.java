@@ -106,6 +106,8 @@ public class ByUserEventsDataProvider extends DefaultEventsDataProvider implemen
 			return EventType.MODIFY_SHARE_DOCUMENT;
 		} else if (index == 34) {
 			return EventType.DELETE_SHARE_DOCUMENT;
+		} else if (index == 35) {
+			return EventType.SCANNED_DOCUMENT;
 		} else {
 			return EventType.BATCH_PROCESS_CREATED;
 		}
@@ -113,7 +115,7 @@ public class ByUserEventsDataProvider extends DefaultEventsDataProvider implemen
 
 	@Override
 	public int specificSize() {
-		return 36;
+		return 37;
 	}
 
 	@Override

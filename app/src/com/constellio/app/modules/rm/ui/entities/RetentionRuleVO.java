@@ -36,6 +36,7 @@ import static com.constellio.app.modules.rm.wrappers.RetentionRule.SECONDARY_DEF
 public class RetentionRuleVO extends RecordVO {
 	public static final String CATEGORIES = "categories";
 	public static final String UNIFORM_SUBDIVISIONS = "subdivisions";
+	public static final String RETENTION_RULE_DOCUMENT_TYPE = "retentionRuleDocumentType";
 
 	String foldersNumber;
 
@@ -206,6 +207,10 @@ public class RetentionRuleVO extends RecordVO {
 
 	public List<String> getCategories() {
 		return getList(CATEGORIES);
+	}
+
+	public List<String> getRetentionRuleDocumentTypes() {
+		return getList(RETENTION_RULE_DOCUMENT_TYPE);
 	}
 
 	public List<String> getUniformSubdivisions() {

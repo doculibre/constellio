@@ -1,13 +1,12 @@
 package com.constellio.model.services.background;
 
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.PersistedIdsServices;
 import com.constellio.model.services.records.cache.PersistedSortValuesServices;
 import com.constellio.model.services.records.cache.PersistedSortValuesServices.SortValueList;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.io.FileUtils;
@@ -39,7 +38,7 @@ public class BuildRecordIdListAndSortValuesBackgroundAction implements Runnable 
 							  && TimeProvider.getLocalDateTime().getHourOfDay() <= 18;
 
 
-		if (!officeHours && ReindexingServices.getReindexingInfos() == null && FoldersLocator.usingAppWrapper()) {
+		if (!officeHours && !modelLayerFactory.isReindexing() && FoldersLocator.usingAppWrapper()) {
 			//Old way
 			writeIdsInLocalWorkFolder();
 

@@ -76,4 +76,6 @@ public class XMLConfiguration implements Serializable {
 	public boolean equals(Object obj) {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
+
+	public static XMLConfiguration NULL_VALUE = new XMLConfiguration(null, null, null);
 }

@@ -1,5 +1,12 @@
 package com.constellio.app.ui.framework.components.viewers.panel;
 
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.extensions.records.params.GetIconPathParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -26,6 +33,7 @@ import com.vaadin.ui.Label;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +53,12 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 
 	public ViewableRecordVOContainer(RecordVOContainer recordVOContainer) {
 		this.recordVOContainer = recordVOContainer;
+//		this.recordVOContainer.addItemSetChangeListener(new ItemSetChangeListener() {
+//			@Override
+//			public void containerItemSetChange(com.vaadin.data.Container.ItemSetChangeEvent event) {
+//				ViewableRecordVOContainer.this.fireItemSetChange(event);
+//			}
+//		});
 		addCompressedProperties();
 	}
 
@@ -142,14 +156,21 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 		};
 	}
 
-	public static Image getThumbnail(RecordVO recordVO) {
+	public Image getThumbnail(RecordVO recordVO) {
 		Image image = new Image(null);
 		Resource thumbnailResource;
+		List<String> thumbnailStyles = Collections.emptyList();
+
 		if (recordVO != null) {
 			String collection = recordVO.getSchema().getCollection();
 			AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
+
+			GetIconPathParams iconPathParams = new GetIconPathParams(recordVO, false);
 			thumbnailResource = appLayerFactory.getExtensions().forCollection(collection).getThumbnailResourceForRecordVO(
-					new GetIconPathParams(recordVO, false));
+					iconPathParams);
+
+			thumbnailStyles = appLayerFactory.getExtensions().forCollection(collection).getThumbnailStylesForRecordVO(iconPathParams);
+
 		} else {
 			thumbnailResource = null;
 		}
@@ -157,6 +178,11 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 			thumbnailResource = new ThemeResource("images/icons/64/default_64.png");
 		}
 		image.setSource(thumbnailResource);
+
+		if (thumbnailStyles != null && !thumbnailStyles.isEmpty()) {
+			thumbnailStyles.forEach(image::addStyleName);
+		}
+
 		return image;
 	}
 	
@@ -241,7 +267,9 @@ public class ViewableRecordVOContainer extends IndexedContainer implements ItemS
 	protected void fireItemSetChange(com.vaadin.data.Container.ItemSetChangeEvent event) {
 		super.fireItemSetChange(event);
 		for (ItemSetChangeListener listener : itemSetChangeListeners) {
-			listener.containerItemSetChange(event);
+			if (!(listener instanceof ViewableRecordVOContainer)) {
+				listener.containerItemSetChange(event);
+			}
 		}
 	}
 

@@ -15,7 +15,9 @@ import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.background.RecordsReindexingBackgroundAction;
+import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
 import com.constellio.model.services.batch.controller.BatchProcessState;
 import com.constellio.model.services.batch.manager.BatchProcessesManagerRuntimeException.BatchProcessesManagerRuntimeException_Timeout;
 import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
@@ -24,7 +26,6 @@ import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.VisibilityStatusFilter;
@@ -41,10 +42,13 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 
@@ -228,6 +232,10 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 	public void cancelPendingBatchProcess(BatchProcess batchProcess) {
 		updateBatchProcesses(cancelPendingBatchProcessDocumentAlteration(batchProcess.getId()));
+	}
+
+	public void cancelPendingBatchProcesses(Predicate<BatchProcess> batchProcessPredicate) {
+		updateBatchProcesses(cancelPendingBatchProcessDocumentAlteration(batchProcessPredicate));
 	}
 
 	public void cancelBatchProcessNoMatterItStatus(BatchProcess batchProcess) {
@@ -440,6 +448,23 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		};
 	}
 
+	DocumentAlteration cancelPendingBatchProcessDocumentAlteration(final Predicate<BatchProcess> batchProcessPredicate) {
+
+		List<String> cancelledIds = getPendingBatchProcesses().stream().filter(batchProcessPredicate)
+				.map(BatchProcess::getId).collect(Collectors.toList());
+
+		return new DocumentAlteration() {
+
+			@Override
+			public void alter(Document document) {
+				BatchProcessListWriter batchProcessListWriter = newBatchProcessListWriter(document);
+				for(String id : cancelledIds) {
+					batchProcessListWriter.cancelPendingBatchProcess(id);
+				}
+			}
+		};
+	}
+
 	String newBatchProcessId() {
 		return UUID.randomUUID().toString();
 	}
@@ -523,7 +548,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 			SearchServices searchServices = modelLayerFactory.newSearchServices();
 			if (recordsReindexingBackgroundAction != null
-				&& ReindexingServices.getReindexingInfos() == null) {
+				&& !modelLayerFactory.isReindexing()) {
 
 				LogicalSearchQuery query = new LogicalSearchQuery(fromEveryTypesOfEveryCollection().where(MARKED_FOR_REINDEXING).isTrue());
 				query.filteredByStatus(StatusFilter.ALL);
@@ -602,5 +627,27 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 	private int getBatchProcessMaximumHistorySize() {
 		return new ConstellioEIMConfigs(modelLayerFactory).getBatchProcessMaximumHistorySize();
+	}
+
+	public void cancelReindexingBatchProcesses() {
+		for (BatchProcess batchProcess : new ArrayList<>(getAllNonFinishedBatchProcesses())) {
+			if (batchProcess instanceof RecordBatchProcess) {
+				if (((RecordBatchProcess) batchProcess).getAction() instanceof RecordsReindexingBackgroundAction) {
+					try {
+						cancelBatchProcessNoMatterItStatus(batchProcess);
+					} catch (Exception e) {
+						LOGGER.info("Failed to cancel reindexing batch process");
+					}
+				}
+			}
+		}
+	}
+
+	public void reindexInBackground(List<MetadataSchemaType> schemaTypes) {
+		for (MetadataSchemaType schemaType : schemaTypes) {
+			BatchProcessAction action = ReindexMetadatasBatchProcessAction.allMetadatas();
+			addPendingBatchProcess(from(schemaType).returnAll(), action, "reindexing");
+		}
+
 	}
 }

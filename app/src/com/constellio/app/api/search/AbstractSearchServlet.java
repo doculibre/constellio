@@ -4,7 +4,6 @@ import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
@@ -43,7 +42,7 @@ public abstract class AbstractSearchServlet extends HttpServlet {
 		try {
 			doGet(authenticate(req), req, resp);
 		} catch (isNotAuthenticatedException e) {
-			resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "invalid authentification information");
+			resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED, "invalid authentification information");
 		}
 	}
 

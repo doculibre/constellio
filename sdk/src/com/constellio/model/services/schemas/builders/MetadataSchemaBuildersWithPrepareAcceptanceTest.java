@@ -24,7 +24,7 @@ public class MetadataSchemaBuildersWithPrepareAcceptanceTest extends ConstellioT
 
 	@Test
 	public void givenNewSchemaAndNewSchemaThenIdCorrespond() throws Exception {
-		MetadataSchemaBuilder type1DefaultSchema = typesBuilder.createNewSchemaType("type1").getDefaultSchema();
+		MetadataSchemaBuilder type1DefaultSchema = typesBuilder.createNewSchemaTypeWithSecurity("type1").getDefaultSchema();
 
 
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();

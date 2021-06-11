@@ -1,119 +1,76 @@
 package com.constellio.app.modules.rm.servlet;
 
+import com.constellio.app.api.pdf.signature.config.ESignatureConfigs;
+import com.constellio.app.modules.restapi.apis.v1.validation.exception.UnauthenticatedUserException;
+import com.constellio.app.modules.restapi.apis.v1.validation.exception.UnauthorizedAccessException;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.servlet.SignatureExternalAccessServiceException.SignatureExternalAccessServiceException_EmailServerNotConfigured;
+import com.constellio.app.modules.rm.servlet.SignatureExternalAccessServiceException.SignatureExternalAccessServiceException_NoSignCertificate;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.data.utils.TimeProvider;
+import com.constellio.app.servlet.BaseServletDao;
+import com.constellio.app.servlet.BaseServletService;
+import com.constellio.model.conf.email.EmailConfigurationsManager;
+import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.users.SystemWideUserInfos;
-import com.constellio.model.services.users.UserServices;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
+import com.constellio.model.entities.records.wrappers.User;
+import org.apache.commons.lang.StringUtils;
 
-import javax.servlet.http.HttpServletResponse;
-import java.util.Collections;
-import java.util.Map;
+public class SignatureExternalAccessService extends BaseServletService {
 
-public class SignatureExternalAccessService {
-	private static final String UNAUTHORIZED = "Unauthorized";
+	private SignatureExternalAccessDao dao;
 
-	private AppLayerFactory appLayerFactory;
-	private UserServices userServices;
-	private RecordServices recordServices;
-	private MetadataSchemasManager metadataSchemasManager;
-	private SchemasRecordsServices schemas;
+	@Override
+	protected BaseServletDao getDao() {
+		return dao;
+	}
 
 	public SignatureExternalAccessService() {
-		appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-
-		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-		userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-
-		metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
-		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, appLayerFactory.getModelLayerFactory());
+		dao = new SignatureExternalAccessDao();
 	}
 
-	public String accessExternalSignature(String accessId, String token, String language, String ipAddress)
-			throws SignatureExternalAccessServiceException {
-
-		SignatureExternalAccessDao dao = new SignatureExternalAccessDao(appLayerFactory);
-		return dao.accessExternalSignature(accessId, token, language, ipAddress);
+	public String accessExternalSignature(String token, String accessId, String language, String ipAddress) {
+		Record accessRecord = getRecord(accessId, false);
+		return dao.accessExternalSignature(accessRecord, token, language, ipAddress);
 	}
 
-	public void createExternalSignatureUrl(String authorization, String serviceKey, String documentId,
-										   String externalUserFullname, String externalUserEmail,
-										   String expirationDate, String language)
-			throws SignatureExternalAccessServiceException {
+	public void sendSignatureRequest(String token, String serviceKey, String documentId, String internalUserId,
+									 String externalUserFullname, String externalUserEmail, String expirationDate,
+									 String language) {
+		validateToken(token, serviceKey);
 
-		validateAuth(authorization, serviceKey);
+		Record record = getRecord(documentId, true);
 
-		SignatureExternalAccessDao dao = new SignatureExternalAccessDao(appLayerFactory);
-		dao.createExternalSignatureUrl(getUsernameByServiceKey(serviceKey), documentId, externalUserFullname,
-				externalUserEmail, expirationDate, language);
-	}
-
-	private void validateAuth(String authorization, String serviceKey)
-			throws SignatureExternalAccessServiceException {
-
-		if (StringUtils.isBlank(authorization)) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		User user;
+		try {
+			user = getUserByServiceKey(serviceKey, record.getCollection());
+		} catch (Exception e) {
+			throw new UnauthenticatedUserException();
 		}
 
-		String[] autorizationStrings = authorization.split(" ", 2);
-		if (autorizationStrings.length != 2 || !autorizationStrings[0].equals("Bearer")) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		EmailConfigurationsManager emailConfigurationsManager = appLayerFactory.getModelLayerFactory().getEmailConfigurationsManager();
+		EmailServerConfiguration emailConfiguration = emailConfigurationsManager.getEmailConfiguration(record.getCollection(), false);
+
+		if (emailConfiguration == null || !emailConfiguration.isEnabled()) {
+			throw new SignatureExternalAccessServiceException_EmailServerNotConfigured();
 		}
 
-		String token = autorizationStrings[1];
-		if (StringUtils.isBlank(token) || StringUtils.isBlank(serviceKey)) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		if (appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager().getValue(ESignatureConfigs.SIGNING_KEYSTORE) == null) {
+			throw new SignatureExternalAccessServiceException_NoSignCertificate();
 		}
 
-		Map<String, LocalDateTime> tokens = getUserAccessTokens(serviceKey);
-		if (!tokens.containsKey(token)) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
+		if (!user.hasWriteAccess().on(record) ||
+			!user.has(RMPermissionsTo.SEND_SIGNATURE_REQUEST).globally()) {
+			throw new UnauthorizedAccessException();
 		}
 
-		if (tokens.get(token).isBefore(TimeProvider.getLocalDateTime())) {
-			throw new SignatureExternalAccessServiceException(HttpServletResponse.SC_UNAUTHORIZED, UNAUTHORIZED);
-		}
-	}
-
-	private Map<String, LocalDateTime> getUserAccessTokens(String serviceKey) {
-		String username = getUsernameByServiceKey(serviceKey);
-		if (username == null) {
-			return Collections.emptyMap();
+		Record internalUserRecord = null;
+		if (StringUtils.isNotBlank(internalUserId)) {
+			internalUserRecord = getRecord(internalUserId, true);
 		}
 
-		SystemWideUserInfos userCredential = userServices.getUserInfos(username);
-		if (userCredential == null) {
-			return Collections.emptyMap();
-		}
-
-		return userCredential.getAccessTokens();
-	}
-
-	private String getUsernameByServiceKey(String serviceKey) {
-		Record userCredential = getRecordByMetadata(schemas.credentialServiceKey(), serviceKey);
-		if (userCredential == null) {
-			return null;
-		}
-
-		return getMetadataValue(userCredential, UserCredential.USERNAME);
-	}
-
-	private Record getRecordByMetadata(Metadata metadata, String value) {
-		return recordServices.getRecordByMetadata(metadata, value);
-	}
-
-	private <T> T getMetadataValue(Record record, String metadataCode) {
-		MetadataSchema metadataSchema = metadataSchemasManager.getSchemaOf(record);
-		return record.get(metadataSchema.getMetadata(metadataCode));
+		dao.sendSignatureRequest(user, record, internalUserRecord, externalUserFullname, externalUserEmail,
+				expirationDate, language);
 	}
 }

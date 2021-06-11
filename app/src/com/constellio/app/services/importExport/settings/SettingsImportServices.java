@@ -30,6 +30,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
@@ -42,6 +43,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
+import com.constellio.model.entities.schemas.entries.AdvancedSequenceCalculator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -187,7 +189,7 @@ public class SettingsImportServices {
 
 					MetadataSchemaTypeBuilder typeBuilder;
 					if (!schemasManager.getSchemaTypes(collection).hasType(importedType.getCode())) {
-						typeBuilder = types.createNewSchemaType(importedType.getCode());
+						typeBuilder = types.createNewSchemaTypeWithSecurity(importedType.getCode());
 						typeBuilder.setSecurity(false);
 					} else {
 						typeBuilder = types.getSchemaType(importedType.getCode());
@@ -670,6 +672,10 @@ public class SettingsImportServices {
 					setSequenceDataEntry(metadataBuilder, dataEntry);
 					break;
 
+				case "advancedsequence":
+					setAdvancedSequenceDataEntry(metadataBuilder, dataEntry);
+					break;
+
 				case "jexl":
 					metadataBuilder.defineDataEntry().asJexlScript(dataEntry.getPattern());
 					break;
@@ -702,6 +708,19 @@ public class SettingsImportServices {
 			metadataBuilder.defineDataEntry().asFixedSequence(dataEntry.getFixedSequenceCode());
 		} else {
 			metadataBuilder.defineDataEntry().asSequenceDefinedByMetadata(dataEntry.getMetadataProvidingSequenceCode());
+		}
+	}
+
+	private void setAdvancedSequenceDataEntry(MetadataBuilder metadataBuilder, ImportedDataEntry dataEntry) {
+		if (StringUtils.isNotBlank(dataEntry.getAdvancedSequenceCalculatorClass())) {
+			Class<? extends AdvancedSequenceCalculator> calculator = null;
+			try {
+				calculator = Class.forName(dataEntry.getAdvancedSequenceCalculatorClass())
+						.asSubclass(AdvancedSequenceCalculator.class);
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
+			metadataBuilder.defineDataEntry().asAdvancedSequence(calculator);
 		}
 	}
 
@@ -920,9 +939,10 @@ public class SettingsImportServices {
 
 	private void validate(ImportedSettings settings, ValidationErrors validationErrors)
 			throws ValidationException {
-
-		if (settings.getImportedSystemVersion() == null || !settings.getImportedSystemVersion().isOnlyUSR()) {
-			validateImportedSystemVersion(validationErrors, settings.getImportedSystemVersion());
+		if(Toggle.VALIDATE_VERSION_NUMBER_BEFORE_SETTINGS_IMPORT.isEnabled()){
+			if (settings.getImportedSystemVersion() == null || !settings.getImportedSystemVersion().isOnlyUSR()) {
+				validateImportedSystemVersion(validationErrors, settings.getImportedSystemVersion());
+			}
 		}
 
 		validateGlobalConfigs(settings, validationErrors);

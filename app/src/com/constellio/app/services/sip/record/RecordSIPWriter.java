@@ -13,7 +13,7 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.security.SecurityModel;
@@ -159,8 +159,8 @@ public class RecordSIPWriter {
 				if (includeAuths) {
 					SecurityModel securityModel = recordServices.getSecurityModel(record.getCollection());
 					for (SecurityModelAuthorization authorization : securityModel.getAuthorizationsOnTarget(record.getId())) {
-						recordIdsToAdd.add(Authorization.SCHEMA_TYPE, authorization.getDetails().getId());
-						addToSIP(transaction, authorization.getDetails().getWrappedRecord(), errors);
+						recordIdsToAdd.add(RecordAuthorization.SCHEMA_TYPE, authorization.getDetails().getId());
+						addToSIP(transaction, ((RecordAuthorization) authorization.getDetails()).getWrappedRecord(), errors);
 					}
 				}
 			}
@@ -314,7 +314,12 @@ public class RecordSIPWriter {
 		}
 
 		public String sipXMLPath(Metadata metadata, ContentVersion contentVersion) {
-			return parentPath + "/" + fileId(metadata, contentVersion) + "." + getExtension(contentVersion.getFilename());
+			String path = parentPath + "/" + fileId(metadata, contentVersion);
+			String extension = getExtension(contentVersion.getFilename());
+			if (!extension.isEmpty()) {
+				path += "." + extension;
+			}
+			return path;
 		}
 
 		public String getDmdId() {

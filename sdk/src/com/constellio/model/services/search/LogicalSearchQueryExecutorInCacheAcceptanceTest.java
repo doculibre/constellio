@@ -74,8 +74,8 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		metadataSchemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
-			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaType("testschema").setSecurity(true);
-			MetadataSchemaTypeBuilder testSchema2Builder = types.createNewSchemaType("testschema2").setSecurity(true);
+			MetadataSchemaTypeBuilder testSchemaBuilder = types.createNewSchemaTypeWithSecurity("testschema").setSecurity(true);
+			MetadataSchemaTypeBuilder testSchema2Builder = types.createNewSchemaTypeWithSecurity("testschema2").setSecurity(true);
 
 			MetadataSchemaBuilder defaultTestSchemaBuilder = testSchemaBuilder.getDefaultSchema();
 			defaultTestSchemaBuilder.get("title").setSortable(true);
@@ -143,7 +143,7 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		aliceInCollection.setCollectionReadAccess(false);
 		recordServices.update(aliceInCollection);
 
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(testsSchemaDefault).where(cacheIndexMetadata).isEqualTo("toBeFound3")).filteredWithUser(aliceInCollection);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(testsSchemaDefault).where(cacheIndexMetadata).isEqualTo("toBeFound3")).filteredWithUserRead(aliceInCollection);
 
 		validateExecutableInCacheTrue(logicalSearchQuery);
 
@@ -168,23 +168,23 @@ public class LogicalSearchQueryExecutorInCacheAcceptanceTest extends ConstellioT
 		aliceInCollection.setCollectionReadAccess(false);
 		recordServices.update(aliceInCollection);
 
-		LogicalSearchQuery logicalSearchQuery1 = createValidQuery().filteredWithUser(aliceInCollection, CorePermissions.VIEW_EVENTS);
+		LogicalSearchQuery logicalSearchQuery1 = createValidQuery().filteredWithUserRead(aliceInCollection, CorePermissions.VIEW_EVENTS);
 
 		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery1)).isFalse();
 
-		LogicalSearchQuery logicalSearchQuery2 = createValidQuery().filteredWithUser(aliceInCollection, CorePermissions.MANAGE_LDAP);
+		LogicalSearchQuery logicalSearchQuery2 = createValidQuery().filteredWithUserRead(aliceInCollection, CorePermissions.MANAGE_LDAP);
 
 		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery2)).isFalse();
 
-		LogicalSearchQuery logicalSearchQuery3 = createValidQuery().filteredWithUser(aliceInCollection, Role.READ);
+		LogicalSearchQuery logicalSearchQuery3 = createValidQuery().filteredWithUserRead(aliceInCollection, Role.READ);
 
 		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery3)).isTrue();
 
-		LogicalSearchQuery logicalSearchQuery4 = createValidQuery().filteredWithUser(aliceInCollection, Role.WRITE);
+		LogicalSearchQuery logicalSearchQuery4 = createValidQuery().filteredWithUserRead(aliceInCollection, Role.WRITE);
 
 		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery4)).isTrue();
 
-		LogicalSearchQuery logicalSearchQuery5 = createValidQuery().filteredWithUser(aliceInCollection, Role.DELETE);
+		LogicalSearchQuery logicalSearchQuery5 = createValidQuery().filteredWithUserRead(aliceInCollection, Role.DELETE);
 
 		assertThat(logicalSearchQueryExecutorInCache.isQueryExecutableInCache(logicalSearchQuery5)).isTrue();
 

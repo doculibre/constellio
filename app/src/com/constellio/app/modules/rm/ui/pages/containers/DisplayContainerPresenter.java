@@ -224,7 +224,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		LogicalSearchCondition condition = from(rmRecordServices().folder.schemaType())
 				.where(rmRecordServices().folder.container()).isEqualTo(containerId)
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
-		return new LogicalSearchQuery(condition).filteredWithUser(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES);
+		return new LogicalSearchQuery(condition).filteredWithUserRead(getCurrentUser()).filteredByStatus(StatusFilter.ACTIVES);
 	}
 
 	private RMSchemasRecordsServices rmRecordServices() {
@@ -253,7 +253,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public MetadataSchemaVO getSchema() {
-		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+		return new MetadataSchemaToVOBuilder().build(schema(ContainerRecord.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 	}
 
 }

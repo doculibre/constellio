@@ -96,7 +96,8 @@ public class AllowedReferencesValidator implements Validator<Record> {
 									schema.getCode(), referenceValue);
 						}
 
-						if (!isEqual(wasValue, referenceValue) && TRUE.equals(referencedRecord.get(LOGICALLY_DELETED_STATUS))) {
+						if (!isEqual(wasValue, referenceValue) && !skippingReferenceToLogicallyDeletedValidation
+							&& TRUE.equals(referencedRecord.get(LOGICALLY_DELETED_STATUS))) {
 
 							addValidationErrors(validationErrors, CANNOT_REFERENCE_LOGICALLY_DELETED_RECORD, metadata,
 									schema.getCode(), referenceValue);

@@ -36,7 +36,7 @@ public class RMMigrationTo5_1_7 implements MigrationScript {
 		}
 
 		private void createCartSchemaType(MetadataSchemaTypesBuilder builder) {
-			MetadataSchemaTypeBuilder schemaType = builder.createNewSchemaType(Cart.SCHEMA_TYPE).setSecurity(false);
+			MetadataSchemaTypeBuilder schemaType = builder.createNewSchemaTypeWithSecurity(Cart.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder schema = schemaType.getDefaultSchema();
 
 			schema.createUndeletable(Cart.OWNER).setDefaultRequirement(true).setUniqueValue(true)

@@ -50,6 +50,42 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.SHARE_MANAGEMENT);
 	}
 
+	public void listLegalRequirements() {
+		navigator.navigateTo(RMNavigationConfiguration.LIST_LEGAL_REQUIREMENTS);
+	}
+
+	public void displayLegalRequirement(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_LEGAL_REQUIREMENT, params));
+	}
+
+	public void displayLegalReference(String id) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_LEGAL_REFERENCE, params));
+	}
+
+	public void addEditLegalRequirement(String id) {
+		Map<String, String> params = new HashMap<>();
+		if (id != null) {
+			params.put("id", id);
+		}
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_EDIT_LEGAL_REQUIREMENT, params));
+	}
+
+	public void addEditLegalReference(String id) {
+		Map<String, String> params = new HashMap<>();
+		if (id != null) {
+			params.put("id", id);
+		}
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_EDIT_LEGAL_REFERENCE, params));
+	}
+
 	public void displayFolderFromDecommission(String id, String homePageUrl, boolean isToOpenInNewTab,
 											  String decommissioningSearchId, String decommissioningType) {
 		Map<String, String> params = new HashMap<>();

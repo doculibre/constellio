@@ -8,6 +8,7 @@ public class RecordExportOptions {
 
 	boolean isForSameSystem = false;
 	boolean includeAuthorizations = false;
+	boolean includeContents = false;
 
 	Iterator<Record> recordsToExportIterator;
 
@@ -39,5 +40,12 @@ public class RecordExportOptions {
 		return this;
 	}
 
+	public boolean isIncludeContents() {
+		return includeContents;
+	}
 
+	public RecordExportOptions setIncludeContents(boolean includeContents) {
+		this.includeContents = includeContents;
+		return this;
+	}
 }

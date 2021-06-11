@@ -10,22 +10,39 @@ import java.util.List;
 import static com.constellio.data.dao.dto.records.RecordDTOUtils.toStringId;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.SortedIntIdsList_ID;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.allocateMemory;
+import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.copy;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.copyAdding;
 import static com.constellio.model.services.records.cache.offHeapCollections.OffHeapMemoryAllocator.putInt;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 public class SortedIntIdsList implements SortedIdsList {
 
 	public static final int INITIAL_SIZE = 3;
 
-	public static final int RESIZE_FACTOR = 3;
+	public static final int ADD_RESIZE_FACTOR = 3;
+
+	/**
+	 * Often call when doing massive removes, so we don't need a large factor
+	 */
+	public static final double REDUCE_RESIZE_FACTOR = 1.10;
 
 	public static final int MAX_INCREMENTING_SIZE = 1000;
+
+	/**
+	 * The quantity of elements the structure can take before being reduced
+	 */
+	public static final int MAX_CAPACITY = MAX_INCREMENTING_SIZE * 5;
+
 
 	long address;
 
 	int size;
 
-	int capacity;
+	/**
+	 * How many int values the structure can take
+	 */
+	short itemsCapacity;
 
 
 	@Override
@@ -52,16 +69,17 @@ public class SortedIntIdsList implements SortedIdsList {
 
 		if (placementIndex != -1) {
 
-			if (capacity == 0) {
+			if (itemsCapacity == 0) {
 				if (size == 0) {
 
 					size = (INITIAL_SIZE * Integer.BYTES);
 					address = allocateMemory(size, SortedIntIdsList_ID);
 					putInt(address, intId);
-					capacity = (short) (size - Integer.BYTES);
+					itemsCapacity = INITIAL_SIZE - 1;
 
 				} else {
-					int newSize = Math.min(size * RESIZE_FACTOR, size + (Integer.BYTES * MAX_INCREMENTING_SIZE));
+					int dataSize = size - (itemsCapacity * Integer.BYTES);
+					int newSize = min(dataSize * ADD_RESIZE_FACTOR, dataSize + (Integer.BYTES * MAX_INCREMENTING_SIZE));
 					long newAddress = allocateMemory(newSize, SortedIntIdsList_ID);
 
 					try {
@@ -76,15 +94,16 @@ public class SortedIntIdsList implements SortedIdsList {
 
 
 					OffHeapMemoryAllocator.freeMemory(address, size, SortedIntIdsList_ID);
-					capacity = (short) (newSize - size - Integer.BYTES);
+					int bytesCapacity = newSize - size - Integer.BYTES;
+					itemsCapacity = (short) (bytesCapacity / Integer.BYTES);
 					address = newAddress;
 					size = newSize;
 				}
 
 			} else {
-				copyAdding(address, size - capacity, placementIndex * Integer.BYTES, Integer.BYTES);
+				copyAdding(address, size - bytesCapacity(), placementIndex * Integer.BYTES, Integer.BYTES);
 				putInt(address + placementIndex * Integer.BYTES, intId);
-				capacity -= Integer.BYTES;
+				itemsCapacity--;
 			}
 
 		}
@@ -111,14 +130,52 @@ public class SortedIntIdsList implements SortedIdsList {
 		int index = binarySearch(intId);
 
 		if (index != -1) {
-			OffHeapMemoryAllocator.copyRemoving(address, size - capacity, index * Integer.BYTES, Integer.BYTES);
-			capacity += Integer.BYTES;
+
+			OffHeapMemoryAllocator.copyRemoving(address, size - bytesCapacity(), index * Integer.BYTES, Integer.BYTES);
+			itemsCapacity++;
+			if (itemsCapacity > MAX_CAPACITY) {
+				//Reducing the structure
+				int dataSize = size() * Integer.BYTES;
+				int newSize =
+						min(
+								max(
+										dataSize + 3 * Integer.BYTES,
+										(int) ((dataSize) * REDUCE_RESIZE_FACTOR)
+								),
+								dataSize + (Integer.BYTES * MAX_INCREMENTING_SIZE));
+
+				long newAddress = allocateMemory(newSize, SortedIntIdsList_ID);
+
+				try {
+					copy(address, newAddress, dataSize);
+
+				} catch (Throwable t) {
+					OffHeapMemoryAllocator.freeMemory(newAddress, newSize, SortedIntIdsList_ID);
+
+					throw t;
+				}
+
+
+				OffHeapMemoryAllocator.freeMemory(address, size, SortedIntIdsList_ID);
+				int bytesCapacity = newSize - dataSize - Integer.BYTES;
+				itemsCapacity = (short) (bytesCapacity / Integer.BYTES);
+				address = newAddress;
+				size = newSize;
+
+
+				itemsCapacity++;
+			}
+
 		}
+	}
+
+	private int bytesCapacity() {
+		return Integer.BYTES * (int) itemsCapacity;
 	}
 
 	@Override
 	public synchronized int size() {
-		return (size - capacity) / Integer.BYTES;
+		return (size - bytesCapacity()) / Integer.BYTES;
 	}
 
 	@Override
@@ -130,7 +187,7 @@ public class SortedIntIdsList implements SortedIdsList {
 
 		address = 0;
 		size = 0;
-		capacity = 0;
+		itemsCapacity = 0;
 	}
 
 	@Override
@@ -140,7 +197,7 @@ public class SortedIntIdsList implements SortedIdsList {
 
 	@Override
 	public long valuesHeapLength() {
-		return 12 + Long.BYTES + Integer.BYTES + Integer.BYTES;
+		return 12 + Long.BYTES + Integer.BYTES + Short.BYTES;
 	}
 
 	@Override
@@ -160,7 +217,7 @@ public class SortedIntIdsList implements SortedIdsList {
 
 	@Override
 	public List<String> getValuesWithoutSynchronizing() {
-		List<String> list = new ArrayList<>(capacity / Integer.BYTES);
+		List<String> list = new ArrayList<>(size());
 		for (int i = 0; i < size(); i++) {
 			list.add(toStringId(get(i)));
 		}
@@ -170,7 +227,7 @@ public class SortedIntIdsList implements SortedIdsList {
 
 	@Override
 	public List<RecordId> getValuesIdWithoutSynchronizing() {
-		List<RecordId> list = new ArrayList<>(capacity / Integer.BYTES);
+		List<RecordId> list = new ArrayList<>(size());
 		for (int i = 0; i < size(); i++) {
 			list.add(new IntegerRecordId(get(i)));
 		}

@@ -1,23 +1,31 @@
 package com.constellio.app.modules.complementary.esRmRobots.migrations;
 
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.model.entities.schemas.RecordCacheType;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import com.constellio.model.services.security.roles.RolesManager;
+import java.util.ArrayList;
+import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
+import static java.util.Arrays.asList;
+
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.complementary.esRmRobots.validators.ClassifyConnectorTaxonomyActionParametersValidator;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.security.roles.RolesManager;
-
-import static java.util.Arrays.asList;
+import java.lang.String;
 
 public final class GeneratedESRMRobotsMigrationCombo {
   String collection;
@@ -76,6 +84,8 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataSchemaBuilder connectorTypeSchema = connectorTypeSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder containerRecordSchemaType = typesBuilder.getSchemaType("containerRecord");
     MetadataSchemaBuilder containerRecordSchema = containerRecordSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder conversationSchemaType = typesBuilder.getSchemaType("conversation");
+    MetadataSchemaBuilder conversationSchema = conversationSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder ddvCapsuleLanguageSchemaType = typesBuilder.getSchemaType("ddvCapsuleLanguage");
     MetadataSchemaBuilder ddvCapsuleLanguageSchema = ddvCapsuleLanguageSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder ddvContainerRecordTypeSchemaType = typesBuilder.getSchemaType("ddvContainerRecordType");
@@ -86,6 +96,10 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataSchemaBuilder ddvFolderTypeSchema = ddvFolderTypeSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder ddvMediumTypeSchemaType = typesBuilder.getSchemaType("ddvMediumType");
     MetadataSchemaBuilder ddvMediumTypeSchema = ddvMediumTypeSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder ddvRequirementTypeSchemaType = typesBuilder.getSchemaType("ddvRequirementType");
+    MetadataSchemaBuilder ddvRequirementTypeSchema = ddvRequirementTypeSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder ddvSourceSchemaType = typesBuilder.getSchemaType("ddvSource");
+    MetadataSchemaBuilder ddvSourceSchema = ddvSourceSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder ddvStorageSpaceTypeSchemaType = typesBuilder.getSchemaType("ddvStorageSpaceType");
     MetadataSchemaBuilder ddvStorageSpaceTypeSchema = ddvStorageSpaceTypeSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder ddvTaskStatusSchemaType = typesBuilder.getSchemaType("ddvTaskStatus");
@@ -107,6 +121,13 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataSchemaBuilder emailToSendSchema = emailToSendSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.getSchemaType("event");
     MetadataSchemaBuilder eventSchema = eventSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder externalAccessUrlSchemaType = typesBuilder.getSchemaType("externalAccessUrl");
+    MetadataSchemaBuilder externalAccessUrl_signatureSchema = externalAccessUrlSchemaType.getCustomSchema("signature");
+    MetadataSchemaBuilder externalAccessUrlSchema = externalAccessUrlSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder externalLinkSchemaType = typesBuilder.getSchemaType("externalLink");
+    MetadataSchemaBuilder externalLinkSchema = externalLinkSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder externalLinkTypeSchemaType = typesBuilder.getSchemaType("externalLinkType");
+    MetadataSchemaBuilder externalLinkTypeSchema = externalLinkTypeSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder facetSchemaType = typesBuilder.getSchemaType("facet");
     MetadataSchemaBuilder facet_fieldSchema = facetSchemaType.getCustomSchema("field");
     MetadataSchemaBuilder facet_querySchema = facetSchemaType.getCustomSchema("query");
@@ -115,6 +136,14 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataSchemaBuilder filingSpaceSchema = filingSpaceSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder folderSchemaType = typesBuilder.getSchemaType("folder");
     MetadataSchemaBuilder folderSchema = folderSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder legalReferenceSchemaType = typesBuilder.getSchemaType("legalReference");
+    MetadataSchemaBuilder legalReferenceSchema = legalReferenceSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder legalRequirementSchemaType = typesBuilder.getSchemaType("legalRequirement");
+    MetadataSchemaBuilder legalRequirementSchema = legalRequirementSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder legalRequirementReferenceSchemaType = typesBuilder.getSchemaType("legalRequirementReference");
+    MetadataSchemaBuilder legalRequirementReferenceSchema = legalRequirementReferenceSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder messageSchemaType = typesBuilder.getSchemaType("message");
+    MetadataSchemaBuilder messageSchema = messageSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder printableSchemaType = typesBuilder.getSchemaType("printable");
     MetadataSchemaBuilder printable_labelSchema = printableSchemaType.getCustomSchema("label");
     MetadataSchemaBuilder printable_reportSchema = printableSchemaType.getCustomSchema("report");
@@ -123,6 +152,8 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataSchemaBuilder reportSchema = reportSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder retentionRuleSchemaType = typesBuilder.getSchemaType("retentionRule");
     MetadataSchemaBuilder retentionRuleSchema = retentionRuleSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder retentionRuleDocumentTypeSchemaType = typesBuilder.getSchemaType("retentionRuleDocumentType");
+    MetadataSchemaBuilder retentionRuleDocumentTypeSchema = retentionRuleDocumentTypeSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder robotSchemaType = typesBuilder.getSchemaType("robot");
     MetadataSchemaBuilder robotSchema = robotSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder robotLogSchemaType = typesBuilder.getSchemaType("robotLog");
@@ -147,6 +178,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataSchemaBuilder temporaryRecordSchema = temporaryRecordSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder thesaurusConfigSchemaType = typesBuilder.getSchemaType("thesaurusConfig");
     MetadataSchemaBuilder thesaurusConfigSchema = thesaurusConfigSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder triggerSchemaType = typesBuilder.getSchemaType("trigger");
+    MetadataSchemaBuilder triggerSchema = triggerSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder triggerActionSchemaType = typesBuilder.getSchemaType("triggerAction");
+    MetadataSchemaBuilder triggerAction_moveInFolderSchema = triggerActionSchemaType.getCustomSchema("moveInFolder");
+    MetadataSchemaBuilder triggerActionSchema = triggerActionSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder triggerActionTypeSchemaType = typesBuilder.getSchemaType("triggerActionType");
+    MetadataSchemaBuilder triggerActionTypeSchema = triggerActionTypeSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder triggerTypeSchemaType = typesBuilder.getSchemaType("triggerType");
+    MetadataSchemaBuilder triggerTypeSchema = triggerTypeSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder uniformSubdivisionSchemaType = typesBuilder.getSchemaType("uniformSubdivision");
     MetadataSchemaBuilder uniformSubdivisionSchema = uniformSubdivisionSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder userDocumentSchemaType = typesBuilder.getSchemaType("userDocument");
@@ -180,11 +220,14 @@ public final class GeneratedESRMRobotsMigrationCombo {
     createConnectorSmbFolderSchemaTypeMetadatas(typesBuilder,connectorSmbFolderSchemaType, connectorSmbFolderSchema);
     createConnectorTypeSchemaTypeMetadatas(typesBuilder,connectorTypeSchemaType, connectorTypeSchema);
     createContainerRecordSchemaTypeMetadatas(typesBuilder,containerRecordSchemaType, containerRecordSchema);
+    createConversationSchemaTypeMetadatas(typesBuilder,conversationSchemaType, conversationSchema);
     createDdvCapsuleLanguageSchemaTypeMetadatas(typesBuilder,ddvCapsuleLanguageSchemaType, ddvCapsuleLanguageSchema);
     createDdvContainerRecordTypeSchemaTypeMetadatas(typesBuilder,ddvContainerRecordTypeSchemaType, ddvContainerRecordTypeSchema);
     createDdvDocumentTypeSchemaTypeMetadatas(typesBuilder,ddvDocumentTypeSchemaType, ddvDocumentTypeSchema);
     createDdvFolderTypeSchemaTypeMetadatas(typesBuilder,ddvFolderTypeSchemaType, ddvFolderTypeSchema);
     createDdvMediumTypeSchemaTypeMetadatas(typesBuilder,ddvMediumTypeSchemaType, ddvMediumTypeSchema);
+    createDdvRequirementTypeSchemaTypeMetadatas(typesBuilder,ddvRequirementTypeSchemaType, ddvRequirementTypeSchema);
+    createDdvSourceSchemaTypeMetadatas(typesBuilder,ddvSourceSchemaType, ddvSourceSchema);
     createDdvStorageSpaceTypeSchemaTypeMetadatas(typesBuilder,ddvStorageSpaceTypeSchemaType, ddvStorageSpaceTypeSchema);
     createDdvTaskStatusSchemaTypeMetadatas(typesBuilder,ddvTaskStatusSchemaType, ddvTaskStatusSchema);
     createDdvTaskTypeSchemaTypeMetadatas(typesBuilder,ddvTaskTypeSchemaType, ddvTaskTypeSchema);
@@ -195,12 +238,20 @@ public final class GeneratedESRMRobotsMigrationCombo {
     createDocumentSchemaTypeMetadatas(typesBuilder,documentSchemaType, document_emailSchema, documentSchema);
     createEmailToSendSchemaTypeMetadatas(typesBuilder,emailToSendSchemaType, emailToSendSchema);
     createEventSchemaTypeMetadatas(typesBuilder,eventSchemaType, eventSchema);
+    createExternalAccessUrlSchemaTypeMetadatas(typesBuilder,externalAccessUrlSchemaType, externalAccessUrl_signatureSchema, externalAccessUrlSchema);
+    createExternalLinkSchemaTypeMetadatas(typesBuilder,externalLinkSchemaType, externalLinkSchema);
+    createExternalLinkTypeSchemaTypeMetadatas(typesBuilder,externalLinkTypeSchemaType, externalLinkTypeSchema);
     createFacetSchemaTypeMetadatas(typesBuilder,facetSchemaType, facet_fieldSchema, facet_querySchema, facetSchema);
     createFilingSpaceSchemaTypeMetadatas(typesBuilder,filingSpaceSchemaType, filingSpaceSchema);
     createFolderSchemaTypeMetadatas(typesBuilder,folderSchemaType, folderSchema);
+    createLegalReferenceSchemaTypeMetadatas(typesBuilder,legalReferenceSchemaType, legalReferenceSchema);
+    createLegalRequirementSchemaTypeMetadatas(typesBuilder,legalRequirementSchemaType, legalRequirementSchema);
+    createLegalRequirementReferenceSchemaTypeMetadatas(typesBuilder,legalRequirementReferenceSchemaType, legalRequirementReferenceSchema);
+    createMessageSchemaTypeMetadatas(typesBuilder,messageSchemaType, messageSchema);
     createPrintableSchemaTypeMetadatas(typesBuilder,printableSchemaType, printable_labelSchema, printable_reportSchema, printableSchema);
     createReportSchemaTypeMetadatas(typesBuilder,reportSchemaType, reportSchema);
     createRetentionRuleSchemaTypeMetadatas(typesBuilder,retentionRuleSchemaType, retentionRuleSchema);
+    createRetentionRuleDocumentTypeSchemaTypeMetadatas(typesBuilder,retentionRuleDocumentTypeSchemaType, retentionRuleDocumentTypeSchema);
     createRobotSchemaTypeMetadatas(typesBuilder,robotSchemaType, robotSchema);
     createRobotLogSchemaTypeMetadatas(typesBuilder,robotLogSchemaType, robotLogSchema);
     createSavedSearchSchemaTypeMetadatas(typesBuilder,savedSearchSchemaType, savedSearchSchema);
@@ -209,6 +260,10 @@ public final class GeneratedESRMRobotsMigrationCombo {
     createTaskSchemaTypeMetadatas(typesBuilder,taskSchemaType, task_approvalSchema, taskSchema);
     createTemporaryRecordSchemaTypeMetadatas(typesBuilder,temporaryRecordSchemaType, temporaryRecord_ConsolidatedPdfSchema, temporaryRecord_batchProcessReportSchema, temporaryRecord_exportAuditSchema, temporaryRecord_importAuditSchema, temporaryRecord_scriptReportSchema, temporaryRecord_sipArchiveSchema, temporaryRecord_vaultScanReportSchema, temporaryRecordSchema);
     createThesaurusConfigSchemaTypeMetadatas(typesBuilder,thesaurusConfigSchemaType, thesaurusConfigSchema);
+    createTriggerSchemaTypeMetadatas(typesBuilder,triggerSchemaType, triggerSchema);
+    createTriggerActionSchemaTypeMetadatas(typesBuilder,triggerActionSchemaType, triggerAction_moveInFolderSchema, triggerActionSchema);
+    createTriggerActionTypeSchemaTypeMetadatas(typesBuilder,triggerActionTypeSchemaType, triggerActionTypeSchema);
+    createTriggerTypeSchemaTypeMetadatas(typesBuilder,triggerTypeSchemaType, triggerTypeSchema);
     createUniformSubdivisionSchemaTypeMetadatas(typesBuilder,uniformSubdivisionSchemaType, uniformSubdivisionSchema);
     createUserDocumentSchemaTypeMetadatas(typesBuilder,userDocumentSchemaType, userDocumentSchema);
     createUserFolderSchemaTypeMetadatas(typesBuilder,userFolderSchemaType, userFolderSchema);
@@ -217,10 +272,19 @@ public final class GeneratedESRMRobotsMigrationCombo {
     createWorkflowInstanceSchemaTypeMetadatas(typesBuilder,workflowInstanceSchemaType, workflowInstanceSchema);
   }
 
+  private void createExternalLinkSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder externalLinkSchemaType, MetadataSchemaBuilder externalLinkSchema) {
+  }
+
+  private void createRetentionRuleDocumentTypeSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder retentionRuleDocumentTypeSchemaType, MetadataSchemaBuilder retentionRuleDocumentTypeSchema) {
+  }
+
   private void createDdvTaskTypeSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvTaskTypeSchemaType, MetadataSchemaBuilder ddvTaskTypeSchema) {
   }
 
   private void createConnectorSmbFolderSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder connectorSmbFolderSchemaType, MetadataSchemaBuilder connectorSmbFolderSchema) {
+  }
+
+  private void createExternalLinkTypeSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder externalLinkTypeSchemaType, MetadataSchemaBuilder externalLinkTypeSchema) {
   }
 
   private void createCartSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder cartSchemaType, MetadataSchemaBuilder cartSchema) {
@@ -338,12 +402,14 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_allReferences = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("allReferences");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_allRemovedAuths = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("allRemovedAuths");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_attachedAncestors = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("attachedAncestors");
+    MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_attachedPrincipalAncestorsIntIds = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_autocomplete = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("autocomplete");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_caption = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("caption");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_createdBy = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("createdBy");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_createdOn = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("createdOn");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_deleted = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("deleted");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_denyTokens = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("denyTokens");
+    MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_detachedPrincipalAncestorsIntIds = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_detachedauthorizations = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("detachedauthorizations");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_errorOnPhysicalDeletion = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_estimatedSize = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("estimatedSize");
@@ -358,11 +424,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_migrationDataVersion = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("migrationDataVersion");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_modifiedBy = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("modifiedBy");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_modifiedOn = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("modifiedOn");
+    MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_nestedAuthorizations = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("nestedAuthorizations");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_path = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("path");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_pathParts = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("pathParts");
+    MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_principalAncestorsIntIds = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("principalAncestorsIntIds");
+    MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_principalConceptsIntIds = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("principalConceptsIntIds");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_principalpath = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("principalpath");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_removedauthorizations = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("removedauthorizations");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_schema = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("schema");
+    MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_secondaryConceptsIntIds = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("secondaryConceptsIntIds");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_shareDenyTokens = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("shareDenyTokens");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_shareTokens = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("shareTokens");
     MetadataBuilder actionParameters_classifyConnectorFolderDirectlyInThePlan_title = actionParameters_classifyConnectorFolderDirectlyInThePlanSchema.get("title");
@@ -372,12 +442,14 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_allReferences = actionParameters_classifyConnectorFolderInParentFolderSchema.get("allReferences");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_allRemovedAuths = actionParameters_classifyConnectorFolderInParentFolderSchema.get("allRemovedAuths");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_attachedAncestors = actionParameters_classifyConnectorFolderInParentFolderSchema.get("attachedAncestors");
+    MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_attachedPrincipalAncestorsIntIds = actionParameters_classifyConnectorFolderInParentFolderSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_autocomplete = actionParameters_classifyConnectorFolderInParentFolderSchema.get("autocomplete");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_caption = actionParameters_classifyConnectorFolderInParentFolderSchema.get("caption");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_createdBy = actionParameters_classifyConnectorFolderInParentFolderSchema.get("createdBy");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_createdOn = actionParameters_classifyConnectorFolderInParentFolderSchema.get("createdOn");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_deleted = actionParameters_classifyConnectorFolderInParentFolderSchema.get("deleted");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_denyTokens = actionParameters_classifyConnectorFolderInParentFolderSchema.get("denyTokens");
+    MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_detachedPrincipalAncestorsIntIds = actionParameters_classifyConnectorFolderInParentFolderSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_detachedauthorizations = actionParameters_classifyConnectorFolderInParentFolderSchema.get("detachedauthorizations");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_errorOnPhysicalDeletion = actionParameters_classifyConnectorFolderInParentFolderSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_estimatedSize = actionParameters_classifyConnectorFolderInParentFolderSchema.get("estimatedSize");
@@ -392,11 +464,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_migrationDataVersion = actionParameters_classifyConnectorFolderInParentFolderSchema.get("migrationDataVersion");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_modifiedBy = actionParameters_classifyConnectorFolderInParentFolderSchema.get("modifiedBy");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_modifiedOn = actionParameters_classifyConnectorFolderInParentFolderSchema.get("modifiedOn");
+    MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_nestedAuthorizations = actionParameters_classifyConnectorFolderInParentFolderSchema.get("nestedAuthorizations");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_path = actionParameters_classifyConnectorFolderInParentFolderSchema.get("path");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_pathParts = actionParameters_classifyConnectorFolderInParentFolderSchema.get("pathParts");
+    MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_principalAncestorsIntIds = actionParameters_classifyConnectorFolderInParentFolderSchema.get("principalAncestorsIntIds");
+    MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_principalConceptsIntIds = actionParameters_classifyConnectorFolderInParentFolderSchema.get("principalConceptsIntIds");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_principalpath = actionParameters_classifyConnectorFolderInParentFolderSchema.get("principalpath");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_removedauthorizations = actionParameters_classifyConnectorFolderInParentFolderSchema.get("removedauthorizations");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_schema = actionParameters_classifyConnectorFolderInParentFolderSchema.get("schema");
+    MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_secondaryConceptsIntIds = actionParameters_classifyConnectorFolderInParentFolderSchema.get("secondaryConceptsIntIds");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_shareDenyTokens = actionParameters_classifyConnectorFolderInParentFolderSchema.get("shareDenyTokens");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_shareTokens = actionParameters_classifyConnectorFolderInParentFolderSchema.get("shareTokens");
     MetadataBuilder actionParameters_classifyConnectorFolderInParentFolder_title = actionParameters_classifyConnectorFolderInParentFolderSchema.get("title");
@@ -406,12 +482,14 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_allReferences = actionParameters_classifyConnectorTaxonomySchema.get("allReferences");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_allRemovedAuths = actionParameters_classifyConnectorTaxonomySchema.get("allRemovedAuths");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_attachedAncestors = actionParameters_classifyConnectorTaxonomySchema.get("attachedAncestors");
+    MetadataBuilder actionParameters_classifyConnectorTaxonomy_attachedPrincipalAncestorsIntIds = actionParameters_classifyConnectorTaxonomySchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_autocomplete = actionParameters_classifyConnectorTaxonomySchema.get("autocomplete");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_caption = actionParameters_classifyConnectorTaxonomySchema.get("caption");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_createdBy = actionParameters_classifyConnectorTaxonomySchema.get("createdBy");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_createdOn = actionParameters_classifyConnectorTaxonomySchema.get("createdOn");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_deleted = actionParameters_classifyConnectorTaxonomySchema.get("deleted");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_denyTokens = actionParameters_classifyConnectorTaxonomySchema.get("denyTokens");
+    MetadataBuilder actionParameters_classifyConnectorTaxonomy_detachedPrincipalAncestorsIntIds = actionParameters_classifyConnectorTaxonomySchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_detachedauthorizations = actionParameters_classifyConnectorTaxonomySchema.get("detachedauthorizations");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_errorOnPhysicalDeletion = actionParameters_classifyConnectorTaxonomySchema.get("errorOnPhysicalDeletion");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_estimatedSize = actionParameters_classifyConnectorTaxonomySchema.get("estimatedSize");
@@ -426,11 +504,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_migrationDataVersion = actionParameters_classifyConnectorTaxonomySchema.get("migrationDataVersion");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_modifiedBy = actionParameters_classifyConnectorTaxonomySchema.get("modifiedBy");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_modifiedOn = actionParameters_classifyConnectorTaxonomySchema.get("modifiedOn");
+    MetadataBuilder actionParameters_classifyConnectorTaxonomy_nestedAuthorizations = actionParameters_classifyConnectorTaxonomySchema.get("nestedAuthorizations");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_path = actionParameters_classifyConnectorTaxonomySchema.get("path");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_pathParts = actionParameters_classifyConnectorTaxonomySchema.get("pathParts");
+    MetadataBuilder actionParameters_classifyConnectorTaxonomy_principalAncestorsIntIds = actionParameters_classifyConnectorTaxonomySchema.get("principalAncestorsIntIds");
+    MetadataBuilder actionParameters_classifyConnectorTaxonomy_principalConceptsIntIds = actionParameters_classifyConnectorTaxonomySchema.get("principalConceptsIntIds");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_principalpath = actionParameters_classifyConnectorTaxonomySchema.get("principalpath");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_removedauthorizations = actionParameters_classifyConnectorTaxonomySchema.get("removedauthorizations");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_schema = actionParameters_classifyConnectorTaxonomySchema.get("schema");
+    MetadataBuilder actionParameters_classifyConnectorTaxonomy_secondaryConceptsIntIds = actionParameters_classifyConnectorTaxonomySchema.get("secondaryConceptsIntIds");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_shareDenyTokens = actionParameters_classifyConnectorTaxonomySchema.get("shareDenyTokens");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_shareTokens = actionParameters_classifyConnectorTaxonomySchema.get("shareTokens");
     MetadataBuilder actionParameters_classifyConnectorTaxonomy_title = actionParameters_classifyConnectorTaxonomySchema.get("title");
@@ -440,12 +522,14 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_allReferences = actionParameters_classifySmbDocumentInFolderSchema.get("allReferences");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_allRemovedAuths = actionParameters_classifySmbDocumentInFolderSchema.get("allRemovedAuths");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_attachedAncestors = actionParameters_classifySmbDocumentInFolderSchema.get("attachedAncestors");
+    MetadataBuilder actionParameters_classifySmbDocumentInFolder_attachedPrincipalAncestorsIntIds = actionParameters_classifySmbDocumentInFolderSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_autocomplete = actionParameters_classifySmbDocumentInFolderSchema.get("autocomplete");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_caption = actionParameters_classifySmbDocumentInFolderSchema.get("caption");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_createdBy = actionParameters_classifySmbDocumentInFolderSchema.get("createdBy");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_createdOn = actionParameters_classifySmbDocumentInFolderSchema.get("createdOn");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_deleted = actionParameters_classifySmbDocumentInFolderSchema.get("deleted");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_denyTokens = actionParameters_classifySmbDocumentInFolderSchema.get("denyTokens");
+    MetadataBuilder actionParameters_classifySmbDocumentInFolder_detachedPrincipalAncestorsIntIds = actionParameters_classifySmbDocumentInFolderSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_detachedauthorizations = actionParameters_classifySmbDocumentInFolderSchema.get("detachedauthorizations");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_errorOnPhysicalDeletion = actionParameters_classifySmbDocumentInFolderSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_estimatedSize = actionParameters_classifySmbDocumentInFolderSchema.get("estimatedSize");
@@ -460,11 +544,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_migrationDataVersion = actionParameters_classifySmbDocumentInFolderSchema.get("migrationDataVersion");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_modifiedBy = actionParameters_classifySmbDocumentInFolderSchema.get("modifiedBy");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_modifiedOn = actionParameters_classifySmbDocumentInFolderSchema.get("modifiedOn");
+    MetadataBuilder actionParameters_classifySmbDocumentInFolder_nestedAuthorizations = actionParameters_classifySmbDocumentInFolderSchema.get("nestedAuthorizations");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_path = actionParameters_classifySmbDocumentInFolderSchema.get("path");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_pathParts = actionParameters_classifySmbDocumentInFolderSchema.get("pathParts");
+    MetadataBuilder actionParameters_classifySmbDocumentInFolder_principalAncestorsIntIds = actionParameters_classifySmbDocumentInFolderSchema.get("principalAncestorsIntIds");
+    MetadataBuilder actionParameters_classifySmbDocumentInFolder_principalConceptsIntIds = actionParameters_classifySmbDocumentInFolderSchema.get("principalConceptsIntIds");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_principalpath = actionParameters_classifySmbDocumentInFolderSchema.get("principalpath");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_removedauthorizations = actionParameters_classifySmbDocumentInFolderSchema.get("removedauthorizations");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_schema = actionParameters_classifySmbDocumentInFolderSchema.get("schema");
+    MetadataBuilder actionParameters_classifySmbDocumentInFolder_secondaryConceptsIntIds = actionParameters_classifySmbDocumentInFolderSchema.get("secondaryConceptsIntIds");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_shareDenyTokens = actionParameters_classifySmbDocumentInFolderSchema.get("shareDenyTokens");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_shareTokens = actionParameters_classifySmbDocumentInFolderSchema.get("shareTokens");
     MetadataBuilder actionParameters_classifySmbDocumentInFolder_title = actionParameters_classifySmbDocumentInFolderSchema.get("title");
@@ -474,12 +562,14 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder actionParameters_classifySmbFolderInFolder_allReferences = actionParameters_classifySmbFolderInFolderSchema.get("allReferences");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_allRemovedAuths = actionParameters_classifySmbFolderInFolderSchema.get("allRemovedAuths");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_attachedAncestors = actionParameters_classifySmbFolderInFolderSchema.get("attachedAncestors");
+    MetadataBuilder actionParameters_classifySmbFolderInFolder_attachedPrincipalAncestorsIntIds = actionParameters_classifySmbFolderInFolderSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_autocomplete = actionParameters_classifySmbFolderInFolderSchema.get("autocomplete");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_caption = actionParameters_classifySmbFolderInFolderSchema.get("caption");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_createdBy = actionParameters_classifySmbFolderInFolderSchema.get("createdBy");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_createdOn = actionParameters_classifySmbFolderInFolderSchema.get("createdOn");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_deleted = actionParameters_classifySmbFolderInFolderSchema.get("deleted");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_denyTokens = actionParameters_classifySmbFolderInFolderSchema.get("denyTokens");
+    MetadataBuilder actionParameters_classifySmbFolderInFolder_detachedPrincipalAncestorsIntIds = actionParameters_classifySmbFolderInFolderSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_detachedauthorizations = actionParameters_classifySmbFolderInFolderSchema.get("detachedauthorizations");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_errorOnPhysicalDeletion = actionParameters_classifySmbFolderInFolderSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_estimatedSize = actionParameters_classifySmbFolderInFolderSchema.get("estimatedSize");
@@ -494,11 +584,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder actionParameters_classifySmbFolderInFolder_migrationDataVersion = actionParameters_classifySmbFolderInFolderSchema.get("migrationDataVersion");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_modifiedBy = actionParameters_classifySmbFolderInFolderSchema.get("modifiedBy");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_modifiedOn = actionParameters_classifySmbFolderInFolderSchema.get("modifiedOn");
+    MetadataBuilder actionParameters_classifySmbFolderInFolder_nestedAuthorizations = actionParameters_classifySmbFolderInFolderSchema.get("nestedAuthorizations");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_path = actionParameters_classifySmbFolderInFolderSchema.get("path");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_pathParts = actionParameters_classifySmbFolderInFolderSchema.get("pathParts");
+    MetadataBuilder actionParameters_classifySmbFolderInFolder_principalAncestorsIntIds = actionParameters_classifySmbFolderInFolderSchema.get("principalAncestorsIntIds");
+    MetadataBuilder actionParameters_classifySmbFolderInFolder_principalConceptsIntIds = actionParameters_classifySmbFolderInFolderSchema.get("principalConceptsIntIds");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_principalpath = actionParameters_classifySmbFolderInFolderSchema.get("principalpath");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_removedauthorizations = actionParameters_classifySmbFolderInFolderSchema.get("removedauthorizations");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_schema = actionParameters_classifySmbFolderInFolderSchema.get("schema");
+    MetadataBuilder actionParameters_classifySmbFolderInFolder_secondaryConceptsIntIds = actionParameters_classifySmbFolderInFolderSchema.get("secondaryConceptsIntIds");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_shareDenyTokens = actionParameters_classifySmbFolderInFolderSchema.get("shareDenyTokens");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_shareTokens = actionParameters_classifySmbFolderInFolderSchema.get("shareTokens");
     MetadataBuilder actionParameters_classifySmbFolderInFolder_title = actionParameters_classifySmbFolderInFolderSchema.get("title");
@@ -514,6 +608,12 @@ public final class GeneratedESRMRobotsMigrationCombo {
   }
 
   private void createStorageSpaceSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder storageSpaceSchemaType, MetadataSchemaBuilder storageSpaceSchema) {
+  }
+
+  private void createConversationSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder conversationSchemaType, MetadataSchemaBuilder conversationSchema) {
+  }
+
+  private void createDdvRequirementTypeSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvRequirementTypeSchemaType, MetadataSchemaBuilder ddvRequirementTypeSchema) {
   }
 
   private void createGroupSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder groupSchemaType, MetadataSchemaBuilder groupSchema) {
@@ -568,12 +668,14 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder task_approval_assignedOn = task_approvalSchema.get("assignedOn");
     MetadataBuilder task_approval_assignedTo = task_approvalSchema.get("assignedTo");
     MetadataBuilder task_approval_attachedAncestors = task_approvalSchema.get("attachedAncestors");
+    MetadataBuilder task_approval_attachedPrincipalAncestorsIntIds = task_approvalSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder task_approval_autocomplete = task_approvalSchema.get("autocomplete");
     MetadataBuilder task_approval_caption = task_approvalSchema.get("caption");
     MetadataBuilder task_approval_createdBy = task_approvalSchema.get("createdBy");
     MetadataBuilder task_approval_createdOn = task_approvalSchema.get("createdOn");
     MetadataBuilder task_approval_deleted = task_approvalSchema.get("deleted");
     MetadataBuilder task_approval_denyTokens = task_approvalSchema.get("denyTokens");
+    MetadataBuilder task_approval_detachedPrincipalAncestorsIntIds = task_approvalSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
     MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
     MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
@@ -591,11 +693,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder task_approval_migrationDataVersion = task_approvalSchema.get("migrationDataVersion");
     MetadataBuilder task_approval_modifiedBy = task_approvalSchema.get("modifiedBy");
     MetadataBuilder task_approval_modifiedOn = task_approvalSchema.get("modifiedOn");
+    MetadataBuilder task_approval_nestedAuthorizations = task_approvalSchema.get("nestedAuthorizations");
     MetadataBuilder task_approval_path = task_approvalSchema.get("path");
     MetadataBuilder task_approval_pathParts = task_approvalSchema.get("pathParts");
+    MetadataBuilder task_approval_principalAncestorsIntIds = task_approvalSchema.get("principalAncestorsIntIds");
+    MetadataBuilder task_approval_principalConceptsIntIds = task_approvalSchema.get("principalConceptsIntIds");
     MetadataBuilder task_approval_principalpath = task_approvalSchema.get("principalpath");
     MetadataBuilder task_approval_removedauthorizations = task_approvalSchema.get("removedauthorizations");
     MetadataBuilder task_approval_schema = task_approvalSchema.get("schema");
+    MetadataBuilder task_approval_secondaryConceptsIntIds = task_approvalSchema.get("secondaryConceptsIntIds");
     MetadataBuilder task_approval_shareDenyTokens = task_approvalSchema.get("shareDenyTokens");
     MetadataBuilder task_approval_shareTokens = task_approvalSchema.get("shareTokens");
     MetadataBuilder task_approval_title = task_approvalSchema.get("title");
@@ -615,7 +721,54 @@ public final class GeneratedESRMRobotsMigrationCombo {
   private void createRetentionRuleSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder retentionRuleSchemaType, MetadataSchemaBuilder retentionRuleSchema) {
   }
 
+  private void createLegalReferenceSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder legalReferenceSchemaType, MetadataSchemaBuilder legalReferenceSchema) {
+  }
+
   private void createConnectorSmbDocumentSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder connectorSmbDocumentSchemaType, MetadataSchemaBuilder connectorSmbDocumentSchema) {
+  }
+
+  private void createTriggerActionSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder triggerActionSchemaType, MetadataSchemaBuilder triggerAction_moveInFolderSchema, MetadataSchemaBuilder triggerActionSchema) {
+    MetadataBuilder triggerAction_moveInFolder_allReferences = triggerAction_moveInFolderSchema.get("allReferences");
+    MetadataBuilder triggerAction_moveInFolder_allRemovedAuths = triggerAction_moveInFolderSchema.get("allRemovedAuths");
+    MetadataBuilder triggerAction_moveInFolder_attachedAncestors = triggerAction_moveInFolderSchema.get("attachedAncestors");
+    MetadataBuilder triggerAction_moveInFolder_attachedPrincipalAncestorsIntIds = triggerAction_moveInFolderSchema.get("attachedPrincipalAncestorsIntIds");
+    MetadataBuilder triggerAction_moveInFolder_autocomplete = triggerAction_moveInFolderSchema.get("autocomplete");
+    MetadataBuilder triggerAction_moveInFolder_caption = triggerAction_moveInFolderSchema.get("caption");
+    MetadataBuilder triggerAction_moveInFolder_createdBy = triggerAction_moveInFolderSchema.get("createdBy");
+    MetadataBuilder triggerAction_moveInFolder_createdOn = triggerAction_moveInFolderSchema.get("createdOn");
+    MetadataBuilder triggerAction_moveInFolder_deleted = triggerAction_moveInFolderSchema.get("deleted");
+    MetadataBuilder triggerAction_moveInFolder_denyTokens = triggerAction_moveInFolderSchema.get("denyTokens");
+    MetadataBuilder triggerAction_moveInFolder_detachedPrincipalAncestorsIntIds = triggerAction_moveInFolderSchema.get("detachedPrincipalAncestorsIntIds");
+    MetadataBuilder triggerAction_moveInFolder_detachedauthorizations = triggerAction_moveInFolderSchema.get("detachedauthorizations");
+    MetadataBuilder triggerAction_moveInFolder_errorOnPhysicalDeletion = triggerAction_moveInFolderSchema.get("errorOnPhysicalDeletion");
+    MetadataBuilder triggerAction_moveInFolder_estimatedSize = triggerAction_moveInFolderSchema.get("estimatedSize");
+    MetadataBuilder triggerAction_moveInFolder_hidden = triggerAction_moveInFolderSchema.get("hidden");
+    MetadataBuilder triggerAction_moveInFolder_id = triggerAction_moveInFolderSchema.get("id");
+    MetadataBuilder triggerAction_moveInFolder_legacyIdentifier = triggerAction_moveInFolderSchema.get("legacyIdentifier");
+    MetadataBuilder triggerAction_moveInFolder_logicallyDeletedOn = triggerAction_moveInFolderSchema.get("logicallyDeletedOn");
+    MetadataBuilder triggerAction_moveInFolder_manualTokens = triggerAction_moveInFolderSchema.get("manualTokens");
+    MetadataBuilder triggerAction_moveInFolder_markedForParsing = triggerAction_moveInFolderSchema.get("markedForParsing");
+    MetadataBuilder triggerAction_moveInFolder_markedForPreviewConversion = triggerAction_moveInFolderSchema.get("markedForPreviewConversion");
+    MetadataBuilder triggerAction_moveInFolder_markedForReindexing = triggerAction_moveInFolderSchema.get("markedForReindexing");
+    MetadataBuilder triggerAction_moveInFolder_migrationDataVersion = triggerAction_moveInFolderSchema.get("migrationDataVersion");
+    MetadataBuilder triggerAction_moveInFolder_modifiedBy = triggerAction_moveInFolderSchema.get("modifiedBy");
+    MetadataBuilder triggerAction_moveInFolder_modifiedOn = triggerAction_moveInFolderSchema.get("modifiedOn");
+    MetadataBuilder triggerAction_moveInFolder_nestedAuthorizations = triggerAction_moveInFolderSchema.get("nestedAuthorizations");
+    MetadataBuilder triggerAction_moveInFolder_path = triggerAction_moveInFolderSchema.get("path");
+    MetadataBuilder triggerAction_moveInFolder_pathParts = triggerAction_moveInFolderSchema.get("pathParts");
+    MetadataBuilder triggerAction_moveInFolder_principalAncestorsIntIds = triggerAction_moveInFolderSchema.get("principalAncestorsIntIds");
+    MetadataBuilder triggerAction_moveInFolder_principalConceptsIntIds = triggerAction_moveInFolderSchema.get("principalConceptsIntIds");
+    MetadataBuilder triggerAction_moveInFolder_principalpath = triggerAction_moveInFolderSchema.get("principalpath");
+    MetadataBuilder triggerAction_moveInFolder_removedauthorizations = triggerAction_moveInFolderSchema.get("removedauthorizations");
+    MetadataBuilder triggerAction_moveInFolder_schema = triggerAction_moveInFolderSchema.get("schema");
+    MetadataBuilder triggerAction_moveInFolder_secondaryConceptsIntIds = triggerAction_moveInFolderSchema.get("secondaryConceptsIntIds");
+    MetadataBuilder triggerAction_moveInFolder_shareDenyTokens = triggerAction_moveInFolderSchema.get("shareDenyTokens");
+    MetadataBuilder triggerAction_moveInFolder_shareTokens = triggerAction_moveInFolderSchema.get("shareTokens");
+    MetadataBuilder triggerAction_moveInFolder_title = triggerAction_moveInFolderSchema.get("title");
+    MetadataBuilder triggerAction_moveInFolder_tokens = triggerAction_moveInFolderSchema.get("tokens");
+    MetadataBuilder triggerAction_moveInFolder_tokensHierarchy = triggerAction_moveInFolderSchema.get("tokensHierarchy");
+    MetadataBuilder triggerAction_moveInFolder_type = triggerAction_moveInFolderSchema.get("type");
+    MetadataBuilder triggerAction_moveInFolder_visibleInTrees = triggerAction_moveInFolderSchema.get("visibleInTrees");
   }
 
   private void createCapsuleSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder capsuleSchemaType, MetadataSchemaBuilder capsuleSchema) {
@@ -638,6 +791,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder document_email_applicableCopyRule = document_emailSchema.get("applicableCopyRule");
     MetadataBuilder document_email_archivisticStatus = document_emailSchema.get("archivisticStatus");
     MetadataBuilder document_email_attachedAncestors = document_emailSchema.get("attachedAncestors");
+    MetadataBuilder document_email_attachedPrincipalAncestorsIntIds = document_emailSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder document_email_author = document_emailSchema.get("author");
     MetadataBuilder document_email_autocomplete = document_emailSchema.get("autocomplete");
     MetadataBuilder document_email_borrowed = document_emailSchema.get("borrowed");
@@ -650,17 +804,21 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder document_email_confidential = document_emailSchema.get("confidential");
     MetadataBuilder document_email_content = document_emailSchema.get("content");
     MetadataBuilder document_email_contentCheckedOutBy = document_emailSchema.get("contentCheckedOutBy");
-	  MetadataBuilder document_email_contentCheckedOutDate = document_emailSchema.get("contentCheckedOutDate");
+    MetadataBuilder document_email_contentCheckedOutDate = document_emailSchema.get("contentCheckedOutDate");
+    MetadataBuilder document_email_contentCheckedOutFrom = document_emailSchema.get("contentCheckedOutFrom");
     MetadataBuilder document_email_contentHashes = document_emailSchema.get("contentHashes");
     MetadataBuilder document_email_copyStatus = document_emailSchema.get("copyStatus");
     MetadataBuilder document_email_createdBy = document_emailSchema.get("createdBy");
     MetadataBuilder document_email_createdByRobot = document_emailSchema.get("createdByRobot");
     MetadataBuilder document_email_createdOn = document_emailSchema.get("createdOn");
+    MetadataBuilder document_email_currentContentSize = document_emailSchema.get("currentContentSize");
     MetadataBuilder document_email_deleted = document_emailSchema.get("deleted");
     MetadataBuilder document_email_denyTokens = document_emailSchema.get("denyTokens");
     MetadataBuilder document_email_description = document_emailSchema.get("description");
+    MetadataBuilder document_email_detachedPrincipalAncestorsIntIds = document_emailSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder document_email_detachedauthorizations = document_emailSchema.get("detachedauthorizations");
     MetadataBuilder document_email_documentType = document_emailSchema.get("documentType");
+    MetadataBuilder document_email_encryptionKey = document_emailSchema.get("encryptionKey");
     MetadataBuilder document_email_errorOnPhysicalDeletion = document_emailSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder document_email_essential = document_emailSchema.get("essential");
     MetadataBuilder document_email_estimatedSize = document_emailSchema.get("estimatedSize");
@@ -668,6 +826,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder document_email_expectedDestructionDate = document_emailSchema.get("expectedDestructionDate");
     MetadataBuilder document_email_expectedTransferDate = document_emailSchema.get("expectedTransferDate");
     MetadataBuilder document_email_favorites = document_emailSchema.get("favorites");
+    MetadataBuilder document_email_filename = document_emailSchema.get("filename");
     MetadataBuilder document_email_filingSpace = document_emailSchema.get("filingSpace");
     MetadataBuilder document_email_folder = document_emailSchema.get("folder");
     MetadataBuilder document_email_formCreatedBy = document_emailSchema.get("formCreatedBy");
@@ -678,10 +837,11 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder document_email_hidden = document_emailSchema.get("hidden");
     MetadataBuilder document_email_id = document_emailSchema.get("id");
     MetadataBuilder document_email_inheritedRetentionRule = document_emailSchema.get("inheritedRetentionRule");
-	  MetadataBuilder document_email_isCheckoutAlertSent = document_emailSchema.get("isCheckoutAlertSent");
+    MetadataBuilder document_email_isCheckoutAlertSent = document_emailSchema.get("isCheckoutAlertSent");
     MetadataBuilder document_email_isModel = document_emailSchema.get("isModel");
     MetadataBuilder document_email_keywords = document_emailSchema.get("keywords");
     MetadataBuilder document_email_legacyIdentifier = document_emailSchema.get("legacyIdentifier");
+    MetadataBuilder document_email_linkedTo = document_emailSchema.get("linkedTo");
     MetadataBuilder document_email_logicallyDeletedOn = document_emailSchema.get("logicallyDeletedOn");
     MetadataBuilder document_email_mainCopyRule = document_emailSchema.get("mainCopyRule");
     MetadataBuilder document_email_mainCopyRuleIdEntered = document_emailSchema.get("mainCopyRuleIdEntered");
@@ -693,18 +853,22 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder document_email_mimetype = document_emailSchema.get("mimetype");
     MetadataBuilder document_email_modifiedBy = document_emailSchema.get("modifiedBy");
     MetadataBuilder document_email_modifiedOn = document_emailSchema.get("modifiedOn");
+    MetadataBuilder document_email_nestedAuthorizations = document_emailSchema.get("nestedAuthorizations");
     MetadataBuilder document_email_openingDate = document_emailSchema.get("openingDate");
     MetadataBuilder document_email_path = document_emailSchema.get("path");
     MetadataBuilder document_email_pathParts = document_emailSchema.get("pathParts");
+    MetadataBuilder document_email_principalAncestorsIntIds = document_emailSchema.get("principalAncestorsIntIds");
+    MetadataBuilder document_email_principalConceptsIntIds = document_emailSchema.get("principalConceptsIntIds");
     MetadataBuilder document_email_principalpath = document_emailSchema.get("principalpath");
     MetadataBuilder document_email_published = document_emailSchema.get("published");
-	  MetadataBuilder document_email_publishingExpirationDate = document_emailSchema.get("publishingExpirationDate");
-	  MetadataBuilder document_email_publishingStartDate = document_emailSchema.get("publishingStartDate");
+    MetadataBuilder document_email_publishingExpirationDate = document_emailSchema.get("publishingExpirationDate");
+    MetadataBuilder document_email_publishingStartDate = document_emailSchema.get("publishingStartDate");
     MetadataBuilder document_email_removedauthorizations = document_emailSchema.get("removedauthorizations");
     MetadataBuilder document_email_retentionRule = document_emailSchema.get("retentionRule");
     MetadataBuilder document_email_sameInactiveFateAsFolder = document_emailSchema.get("sameInactiveFateAsFolder");
     MetadataBuilder document_email_sameSemiActiveFateAsFolder = document_emailSchema.get("sameSemiActiveFateAsFolder");
     MetadataBuilder document_email_schema = document_emailSchema.get("schema");
+    MetadataBuilder document_email_secondaryConceptsIntIds = document_emailSchema.get("secondaryConceptsIntIds");
     MetadataBuilder document_email_shareDenyTokens = document_emailSchema.get("shareDenyTokens");
     MetadataBuilder document_email_shareTokens = document_emailSchema.get("shareTokens");
     MetadataBuilder document_email_subject = document_emailSchema.get("subject");
@@ -716,6 +880,9 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder document_email_visibleInTrees = document_emailSchema.get("visibleInTrees");
   }
 
+  private void createLegalRequirementSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder legalRequirementSchemaType, MetadataSchemaBuilder legalRequirementSchema) {
+  }
+
   private void createDdvUserFunctionSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvUserFunctionSchemaType, MetadataSchemaBuilder ddvUserFunctionSchema) {
   }
 
@@ -723,6 +890,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder connectorInstance_http_allReferences = connectorInstance_httpSchema.get("allReferences");
     MetadataBuilder connectorInstance_http_allRemovedAuths = connectorInstance_httpSchema.get("allRemovedAuths");
     MetadataBuilder connectorInstance_http_attachedAncestors = connectorInstance_httpSchema.get("attachedAncestors");
+    MetadataBuilder connectorInstance_http_attachedPrincipalAncestorsIntIds = connectorInstance_httpSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder connectorInstance_http_autocomplete = connectorInstance_httpSchema.get("autocomplete");
     MetadataBuilder connectorInstance_http_availableFields = connectorInstance_httpSchema.get("availableFields");
     MetadataBuilder connectorInstance_http_caption = connectorInstance_httpSchema.get("caption");
@@ -732,6 +900,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder connectorInstance_http_createdOn = connectorInstance_httpSchema.get("createdOn");
     MetadataBuilder connectorInstance_http_deleted = connectorInstance_httpSchema.get("deleted");
     MetadataBuilder connectorInstance_http_denyTokens = connectorInstance_httpSchema.get("denyTokens");
+    MetadataBuilder connectorInstance_http_detachedPrincipalAncestorsIntIds = connectorInstance_httpSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder connectorInstance_http_detachedauthorizations = connectorInstance_httpSchema.get("detachedauthorizations");
     MetadataBuilder connectorInstance_http_enabled = connectorInstance_httpSchema.get("enabled");
     MetadataBuilder connectorInstance_http_errorOnPhysicalDeletion = connectorInstance_httpSchema.get("errorOnPhysicalDeletion");
@@ -748,12 +917,16 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder connectorInstance_http_migrationDataVersion = connectorInstance_httpSchema.get("migrationDataVersion");
     MetadataBuilder connectorInstance_http_modifiedBy = connectorInstance_httpSchema.get("modifiedBy");
     MetadataBuilder connectorInstance_http_modifiedOn = connectorInstance_httpSchema.get("modifiedOn");
+    MetadataBuilder connectorInstance_http_nestedAuthorizations = connectorInstance_httpSchema.get("nestedAuthorizations");
     MetadataBuilder connectorInstance_http_path = connectorInstance_httpSchema.get("path");
     MetadataBuilder connectorInstance_http_pathParts = connectorInstance_httpSchema.get("pathParts");
+    MetadataBuilder connectorInstance_http_principalAncestorsIntIds = connectorInstance_httpSchema.get("principalAncestorsIntIds");
+    MetadataBuilder connectorInstance_http_principalConceptsIntIds = connectorInstance_httpSchema.get("principalConceptsIntIds");
     MetadataBuilder connectorInstance_http_principalpath = connectorInstance_httpSchema.get("principalpath");
     MetadataBuilder connectorInstance_http_propertiesMapping = connectorInstance_httpSchema.get("propertiesMapping");
     MetadataBuilder connectorInstance_http_removedauthorizations = connectorInstance_httpSchema.get("removedauthorizations");
     MetadataBuilder connectorInstance_http_schema = connectorInstance_httpSchema.get("schema");
+    MetadataBuilder connectorInstance_http_secondaryConceptsIntIds = connectorInstance_httpSchema.get("secondaryConceptsIntIds");
     MetadataBuilder connectorInstance_http_shareDenyTokens = connectorInstance_httpSchema.get("shareDenyTokens");
     MetadataBuilder connectorInstance_http_shareTokens = connectorInstance_httpSchema.get("shareTokens");
     MetadataBuilder connectorInstance_http_title = connectorInstance_httpSchema.get("title");
@@ -765,6 +938,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder connectorInstance_ldap_allReferences = connectorInstance_ldapSchema.get("allReferences");
     MetadataBuilder connectorInstance_ldap_allRemovedAuths = connectorInstance_ldapSchema.get("allRemovedAuths");
     MetadataBuilder connectorInstance_ldap_attachedAncestors = connectorInstance_ldapSchema.get("attachedAncestors");
+    MetadataBuilder connectorInstance_ldap_attachedPrincipalAncestorsIntIds = connectorInstance_ldapSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder connectorInstance_ldap_autocomplete = connectorInstance_ldapSchema.get("autocomplete");
     MetadataBuilder connectorInstance_ldap_availableFields = connectorInstance_ldapSchema.get("availableFields");
     MetadataBuilder connectorInstance_ldap_caption = connectorInstance_ldapSchema.get("caption");
@@ -774,6 +948,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder connectorInstance_ldap_createdOn = connectorInstance_ldapSchema.get("createdOn");
     MetadataBuilder connectorInstance_ldap_deleted = connectorInstance_ldapSchema.get("deleted");
     MetadataBuilder connectorInstance_ldap_denyTokens = connectorInstance_ldapSchema.get("denyTokens");
+    MetadataBuilder connectorInstance_ldap_detachedPrincipalAncestorsIntIds = connectorInstance_ldapSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder connectorInstance_ldap_detachedauthorizations = connectorInstance_ldapSchema.get("detachedauthorizations");
     MetadataBuilder connectorInstance_ldap_enabled = connectorInstance_ldapSchema.get("enabled");
     MetadataBuilder connectorInstance_ldap_errorOnPhysicalDeletion = connectorInstance_ldapSchema.get("errorOnPhysicalDeletion");
@@ -790,12 +965,16 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder connectorInstance_ldap_migrationDataVersion = connectorInstance_ldapSchema.get("migrationDataVersion");
     MetadataBuilder connectorInstance_ldap_modifiedBy = connectorInstance_ldapSchema.get("modifiedBy");
     MetadataBuilder connectorInstance_ldap_modifiedOn = connectorInstance_ldapSchema.get("modifiedOn");
+    MetadataBuilder connectorInstance_ldap_nestedAuthorizations = connectorInstance_ldapSchema.get("nestedAuthorizations");
     MetadataBuilder connectorInstance_ldap_path = connectorInstance_ldapSchema.get("path");
     MetadataBuilder connectorInstance_ldap_pathParts = connectorInstance_ldapSchema.get("pathParts");
+    MetadataBuilder connectorInstance_ldap_principalAncestorsIntIds = connectorInstance_ldapSchema.get("principalAncestorsIntIds");
+    MetadataBuilder connectorInstance_ldap_principalConceptsIntIds = connectorInstance_ldapSchema.get("principalConceptsIntIds");
     MetadataBuilder connectorInstance_ldap_principalpath = connectorInstance_ldapSchema.get("principalpath");
     MetadataBuilder connectorInstance_ldap_propertiesMapping = connectorInstance_ldapSchema.get("propertiesMapping");
     MetadataBuilder connectorInstance_ldap_removedauthorizations = connectorInstance_ldapSchema.get("removedauthorizations");
     MetadataBuilder connectorInstance_ldap_schema = connectorInstance_ldapSchema.get("schema");
+    MetadataBuilder connectorInstance_ldap_secondaryConceptsIntIds = connectorInstance_ldapSchema.get("secondaryConceptsIntIds");
     MetadataBuilder connectorInstance_ldap_shareDenyTokens = connectorInstance_ldapSchema.get("shareDenyTokens");
     MetadataBuilder connectorInstance_ldap_shareTokens = connectorInstance_ldapSchema.get("shareTokens");
     MetadataBuilder connectorInstance_ldap_title = connectorInstance_ldapSchema.get("title");
@@ -807,6 +986,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder connectorInstance_smb_allReferences = connectorInstance_smbSchema.get("allReferences");
     MetadataBuilder connectorInstance_smb_allRemovedAuths = connectorInstance_smbSchema.get("allRemovedAuths");
     MetadataBuilder connectorInstance_smb_attachedAncestors = connectorInstance_smbSchema.get("attachedAncestors");
+    MetadataBuilder connectorInstance_smb_attachedPrincipalAncestorsIntIds = connectorInstance_smbSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder connectorInstance_smb_autocomplete = connectorInstance_smbSchema.get("autocomplete");
     MetadataBuilder connectorInstance_smb_availableFields = connectorInstance_smbSchema.get("availableFields");
     MetadataBuilder connectorInstance_smb_caption = connectorInstance_smbSchema.get("caption");
@@ -816,6 +996,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder connectorInstance_smb_createdOn = connectorInstance_smbSchema.get("createdOn");
     MetadataBuilder connectorInstance_smb_deleted = connectorInstance_smbSchema.get("deleted");
     MetadataBuilder connectorInstance_smb_denyTokens = connectorInstance_smbSchema.get("denyTokens");
+    MetadataBuilder connectorInstance_smb_detachedPrincipalAncestorsIntIds = connectorInstance_smbSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder connectorInstance_smb_detachedauthorizations = connectorInstance_smbSchema.get("detachedauthorizations");
     MetadataBuilder connectorInstance_smb_enabled = connectorInstance_smbSchema.get("enabled");
     MetadataBuilder connectorInstance_smb_errorOnPhysicalDeletion = connectorInstance_smbSchema.get("errorOnPhysicalDeletion");
@@ -832,12 +1013,16 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder connectorInstance_smb_migrationDataVersion = connectorInstance_smbSchema.get("migrationDataVersion");
     MetadataBuilder connectorInstance_smb_modifiedBy = connectorInstance_smbSchema.get("modifiedBy");
     MetadataBuilder connectorInstance_smb_modifiedOn = connectorInstance_smbSchema.get("modifiedOn");
+    MetadataBuilder connectorInstance_smb_nestedAuthorizations = connectorInstance_smbSchema.get("nestedAuthorizations");
     MetadataBuilder connectorInstance_smb_path = connectorInstance_smbSchema.get("path");
     MetadataBuilder connectorInstance_smb_pathParts = connectorInstance_smbSchema.get("pathParts");
+    MetadataBuilder connectorInstance_smb_principalAncestorsIntIds = connectorInstance_smbSchema.get("principalAncestorsIntIds");
+    MetadataBuilder connectorInstance_smb_principalConceptsIntIds = connectorInstance_smbSchema.get("principalConceptsIntIds");
     MetadataBuilder connectorInstance_smb_principalpath = connectorInstance_smbSchema.get("principalpath");
     MetadataBuilder connectorInstance_smb_propertiesMapping = connectorInstance_smbSchema.get("propertiesMapping");
     MetadataBuilder connectorInstance_smb_removedauthorizations = connectorInstance_smbSchema.get("removedauthorizations");
     MetadataBuilder connectorInstance_smb_schema = connectorInstance_smbSchema.get("schema");
+    MetadataBuilder connectorInstance_smb_secondaryConceptsIntIds = connectorInstance_smbSchema.get("secondaryConceptsIntIds");
     MetadataBuilder connectorInstance_smb_shareDenyTokens = connectorInstance_smbSchema.get("shareDenyTokens");
     MetadataBuilder connectorInstance_smb_shareTokens = connectorInstance_smbSchema.get("shareTokens");
     MetadataBuilder connectorInstance_smb_title = connectorInstance_smbSchema.get("title");
@@ -875,19 +1060,84 @@ public final class GeneratedESRMRobotsMigrationCombo {
   private void createRobotLogSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder robotLogSchemaType, MetadataSchemaBuilder robotLogSchema) {
   }
 
+  private void createLegalRequirementReferenceSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder legalRequirementReferenceSchemaType, MetadataSchemaBuilder legalRequirementReferenceSchema) {
+  }
+
   private void createConnectorTypeSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder connectorTypeSchemaType, MetadataSchemaBuilder connectorTypeSchema) {
+  }
+
+  private void createExternalAccessUrlSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder externalAccessUrlSchemaType, MetadataSchemaBuilder externalAccessUrl_signatureSchema, MetadataSchemaBuilder externalAccessUrlSchema) {
+    MetadataBuilder externalAccessUrl_signature_accessRecord = externalAccessUrl_signatureSchema.get("accessRecord");
+    MetadataBuilder externalAccessUrl_signature_allReferences = externalAccessUrl_signatureSchema.get("allReferences");
+    MetadataBuilder externalAccessUrl_signature_allRemovedAuths = externalAccessUrl_signatureSchema.get("allRemovedAuths");
+    MetadataBuilder externalAccessUrl_signature_attachedAncestors = externalAccessUrl_signatureSchema.get("attachedAncestors");
+    MetadataBuilder externalAccessUrl_signature_attachedPrincipalAncestorsIntIds = externalAccessUrl_signatureSchema.get("attachedPrincipalAncestorsIntIds");
+    MetadataBuilder externalAccessUrl_signature_autocomplete = externalAccessUrl_signatureSchema.get("autocomplete");
+    MetadataBuilder externalAccessUrl_signature_caption = externalAccessUrl_signatureSchema.get("caption");
+    MetadataBuilder externalAccessUrl_signature_createdBy = externalAccessUrl_signatureSchema.get("createdBy");
+    MetadataBuilder externalAccessUrl_signature_createdOn = externalAccessUrl_signatureSchema.get("createdOn");
+    MetadataBuilder externalAccessUrl_signature_deleted = externalAccessUrl_signatureSchema.get("deleted");
+    MetadataBuilder externalAccessUrl_signature_denyTokens = externalAccessUrl_signatureSchema.get("denyTokens");
+    MetadataBuilder externalAccessUrl_signature_detachedPrincipalAncestorsIntIds = externalAccessUrl_signatureSchema.get("detachedPrincipalAncestorsIntIds");
+    MetadataBuilder externalAccessUrl_signature_detachedauthorizations = externalAccessUrl_signatureSchema.get("detachedauthorizations");
+    MetadataBuilder externalAccessUrl_signature_email = externalAccessUrl_signatureSchema.get("email");
+    MetadataBuilder externalAccessUrl_signature_errorOnPhysicalDeletion = externalAccessUrl_signatureSchema.get("errorOnPhysicalDeletion");
+    MetadataBuilder externalAccessUrl_signature_estimatedSize = externalAccessUrl_signatureSchema.get("estimatedSize");
+    MetadataBuilder externalAccessUrl_signature_expirationDate = externalAccessUrl_signatureSchema.get("expirationDate");
+    MetadataBuilder externalAccessUrl_signature_fullname = externalAccessUrl_signatureSchema.get("fullname");
+    MetadataBuilder externalAccessUrl_signature_hidden = externalAccessUrl_signatureSchema.get("hidden");
+    MetadataBuilder externalAccessUrl_signature_id = externalAccessUrl_signatureSchema.get("id");
+    MetadataBuilder externalAccessUrl_signature_legacyIdentifier = externalAccessUrl_signatureSchema.get("legacyIdentifier");
+    MetadataBuilder externalAccessUrl_signature_logicallyDeletedOn = externalAccessUrl_signatureSchema.get("logicallyDeletedOn");
+    MetadataBuilder externalAccessUrl_signature_manualTokens = externalAccessUrl_signatureSchema.get("manualTokens");
+    MetadataBuilder externalAccessUrl_signature_markedForParsing = externalAccessUrl_signatureSchema.get("markedForParsing");
+    MetadataBuilder externalAccessUrl_signature_markedForPreviewConversion = externalAccessUrl_signatureSchema.get("markedForPreviewConversion");
+    MetadataBuilder externalAccessUrl_signature_markedForReindexing = externalAccessUrl_signatureSchema.get("markedForReindexing");
+    MetadataBuilder externalAccessUrl_signature_migrationDataVersion = externalAccessUrl_signatureSchema.get("migrationDataVersion");
+    MetadataBuilder externalAccessUrl_signature_modifiedBy = externalAccessUrl_signatureSchema.get("modifiedBy");
+    MetadataBuilder externalAccessUrl_signature_modifiedOn = externalAccessUrl_signatureSchema.get("modifiedOn");
+    MetadataBuilder externalAccessUrl_signature_nestedAuthorizations = externalAccessUrl_signatureSchema.get("nestedAuthorizations");
+    MetadataBuilder externalAccessUrl_signature_path = externalAccessUrl_signatureSchema.get("path");
+    MetadataBuilder externalAccessUrl_signature_pathParts = externalAccessUrl_signatureSchema.get("pathParts");
+    MetadataBuilder externalAccessUrl_signature_principalAncestorsIntIds = externalAccessUrl_signatureSchema.get("principalAncestorsIntIds");
+    MetadataBuilder externalAccessUrl_signature_principalConceptsIntIds = externalAccessUrl_signatureSchema.get("principalConceptsIntIds");
+    MetadataBuilder externalAccessUrl_signature_principalpath = externalAccessUrl_signatureSchema.get("principalpath");
+    MetadataBuilder externalAccessUrl_signature_removedauthorizations = externalAccessUrl_signatureSchema.get("removedauthorizations");
+    MetadataBuilder externalAccessUrl_signature_roles = externalAccessUrl_signatureSchema.get("roles");
+    MetadataBuilder externalAccessUrl_signature_schema = externalAccessUrl_signatureSchema.get("schema");
+    MetadataBuilder externalAccessUrl_signature_secondaryConceptsIntIds = externalAccessUrl_signatureSchema.get("secondaryConceptsIntIds");
+    MetadataBuilder externalAccessUrl_signature_shareDenyTokens = externalAccessUrl_signatureSchema.get("shareDenyTokens");
+    MetadataBuilder externalAccessUrl_signature_shareTokens = externalAccessUrl_signatureSchema.get("shareTokens");
+    MetadataBuilder externalAccessUrl_signature_status = externalAccessUrl_signatureSchema.get("status");
+    MetadataBuilder externalAccessUrl_signature_title = externalAccessUrl_signatureSchema.get("title");
+    MetadataBuilder externalAccessUrl_signature_token = externalAccessUrl_signatureSchema.get("token");
+    MetadataBuilder externalAccessUrl_signature_tokens = externalAccessUrl_signatureSchema.get("tokens");
+    MetadataBuilder externalAccessUrl_signature_tokensHierarchy = externalAccessUrl_signatureSchema.get("tokensHierarchy");
+    MetadataBuilder externalAccessUrl_signature_user = externalAccessUrl_signatureSchema.get("user");
+    MetadataBuilder externalAccessUrl_signature_visibleInTrees = externalAccessUrl_signatureSchema.get("visibleInTrees");
+  }
+
+  private void createTriggerActionTypeSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder triggerActionTypeSchemaType, MetadataSchemaBuilder triggerActionTypeSchema) {
+  }
+
+  private void createTriggerSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder triggerSchemaType, MetadataSchemaBuilder triggerSchema) {
+  }
+
+  private void createMessageSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder messageSchemaType, MetadataSchemaBuilder messageSchema) {
   }
 
   private void createPrintableSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder printableSchemaType, MetadataSchemaBuilder printable_labelSchema, MetadataSchemaBuilder printable_reportSchema, MetadataSchemaBuilder printableSchema) {
     MetadataBuilder printable_label_allReferences = printable_labelSchema.get("allReferences");
     MetadataBuilder printable_label_allRemovedAuths = printable_labelSchema.get("allRemovedAuths");
     MetadataBuilder printable_label_attachedAncestors = printable_labelSchema.get("attachedAncestors");
+    MetadataBuilder printable_label_attachedPrincipalAncestorsIntIds = printable_labelSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder printable_label_autocomplete = printable_labelSchema.get("autocomplete");
     MetadataBuilder printable_label_caption = printable_labelSchema.get("caption");
     MetadataBuilder printable_label_createdBy = printable_labelSchema.get("createdBy");
     MetadataBuilder printable_label_createdOn = printable_labelSchema.get("createdOn");
     MetadataBuilder printable_label_deleted = printable_labelSchema.get("deleted");
     MetadataBuilder printable_label_denyTokens = printable_labelSchema.get("denyTokens");
+    MetadataBuilder printable_label_detachedPrincipalAncestorsIntIds = printable_labelSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder printable_label_detachedauthorizations = printable_labelSchema.get("detachedauthorizations");
     MetadataBuilder printable_label_errorOnPhysicalDeletion = printable_labelSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder printable_label_estimatedSize = printable_labelSchema.get("estimatedSize");
@@ -904,11 +1154,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder printable_label_migrationDataVersion = printable_labelSchema.get("migrationDataVersion");
     MetadataBuilder printable_label_modifiedBy = printable_labelSchema.get("modifiedBy");
     MetadataBuilder printable_label_modifiedOn = printable_labelSchema.get("modifiedOn");
+    MetadataBuilder printable_label_nestedAuthorizations = printable_labelSchema.get("nestedAuthorizations");
     MetadataBuilder printable_label_path = printable_labelSchema.get("path");
     MetadataBuilder printable_label_pathParts = printable_labelSchema.get("pathParts");
+    MetadataBuilder printable_label_principalAncestorsIntIds = printable_labelSchema.get("principalAncestorsIntIds");
+    MetadataBuilder printable_label_principalConceptsIntIds = printable_labelSchema.get("principalConceptsIntIds");
     MetadataBuilder printable_label_principalpath = printable_labelSchema.get("principalpath");
     MetadataBuilder printable_label_removedauthorizations = printable_labelSchema.get("removedauthorizations");
     MetadataBuilder printable_label_schema = printable_labelSchema.get("schema");
+    MetadataBuilder printable_label_secondaryConceptsIntIds = printable_labelSchema.get("secondaryConceptsIntIds");
     MetadataBuilder printable_label_shareDenyTokens = printable_labelSchema.get("shareDenyTokens");
     MetadataBuilder printable_label_shareTokens = printable_labelSchema.get("shareTokens");
     MetadataBuilder printable_label_title = printable_labelSchema.get("title");
@@ -918,12 +1172,14 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder printable_report_allReferences = printable_reportSchema.get("allReferences");
     MetadataBuilder printable_report_allRemovedAuths = printable_reportSchema.get("allRemovedAuths");
     MetadataBuilder printable_report_attachedAncestors = printable_reportSchema.get("attachedAncestors");
+    MetadataBuilder printable_report_attachedPrincipalAncestorsIntIds = printable_reportSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder printable_report_autocomplete = printable_reportSchema.get("autocomplete");
     MetadataBuilder printable_report_caption = printable_reportSchema.get("caption");
     MetadataBuilder printable_report_createdBy = printable_reportSchema.get("createdBy");
     MetadataBuilder printable_report_createdOn = printable_reportSchema.get("createdOn");
     MetadataBuilder printable_report_deleted = printable_reportSchema.get("deleted");
     MetadataBuilder printable_report_denyTokens = printable_reportSchema.get("denyTokens");
+    MetadataBuilder printable_report_detachedPrincipalAncestorsIntIds = printable_reportSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder printable_report_detachedauthorizations = printable_reportSchema.get("detachedauthorizations");
     MetadataBuilder printable_report_errorOnPhysicalDeletion = printable_reportSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder printable_report_estimatedSize = printable_reportSchema.get("estimatedSize");
@@ -940,11 +1196,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder printable_report_migrationDataVersion = printable_reportSchema.get("migrationDataVersion");
     MetadataBuilder printable_report_modifiedBy = printable_reportSchema.get("modifiedBy");
     MetadataBuilder printable_report_modifiedOn = printable_reportSchema.get("modifiedOn");
+    MetadataBuilder printable_report_nestedAuthorizations = printable_reportSchema.get("nestedAuthorizations");
     MetadataBuilder printable_report_path = printable_reportSchema.get("path");
     MetadataBuilder printable_report_pathParts = printable_reportSchema.get("pathParts");
+    MetadataBuilder printable_report_principalAncestorsIntIds = printable_reportSchema.get("principalAncestorsIntIds");
+    MetadataBuilder printable_report_principalConceptsIntIds = printable_reportSchema.get("principalConceptsIntIds");
     MetadataBuilder printable_report_principalpath = printable_reportSchema.get("principalpath");
     MetadataBuilder printable_report_removedauthorizations = printable_reportSchema.get("removedauthorizations");
     MetadataBuilder printable_report_schema = printable_reportSchema.get("schema");
+    MetadataBuilder printable_report_secondaryConceptsIntIds = printable_reportSchema.get("secondaryConceptsIntIds");
     MetadataBuilder printable_report_shareDenyTokens = printable_reportSchema.get("shareDenyTokens");
     MetadataBuilder printable_report_shareTokens = printable_reportSchema.get("shareTokens");
     MetadataBuilder printable_report_title = printable_reportSchema.get("title");
@@ -966,6 +1226,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_borrowExtensionRequest_assigneeUsersCandidates = userTask_borrowExtensionRequestSchema.get("assigneeUsersCandidates");
     MetadataBuilder userTask_borrowExtensionRequest_assigner = userTask_borrowExtensionRequestSchema.get("assigner");
     MetadataBuilder userTask_borrowExtensionRequest_attachedAncestors = userTask_borrowExtensionRequestSchema.get("attachedAncestors");
+    MetadataBuilder userTask_borrowExtensionRequest_attachedPrincipalAncestorsIntIds = userTask_borrowExtensionRequestSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder userTask_borrowExtensionRequest_autocomplete = userTask_borrowExtensionRequestSchema.get("autocomplete");
     MetadataBuilder userTask_borrowExtensionRequest_caption = userTask_borrowExtensionRequestSchema.get("caption");
     MetadataBuilder userTask_borrowExtensionRequest_comments = userTask_borrowExtensionRequestSchema.get("comments");
@@ -977,6 +1238,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_borrowExtensionRequest_deleted = userTask_borrowExtensionRequestSchema.get("deleted");
     MetadataBuilder userTask_borrowExtensionRequest_denyTokens = userTask_borrowExtensionRequestSchema.get("denyTokens");
     MetadataBuilder userTask_borrowExtensionRequest_description = userTask_borrowExtensionRequestSchema.get("description");
+    MetadataBuilder userTask_borrowExtensionRequest_detachedPrincipalAncestorsIntIds = userTask_borrowExtensionRequestSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder userTask_borrowExtensionRequest_detachedauthorizations = userTask_borrowExtensionRequestSchema.get("detachedauthorizations");
     MetadataBuilder userTask_borrowExtensionRequest_dueDate = userTask_borrowExtensionRequestSchema.get("dueDate");
     MetadataBuilder userTask_borrowExtensionRequest_endDate = userTask_borrowExtensionRequestSchema.get("endDate");
@@ -1002,6 +1264,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_borrowExtensionRequest_modelTask = userTask_borrowExtensionRequestSchema.get("modelTask");
     MetadataBuilder userTask_borrowExtensionRequest_modifiedBy = userTask_borrowExtensionRequestSchema.get("modifiedBy");
     MetadataBuilder userTask_borrowExtensionRequest_modifiedOn = userTask_borrowExtensionRequestSchema.get("modifiedOn");
+    MetadataBuilder userTask_borrowExtensionRequest_nestedAuthorizations = userTask_borrowExtensionRequestSchema.get("nestedAuthorizations");
     MetadataBuilder userTask_borrowExtensionRequest_nextReminderOn = userTask_borrowExtensionRequestSchema.get("nextReminderOn");
     MetadataBuilder userTask_borrowExtensionRequest_nextTaskCreated = userTask_borrowExtensionRequestSchema.get("nextTaskCreated");
     MetadataBuilder userTask_borrowExtensionRequest_nextTasks = userTask_borrowExtensionRequestSchema.get("nextTasks");
@@ -1011,6 +1274,8 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_borrowExtensionRequest_parentTaskDueDate = userTask_borrowExtensionRequestSchema.get("parentTaskDueDate");
     MetadataBuilder userTask_borrowExtensionRequest_path = userTask_borrowExtensionRequestSchema.get("path");
     MetadataBuilder userTask_borrowExtensionRequest_pathParts = userTask_borrowExtensionRequestSchema.get("pathParts");
+    MetadataBuilder userTask_borrowExtensionRequest_principalAncestorsIntIds = userTask_borrowExtensionRequestSchema.get("principalAncestorsIntIds");
+    MetadataBuilder userTask_borrowExtensionRequest_principalConceptsIntIds = userTask_borrowExtensionRequestSchema.get("principalConceptsIntIds");
     MetadataBuilder userTask_borrowExtensionRequest_principalpath = userTask_borrowExtensionRequestSchema.get("principalpath");
     MetadataBuilder userTask_borrowExtensionRequest_progressPercentage = userTask_borrowExtensionRequestSchema.get("progressPercentage");
     MetadataBuilder userTask_borrowExtensionRequest_question = userTask_borrowExtensionRequestSchema.get("question");
@@ -1021,6 +1286,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_borrowExtensionRequest_reminders = userTask_borrowExtensionRequestSchema.get("reminders");
     MetadataBuilder userTask_borrowExtensionRequest_removedauthorizations = userTask_borrowExtensionRequestSchema.get("removedauthorizations");
     MetadataBuilder userTask_borrowExtensionRequest_schema = userTask_borrowExtensionRequestSchema.get("schema");
+    MetadataBuilder userTask_borrowExtensionRequest_secondaryConceptsIntIds = userTask_borrowExtensionRequestSchema.get("secondaryConceptsIntIds");
     MetadataBuilder userTask_borrowExtensionRequest_shareDenyTokens = userTask_borrowExtensionRequestSchema.get("shareDenyTokens");
     MetadataBuilder userTask_borrowExtensionRequest_shareTokens = userTask_borrowExtensionRequestSchema.get("shareTokens");
     MetadataBuilder userTask_borrowExtensionRequest_starredByUsers = userTask_borrowExtensionRequestSchema.get("starredByUsers");
@@ -1050,6 +1316,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_borrowRequest_assigneeUsersCandidates = userTask_borrowRequestSchema.get("assigneeUsersCandidates");
     MetadataBuilder userTask_borrowRequest_assigner = userTask_borrowRequestSchema.get("assigner");
     MetadataBuilder userTask_borrowRequest_attachedAncestors = userTask_borrowRequestSchema.get("attachedAncestors");
+    MetadataBuilder userTask_borrowRequest_attachedPrincipalAncestorsIntIds = userTask_borrowRequestSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder userTask_borrowRequest_autocomplete = userTask_borrowRequestSchema.get("autocomplete");
     MetadataBuilder userTask_borrowRequest_caption = userTask_borrowRequestSchema.get("caption");
     MetadataBuilder userTask_borrowRequest_comments = userTask_borrowRequestSchema.get("comments");
@@ -1061,6 +1328,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_borrowRequest_deleted = userTask_borrowRequestSchema.get("deleted");
     MetadataBuilder userTask_borrowRequest_denyTokens = userTask_borrowRequestSchema.get("denyTokens");
     MetadataBuilder userTask_borrowRequest_description = userTask_borrowRequestSchema.get("description");
+    MetadataBuilder userTask_borrowRequest_detachedPrincipalAncestorsIntIds = userTask_borrowRequestSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder userTask_borrowRequest_detachedauthorizations = userTask_borrowRequestSchema.get("detachedauthorizations");
     MetadataBuilder userTask_borrowRequest_dueDate = userTask_borrowRequestSchema.get("dueDate");
     MetadataBuilder userTask_borrowRequest_endDate = userTask_borrowRequestSchema.get("endDate");
@@ -1086,6 +1354,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_borrowRequest_modelTask = userTask_borrowRequestSchema.get("modelTask");
     MetadataBuilder userTask_borrowRequest_modifiedBy = userTask_borrowRequestSchema.get("modifiedBy");
     MetadataBuilder userTask_borrowRequest_modifiedOn = userTask_borrowRequestSchema.get("modifiedOn");
+    MetadataBuilder userTask_borrowRequest_nestedAuthorizations = userTask_borrowRequestSchema.get("nestedAuthorizations");
     MetadataBuilder userTask_borrowRequest_nextReminderOn = userTask_borrowRequestSchema.get("nextReminderOn");
     MetadataBuilder userTask_borrowRequest_nextTaskCreated = userTask_borrowRequestSchema.get("nextTaskCreated");
     MetadataBuilder userTask_borrowRequest_nextTasks = userTask_borrowRequestSchema.get("nextTasks");
@@ -1095,6 +1364,8 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_borrowRequest_parentTaskDueDate = userTask_borrowRequestSchema.get("parentTaskDueDate");
     MetadataBuilder userTask_borrowRequest_path = userTask_borrowRequestSchema.get("path");
     MetadataBuilder userTask_borrowRequest_pathParts = userTask_borrowRequestSchema.get("pathParts");
+    MetadataBuilder userTask_borrowRequest_principalAncestorsIntIds = userTask_borrowRequestSchema.get("principalAncestorsIntIds");
+    MetadataBuilder userTask_borrowRequest_principalConceptsIntIds = userTask_borrowRequestSchema.get("principalConceptsIntIds");
     MetadataBuilder userTask_borrowRequest_principalpath = userTask_borrowRequestSchema.get("principalpath");
     MetadataBuilder userTask_borrowRequest_progressPercentage = userTask_borrowRequestSchema.get("progressPercentage");
     MetadataBuilder userTask_borrowRequest_question = userTask_borrowRequestSchema.get("question");
@@ -1105,6 +1376,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_borrowRequest_reminders = userTask_borrowRequestSchema.get("reminders");
     MetadataBuilder userTask_borrowRequest_removedauthorizations = userTask_borrowRequestSchema.get("removedauthorizations");
     MetadataBuilder userTask_borrowRequest_schema = userTask_borrowRequestSchema.get("schema");
+    MetadataBuilder userTask_borrowRequest_secondaryConceptsIntIds = userTask_borrowRequestSchema.get("secondaryConceptsIntIds");
     MetadataBuilder userTask_borrowRequest_shareDenyTokens = userTask_borrowRequestSchema.get("shareDenyTokens");
     MetadataBuilder userTask_borrowRequest_shareTokens = userTask_borrowRequestSchema.get("shareTokens");
     MetadataBuilder userTask_borrowRequest_starredByUsers = userTask_borrowRequestSchema.get("starredByUsers");
@@ -1134,6 +1406,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_reactivationRequest_assigneeUsersCandidates = userTask_reactivationRequestSchema.get("assigneeUsersCandidates");
     MetadataBuilder userTask_reactivationRequest_assigner = userTask_reactivationRequestSchema.get("assigner");
     MetadataBuilder userTask_reactivationRequest_attachedAncestors = userTask_reactivationRequestSchema.get("attachedAncestors");
+    MetadataBuilder userTask_reactivationRequest_attachedPrincipalAncestorsIntIds = userTask_reactivationRequestSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder userTask_reactivationRequest_autocomplete = userTask_reactivationRequestSchema.get("autocomplete");
     MetadataBuilder userTask_reactivationRequest_caption = userTask_reactivationRequestSchema.get("caption");
     MetadataBuilder userTask_reactivationRequest_comments = userTask_reactivationRequestSchema.get("comments");
@@ -1145,6 +1418,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_reactivationRequest_deleted = userTask_reactivationRequestSchema.get("deleted");
     MetadataBuilder userTask_reactivationRequest_denyTokens = userTask_reactivationRequestSchema.get("denyTokens");
     MetadataBuilder userTask_reactivationRequest_description = userTask_reactivationRequestSchema.get("description");
+    MetadataBuilder userTask_reactivationRequest_detachedPrincipalAncestorsIntIds = userTask_reactivationRequestSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder userTask_reactivationRequest_detachedauthorizations = userTask_reactivationRequestSchema.get("detachedauthorizations");
     MetadataBuilder userTask_reactivationRequest_dueDate = userTask_reactivationRequestSchema.get("dueDate");
     MetadataBuilder userTask_reactivationRequest_endDate = userTask_reactivationRequestSchema.get("endDate");
@@ -1170,6 +1444,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_reactivationRequest_modelTask = userTask_reactivationRequestSchema.get("modelTask");
     MetadataBuilder userTask_reactivationRequest_modifiedBy = userTask_reactivationRequestSchema.get("modifiedBy");
     MetadataBuilder userTask_reactivationRequest_modifiedOn = userTask_reactivationRequestSchema.get("modifiedOn");
+    MetadataBuilder userTask_reactivationRequest_nestedAuthorizations = userTask_reactivationRequestSchema.get("nestedAuthorizations");
     MetadataBuilder userTask_reactivationRequest_nextReminderOn = userTask_reactivationRequestSchema.get("nextReminderOn");
     MetadataBuilder userTask_reactivationRequest_nextTaskCreated = userTask_reactivationRequestSchema.get("nextTaskCreated");
     MetadataBuilder userTask_reactivationRequest_nextTasks = userTask_reactivationRequestSchema.get("nextTasks");
@@ -1179,6 +1454,8 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_reactivationRequest_parentTaskDueDate = userTask_reactivationRequestSchema.get("parentTaskDueDate");
     MetadataBuilder userTask_reactivationRequest_path = userTask_reactivationRequestSchema.get("path");
     MetadataBuilder userTask_reactivationRequest_pathParts = userTask_reactivationRequestSchema.get("pathParts");
+    MetadataBuilder userTask_reactivationRequest_principalAncestorsIntIds = userTask_reactivationRequestSchema.get("principalAncestorsIntIds");
+    MetadataBuilder userTask_reactivationRequest_principalConceptsIntIds = userTask_reactivationRequestSchema.get("principalConceptsIntIds");
     MetadataBuilder userTask_reactivationRequest_principalpath = userTask_reactivationRequestSchema.get("principalpath");
     MetadataBuilder userTask_reactivationRequest_progressPercentage = userTask_reactivationRequestSchema.get("progressPercentage");
     MetadataBuilder userTask_reactivationRequest_question = userTask_reactivationRequestSchema.get("question");
@@ -1189,6 +1466,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_reactivationRequest_reminders = userTask_reactivationRequestSchema.get("reminders");
     MetadataBuilder userTask_reactivationRequest_removedauthorizations = userTask_reactivationRequestSchema.get("removedauthorizations");
     MetadataBuilder userTask_reactivationRequest_schema = userTask_reactivationRequestSchema.get("schema");
+    MetadataBuilder userTask_reactivationRequest_secondaryConceptsIntIds = userTask_reactivationRequestSchema.get("secondaryConceptsIntIds");
     MetadataBuilder userTask_reactivationRequest_shareDenyTokens = userTask_reactivationRequestSchema.get("shareDenyTokens");
     MetadataBuilder userTask_reactivationRequest_shareTokens = userTask_reactivationRequestSchema.get("shareTokens");
     MetadataBuilder userTask_reactivationRequest_starredByUsers = userTask_reactivationRequestSchema.get("starredByUsers");
@@ -1218,6 +1496,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_returnRequest_assigneeUsersCandidates = userTask_returnRequestSchema.get("assigneeUsersCandidates");
     MetadataBuilder userTask_returnRequest_assigner = userTask_returnRequestSchema.get("assigner");
     MetadataBuilder userTask_returnRequest_attachedAncestors = userTask_returnRequestSchema.get("attachedAncestors");
+    MetadataBuilder userTask_returnRequest_attachedPrincipalAncestorsIntIds = userTask_returnRequestSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder userTask_returnRequest_autocomplete = userTask_returnRequestSchema.get("autocomplete");
     MetadataBuilder userTask_returnRequest_caption = userTask_returnRequestSchema.get("caption");
     MetadataBuilder userTask_returnRequest_comments = userTask_returnRequestSchema.get("comments");
@@ -1229,6 +1508,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_returnRequest_deleted = userTask_returnRequestSchema.get("deleted");
     MetadataBuilder userTask_returnRequest_denyTokens = userTask_returnRequestSchema.get("denyTokens");
     MetadataBuilder userTask_returnRequest_description = userTask_returnRequestSchema.get("description");
+    MetadataBuilder userTask_returnRequest_detachedPrincipalAncestorsIntIds = userTask_returnRequestSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder userTask_returnRequest_detachedauthorizations = userTask_returnRequestSchema.get("detachedauthorizations");
     MetadataBuilder userTask_returnRequest_dueDate = userTask_returnRequestSchema.get("dueDate");
     MetadataBuilder userTask_returnRequest_endDate = userTask_returnRequestSchema.get("endDate");
@@ -1254,6 +1534,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_returnRequest_modelTask = userTask_returnRequestSchema.get("modelTask");
     MetadataBuilder userTask_returnRequest_modifiedBy = userTask_returnRequestSchema.get("modifiedBy");
     MetadataBuilder userTask_returnRequest_modifiedOn = userTask_returnRequestSchema.get("modifiedOn");
+    MetadataBuilder userTask_returnRequest_nestedAuthorizations = userTask_returnRequestSchema.get("nestedAuthorizations");
     MetadataBuilder userTask_returnRequest_nextReminderOn = userTask_returnRequestSchema.get("nextReminderOn");
     MetadataBuilder userTask_returnRequest_nextTaskCreated = userTask_returnRequestSchema.get("nextTaskCreated");
     MetadataBuilder userTask_returnRequest_nextTasks = userTask_returnRequestSchema.get("nextTasks");
@@ -1263,6 +1544,8 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_returnRequest_parentTaskDueDate = userTask_returnRequestSchema.get("parentTaskDueDate");
     MetadataBuilder userTask_returnRequest_path = userTask_returnRequestSchema.get("path");
     MetadataBuilder userTask_returnRequest_pathParts = userTask_returnRequestSchema.get("pathParts");
+    MetadataBuilder userTask_returnRequest_principalAncestorsIntIds = userTask_returnRequestSchema.get("principalAncestorsIntIds");
+    MetadataBuilder userTask_returnRequest_principalConceptsIntIds = userTask_returnRequestSchema.get("principalConceptsIntIds");
     MetadataBuilder userTask_returnRequest_principalpath = userTask_returnRequestSchema.get("principalpath");
     MetadataBuilder userTask_returnRequest_progressPercentage = userTask_returnRequestSchema.get("progressPercentage");
     MetadataBuilder userTask_returnRequest_question = userTask_returnRequestSchema.get("question");
@@ -1273,6 +1556,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_returnRequest_reminders = userTask_returnRequestSchema.get("reminders");
     MetadataBuilder userTask_returnRequest_removedauthorizations = userTask_returnRequestSchema.get("removedauthorizations");
     MetadataBuilder userTask_returnRequest_schema = userTask_returnRequestSchema.get("schema");
+    MetadataBuilder userTask_returnRequest_secondaryConceptsIntIds = userTask_returnRequestSchema.get("secondaryConceptsIntIds");
     MetadataBuilder userTask_returnRequest_shareDenyTokens = userTask_returnRequestSchema.get("shareDenyTokens");
     MetadataBuilder userTask_returnRequest_shareTokens = userTask_returnRequestSchema.get("shareTokens");
     MetadataBuilder userTask_returnRequest_starredByUsers = userTask_returnRequestSchema.get("starredByUsers");
@@ -1295,6 +1579,9 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder userTask_returnRequest_workflowInstance = userTask_returnRequestSchema.get("workflowInstance");
   }
 
+  private void createDdvSourceSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvSourceSchemaType, MetadataSchemaBuilder ddvSourceSchema) {
+  }
+
   private void createDdvTaskStatusSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvTaskStatusSchemaType, MetadataSchemaBuilder ddvTaskStatusSchema) {
   }
 
@@ -1304,6 +1591,9 @@ public final class GeneratedESRMRobotsMigrationCombo {
   private void createReportSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder reportSchemaType, MetadataSchemaBuilder reportSchema) {
   }
 
+  private void createTriggerTypeSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder triggerTypeSchemaType, MetadataSchemaBuilder triggerTypeSchema) {
+  }
+
   private void createCategorySchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder categorySchemaType, MetadataSchemaBuilder categorySchema) {
   }
 
@@ -1311,6 +1601,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_ConsolidatedPdf_allReferences = temporaryRecord_ConsolidatedPdfSchema.get("allReferences");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_allRemovedAuths = temporaryRecord_ConsolidatedPdfSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_attachedAncestors = temporaryRecord_ConsolidatedPdfSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_ConsolidatedPdf_attachedPrincipalAncestorsIntIds = temporaryRecord_ConsolidatedPdfSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_autocomplete = temporaryRecord_ConsolidatedPdfSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_caption = temporaryRecord_ConsolidatedPdfSchema.get("caption");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_content = temporaryRecord_ConsolidatedPdfSchema.get("content");
@@ -1320,6 +1611,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_ConsolidatedPdf_deleted = temporaryRecord_ConsolidatedPdfSchema.get("deleted");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_denyTokens = temporaryRecord_ConsolidatedPdfSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_destructionDate = temporaryRecord_ConsolidatedPdfSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_ConsolidatedPdf_detachedPrincipalAncestorsIntIds = temporaryRecord_ConsolidatedPdfSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_detachedauthorizations = temporaryRecord_ConsolidatedPdfSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_errorOnPhysicalDeletion = temporaryRecord_ConsolidatedPdfSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_estimatedSize = temporaryRecord_ConsolidatedPdfSchema.get("estimatedSize");
@@ -1334,11 +1626,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_ConsolidatedPdf_migrationDataVersion = temporaryRecord_ConsolidatedPdfSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_modifiedBy = temporaryRecord_ConsolidatedPdfSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_modifiedOn = temporaryRecord_ConsolidatedPdfSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_ConsolidatedPdf_nestedAuthorizations = temporaryRecord_ConsolidatedPdfSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_path = temporaryRecord_ConsolidatedPdfSchema.get("path");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_pathParts = temporaryRecord_ConsolidatedPdfSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_ConsolidatedPdf_principalAncestorsIntIds = temporaryRecord_ConsolidatedPdfSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_ConsolidatedPdf_principalConceptsIntIds = temporaryRecord_ConsolidatedPdfSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_principalpath = temporaryRecord_ConsolidatedPdfSchema.get("principalpath");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_removedauthorizations = temporaryRecord_ConsolidatedPdfSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_schema = temporaryRecord_ConsolidatedPdfSchema.get("schema");
+    MetadataBuilder temporaryRecord_ConsolidatedPdf_secondaryConceptsIntIds = temporaryRecord_ConsolidatedPdfSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_shareDenyTokens = temporaryRecord_ConsolidatedPdfSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_shareTokens = temporaryRecord_ConsolidatedPdfSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_ConsolidatedPdf_title = temporaryRecord_ConsolidatedPdfSchema.get("title");
@@ -1348,6 +1644,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_allReferences = temporaryRecord_batchProcessReportSchema.get("allReferences");
     MetadataBuilder temporaryRecord_batchProcessReport_allRemovedAuths = temporaryRecord_batchProcessReportSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_batchProcessReport_attachedAncestors = temporaryRecord_batchProcessReportSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_batchProcessReport_attachedPrincipalAncestorsIntIds = temporaryRecord_batchProcessReportSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_autocomplete = temporaryRecord_batchProcessReportSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_batchProcessReport_caption = temporaryRecord_batchProcessReportSchema.get("caption");
     MetadataBuilder temporaryRecord_batchProcessReport_content = temporaryRecord_batchProcessReportSchema.get("content");
@@ -1357,6 +1654,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_deleted = temporaryRecord_batchProcessReportSchema.get("deleted");
     MetadataBuilder temporaryRecord_batchProcessReport_denyTokens = temporaryRecord_batchProcessReportSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_batchProcessReport_destructionDate = temporaryRecord_batchProcessReportSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_batchProcessReport_detachedPrincipalAncestorsIntIds = temporaryRecord_batchProcessReportSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_detachedauthorizations = temporaryRecord_batchProcessReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_errorOnPhysicalDeletion = temporaryRecord_batchProcessReportSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema.get("estimatedSize");
@@ -1371,11 +1669,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_migrationDataVersion = temporaryRecord_batchProcessReportSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_batchProcessReport_modifiedBy = temporaryRecord_batchProcessReportSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_batchProcessReport_modifiedOn = temporaryRecord_batchProcessReportSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_batchProcessReport_nestedAuthorizations = temporaryRecord_batchProcessReportSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_path = temporaryRecord_batchProcessReportSchema.get("path");
     MetadataBuilder temporaryRecord_batchProcessReport_pathParts = temporaryRecord_batchProcessReportSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_batchProcessReport_principalAncestorsIntIds = temporaryRecord_batchProcessReportSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_batchProcessReport_principalConceptsIntIds = temporaryRecord_batchProcessReportSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_principalpath = temporaryRecord_batchProcessReportSchema.get("principalpath");
     MetadataBuilder temporaryRecord_batchProcessReport_removedauthorizations = temporaryRecord_batchProcessReportSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_schema = temporaryRecord_batchProcessReportSchema.get("schema");
+    MetadataBuilder temporaryRecord_batchProcessReport_secondaryConceptsIntIds = temporaryRecord_batchProcessReportSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_shareDenyTokens = temporaryRecord_batchProcessReportSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_batchProcessReport_shareTokens = temporaryRecord_batchProcessReportSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_batchProcessReport_title = temporaryRecord_batchProcessReportSchema.get("title");
@@ -1385,6 +1687,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_allReferences = temporaryRecord_exportAuditSchema.get("allReferences");
     MetadataBuilder temporaryRecord_exportAudit_allRemovedAuths = temporaryRecord_exportAuditSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_exportAudit_attachedAncestors = temporaryRecord_exportAuditSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_exportAudit_attachedPrincipalAncestorsIntIds = temporaryRecord_exportAuditSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_autocomplete = temporaryRecord_exportAuditSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_exportAudit_caption = temporaryRecord_exportAuditSchema.get("caption");
     MetadataBuilder temporaryRecord_exportAudit_content = temporaryRecord_exportAuditSchema.get("content");
@@ -1394,6 +1697,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_deleted = temporaryRecord_exportAuditSchema.get("deleted");
     MetadataBuilder temporaryRecord_exportAudit_denyTokens = temporaryRecord_exportAuditSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_exportAudit_destructionDate = temporaryRecord_exportAuditSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_exportAudit_detachedPrincipalAncestorsIntIds = temporaryRecord_exportAuditSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_detachedauthorizations = temporaryRecord_exportAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_errorOnPhysicalDeletion = temporaryRecord_exportAuditSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
@@ -1408,11 +1712,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_migrationDataVersion = temporaryRecord_exportAuditSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_exportAudit_modifiedBy = temporaryRecord_exportAuditSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_exportAudit_modifiedOn = temporaryRecord_exportAuditSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_exportAudit_nestedAuthorizations = temporaryRecord_exportAuditSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_exportAudit_path = temporaryRecord_exportAuditSchema.get("path");
     MetadataBuilder temporaryRecord_exportAudit_pathParts = temporaryRecord_exportAuditSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_exportAudit_principalAncestorsIntIds = temporaryRecord_exportAuditSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_exportAudit_principalConceptsIntIds = temporaryRecord_exportAuditSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_principalpath = temporaryRecord_exportAuditSchema.get("principalpath");
     MetadataBuilder temporaryRecord_exportAudit_removedauthorizations = temporaryRecord_exportAuditSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_schema = temporaryRecord_exportAuditSchema.get("schema");
+    MetadataBuilder temporaryRecord_exportAudit_secondaryConceptsIntIds = temporaryRecord_exportAuditSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_shareDenyTokens = temporaryRecord_exportAuditSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_exportAudit_shareTokens = temporaryRecord_exportAuditSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_exportAudit_title = temporaryRecord_exportAuditSchema.get("title");
@@ -1422,6 +1730,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_allReferences = temporaryRecord_importAuditSchema.get("allReferences");
     MetadataBuilder temporaryRecord_importAudit_allRemovedAuths = temporaryRecord_importAuditSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_importAudit_attachedAncestors = temporaryRecord_importAuditSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_importAudit_attachedPrincipalAncestorsIntIds = temporaryRecord_importAuditSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_importAudit_autocomplete = temporaryRecord_importAuditSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_importAudit_caption = temporaryRecord_importAuditSchema.get("caption");
     MetadataBuilder temporaryRecord_importAudit_content = temporaryRecord_importAuditSchema.get("content");
@@ -1431,6 +1740,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_deleted = temporaryRecord_importAuditSchema.get("deleted");
     MetadataBuilder temporaryRecord_importAudit_denyTokens = temporaryRecord_importAuditSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_importAudit_destructionDate = temporaryRecord_importAuditSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_importAudit_detachedPrincipalAncestorsIntIds = temporaryRecord_importAuditSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_importAudit_detachedauthorizations = temporaryRecord_importAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_errorOnPhysicalDeletion = temporaryRecord_importAuditSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
@@ -1445,11 +1755,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_migrationDataVersion = temporaryRecord_importAuditSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_importAudit_modifiedBy = temporaryRecord_importAuditSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_importAudit_modifiedOn = temporaryRecord_importAuditSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_importAudit_nestedAuthorizations = temporaryRecord_importAuditSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_importAudit_path = temporaryRecord_importAuditSchema.get("path");
     MetadataBuilder temporaryRecord_importAudit_pathParts = temporaryRecord_importAuditSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_importAudit_principalAncestorsIntIds = temporaryRecord_importAuditSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_importAudit_principalConceptsIntIds = temporaryRecord_importAuditSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_importAudit_principalpath = temporaryRecord_importAuditSchema.get("principalpath");
     MetadataBuilder temporaryRecord_importAudit_removedauthorizations = temporaryRecord_importAuditSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_schema = temporaryRecord_importAuditSchema.get("schema");
+    MetadataBuilder temporaryRecord_importAudit_secondaryConceptsIntIds = temporaryRecord_importAuditSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_importAudit_shareDenyTokens = temporaryRecord_importAuditSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_importAudit_shareTokens = temporaryRecord_importAuditSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_importAudit_title = temporaryRecord_importAuditSchema.get("title");
@@ -1459,6 +1773,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_allReferences = temporaryRecord_scriptReportSchema.get("allReferences");
     MetadataBuilder temporaryRecord_scriptReport_allRemovedAuths = temporaryRecord_scriptReportSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_scriptReport_attachedAncestors = temporaryRecord_scriptReportSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_scriptReport_attachedPrincipalAncestorsIntIds = temporaryRecord_scriptReportSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_autocomplete = temporaryRecord_scriptReportSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_scriptReport_caption = temporaryRecord_scriptReportSchema.get("caption");
     MetadataBuilder temporaryRecord_scriptReport_content = temporaryRecord_scriptReportSchema.get("content");
@@ -1468,6 +1783,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_deleted = temporaryRecord_scriptReportSchema.get("deleted");
     MetadataBuilder temporaryRecord_scriptReport_denyTokens = temporaryRecord_scriptReportSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_scriptReport_destructionDate = temporaryRecord_scriptReportSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_scriptReport_detachedPrincipalAncestorsIntIds = temporaryRecord_scriptReportSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_detachedauthorizations = temporaryRecord_scriptReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_errorOnPhysicalDeletion = temporaryRecord_scriptReportSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
@@ -1482,11 +1798,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_migrationDataVersion = temporaryRecord_scriptReportSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_scriptReport_modifiedBy = temporaryRecord_scriptReportSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_scriptReport_modifiedOn = temporaryRecord_scriptReportSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_scriptReport_nestedAuthorizations = temporaryRecord_scriptReportSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_scriptReport_path = temporaryRecord_scriptReportSchema.get("path");
     MetadataBuilder temporaryRecord_scriptReport_pathParts = temporaryRecord_scriptReportSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_scriptReport_principalAncestorsIntIds = temporaryRecord_scriptReportSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_scriptReport_principalConceptsIntIds = temporaryRecord_scriptReportSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_principalpath = temporaryRecord_scriptReportSchema.get("principalpath");
     MetadataBuilder temporaryRecord_scriptReport_removedauthorizations = temporaryRecord_scriptReportSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_schema = temporaryRecord_scriptReportSchema.get("schema");
+    MetadataBuilder temporaryRecord_scriptReport_secondaryConceptsIntIds = temporaryRecord_scriptReportSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_shareDenyTokens = temporaryRecord_scriptReportSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_scriptReport_shareTokens = temporaryRecord_scriptReportSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_scriptReport_title = temporaryRecord_scriptReportSchema.get("title");
@@ -1496,6 +1816,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_sipArchive_allReferences = temporaryRecord_sipArchiveSchema.get("allReferences");
     MetadataBuilder temporaryRecord_sipArchive_allRemovedAuths = temporaryRecord_sipArchiveSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_sipArchive_attachedAncestors = temporaryRecord_sipArchiveSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_sipArchive_attachedPrincipalAncestorsIntIds = temporaryRecord_sipArchiveSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_sipArchive_autocomplete = temporaryRecord_sipArchiveSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_sipArchive_caption = temporaryRecord_sipArchiveSchema.get("caption");
     MetadataBuilder temporaryRecord_sipArchive_content = temporaryRecord_sipArchiveSchema.get("content");
@@ -1505,6 +1826,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_sipArchive_deleted = temporaryRecord_sipArchiveSchema.get("deleted");
     MetadataBuilder temporaryRecord_sipArchive_denyTokens = temporaryRecord_sipArchiveSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_sipArchive_destructionDate = temporaryRecord_sipArchiveSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_sipArchive_detachedPrincipalAncestorsIntIds = temporaryRecord_sipArchiveSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_sipArchive_detachedauthorizations = temporaryRecord_sipArchiveSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_sipArchive_errorOnPhysicalDeletion = temporaryRecord_sipArchiveSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_sipArchive_estimatedSize = temporaryRecord_sipArchiveSchema.get("estimatedSize");
@@ -1519,11 +1841,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_sipArchive_migrationDataVersion = temporaryRecord_sipArchiveSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_sipArchive_modifiedBy = temporaryRecord_sipArchiveSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_sipArchive_modifiedOn = temporaryRecord_sipArchiveSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_sipArchive_nestedAuthorizations = temporaryRecord_sipArchiveSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_sipArchive_path = temporaryRecord_sipArchiveSchema.get("path");
     MetadataBuilder temporaryRecord_sipArchive_pathParts = temporaryRecord_sipArchiveSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_sipArchive_principalAncestorsIntIds = temporaryRecord_sipArchiveSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_sipArchive_principalConceptsIntIds = temporaryRecord_sipArchiveSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_sipArchive_principalpath = temporaryRecord_sipArchiveSchema.get("principalpath");
     MetadataBuilder temporaryRecord_sipArchive_removedauthorizations = temporaryRecord_sipArchiveSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_sipArchive_schema = temporaryRecord_sipArchiveSchema.get("schema");
+    MetadataBuilder temporaryRecord_sipArchive_secondaryConceptsIntIds = temporaryRecord_sipArchiveSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_sipArchive_shareDenyTokens = temporaryRecord_sipArchiveSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_sipArchive_shareTokens = temporaryRecord_sipArchiveSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_sipArchive_title = temporaryRecord_sipArchiveSchema.get("title");
@@ -1533,6 +1859,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_allReferences = temporaryRecord_vaultScanReportSchema.get("allReferences");
     MetadataBuilder temporaryRecord_vaultScanReport_allRemovedAuths = temporaryRecord_vaultScanReportSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_vaultScanReport_attachedAncestors = temporaryRecord_vaultScanReportSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_vaultScanReport_attachedPrincipalAncestorsIntIds = temporaryRecord_vaultScanReportSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_autocomplete = temporaryRecord_vaultScanReportSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_vaultScanReport_caption = temporaryRecord_vaultScanReportSchema.get("caption");
     MetadataBuilder temporaryRecord_vaultScanReport_content = temporaryRecord_vaultScanReportSchema.get("content");
@@ -1542,6 +1869,7 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_deleted = temporaryRecord_vaultScanReportSchema.get("deleted");
     MetadataBuilder temporaryRecord_vaultScanReport_denyTokens = temporaryRecord_vaultScanReportSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_vaultScanReport_destructionDate = temporaryRecord_vaultScanReportSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_vaultScanReport_detachedPrincipalAncestorsIntIds = temporaryRecord_vaultScanReportSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_detachedauthorizations = temporaryRecord_vaultScanReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_errorOnPhysicalDeletion = temporaryRecord_vaultScanReportSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
@@ -1556,11 +1884,15 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_migrationDataVersion = temporaryRecord_vaultScanReportSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_vaultScanReport_modifiedBy = temporaryRecord_vaultScanReportSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_vaultScanReport_modifiedOn = temporaryRecord_vaultScanReportSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_vaultScanReport_nestedAuthorizations = temporaryRecord_vaultScanReportSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_path = temporaryRecord_vaultScanReportSchema.get("path");
     MetadataBuilder temporaryRecord_vaultScanReport_pathParts = temporaryRecord_vaultScanReportSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_vaultScanReport_principalAncestorsIntIds = temporaryRecord_vaultScanReportSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_vaultScanReport_principalConceptsIntIds = temporaryRecord_vaultScanReportSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_principalpath = temporaryRecord_vaultScanReportSchema.get("principalpath");
     MetadataBuilder temporaryRecord_vaultScanReport_removedauthorizations = temporaryRecord_vaultScanReportSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_schema = temporaryRecord_vaultScanReportSchema.get("schema");
+    MetadataBuilder temporaryRecord_vaultScanReport_secondaryConceptsIntIds = temporaryRecord_vaultScanReportSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_shareDenyTokens = temporaryRecord_vaultScanReportSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_vaultScanReport_shareTokens = temporaryRecord_vaultScanReportSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_vaultScanReport_title = temporaryRecord_vaultScanReportSchema.get("title");
@@ -1577,12 +1909,14 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder facet_field_allReferences = facet_fieldSchema.get("allReferences");
     MetadataBuilder facet_field_allRemovedAuths = facet_fieldSchema.get("allRemovedAuths");
     MetadataBuilder facet_field_attachedAncestors = facet_fieldSchema.get("attachedAncestors");
+    MetadataBuilder facet_field_attachedPrincipalAncestorsIntIds = facet_fieldSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_field_autocomplete = facet_fieldSchema.get("autocomplete");
     MetadataBuilder facet_field_caption = facet_fieldSchema.get("caption");
     MetadataBuilder facet_field_createdBy = facet_fieldSchema.get("createdBy");
     MetadataBuilder facet_field_createdOn = facet_fieldSchema.get("createdOn");
     MetadataBuilder facet_field_deleted = facet_fieldSchema.get("deleted");
     MetadataBuilder facet_field_denyTokens = facet_fieldSchema.get("denyTokens");
+    MetadataBuilder facet_field_detachedPrincipalAncestorsIntIds = facet_fieldSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_field_detachedauthorizations = facet_fieldSchema.get("detachedauthorizations");
     MetadataBuilder facet_field_elementPerPage = facet_fieldSchema.get("elementPerPage");
     MetadataBuilder facet_field_errorOnPhysicalDeletion = facet_fieldSchema.get("errorOnPhysicalDeletion");
@@ -1600,15 +1934,19 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder facet_field_migrationDataVersion = facet_fieldSchema.get("migrationDataVersion");
     MetadataBuilder facet_field_modifiedBy = facet_fieldSchema.get("modifiedBy");
     MetadataBuilder facet_field_modifiedOn = facet_fieldSchema.get("modifiedOn");
+    MetadataBuilder facet_field_nestedAuthorizations = facet_fieldSchema.get("nestedAuthorizations");
     MetadataBuilder facet_field_openByDefault = facet_fieldSchema.get("openByDefault");
     MetadataBuilder facet_field_order = facet_fieldSchema.get("order");
     MetadataBuilder facet_field_orderResult = facet_fieldSchema.get("orderResult");
     MetadataBuilder facet_field_pages = facet_fieldSchema.get("pages");
     MetadataBuilder facet_field_path = facet_fieldSchema.get("path");
     MetadataBuilder facet_field_pathParts = facet_fieldSchema.get("pathParts");
+    MetadataBuilder facet_field_principalAncestorsIntIds = facet_fieldSchema.get("principalAncestorsIntIds");
+    MetadataBuilder facet_field_principalConceptsIntIds = facet_fieldSchema.get("principalConceptsIntIds");
     MetadataBuilder facet_field_principalpath = facet_fieldSchema.get("principalpath");
     MetadataBuilder facet_field_removedauthorizations = facet_fieldSchema.get("removedauthorizations");
     MetadataBuilder facet_field_schema = facet_fieldSchema.get("schema");
+    MetadataBuilder facet_field_secondaryConceptsIntIds = facet_fieldSchema.get("secondaryConceptsIntIds");
     MetadataBuilder facet_field_shareDenyTokens = facet_fieldSchema.get("shareDenyTokens");
     MetadataBuilder facet_field_shareTokens = facet_fieldSchema.get("shareTokens");
     MetadataBuilder facet_field_title = facet_fieldSchema.get("title");
@@ -1620,12 +1958,14 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder facet_query_allReferences = facet_querySchema.get("allReferences");
     MetadataBuilder facet_query_allRemovedAuths = facet_querySchema.get("allRemovedAuths");
     MetadataBuilder facet_query_attachedAncestors = facet_querySchema.get("attachedAncestors");
+    MetadataBuilder facet_query_attachedPrincipalAncestorsIntIds = facet_querySchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_query_autocomplete = facet_querySchema.get("autocomplete");
     MetadataBuilder facet_query_caption = facet_querySchema.get("caption");
     MetadataBuilder facet_query_createdBy = facet_querySchema.get("createdBy");
     MetadataBuilder facet_query_createdOn = facet_querySchema.get("createdOn");
     MetadataBuilder facet_query_deleted = facet_querySchema.get("deleted");
     MetadataBuilder facet_query_denyTokens = facet_querySchema.get("denyTokens");
+    MetadataBuilder facet_query_detachedPrincipalAncestorsIntIds = facet_querySchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_query_detachedauthorizations = facet_querySchema.get("detachedauthorizations");
     MetadataBuilder facet_query_elementPerPage = facet_querySchema.get("elementPerPage");
     MetadataBuilder facet_query_errorOnPhysicalDeletion = facet_querySchema.get("errorOnPhysicalDeletion");
@@ -1643,15 +1983,19 @@ public final class GeneratedESRMRobotsMigrationCombo {
     MetadataBuilder facet_query_migrationDataVersion = facet_querySchema.get("migrationDataVersion");
     MetadataBuilder facet_query_modifiedBy = facet_querySchema.get("modifiedBy");
     MetadataBuilder facet_query_modifiedOn = facet_querySchema.get("modifiedOn");
+    MetadataBuilder facet_query_nestedAuthorizations = facet_querySchema.get("nestedAuthorizations");
     MetadataBuilder facet_query_openByDefault = facet_querySchema.get("openByDefault");
     MetadataBuilder facet_query_order = facet_querySchema.get("order");
     MetadataBuilder facet_query_orderResult = facet_querySchema.get("orderResult");
     MetadataBuilder facet_query_pages = facet_querySchema.get("pages");
     MetadataBuilder facet_query_path = facet_querySchema.get("path");
     MetadataBuilder facet_query_pathParts = facet_querySchema.get("pathParts");
+    MetadataBuilder facet_query_principalAncestorsIntIds = facet_querySchema.get("principalAncestorsIntIds");
+    MetadataBuilder facet_query_principalConceptsIntIds = facet_querySchema.get("principalConceptsIntIds");
     MetadataBuilder facet_query_principalpath = facet_querySchema.get("principalpath");
     MetadataBuilder facet_query_removedauthorizations = facet_querySchema.get("removedauthorizations");
     MetadataBuilder facet_query_schema = facet_querySchema.get("schema");
+    MetadataBuilder facet_query_secondaryConceptsIntIds = facet_querySchema.get("secondaryConceptsIntIds");
     MetadataBuilder facet_query_shareDenyTokens = facet_querySchema.get("shareDenyTokens");
     MetadataBuilder facet_query_shareTokens = facet_querySchema.get("shareTokens");
     MetadataBuilder facet_query_title = facet_querySchema.get("title");
@@ -1712,9 +2056,9 @@ public final class GeneratedESRMRobotsMigrationCombo {
 
   public void applyGeneratedRoles() {
     RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();;
-	  rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageGlobalLinks", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.unlimitedBatchProcess", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.viewSystemState", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingFolderDirectly", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.cartBatchDelete", "rm.consultClassificationPlan", "rm.consultRetentionRule", "rm.createActiveFolderToSemiActiveDecommissioningList", "rm.createDecommissioningList", "rm.createDocuments", "rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders", "rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning", "rm.deleteBorrowedDocuments", "rm.deleteContainers", "rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.displayContainers", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders", "rm.editActiveFolderToSemiActiveDecommissioningList", "rm.editDecommissioningList", "rm.generateSIPArchives", "rm.manageBagInfo", "rm.manageClassificationPlan", "rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageReports", "rm.manageRequestOnContainer", "rm.manageRequestOnFolder", "rm.manageRetentionRule", "core.manageShare", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions", "rm.modifyFolderDecomDate", "rm.modifyImportedDocuments", "rm.modifyImportedFolders", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments", "rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.returnOtherUsersDocuments", "rm.returnOtherUsersFolders", "rm.shareDocuments", "rm.shareFolders", "rm.shareImportedDocuments", "rm.shareImportedFolders", "rm.shareInactiveDocuments", "rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments", "rm.useGroupCart", "rm.useMyCart", "rm.viewDocumentAuthorizations", "rm.viewFolderAuthorizations", "rm.viewSystemFilename", "robots.manageRobots", "tasks.manageWorkflows", "tasks.startWorkflows")));
+    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.editAllAnnotation", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageGlobalLinks", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.unlimitedBatchProcess", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.viewSystemState", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingContainerDirectly", "rm.borrowingFolderDirectly", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.cartBatchDelete", "rm.consultClassificationPlan", "rm.consultLegalRequirements", "rm.consultRetentionRule", "rm.createActiveFolderToSemiActiveDecommissioningList", "rm.createDecommissioningList", "rm.createDocuments", "rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders", "rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning", "rm.deleteBorrowedDocuments", "rm.deleteContainers", "rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.displayContainers", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders", "rm.editActiveFolderToSemiActiveDecommissioningList", "rm.editDecommissioningList", "rm.generateExternalSignatureUrl", "rm.generatePdfADocuments", "rm.generatePdfAInactiveDocuments", "rm.generatePdfASemiActiveDocuments", "rm.generateSIPArchives", "rm.manageBagInfo", "rm.manageBorrowings", "rm.manageClassificationPlan", "rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageLegalRequirements", "rm.manageReports", "rm.manageRequestOnContainer", "rm.manageRequestOnFolder", "rm.manageRetentionRule", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions", "rm.modifyFolderDecomDate", "rm.modifyImportedDocuments", "rm.modifyImportedFolders", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments", "rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.returnOtherUsersContainers", "rm.returnOtherUsersDocuments", "rm.returnOtherUsersFolders", "rm.shareDocuments", "rm.shareFolders", "rm.shareImportedDocuments", "rm.shareImportedFolders", "rm.shareInactiveDocuments", "rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments", "rm.useGroupCart", "rm.useMyCart", "rm.viewDocumentAuthorizations", "rm.viewFolderAuthorizations", "rm.viewSystemFilename", "robots.manageRobots", "tasks.manageWorkflows", "tasks.startWorkflows")));
     rolesManager.updateRole(rolesManager.getRole(collection, "U").withNewPermissions(asList("core.batchProcess", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.cartBatchDelete", "rm.createDocuments", "rm.createFolders", "rm.createSubFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.modifySemiActiveBorrowedFolder", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.shareDocuments", "rm.shareFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadSemiActiveDocuments", "rm.useMyCart")));
     rolesManager.updateRole(rolesManager.getRole(collection, "M").withNewPermissions(asList("core.batchProcess", "core.viewLoginNotificationAlert", "manageLabels", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.cartBatchDelete", "rm.createActiveFolderToSemiActiveDecommissioningList", "rm.createDecommissioningList", "rm.createDocuments", "rm.createFolders", "rm.createSubFolders", "rm.decommissioning", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.editActiveFolderToSemiActiveDecommissioningList", "rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.shareDocuments", "rm.shareFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadSemiActiveDocuments", "rm.useMyCart", "rm.viewFolderAuthorizations")));
-	  rolesManager.updateRole(rolesManager.getRole(collection, "RGD").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageGlobalLinks", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.unlimitedBatchProcess", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.viewSystemState", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingFolderDirectly", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.cartBatchDelete", "rm.consultClassificationPlan", "rm.consultRetentionRule", "rm.createActiveFolderToSemiActiveDecommissioningList", "rm.createDecommissioningList", "rm.createDocuments", "rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders", "rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning", "rm.deleteBorrowedDocuments", "rm.deleteContainers", "rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.displayContainers", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders", "rm.editActiveFolderToSemiActiveDecommissioningList", "rm.editDecommissioningList", "rm.generateSIPArchives", "rm.manageBagInfo", "rm.manageClassificationPlan", "rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageReports", "rm.manageRequestOnContainer", "rm.manageRequestOnFolder", "rm.manageRetentionRule", "core.manageShare", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions", "rm.modifyFolderDecomDate", "rm.modifyImportedDocuments", "rm.modifyImportedFolders", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments", "rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.returnOtherUsersDocuments", "rm.returnOtherUsersFolders", "rm.shareDocuments", "rm.shareFolders", "rm.shareImportedDocuments", "rm.shareImportedFolders", "rm.shareInactiveDocuments", "rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments", "rm.useGroupCart", "rm.useMyCart", "rm.viewDocumentAuthorizations", "rm.viewFolderAuthorizations", "rm.viewSystemFilename", "tasks.manageWorkflows")));
+    rolesManager.updateRole(rolesManager.getRole(collection, "RGD").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.editAllAnnotation", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageGlobalLinks", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.unlimitedBatchProcess", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.viewSystemState", "rm.borrowContainer", "rm.borrowFolder", "rm.borrowingContainerDirectly", "rm.borrowingFolderDirectly", "rm.borrowingRequestOnContainer", "rm.borrowingRequestOnFolder", "rm.cartBatchDelete", "rm.consultClassificationPlan", "rm.consultLegalRequirements", "rm.consultRetentionRule", "rm.createActiveFolderToSemiActiveDecommissioningList", "rm.createDecommissioningList", "rm.createDocuments", "rm.createFolders", "rm.createInactiveDocuments", "rm.createSemiActiveDocuments", "rm.createSubFolders", "rm.createSubFoldersInInactiveFolders", "rm.createSubFoldersInSemiActiveFolders", "rm.decommissioning", "rm.deleteBorrowedDocuments", "rm.deleteContainers", "rm.deleteInactiveDocuments", "rm.deleteInactiveFolders", "rm.deletePublishedDocuments", "rm.deleteSemiActiveDocuments", "rm.deleteSemiActiveFolders", "rm.displayContainers", "rm.duplicateInactiveFolders", "rm.duplicateSemiActiveFolders", "rm.editActiveFolderToSemiActiveDecommissioningList", "rm.editDecommissioningList", "rm.generateExternalSignatureUrl", "rm.generatePdfADocuments", "rm.generatePdfAInactiveDocuments", "rm.generatePdfASemiActiveDocuments", "rm.generateSIPArchives", "rm.manageBagInfo", "rm.manageBorrowings", "rm.manageClassificationPlan", "rm.manageContainers", "rm.manageDocumentAuthorizations", "rm.manageFolderAuthorizations", "rm.manageLegalRequirements", "rm.manageReports", "rm.manageRequestOnContainer", "rm.manageRequestOnFolder", "rm.manageRetentionRule", "rm.manageStorageSpaces", "rm.manageUniformSubdivisions", "rm.modifyFolderDecomDate", "rm.modifyImportedDocuments", "rm.modifyImportedFolders", "rm.modifyInactiveBorrowedFolder", "rm.modifyInactiveDocuments", "rm.modifyInactiveFolders", "rm.modifyOpeningDateFolder", "rm.modifySemiActiveBorrowedFolder", "rm.modifySemiActiveDocuments", "rm.modifySemiActiveFolders", "rm.processDecommissioningList", "rm.publishAndUnpublishDocuments", "rm.reactivationRequestOnFolder", "rm.returnOtherUsersContainers", "rm.returnOtherUsersDocuments", "rm.returnOtherUsersFolders", "rm.shareDocuments", "rm.shareFolders", "rm.shareImportedDocuments", "rm.shareImportedFolders", "rm.shareInactiveDocuments", "rm.shareInactiveFolders", "rm.shareSemiActiveDocuments", "rm.shareSemiActiveFolders", "rm.uploadInactiveDocuments", "rm.uploadSemiActiveDocuments", "rm.useGroupCart", "rm.useMyCart", "rm.viewDocumentAuthorizations", "rm.viewFolderAuthorizations", "rm.viewSystemFilename", "tasks.manageWorkflows", "tasks.startWorkflows")));
   }
 }

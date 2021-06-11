@@ -15,6 +15,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.Can
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.entities.schemas.Schemas.MIGRATION_DATA_VERSION;
@@ -335,6 +337,15 @@ public class SchemaUtils {
 				break;
 
 			case STRUCTURE:
+				summary = metadata.isEssentialInSummary() || metadata.isAvailableInSummary();
+
+				if (summary && metadata.getStructureFactory() instanceof SeparatedStructureFactory) {
+					SeparatedStructureFactory separatedStructureFactory = (SeparatedStructureFactory) metadata.getStructureFactory();
+					summary = separatedStructureFactory.getMainValueFieldType() == STRING && !separatedStructureFactory.isMainValueMultivalued();
+				}
+				break;
+
+
 			case CONTENT:
 				//TODO Based on summary flag, support these typestype
 				summary = metadata.isEssentialInSummary() || metadata.isAvailableInSummary();

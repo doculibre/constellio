@@ -27,6 +27,7 @@ public class AuthorizationAddRequest {
 	private String sharedBy;
 	private boolean negative;
 	private boolean overridingInheritedAuths;
+	private boolean nested;
 
 	private AuthorizationAddRequest(String collection) {
 		this(collection, null);
@@ -198,6 +199,15 @@ public class AuthorizationAddRequest {
 		return withRoles(rolesCodes).setNegative(true);
 	}
 
+	public boolean isNested() {
+		return nested;
+	}
+
+	public AuthorizationAddRequest setNested(boolean nested) {
+		this.nested = nested;
+		return this;
+	}
+
 	public static AuthorizationAddRequest authorizationForGroups(Group... groups) {
 		return new AuthorizationAddRequest(groups[0].getCollection()).forGroups(groups);
 	}
@@ -208,6 +218,22 @@ public class AuthorizationAddRequest {
 
 	public static AuthorizationAddRequest authorizationForUsers(User... users) {
 		return new AuthorizationAddRequest(users[0].getCollection()).forUsers(users);
+	}
+
+	public static AuthorizationAddRequest nonCascadingNestedAuthorizationForUsers(List<User> users) {
+		return new AuthorizationAddRequest(users.get(0).getCollection()).forUsers(users.toArray(new User[0])).setNested(true);
+	}
+
+	public static AuthorizationAddRequest nonCascadingNestedAuthorizationForGroups(Group... groups) {
+		return new AuthorizationAddRequest(groups[0].getCollection()).forGroups(groups).setNested(true);
+	}
+
+	public static AuthorizationAddRequest nonCascadingNestedAuthorizationForGroups(List<Group> groups) {
+		return new AuthorizationAddRequest(groups.get(0).getCollection()).forGroups(groups.toArray(new Group[0])).setNested(true);
+	}
+
+	public static AuthorizationAddRequest nonCascadingNestedAuthorizationForUsers(User... users) {
+		return new AuthorizationAddRequest(users[0].getCollection()).forUsers(users).setNested(true);
 	}
 
 	public static AuthorizationAddRequest authorizationForUsers(List<User> users) {

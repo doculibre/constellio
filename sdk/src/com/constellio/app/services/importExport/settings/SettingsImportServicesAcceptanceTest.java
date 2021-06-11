@@ -37,6 +37,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.AdvancedSequenceDataEntry;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntry;
@@ -46,6 +47,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.ReferencedMetadataBasedTestSequenceCalculator;
 import com.constellio.sdk.tests.setups.Users;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.data.MapEntry;
@@ -71,6 +73,7 @@ import static com.constellio.app.modules.rm.wrappers.Folder.DESCRIPTION;
 import static com.constellio.model.entities.Language.English;
 import static com.constellio.model.entities.Language.French;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.SUBSTITUTION;
 import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.TRANSFORMATION;
 import static com.constellio.model.services.schemas.SchemaUtils.localCodes;
@@ -452,6 +455,45 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(((SequenceDataEntry) dataEntry2).getFixedSequenceCode()).isNullOrEmpty();
 		assertThat(((SequenceDataEntry) dataEntry2).getMetadataProvidingSequenceCode()).isEqualTo("id");
 
+	}
+
+	@Test
+	public void whenImportingMetadataWithAdvancedSequenceDataEntryCodeThenOK()
+			throws ValidationException {
+
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
+		ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
+		folderType.setDefaultSchema(defaultSchema);
+
+		ImportedDataEntry importedDataEntry =
+				ImportedDataEntry.asAdvancedSequence(ReferencedMetadataBasedTestSequenceCalculator.class.getCanonicalName());
+		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
+				.setDataEntry(importedDataEntry);
+
+		defaultSchema.addMetadata(m1);
+
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager
+				.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		Metadata metadata1 = schemaType.getDefaultSchema().get("folder_default_m1");
+		assertThat(metadata1).isNotNull();
+		assertThat(metadata1.getLabel(French)).isEqualTo("m1");
+		assertThat(metadata1.getType()).isEqualTo(STRUCTURE);
+		assertThat(metadata1.getInputMask()).isNullOrEmpty();
+
+		DataEntry dataEntry = metadata1.getDataEntry();
+
+		assertThat(dataEntry).isNotNull();
+		assertThat(dataEntry.getType()).isEqualTo(DataEntryType.ADVANCED_SEQUENCE);
+		assertThat(((AdvancedSequenceDataEntry) dataEntry).getCalculator().getClass().getCanonicalName())
+				.isEqualTo(ReferencedMetadataBasedTestSequenceCalculator.class.getCanonicalName());
 	}
 
 	@Test
@@ -1846,11 +1888,11 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		assertThat(customFolder.getSearchResultsMetadataCodes())
 				.contains("folder_custom_title")
-				.doesNotContain("folder_default_m1", "folder_custom_m2");
+				.doesNotContain("folder_default_m1", "folder_custom_m1", "folder_custom_m2");
 
 		assertThat(customFolder.getTableMetadataCodes())
-				.contains("folder_default_title")
-				.doesNotContain("folder_default_m1", "folder_custom_m2");
+				.contains("folder_custom_title")
+				.doesNotContain("folder_default_m1","folder_custom_m1", "folder_custom_m2");
 	}
 
 	// default: visibleInDisplay=true, VisibleInForm=true, visibleInSearchResult=false, visibleInTables=false

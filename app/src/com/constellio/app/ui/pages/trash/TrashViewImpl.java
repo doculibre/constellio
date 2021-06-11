@@ -1,7 +1,11 @@
 package com.constellio.app.ui.pages.trash;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.containers.SchemaTypeVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container;
@@ -23,6 +27,8 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -37,6 +43,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 
 	public TrashViewImpl() {
 		presenter = new TrashPresenter(this);
+		buildActionMenuButtons();
 	}
 
 	@Override
@@ -93,14 +100,30 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 	private void disableActionButtons() {
 		this.restoreSelectionButton.setEnabled(false);
 		this.deleteSelectionButton.setEnabled(false);
+		refreshActionMenu();
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> buttons = super.buildActionMenuButtons(event);
-		buttons.add(buildRestoreSelectionButton());
-		buttons.add(buildDeleteSelectionButton());
-		return buttons;
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				Stream.of(restoreSelectionButton, deleteSelectionButton).map(MenuItemActionConverter::toMenuItemAction).collect(Collectors.toList())
+		);
+	}
+
+	@Override
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay) {
+			@Override
+			public boolean isQuickActionsAreVisible() {
+				return false;
+			}
+		};
+	}
+
+	protected void buildActionMenuButtons() {
+		buildRestoreSelectionButton();
+		buildDeleteSelectionButton();
 	}
 
 	private Button buildDeleteSelectionButton() {

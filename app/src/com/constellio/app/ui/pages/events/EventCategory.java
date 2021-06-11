@@ -23,5 +23,8 @@ public enum EventCategory {
 	REQUEST_TASKS,
 	IMPORT_EXPORT,
 	BATCH_PROCESS_EVENTS,
-	SIGNED_DOCUMENTS
+	SIGNED_DOCUMENTS,
+	// FIXME should be in plugin, extension/refactor needed
+	CURRENTLY_EMPTY_DOCUMENTS,
+	SCANNED_DOCUMENTS
 }

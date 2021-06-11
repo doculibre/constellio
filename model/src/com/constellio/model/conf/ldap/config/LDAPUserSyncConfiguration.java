@@ -25,15 +25,24 @@ public class LDAPUserSyncConfiguration {
 	NonAzureADUserSynchConfig nonAzureADUserSynchConfig = new NonAzureADUserSynchConfig();
 
 	boolean membershipAutomaticDerivationActivated = true;
+	
+	private boolean fetchSubGroups = false;
+	
+	private boolean ignoreRegexForSubGroups = false;
+	
+	private boolean syncUsersOnlyIfInAcceptedGroups = false;
 
 	public LDAPUserSyncConfiguration(String user, String password,
 									 RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
 									 List<String> scheduleTime,
 									 List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList,
 									 List<String> userFilterGroupsList,
-									 boolean membershipAutomaticDerivationActivated) {
+									 boolean membershipAutomaticDerivationActivated,
+									 boolean fetchSubGroupsEnabled, 
+									 boolean ignoreRegexForSubGroups, 
+									 boolean syncUsersOnlyIfInAcceptedGroups) {
 		this(user, password, userFilter, groupFilter, durationBetweenExecution, scheduleTime, groupBaseContextList,
-				usersWithoutGroupsBaseContextList, userFilterGroupsList, membershipAutomaticDerivationActivated, new ArrayList<String>());
+				usersWithoutGroupsBaseContextList, userFilterGroupsList, membershipAutomaticDerivationActivated, new ArrayList<String>(), fetchSubGroupsEnabled, ignoreRegexForSubGroups, syncUsersOnlyIfInAcceptedGroups);
 	}
 
 	public LDAPUserSyncConfiguration(String user, String password,
@@ -41,7 +50,10 @@ public class LDAPUserSyncConfiguration {
 									 List<String> scheduleTime,
 									 List<String> groupBaseContextList, List<String> usersWithoutGroupsBaseContextList,
 									 List<String> userFilterGroupsList, boolean membershipAutomaticDerivationActivated,
-									 List<String> selectedCollectionsCodes) {
+									 List<String> selectedCollectionsCodes, 
+									 boolean fetchSubGroups, 
+									 boolean ignoreRegexForSubGroups,
+									 boolean syncUsersOnlyIfInAcceptedGroups) {
 		this.nonAzureADUserSynchConfig.user = user;
 		this.nonAzureADUserSynchConfig.password = password;
 		this.userFilter = userFilter;
@@ -53,22 +65,32 @@ public class LDAPUserSyncConfiguration {
 		this.selectedCollectionsCodes = selectedCollectionsCodes;
 		this.nonAzureADUserSynchConfig.userFilterGroupsList = userFilterGroupsList;
 		this.membershipAutomaticDerivationActivated = membershipAutomaticDerivationActivated;
+		this.fetchSubGroups = fetchSubGroups;
+		this.ignoreRegexForSubGroups = ignoreRegexForSubGroups;
+		this.syncUsersOnlyIfInAcceptedGroups = syncUsersOnlyIfInAcceptedGroups;
 	}
 
 	public LDAPUserSyncConfiguration(AzureADUserSynchConfig azurUserSynchConfig,
 									 RegexFilter userFilter, RegexFilter groupFilter, Duration durationBetweenExecution,
 									 List<String> scheduleTime,
-									 List<String> selectedCollectionsCodes) {
+									 List<String> selectedCollectionsCodes, 
+									 boolean fetchSubGroups, 
+									 boolean ignoreRegexForSubGroups,
+									 boolean syncUsersOnlyIfInAcceptedGroups) {
 		this.azurUserSynchConfig.applicationKey = azurUserSynchConfig.applicationKey;
 		this.azurUserSynchConfig.setClientId(azurUserSynchConfig.getClientId());
 		this.azurUserSynchConfig.setGroupsFilter(azurUserSynchConfig.getGroupsFilter());
 		this.azurUserSynchConfig.setUsersFilter(azurUserSynchConfig.getUsersFilter());
 		this.azurUserSynchConfig.setUserGroups(azurUserSynchConfig.getUserGroups());
+		this.azurUserSynchConfig.setUserNameType(azurUserSynchConfig.getUserNameType());
 		this.userFilter = userFilter;
 		this.groupFilter = groupFilter;
 		this.durationBetweenExecution = durationBetweenExecution;
 		this.scheduleTime = scheduleTime;
 		this.selectedCollectionsCodes = selectedCollectionsCodes;
+		this.fetchSubGroups = fetchSubGroups;
+		this.ignoreRegexForSubGroups = ignoreRegexForSubGroups;
+		this.syncUsersOnlyIfInAcceptedGroups = syncUsersOnlyIfInAcceptedGroups;
 	}
 
 	public String getUser() {
@@ -190,8 +212,36 @@ public class LDAPUserSyncConfiguration {
 		return this.azurUserSynchConfig.getUserGroups();
 	}
 
+	public String getUsernameType() {
+		return this.azurUserSynchConfig.getUserNameType();
+	}
+
 	public List<String> getUserFilterGroupsList() {
 		return nonAzureADUserSynchConfig.userFilterGroupsList;
+	}
+
+	public boolean isFetchSubGroups() {
+		return fetchSubGroups;
+	}
+
+	public void setFetchSubGroupsEnabled(boolean fetchSubGroups) {
+		this.fetchSubGroups = fetchSubGroups;
+	}
+
+	public boolean isIgnoreRegexForSubGroups() {
+		return ignoreRegexForSubGroups;
+	}
+
+	public void setIgnoreRegexForSubGroups(boolean ignoreRegexForSubGroups) {
+		this.ignoreRegexForSubGroups = ignoreRegexForSubGroups;
+	}
+
+	public boolean isSyncUsersOnlyIfInAcceptedGroups() {
+		return syncUsersOnlyIfInAcceptedGroups;
+	}
+
+	public void setSyncUsersOnlyIfInAcceptedGroups(boolean syncUsersOnlyIfInAcceptedGroups) {
+		this.syncUsersOnlyIfInAcceptedGroups = syncUsersOnlyIfInAcceptedGroups;
 	}
 
 	public String isMinimumConfiguredMessage() {

@@ -21,8 +21,10 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2007ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportDataProvider;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
@@ -31,6 +33,7 @@ import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +43,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -79,6 +83,8 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 	private LocalDateTime now = new LocalDateTime().minusHours(3);
 
+	TestsSchemasSetup schemas = new TestsSchemasSetup();
+
 	@Before
 	public void setUp()
 			throws Exception {
@@ -87,6 +93,7 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 		);
 
+
 		givenTimeIs(now);
 
 		importServices = new RecordsImportServices(getModelLayerFactory());
@@ -94,6 +101,27 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		admin = getModelLayerFactory().newUserServices().getUserInCollection("admin", zeCollection);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+
+	}
+
+	@Test
+	public void whenImportingSchemaWithIntegerMetadataThenImportedCorrectly()
+			throws Exception {
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAnIntegerMetadata()
+				.withANumberMetadata());
+
+		File excelFile = getTestResourceFile("schemaWithInteger.xls");
+		importServices.bulkImport(Excel2003ImportDataProvider.fromFile(excelFile), progressionListener, admin);
+
+		Record record = recordWithLegacyId("1");
+		assertThat(record.<Integer>get(schemas.getSchema("zeSchemaType_default").getMetadata("integerMetadata"))).isEqualTo(7);
+		assertThat(record.<Double>get(schemas.getSchema("zeSchemaType_default").getMetadata("numberMetadata"))).isEqualTo(7.77);
+
+		record = recordWithLegacyId("2");
+		assertThat(record.<Integer>get(schemas.getSchema("zeSchemaType_default").getMetadata("integerMetadata"))).isEqualTo(1);
+		assertThat(record.<Double>get(schemas.getSchema("zeSchemaType_default").getMetadata("numberMetadata"))).isEqualTo(2.34);
 
 	}
 
@@ -225,6 +253,38 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenImportingDdvDocumentTypesWithLinkedSchemaThenRightValueAssigned() throws ValidationException {
+		File xlsFile = getTestResourceFile("ddvDocumentType.xls");
+		File xlsxFile = getTestResourceFile("ddvDocumentType.xls");
+
+		importServices.bulkImport(Excel2003ImportDataProvider.fromFile(xlsFile), progressionListener, admin);
+
+		DocumentType documentType1 = rm.getDocumentTypeWithCode("CLSFD");
+		DocumentType documentType2 = rm.getDocumentTypeWithCode("ET");
+		DocumentType documentType3 = rm.getDocumentTypeWithCode("Pixar");
+		assertThat(documentType1.getLinkedSchema()).isEqualTo(rm.documentSchemaType().getCustomSchema("report").getCode());
+		assertThat(documentType2.getLinkedSchema()).isNull();
+		assertThat(documentType3.getLinkedSchema()).isEqualTo(rm.documentSchemaType().getCustomSchema("email").getCode());
+
+
+		importServices.bulkImport(Excel2003ImportDataProvider.fromFile(xlsFile), progressionListener, admin);
+		documentType1 = rm.getDocumentTypeWithCode("CLSFD");
+		documentType2 = rm.getDocumentTypeWithCode("ET");
+		documentType3 = rm.getDocumentTypeWithCode("Pixar");
+		assertThat(documentType1.getLinkedSchema()).isEqualTo(rm.documentSchemaType().getCustomSchema("report").getCode());
+		assertThat(documentType2.getLinkedSchema()).isNull();
+		assertThat(documentType3.getLinkedSchema()).isEqualTo(rm.documentSchemaType().getCustomSchema("email").getCode());
+
+	}
+
+	@Test(expected = ValidationException.class)
+	public void whenImportingDdvDocumentTypesWithInvalidLinkedSchemaThenThrowsException() throws ValidationException {
+		File xlsFile = getTestResourceFile("invalidDdvDocumentType.xls");
+
+		importServices.bulkImport(Excel2003ImportDataProvider.fromFile(xlsFile), progressionListener, admin);
+	}
+
+	@Test
 	public void whenImportingActiveFoldersWithManualDepositOrDestructionDateBeforeExpectedTransferDateThenInactiveDatesNotSetted()
 			throws Exception {
 
@@ -305,7 +365,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
 	}
 
-
 	@Test
 	public void whenImportingAnExcel2007FileThenImportedCorrectly()
 			throws Exception {
@@ -356,6 +415,43 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(document3.getContent().getCurrentVersion().getHash()).isEqualTo(hash6);
 		assertThat(document3.getContent().getCurrentVersion().getFilename()).isEqualTo("fichier6.txt");
 
+	}
+
+	@Test
+	public void givenFilenameSynchronizationEnabledWhenUpdatingDocumentFromExcelFileThenFilenameIsSameAsDocument()
+			throws Exception {
+		File documentsUpdateExcelFile = getTestResourceFile("documentsWithFilenameSync.xlsx");
+		Document document = createAndGetTestDocumentWithContent(documentsUpdateExcelFile, "Grenouille.odt");
+
+		String documentOldFilename = document.getContent().getCurrentVersion().getFilename();
+		String extension = documentOldFilename.split("\\.")[1];
+		importServices.bulkImport(Excel2007ImportDataProvider.fromFile(documentsUpdateExcelFile), progressionListener, admin);
+
+		Document updatedDocument = rm.getDocument(document.getId());
+		String documentNewFilename = updatedDocument.getContent().getCurrentVersion().getFilename();
+
+		assertThat(updatedDocument.getTitle().equals("crapaud"));
+		assertThat(!documentNewFilename.equals(documentOldFilename));
+		assertThat(documentNewFilename.equals(updatedDocument.getTitle() + "." + extension));
+	}
+
+	@Test
+	public void givenFilenameSynchronizationDisabledWhenUpdatingDocumentFromExcelFileThenFilenameIsIndependentFromTitle()
+			throws Exception {
+		File documentsUpdateExcelFile = getTestResourceFile("documentsWithoutFilenameSync.xlsx");
+		Document document = createAndGetTestDocumentWithContent(documentsUpdateExcelFile, "Grenouille.odt");
+
+		String documentOldFilename = document.getContent().getCurrentVersion().getFilename();
+		String extension = documentOldFilename.split("\\.")[1];
+
+		importServices.bulkImport(Excel2007ImportDataProvider.fromFile(documentsUpdateExcelFile), progressionListener, admin);
+
+		Document updatedDocument = records.getDocumentWithContent_A49();
+		String documentNewFilename = updatedDocument.getContent().getCurrentVersion().getFilename();
+
+		assertThat(updatedDocument.getTitle().equals("crapaud"));
+		assertThat(documentNewFilename.equals(documentOldFilename));
+		assertThat(!documentNewFilename.equals(updatedDocument.getTitle() + "." + extension));
 	}
 
 	@Test
@@ -419,6 +515,24 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(contentManager.getParsedContent(uploadedFile1Hash).getParsedContent().equals("I am another value"));
 	}
 
+	private Document createAndGetTestDocumentWithContent(File file, String fileName)
+			throws FileNotFoundException, RecordServicesException {
+		ContentManager contentManager = getModelLayerFactory().getContentManager();
+		Content content = contentManager.createMajor(users.adminIn(zeCollection), fileName, contentManager.upload(file));
+
+		Folder folder = rm.newFolder()
+				.setTitle("Amphibiens")
+				.setAdministrativeUnitEntered(records.unitId_10)
+				.setCategoryEntered(records.categoryId_X)
+				.setRetentionRuleEntered(records.ruleId_1)
+				.setOpenDate(TimeProvider.getLocalDate());
+		Document document = rm.newDocumentWithId("docA49")
+				.setFolder(folder)
+				.setContent(content);
+
+		getModelLayerFactory().newRecordServices().execute(new Transaction(folder, document));
+		return document;
+	}
 
 	private void importAndValidate() {
 		Category category1 = rm.wrapCategory(expectedRecordWithLegacyId("22200"));

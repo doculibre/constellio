@@ -1,32 +1,39 @@
 package com.constellio.app.modules.robots.migrations;
 
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.security.roles.RolesManager;
+import java.util.ArrayList;
+
+import static java.util.Arrays.asList;
+
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizationsStructureFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
 import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
-import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator2;
 import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
 import com.constellio.model.services.schemas.calculators.DefaultTokensOfHierarchyCalculator;
+import com.constellio.model.services.schemas.calculators.IntegerAttachedPrincipalConceptsAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.IntegerDetachedPrincipalConceptsAncestorsCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
 import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
+import com.constellio.model.services.schemas.calculators.PrincipalAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.PrincipalConceptsIntIdsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
-import com.constellio.model.services.schemas.calculators.TokensCalculator4;
+import com.constellio.model.services.schemas.calculators.SecondaryConceptsIntIdsCalculator;
+import com.constellio.model.services.schemas.calculators.TokensCalculator5;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
-import com.constellio.model.services.security.roles.RolesManager;
-
-import java.util.ArrayList;
-
-import static java.util.Arrays.asList;
+import java.lang.String;
 
 public final class GeneratedRobotsMigrationCombo {
   String collection;
@@ -52,16 +59,24 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataSchemaBuilder authorizationDetailsSchema = authorizationDetailsSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder capsuleSchemaType = typesBuilder.getSchemaType("capsule");
     MetadataSchemaBuilder capsuleSchema = capsuleSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder conversationSchemaType = typesBuilder.getSchemaType("conversation");
+    MetadataSchemaBuilder conversationSchema = conversationSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder ddvCapsuleLanguageSchemaType = typesBuilder.getSchemaType("ddvCapsuleLanguage");
     MetadataSchemaBuilder ddvCapsuleLanguageSchema = ddvCapsuleLanguageSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder ddvSourceSchemaType = typesBuilder.getSchemaType("ddvSource");
+    MetadataSchemaBuilder ddvSourceSchema = ddvSourceSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder emailToSendSchemaType = typesBuilder.getSchemaType("emailToSend");
     MetadataSchemaBuilder emailToSendSchema = emailToSendSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder eventSchemaType = typesBuilder.getSchemaType("event");
     MetadataSchemaBuilder eventSchema = eventSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder externalAccessUrlSchemaType = typesBuilder.getSchemaType("externalAccessUrl");
+    MetadataSchemaBuilder externalAccessUrlSchema = externalAccessUrlSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder facetSchemaType = typesBuilder.getSchemaType("facet");
     MetadataSchemaBuilder facet_fieldSchema = facetSchemaType.getCustomSchema("field");
     MetadataSchemaBuilder facet_querySchema = facetSchemaType.getCustomSchema("query");
     MetadataSchemaBuilder facetSchema = facetSchemaType.getDefaultSchema();
+    MetadataSchemaTypeBuilder messageSchemaType = typesBuilder.getSchemaType("message");
+    MetadataSchemaBuilder messageSchema = messageSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder printableSchemaType = typesBuilder.getSchemaType("printable");
     MetadataSchemaBuilder printableSchema = printableSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder reportSchemaType = typesBuilder.getSchemaType("report");
@@ -86,11 +101,11 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataSchemaBuilder userDocumentSchema = userDocumentSchemaType.getDefaultSchema();
     MetadataSchemaTypeBuilder userFolderSchemaType = typesBuilder.getSchemaType("userFolder");
     MetadataSchemaBuilder userFolderSchema = userFolderSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder actionParametersSchemaType = typesBuilder.createNewSchemaType("actionParameters",false);
+    MetadataSchemaTypeBuilder actionParametersSchemaType = typesBuilder.createNewSchemaTypeWithSecurity("actionParameters",false);
     MetadataSchemaBuilder actionParametersSchema = actionParametersSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder robotSchemaType = typesBuilder.createNewSchemaType("robot",false);
+    MetadataSchemaTypeBuilder robotSchemaType = typesBuilder.createNewSchemaTypeWithSecurity("robot",false);
     MetadataSchemaBuilder robotSchema = robotSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder robotLogSchemaType = typesBuilder.createNewSchemaType("robotLog",false);
+    MetadataSchemaTypeBuilder robotLogSchemaType = typesBuilder.createNewSchemaTypeWithSecurity("robotLog",false);
     MetadataSchemaBuilder robotLogSchema = robotLogSchemaType.getDefaultSchema();
     createCollectionSchemaTypeMetadatas(typesBuilder,collectionSchemaType, collectionSchema);
     createGroupSchemaTypeMetadatas(typesBuilder,groupSchemaType, groupSchema);
@@ -98,10 +113,14 @@ public final class GeneratedRobotsMigrationCombo {
     createActionParametersSchemaTypeMetadatas(typesBuilder,actionParametersSchemaType, actionParametersSchema);
     createAuthorizationDetailsSchemaTypeMetadatas(typesBuilder,authorizationDetailsSchemaType, authorizationDetailsSchema);
     createCapsuleSchemaTypeMetadatas(typesBuilder,capsuleSchemaType, capsuleSchema);
+    createConversationSchemaTypeMetadatas(typesBuilder,conversationSchemaType, conversationSchema);
     createDdvCapsuleLanguageSchemaTypeMetadatas(typesBuilder,ddvCapsuleLanguageSchemaType, ddvCapsuleLanguageSchema);
+    createDdvSourceSchemaTypeMetadatas(typesBuilder,ddvSourceSchemaType, ddvSourceSchema);
     createEmailToSendSchemaTypeMetadatas(typesBuilder,emailToSendSchemaType, emailToSendSchema);
     createEventSchemaTypeMetadatas(typesBuilder,eventSchemaType, eventSchema);
+    createExternalAccessUrlSchemaTypeMetadatas(typesBuilder,externalAccessUrlSchemaType, externalAccessUrlSchema);
     createFacetSchemaTypeMetadatas(typesBuilder,facetSchemaType, facet_fieldSchema, facet_querySchema, facetSchema);
+    createMessageSchemaTypeMetadatas(typesBuilder,messageSchemaType, messageSchema);
     createPrintableSchemaTypeMetadatas(typesBuilder,printableSchemaType, printableSchema);
     createReportSchemaTypeMetadatas(typesBuilder,reportSchemaType, reportSchema);
     createRobotSchemaTypeMetadatas(typesBuilder,robotSchemaType, robotSchema);
@@ -115,49 +134,52 @@ public final class GeneratedRobotsMigrationCombo {
     createUserFolderSchemaTypeMetadatas(typesBuilder,userFolderSchemaType, userFolderSchema);
     actionParametersSchema.get("allReferences").defineDataEntry().asCalculated(AllReferencesCalculator.class);
     actionParametersSchema.get("allRemovedAuths").defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
-    actionParametersSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    actionParametersSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+    actionParametersSchema.get("attachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerAttachedPrincipalConceptsAncestorsCalculator.class);
     actionParametersSchema.get("autocomplete").defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+    actionParametersSchema.get("detachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerDetachedPrincipalConceptsAncestorsCalculator.class);
     actionParametersSchema.get("path").defineDataEntry().asCalculated(PathCalculator.class);
     actionParametersSchema.get("pathParts").defineDataEntry().asCalculated(PathPartsCalculator.class);
+    actionParametersSchema.get("principalAncestorsIntIds").defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
+    actionParametersSchema.get("principalConceptsIntIds").defineDataEntry().asCalculated(PrincipalConceptsIntIdsCalculator.class);
     actionParametersSchema.get("principalpath").defineDataEntry().asCalculated(PrincipalPathCalculator.class);
-    actionParametersSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator4.class);
+    actionParametersSchema.get("secondaryConceptsIntIds").defineDataEntry().asCalculated(SecondaryConceptsIntIdsCalculator.class);
+    actionParametersSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator5.class);
     actionParametersSchema.get("tokensHierarchy").defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
     robotSchema.get("allReferences").defineDataEntry().asCalculated(AllReferencesCalculator.class);
     robotSchema.get("allRemovedAuths").defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
-    robotSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    robotSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+    robotSchema.get("attachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerAttachedPrincipalConceptsAncestorsCalculator.class);
     robotSchema.get("autocomplete").defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+    robotSchema.get("detachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerDetachedPrincipalConceptsAncestorsCalculator.class);
     robotSchema.get("path").defineDataEntry().asCalculated(PathCalculator.class);
     robotSchema.get("pathParts").defineDataEntry().asCalculated(PathPartsCalculator.class);
+    robotSchema.get("principalAncestorsIntIds").defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
+    robotSchema.get("principalConceptsIntIds").defineDataEntry().asCalculated(PrincipalConceptsIntIdsCalculator.class);
     robotSchema.get("principalpath").defineDataEntry().asCalculated(PrincipalPathCalculator.class);
-    robotSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator4.class);
+    robotSchema.get("secondaryConceptsIntIds").defineDataEntry().asCalculated(SecondaryConceptsIntIdsCalculator.class);
+    robotSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator5.class);
     robotSchema.get("tokensHierarchy").defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
     robotLogSchema.get("allReferences").defineDataEntry().asCalculated(AllReferencesCalculator.class);
     robotLogSchema.get("allRemovedAuths").defineDataEntry().asCalculated(AllRemovedAuthsCalculator.class);
-    robotLogSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
+    robotLogSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator2.class);
+    robotLogSchema.get("attachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerAttachedPrincipalConceptsAncestorsCalculator.class);
     robotLogSchema.get("autocomplete").defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
+    robotLogSchema.get("detachedPrincipalAncestorsIntIds").defineDataEntry().asCalculated(IntegerDetachedPrincipalConceptsAncestorsCalculator.class);
     robotLogSchema.get("path").defineDataEntry().asCalculated(PathCalculator.class);
     robotLogSchema.get("pathParts").defineDataEntry().asCalculated(PathPartsCalculator.class);
+    robotLogSchema.get("principalAncestorsIntIds").defineDataEntry().asCalculated(PrincipalAncestorsCalculator.class);
+    robotLogSchema.get("principalConceptsIntIds").defineDataEntry().asCalculated(PrincipalConceptsIntIdsCalculator.class);
     robotLogSchema.get("principalpath").defineDataEntry().asCalculated(PrincipalPathCalculator.class);
-    robotLogSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator4.class);
+    robotLogSchema.get("secondaryConceptsIntIds").defineDataEntry().asCalculated(SecondaryConceptsIntIdsCalculator.class);
+    robotLogSchema.get("tokens").defineDataEntry().asCalculated(TokensCalculator5.class);
     robotLogSchema.get("tokensHierarchy").defineDataEntry().asCalculated(DefaultTokensOfHierarchyCalculator.class);
   }
 
   private void createCapsuleSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder capsuleSchemaType, MetadataSchemaBuilder capsuleSchema) {
   }
 
-  private void createCollectionSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder collectionSchemaType, MetadataSchemaBuilder collectionSchema) {
-  }
-
-  private void createPrintableSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder printableSchemaType, MetadataSchemaBuilder printableSchema) {
-  }
-
-  private void createThesaurusConfigSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder thesaurusConfigSchemaType, MetadataSchemaBuilder thesaurusConfigSchema) {
-  }
-
   private void createSavedSearchSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder savedSearchSchemaType, MetadataSchemaBuilder savedSearchSchema) {
-  }
-
-  private void createAuthorizationDetailsSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder authorizationDetailsSchemaType, MetadataSchemaBuilder authorizationDetailsSchema) {
   }
 
   private void createRobotSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder robotSchemaType, MetadataSchemaBuilder robotSchema) {
@@ -185,6 +207,12 @@ public final class GeneratedRobotsMigrationCombo {
     robot_attachedAncestors.setUndeletable(true);
     robot_attachedAncestors.setEssential(true);
     robot_attachedAncestors.setMultiLingual(false);
+    MetadataBuilder robot_attachedPrincipalAncestorsIntIds = robotSchema.create("attachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    robot_attachedPrincipalAncestorsIntIds.setMultivalue(true);
+    robot_attachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    robot_attachedPrincipalAncestorsIntIds.setUndeletable(true);
+    robot_attachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    robot_attachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder robot_autoExecute = robotSchema.create("autoExecute").setType(MetadataValueType.BOOLEAN);
     robot_autoExecute.setDefaultRequirement(true);
     robot_autoExecute.setUndeletable(true);
@@ -226,6 +254,12 @@ public final class GeneratedRobotsMigrationCombo {
     robot_denyTokens.setMultiLingual(false);
     robot_denyTokens.defineValidators().add(ManualTokenValidator.class);
     MetadataBuilder robot_description = robotSchema.create("description").setType(MetadataValueType.TEXT);
+    MetadataBuilder robot_detachedPrincipalAncestorsIntIds = robotSchema.create("detachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    robot_detachedPrincipalAncestorsIntIds.setMultivalue(true);
+    robot_detachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    robot_detachedPrincipalAncestorsIntIds.setUndeletable(true);
+    robot_detachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    robot_detachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder robot_detachedauthorizations = robotSchema.create("detachedauthorizations").setType(MetadataValueType.BOOLEAN);
     robot_detachedauthorizations.setSystemReserved(true);
     robot_detachedauthorizations.setUndeletable(true);
@@ -301,6 +335,12 @@ public final class GeneratedRobotsMigrationCombo {
     robot_modifiedOn.setUndeletable(true);
     robot_modifiedOn.setMultiLingual(false);
     robot_modifiedOn.setSortable(true);
+    MetadataBuilder robot_nestedAuthorizations = robotSchema.create("nestedAuthorizations").setType(MetadataValueType.STRUCTURE);
+    robot_nestedAuthorizations.setSystemReserved(true);
+    robot_nestedAuthorizations.setUndeletable(true);
+    robot_nestedAuthorizations.setMultiLingual(false);
+    robot_nestedAuthorizations.setEssentialInSummary(true);
+    robot_nestedAuthorizations.defineStructureFactory(NestedRecordAuthorizationsStructureFactory.class);
     MetadataBuilder robot_parent = robotSchema.create("parent").setType(MetadataValueType.REFERENCE);
     robot_parent.setCacheIndex(true);
     robot_parent.setUndeletable(true);
@@ -316,6 +356,18 @@ public final class GeneratedRobotsMigrationCombo {
     robot_pathParts.setSystemReserved(true);
     robot_pathParts.setUndeletable(true);
     robot_pathParts.setMultiLingual(false);
+    MetadataBuilder robot_principalAncestorsIntIds = robotSchema.create("principalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    robot_principalAncestorsIntIds.setMultivalue(true);
+    robot_principalAncestorsIntIds.setSystemReserved(true);
+    robot_principalAncestorsIntIds.setUndeletable(true);
+    robot_principalAncestorsIntIds.setMultiLingual(false);
+    robot_principalAncestorsIntIds.setEssentialInSummary(true);
+    MetadataBuilder robot_principalConceptsIntIds = robotSchema.create("principalConceptsIntIds").setType(MetadataValueType.INTEGER);
+    robot_principalConceptsIntIds.setMultivalue(true);
+    robot_principalConceptsIntIds.setSystemReserved(true);
+    robot_principalConceptsIntIds.setUndeletable(true);
+    robot_principalConceptsIntIds.setMultiLingual(false);
+    robot_principalConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder robot_principalpath = robotSchema.create("principalpath").setType(MetadataValueType.STRING);
     robot_principalpath.setSystemReserved(true);
     robot_principalpath.setUndeletable(true);
@@ -340,6 +392,12 @@ public final class GeneratedRobotsMigrationCombo {
     robot_searchCriteria.setUndeletable(true);
     robot_searchCriteria.setEssential(true);
     robot_searchCriteria.defineStructureFactory(CriterionFactory.class);
+    MetadataBuilder robot_secondaryConceptsIntIds = robotSchema.create("secondaryConceptsIntIds").setType(MetadataValueType.INTEGER);
+    robot_secondaryConceptsIntIds.setMultivalue(true);
+    robot_secondaryConceptsIntIds.setSystemReserved(true);
+    robot_secondaryConceptsIntIds.setUndeletable(true);
+    robot_secondaryConceptsIntIds.setMultiLingual(false);
+    robot_secondaryConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder robot_shareDenyTokens = robotSchema.create("shareDenyTokens").setType(MetadataValueType.STRING);
     robot_shareDenyTokens.setMultivalue(true);
     robot_shareDenyTokens.setSystemReserved(true);
@@ -392,6 +450,12 @@ public final class GeneratedRobotsMigrationCombo {
     actionParameters_attachedAncestors.setUndeletable(true);
     actionParameters_attachedAncestors.setEssential(true);
     actionParameters_attachedAncestors.setMultiLingual(false);
+    MetadataBuilder actionParameters_attachedPrincipalAncestorsIntIds = actionParametersSchema.create("attachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    actionParameters_attachedPrincipalAncestorsIntIds.setMultivalue(true);
+    actionParameters_attachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    actionParameters_attachedPrincipalAncestorsIntIds.setUndeletable(true);
+    actionParameters_attachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    actionParameters_attachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder actionParameters_autocomplete = actionParametersSchema.create("autocomplete").setType(MetadataValueType.STRING);
     actionParameters_autocomplete.setMultivalue(true);
     actionParameters_autocomplete.setSystemReserved(true);
@@ -423,6 +487,12 @@ public final class GeneratedRobotsMigrationCombo {
     actionParameters_denyTokens.setUndeletable(true);
     actionParameters_denyTokens.setMultiLingual(false);
     actionParameters_denyTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder actionParameters_detachedPrincipalAncestorsIntIds = actionParametersSchema.create("detachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    actionParameters_detachedPrincipalAncestorsIntIds.setMultivalue(true);
+    actionParameters_detachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    actionParameters_detachedPrincipalAncestorsIntIds.setUndeletable(true);
+    actionParameters_detachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    actionParameters_detachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder actionParameters_detachedauthorizations = actionParametersSchema.create("detachedauthorizations").setType(MetadataValueType.BOOLEAN);
     actionParameters_detachedauthorizations.setSystemReserved(true);
     actionParameters_detachedauthorizations.setUndeletable(true);
@@ -493,6 +563,12 @@ public final class GeneratedRobotsMigrationCombo {
     actionParameters_modifiedOn.setUndeletable(true);
     actionParameters_modifiedOn.setMultiLingual(false);
     actionParameters_modifiedOn.setSortable(true);
+    MetadataBuilder actionParameters_nestedAuthorizations = actionParametersSchema.create("nestedAuthorizations").setType(MetadataValueType.STRUCTURE);
+    actionParameters_nestedAuthorizations.setSystemReserved(true);
+    actionParameters_nestedAuthorizations.setUndeletable(true);
+    actionParameters_nestedAuthorizations.setMultiLingual(false);
+    actionParameters_nestedAuthorizations.setEssentialInSummary(true);
+    actionParameters_nestedAuthorizations.defineStructureFactory(NestedRecordAuthorizationsStructureFactory.class);
     MetadataBuilder actionParameters_path = actionParametersSchema.create("path").setType(MetadataValueType.STRING);
     actionParameters_path.setMultivalue(true);
     actionParameters_path.setSystemReserved(true);
@@ -503,6 +579,18 @@ public final class GeneratedRobotsMigrationCombo {
     actionParameters_pathParts.setSystemReserved(true);
     actionParameters_pathParts.setUndeletable(true);
     actionParameters_pathParts.setMultiLingual(false);
+    MetadataBuilder actionParameters_principalAncestorsIntIds = actionParametersSchema.create("principalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    actionParameters_principalAncestorsIntIds.setMultivalue(true);
+    actionParameters_principalAncestorsIntIds.setSystemReserved(true);
+    actionParameters_principalAncestorsIntIds.setUndeletable(true);
+    actionParameters_principalAncestorsIntIds.setMultiLingual(false);
+    actionParameters_principalAncestorsIntIds.setEssentialInSummary(true);
+    MetadataBuilder actionParameters_principalConceptsIntIds = actionParametersSchema.create("principalConceptsIntIds").setType(MetadataValueType.INTEGER);
+    actionParameters_principalConceptsIntIds.setMultivalue(true);
+    actionParameters_principalConceptsIntIds.setSystemReserved(true);
+    actionParameters_principalConceptsIntIds.setUndeletable(true);
+    actionParameters_principalConceptsIntIds.setMultiLingual(false);
+    actionParameters_principalConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder actionParameters_principalpath = actionParametersSchema.create("principalpath").setType(MetadataValueType.STRING);
     actionParameters_principalpath.setSystemReserved(true);
     actionParameters_principalpath.setUndeletable(true);
@@ -517,6 +605,12 @@ public final class GeneratedRobotsMigrationCombo {
     actionParameters_schema.setSystemReserved(true);
     actionParameters_schema.setUndeletable(true);
     actionParameters_schema.setMultiLingual(false);
+    MetadataBuilder actionParameters_secondaryConceptsIntIds = actionParametersSchema.create("secondaryConceptsIntIds").setType(MetadataValueType.INTEGER);
+    actionParameters_secondaryConceptsIntIds.setMultivalue(true);
+    actionParameters_secondaryConceptsIntIds.setSystemReserved(true);
+    actionParameters_secondaryConceptsIntIds.setUndeletable(true);
+    actionParameters_secondaryConceptsIntIds.setMultiLingual(false);
+    actionParameters_secondaryConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder actionParameters_shareDenyTokens = actionParametersSchema.create("shareDenyTokens").setType(MetadataValueType.STRING);
     actionParameters_shareDenyTokens.setMultivalue(true);
     actionParameters_shareDenyTokens.setSystemReserved(true);
@@ -554,58 +648,7 @@ public final class GeneratedRobotsMigrationCombo {
   private void createUserDocumentSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder userDocumentSchemaType, MetadataSchemaBuilder userDocumentSchema) {
   }
 
-  private void createTaskSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder taskSchemaType, MetadataSchemaBuilder task_approvalSchema, MetadataSchemaBuilder taskSchema) {
-    MetadataBuilder task_approval_allReferences = task_approvalSchema.get("allReferences");
-    MetadataBuilder task_approval_allRemovedAuths = task_approvalSchema.get("allRemovedAuths");
-    MetadataBuilder task_approval_assignCandidates = task_approvalSchema.get("assignCandidates");
-    MetadataBuilder task_approval_assignedOn = task_approvalSchema.get("assignedOn");
-    MetadataBuilder task_approval_assignedTo = task_approvalSchema.get("assignedTo");
-    MetadataBuilder task_approval_attachedAncestors = task_approvalSchema.get("attachedAncestors");
-    MetadataBuilder task_approval_autocomplete = task_approvalSchema.get("autocomplete");
-    MetadataBuilder task_approval_caption = task_approvalSchema.get("caption");
-    MetadataBuilder task_approval_createdBy = task_approvalSchema.get("createdBy");
-    MetadataBuilder task_approval_createdOn = task_approvalSchema.get("createdOn");
-    MetadataBuilder task_approval_deleted = task_approvalSchema.get("deleted");
-    MetadataBuilder task_approval_denyTokens = task_approvalSchema.get("denyTokens");
-    MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
-    MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
-    MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
-    MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
-    MetadataBuilder task_approval_finishedBy = task_approvalSchema.get("finishedBy");
-    MetadataBuilder task_approval_finishedOn = task_approvalSchema.get("finishedOn");
-    MetadataBuilder task_approval_hidden = task_approvalSchema.get("hidden");
-    MetadataBuilder task_approval_id = task_approvalSchema.get("id");
-    MetadataBuilder task_approval_legacyIdentifier = task_approvalSchema.get("legacyIdentifier");
-    MetadataBuilder task_approval_logicallyDeletedOn = task_approvalSchema.get("logicallyDeletedOn");
-    MetadataBuilder task_approval_manualTokens = task_approvalSchema.get("manualTokens");
-    MetadataBuilder task_approval_markedForParsing = task_approvalSchema.get("markedForParsing");
-    MetadataBuilder task_approval_markedForPreviewConversion = task_approvalSchema.get("markedForPreviewConversion");
-    MetadataBuilder task_approval_markedForReindexing = task_approvalSchema.get("markedForReindexing");
-    MetadataBuilder task_approval_migrationDataVersion = task_approvalSchema.get("migrationDataVersion");
-    MetadataBuilder task_approval_modifiedBy = task_approvalSchema.get("modifiedBy");
-    MetadataBuilder task_approval_modifiedOn = task_approvalSchema.get("modifiedOn");
-    MetadataBuilder task_approval_path = task_approvalSchema.get("path");
-    MetadataBuilder task_approval_pathParts = task_approvalSchema.get("pathParts");
-    MetadataBuilder task_approval_principalpath = task_approvalSchema.get("principalpath");
-    MetadataBuilder task_approval_removedauthorizations = task_approvalSchema.get("removedauthorizations");
-    MetadataBuilder task_approval_schema = task_approvalSchema.get("schema");
-    MetadataBuilder task_approval_shareDenyTokens = task_approvalSchema.get("shareDenyTokens");
-    MetadataBuilder task_approval_shareTokens = task_approvalSchema.get("shareTokens");
-    MetadataBuilder task_approval_title = task_approvalSchema.get("title");
-    MetadataBuilder task_approval_tokens = task_approvalSchema.get("tokens");
-    MetadataBuilder task_approval_tokensHierarchy = task_approvalSchema.get("tokensHierarchy");
-    MetadataBuilder task_approval_visibleInTrees = task_approvalSchema.get("visibleInTrees");
-    MetadataBuilder task_approval_workflowIdentifier = task_approvalSchema.get("workflowIdentifier");
-    MetadataBuilder task_approval_workflowRecordIdentifiers = task_approvalSchema.get("workflowRecordIdentifiers");
-  }
-
-  private void createUserFolderSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder userFolderSchemaType, MetadataSchemaBuilder userFolderSchema) {
-  }
-
   private void createDdvCapsuleLanguageSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvCapsuleLanguageSchemaType, MetadataSchemaBuilder ddvCapsuleLanguageSchema) {
-  }
-
-  private void createReportSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder reportSchemaType, MetadataSchemaBuilder reportSchema) {
   }
 
   private void createEmailToSendSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder emailToSendSchemaType, MetadataSchemaBuilder emailToSendSchema) {
@@ -632,6 +675,12 @@ public final class GeneratedRobotsMigrationCombo {
     robotLog_attachedAncestors.setUndeletable(true);
     robotLog_attachedAncestors.setEssential(true);
     robotLog_attachedAncestors.setMultiLingual(false);
+    MetadataBuilder robotLog_attachedPrincipalAncestorsIntIds = robotLogSchema.create("attachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    robotLog_attachedPrincipalAncestorsIntIds.setMultivalue(true);
+    robotLog_attachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    robotLog_attachedPrincipalAncestorsIntIds.setUndeletable(true);
+    robotLog_attachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    robotLog_attachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder robotLog_autocomplete = robotLogSchema.create("autocomplete").setType(MetadataValueType.STRING);
     robotLog_autocomplete.setMultivalue(true);
     robotLog_autocomplete.setSystemReserved(true);
@@ -665,6 +714,12 @@ public final class GeneratedRobotsMigrationCombo {
     robotLog_denyTokens.setUndeletable(true);
     robotLog_denyTokens.setMultiLingual(false);
     robotLog_denyTokens.defineValidators().add(ManualTokenValidator.class);
+    MetadataBuilder robotLog_detachedPrincipalAncestorsIntIds = robotLogSchema.create("detachedPrincipalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    robotLog_detachedPrincipalAncestorsIntIds.setMultivalue(true);
+    robotLog_detachedPrincipalAncestorsIntIds.setSystemReserved(true);
+    robotLog_detachedPrincipalAncestorsIntIds.setUndeletable(true);
+    robotLog_detachedPrincipalAncestorsIntIds.setMultiLingual(false);
+    robotLog_detachedPrincipalAncestorsIntIds.setEssentialInSummary(true);
     MetadataBuilder robotLog_detachedauthorizations = robotLogSchema.create("detachedauthorizations").setType(MetadataValueType.BOOLEAN);
     robotLog_detachedauthorizations.setSystemReserved(true);
     robotLog_detachedauthorizations.setUndeletable(true);
@@ -735,6 +790,12 @@ public final class GeneratedRobotsMigrationCombo {
     robotLog_modifiedOn.setUndeletable(true);
     robotLog_modifiedOn.setMultiLingual(false);
     robotLog_modifiedOn.setSortable(true);
+    MetadataBuilder robotLog_nestedAuthorizations = robotLogSchema.create("nestedAuthorizations").setType(MetadataValueType.STRUCTURE);
+    robotLog_nestedAuthorizations.setSystemReserved(true);
+    robotLog_nestedAuthorizations.setUndeletable(true);
+    robotLog_nestedAuthorizations.setMultiLingual(false);
+    robotLog_nestedAuthorizations.setEssentialInSummary(true);
+    robotLog_nestedAuthorizations.defineStructureFactory(NestedRecordAuthorizationsStructureFactory.class);
     MetadataBuilder robotLog_path = robotLogSchema.create("path").setType(MetadataValueType.STRING);
     robotLog_path.setMultivalue(true);
     robotLog_path.setSystemReserved(true);
@@ -745,6 +806,18 @@ public final class GeneratedRobotsMigrationCombo {
     robotLog_pathParts.setSystemReserved(true);
     robotLog_pathParts.setUndeletable(true);
     robotLog_pathParts.setMultiLingual(false);
+    MetadataBuilder robotLog_principalAncestorsIntIds = robotLogSchema.create("principalAncestorsIntIds").setType(MetadataValueType.INTEGER);
+    robotLog_principalAncestorsIntIds.setMultivalue(true);
+    robotLog_principalAncestorsIntIds.setSystemReserved(true);
+    robotLog_principalAncestorsIntIds.setUndeletable(true);
+    robotLog_principalAncestorsIntIds.setMultiLingual(false);
+    robotLog_principalAncestorsIntIds.setEssentialInSummary(true);
+    MetadataBuilder robotLog_principalConceptsIntIds = robotLogSchema.create("principalConceptsIntIds").setType(MetadataValueType.INTEGER);
+    robotLog_principalConceptsIntIds.setMultivalue(true);
+    robotLog_principalConceptsIntIds.setSystemReserved(true);
+    robotLog_principalConceptsIntIds.setUndeletable(true);
+    robotLog_principalConceptsIntIds.setMultiLingual(false);
+    robotLog_principalConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder robotLog_principalpath = robotLogSchema.create("principalpath").setType(MetadataValueType.STRING);
     robotLog_principalpath.setSystemReserved(true);
     robotLog_principalpath.setUndeletable(true);
@@ -764,6 +837,12 @@ public final class GeneratedRobotsMigrationCombo {
     robotLog_schema.setSystemReserved(true);
     robotLog_schema.setUndeletable(true);
     robotLog_schema.setMultiLingual(false);
+    MetadataBuilder robotLog_secondaryConceptsIntIds = robotLogSchema.create("secondaryConceptsIntIds").setType(MetadataValueType.INTEGER);
+    robotLog_secondaryConceptsIntIds.setMultivalue(true);
+    robotLog_secondaryConceptsIntIds.setSystemReserved(true);
+    robotLog_secondaryConceptsIntIds.setUndeletable(true);
+    robotLog_secondaryConceptsIntIds.setMultiLingual(false);
+    robotLog_secondaryConceptsIntIds.setEssentialInSummary(true);
     MetadataBuilder robotLog_shareDenyTokens = robotLogSchema.create("shareDenyTokens").setType(MetadataValueType.STRING);
     robotLog_shareDenyTokens.setMultivalue(true);
     robotLog_shareDenyTokens.setSystemReserved(true);
@@ -797,6 +876,90 @@ public final class GeneratedRobotsMigrationCombo {
     robotLog_visibleInTrees.setMultiLingual(false);
   }
 
+  private void createConversationSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder conversationSchemaType, MetadataSchemaBuilder conversationSchema) {
+  }
+
+  private void createGroupSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder groupSchemaType, MetadataSchemaBuilder groupSchema) {
+  }
+
+  private void createExternalAccessUrlSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder externalAccessUrlSchemaType, MetadataSchemaBuilder externalAccessUrlSchema) {
+  }
+
+  private void createCollectionSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder collectionSchemaType, MetadataSchemaBuilder collectionSchema) {
+  }
+
+  private void createMessageSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder messageSchemaType, MetadataSchemaBuilder messageSchema) {
+  }
+
+  private void createPrintableSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder printableSchemaType, MetadataSchemaBuilder printableSchema) {
+  }
+
+  private void createThesaurusConfigSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder thesaurusConfigSchemaType, MetadataSchemaBuilder thesaurusConfigSchema) {
+  }
+
+  private void createAuthorizationDetailsSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder authorizationDetailsSchemaType, MetadataSchemaBuilder authorizationDetailsSchema) {
+  }
+
+  private void createTaskSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder taskSchemaType, MetadataSchemaBuilder task_approvalSchema, MetadataSchemaBuilder taskSchema) {
+    MetadataBuilder task_approval_allReferences = task_approvalSchema.get("allReferences");
+    MetadataBuilder task_approval_allRemovedAuths = task_approvalSchema.get("allRemovedAuths");
+    MetadataBuilder task_approval_assignCandidates = task_approvalSchema.get("assignCandidates");
+    MetadataBuilder task_approval_assignedOn = task_approvalSchema.get("assignedOn");
+    MetadataBuilder task_approval_assignedTo = task_approvalSchema.get("assignedTo");
+    MetadataBuilder task_approval_attachedAncestors = task_approvalSchema.get("attachedAncestors");
+    MetadataBuilder task_approval_attachedPrincipalAncestorsIntIds = task_approvalSchema.get("attachedPrincipalAncestorsIntIds");
+    MetadataBuilder task_approval_autocomplete = task_approvalSchema.get("autocomplete");
+    MetadataBuilder task_approval_caption = task_approvalSchema.get("caption");
+    MetadataBuilder task_approval_createdBy = task_approvalSchema.get("createdBy");
+    MetadataBuilder task_approval_createdOn = task_approvalSchema.get("createdOn");
+    MetadataBuilder task_approval_deleted = task_approvalSchema.get("deleted");
+    MetadataBuilder task_approval_denyTokens = task_approvalSchema.get("denyTokens");
+    MetadataBuilder task_approval_detachedPrincipalAncestorsIntIds = task_approvalSchema.get("detachedPrincipalAncestorsIntIds");
+    MetadataBuilder task_approval_detachedauthorizations = task_approvalSchema.get("detachedauthorizations");
+    MetadataBuilder task_approval_dueDate = task_approvalSchema.get("dueDate");
+    MetadataBuilder task_approval_errorOnPhysicalDeletion = task_approvalSchema.get("errorOnPhysicalDeletion");
+    MetadataBuilder task_approval_estimatedSize = task_approvalSchema.get("estimatedSize");
+    MetadataBuilder task_approval_finishedBy = task_approvalSchema.get("finishedBy");
+    MetadataBuilder task_approval_finishedOn = task_approvalSchema.get("finishedOn");
+    MetadataBuilder task_approval_hidden = task_approvalSchema.get("hidden");
+    MetadataBuilder task_approval_id = task_approvalSchema.get("id");
+    MetadataBuilder task_approval_legacyIdentifier = task_approvalSchema.get("legacyIdentifier");
+    MetadataBuilder task_approval_logicallyDeletedOn = task_approvalSchema.get("logicallyDeletedOn");
+    MetadataBuilder task_approval_manualTokens = task_approvalSchema.get("manualTokens");
+    MetadataBuilder task_approval_markedForParsing = task_approvalSchema.get("markedForParsing");
+    MetadataBuilder task_approval_markedForPreviewConversion = task_approvalSchema.get("markedForPreviewConversion");
+    MetadataBuilder task_approval_markedForReindexing = task_approvalSchema.get("markedForReindexing");
+    MetadataBuilder task_approval_migrationDataVersion = task_approvalSchema.get("migrationDataVersion");
+    MetadataBuilder task_approval_modifiedBy = task_approvalSchema.get("modifiedBy");
+    MetadataBuilder task_approval_modifiedOn = task_approvalSchema.get("modifiedOn");
+    MetadataBuilder task_approval_nestedAuthorizations = task_approvalSchema.get("nestedAuthorizations");
+    MetadataBuilder task_approval_path = task_approvalSchema.get("path");
+    MetadataBuilder task_approval_pathParts = task_approvalSchema.get("pathParts");
+    MetadataBuilder task_approval_principalAncestorsIntIds = task_approvalSchema.get("principalAncestorsIntIds");
+    MetadataBuilder task_approval_principalConceptsIntIds = task_approvalSchema.get("principalConceptsIntIds");
+    MetadataBuilder task_approval_principalpath = task_approvalSchema.get("principalpath");
+    MetadataBuilder task_approval_removedauthorizations = task_approvalSchema.get("removedauthorizations");
+    MetadataBuilder task_approval_schema = task_approvalSchema.get("schema");
+    MetadataBuilder task_approval_secondaryConceptsIntIds = task_approvalSchema.get("secondaryConceptsIntIds");
+    MetadataBuilder task_approval_shareDenyTokens = task_approvalSchema.get("shareDenyTokens");
+    MetadataBuilder task_approval_shareTokens = task_approvalSchema.get("shareTokens");
+    MetadataBuilder task_approval_title = task_approvalSchema.get("title");
+    MetadataBuilder task_approval_tokens = task_approvalSchema.get("tokens");
+    MetadataBuilder task_approval_tokensHierarchy = task_approvalSchema.get("tokensHierarchy");
+    MetadataBuilder task_approval_visibleInTrees = task_approvalSchema.get("visibleInTrees");
+    MetadataBuilder task_approval_workflowIdentifier = task_approvalSchema.get("workflowIdentifier");
+    MetadataBuilder task_approval_workflowRecordIdentifiers = task_approvalSchema.get("workflowRecordIdentifiers");
+  }
+
+  private void createDdvSourceSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder ddvSourceSchemaType, MetadataSchemaBuilder ddvSourceSchema) {
+  }
+
+  private void createUserFolderSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder userFolderSchemaType, MetadataSchemaBuilder userFolderSchema) {
+  }
+
+  private void createReportSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder reportSchemaType, MetadataSchemaBuilder reportSchema) {
+  }
+
   private void createSearchEventSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder searchEventSchemaType, MetadataSchemaBuilder searchEventSchema) {
   }
 
@@ -804,6 +967,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_allReferences = temporaryRecord_batchProcessReportSchema.get("allReferences");
     MetadataBuilder temporaryRecord_batchProcessReport_allRemovedAuths = temporaryRecord_batchProcessReportSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_batchProcessReport_attachedAncestors = temporaryRecord_batchProcessReportSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_batchProcessReport_attachedPrincipalAncestorsIntIds = temporaryRecord_batchProcessReportSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_autocomplete = temporaryRecord_batchProcessReportSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_batchProcessReport_caption = temporaryRecord_batchProcessReportSchema.get("caption");
     MetadataBuilder temporaryRecord_batchProcessReport_content = temporaryRecord_batchProcessReportSchema.get("content");
@@ -813,6 +977,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_deleted = temporaryRecord_batchProcessReportSchema.get("deleted");
     MetadataBuilder temporaryRecord_batchProcessReport_denyTokens = temporaryRecord_batchProcessReportSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_batchProcessReport_destructionDate = temporaryRecord_batchProcessReportSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_batchProcessReport_detachedPrincipalAncestorsIntIds = temporaryRecord_batchProcessReportSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_detachedauthorizations = temporaryRecord_batchProcessReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_errorOnPhysicalDeletion = temporaryRecord_batchProcessReportSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_batchProcessReport_estimatedSize = temporaryRecord_batchProcessReportSchema.get("estimatedSize");
@@ -827,11 +992,15 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_batchProcessReport_migrationDataVersion = temporaryRecord_batchProcessReportSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_batchProcessReport_modifiedBy = temporaryRecord_batchProcessReportSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_batchProcessReport_modifiedOn = temporaryRecord_batchProcessReportSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_batchProcessReport_nestedAuthorizations = temporaryRecord_batchProcessReportSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_path = temporaryRecord_batchProcessReportSchema.get("path");
     MetadataBuilder temporaryRecord_batchProcessReport_pathParts = temporaryRecord_batchProcessReportSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_batchProcessReport_principalAncestorsIntIds = temporaryRecord_batchProcessReportSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_batchProcessReport_principalConceptsIntIds = temporaryRecord_batchProcessReportSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_principalpath = temporaryRecord_batchProcessReportSchema.get("principalpath");
     MetadataBuilder temporaryRecord_batchProcessReport_removedauthorizations = temporaryRecord_batchProcessReportSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_batchProcessReport_schema = temporaryRecord_batchProcessReportSchema.get("schema");
+    MetadataBuilder temporaryRecord_batchProcessReport_secondaryConceptsIntIds = temporaryRecord_batchProcessReportSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_batchProcessReport_shareDenyTokens = temporaryRecord_batchProcessReportSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_batchProcessReport_shareTokens = temporaryRecord_batchProcessReportSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_batchProcessReport_title = temporaryRecord_batchProcessReportSchema.get("title");
@@ -841,6 +1010,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_allReferences = temporaryRecord_exportAuditSchema.get("allReferences");
     MetadataBuilder temporaryRecord_exportAudit_allRemovedAuths = temporaryRecord_exportAuditSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_exportAudit_attachedAncestors = temporaryRecord_exportAuditSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_exportAudit_attachedPrincipalAncestorsIntIds = temporaryRecord_exportAuditSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_autocomplete = temporaryRecord_exportAuditSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_exportAudit_caption = temporaryRecord_exportAuditSchema.get("caption");
     MetadataBuilder temporaryRecord_exportAudit_content = temporaryRecord_exportAuditSchema.get("content");
@@ -850,6 +1020,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_deleted = temporaryRecord_exportAuditSchema.get("deleted");
     MetadataBuilder temporaryRecord_exportAudit_denyTokens = temporaryRecord_exportAuditSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_exportAudit_destructionDate = temporaryRecord_exportAuditSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_exportAudit_detachedPrincipalAncestorsIntIds = temporaryRecord_exportAuditSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_detachedauthorizations = temporaryRecord_exportAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_errorOnPhysicalDeletion = temporaryRecord_exportAuditSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_exportAudit_estimatedSize = temporaryRecord_exportAuditSchema.get("estimatedSize");
@@ -864,11 +1035,15 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_exportAudit_migrationDataVersion = temporaryRecord_exportAuditSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_exportAudit_modifiedBy = temporaryRecord_exportAuditSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_exportAudit_modifiedOn = temporaryRecord_exportAuditSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_exportAudit_nestedAuthorizations = temporaryRecord_exportAuditSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_exportAudit_path = temporaryRecord_exportAuditSchema.get("path");
     MetadataBuilder temporaryRecord_exportAudit_pathParts = temporaryRecord_exportAuditSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_exportAudit_principalAncestorsIntIds = temporaryRecord_exportAuditSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_exportAudit_principalConceptsIntIds = temporaryRecord_exportAuditSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_principalpath = temporaryRecord_exportAuditSchema.get("principalpath");
     MetadataBuilder temporaryRecord_exportAudit_removedauthorizations = temporaryRecord_exportAuditSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_exportAudit_schema = temporaryRecord_exportAuditSchema.get("schema");
+    MetadataBuilder temporaryRecord_exportAudit_secondaryConceptsIntIds = temporaryRecord_exportAuditSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_exportAudit_shareDenyTokens = temporaryRecord_exportAuditSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_exportAudit_shareTokens = temporaryRecord_exportAuditSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_exportAudit_title = temporaryRecord_exportAuditSchema.get("title");
@@ -878,6 +1053,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_allReferences = temporaryRecord_importAuditSchema.get("allReferences");
     MetadataBuilder temporaryRecord_importAudit_allRemovedAuths = temporaryRecord_importAuditSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_importAudit_attachedAncestors = temporaryRecord_importAuditSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_importAudit_attachedPrincipalAncestorsIntIds = temporaryRecord_importAuditSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_importAudit_autocomplete = temporaryRecord_importAuditSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_importAudit_caption = temporaryRecord_importAuditSchema.get("caption");
     MetadataBuilder temporaryRecord_importAudit_content = temporaryRecord_importAuditSchema.get("content");
@@ -887,6 +1063,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_deleted = temporaryRecord_importAuditSchema.get("deleted");
     MetadataBuilder temporaryRecord_importAudit_denyTokens = temporaryRecord_importAuditSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_importAudit_destructionDate = temporaryRecord_importAuditSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_importAudit_detachedPrincipalAncestorsIntIds = temporaryRecord_importAuditSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_importAudit_detachedauthorizations = temporaryRecord_importAuditSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_errorOnPhysicalDeletion = temporaryRecord_importAuditSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_importAudit_estimatedSize = temporaryRecord_importAuditSchema.get("estimatedSize");
@@ -901,11 +1078,15 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_importAudit_migrationDataVersion = temporaryRecord_importAuditSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_importAudit_modifiedBy = temporaryRecord_importAuditSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_importAudit_modifiedOn = temporaryRecord_importAuditSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_importAudit_nestedAuthorizations = temporaryRecord_importAuditSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_importAudit_path = temporaryRecord_importAuditSchema.get("path");
     MetadataBuilder temporaryRecord_importAudit_pathParts = temporaryRecord_importAuditSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_importAudit_principalAncestorsIntIds = temporaryRecord_importAuditSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_importAudit_principalConceptsIntIds = temporaryRecord_importAuditSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_importAudit_principalpath = temporaryRecord_importAuditSchema.get("principalpath");
     MetadataBuilder temporaryRecord_importAudit_removedauthorizations = temporaryRecord_importAuditSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_importAudit_schema = temporaryRecord_importAuditSchema.get("schema");
+    MetadataBuilder temporaryRecord_importAudit_secondaryConceptsIntIds = temporaryRecord_importAuditSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_importAudit_shareDenyTokens = temporaryRecord_importAuditSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_importAudit_shareTokens = temporaryRecord_importAuditSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_importAudit_title = temporaryRecord_importAuditSchema.get("title");
@@ -915,6 +1096,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_allReferences = temporaryRecord_scriptReportSchema.get("allReferences");
     MetadataBuilder temporaryRecord_scriptReport_allRemovedAuths = temporaryRecord_scriptReportSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_scriptReport_attachedAncestors = temporaryRecord_scriptReportSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_scriptReport_attachedPrincipalAncestorsIntIds = temporaryRecord_scriptReportSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_autocomplete = temporaryRecord_scriptReportSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_scriptReport_caption = temporaryRecord_scriptReportSchema.get("caption");
     MetadataBuilder temporaryRecord_scriptReport_content = temporaryRecord_scriptReportSchema.get("content");
@@ -924,6 +1106,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_deleted = temporaryRecord_scriptReportSchema.get("deleted");
     MetadataBuilder temporaryRecord_scriptReport_denyTokens = temporaryRecord_scriptReportSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_scriptReport_destructionDate = temporaryRecord_scriptReportSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_scriptReport_detachedPrincipalAncestorsIntIds = temporaryRecord_scriptReportSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_detachedauthorizations = temporaryRecord_scriptReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_errorOnPhysicalDeletion = temporaryRecord_scriptReportSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_scriptReport_estimatedSize = temporaryRecord_scriptReportSchema.get("estimatedSize");
@@ -938,11 +1121,15 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_scriptReport_migrationDataVersion = temporaryRecord_scriptReportSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_scriptReport_modifiedBy = temporaryRecord_scriptReportSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_scriptReport_modifiedOn = temporaryRecord_scriptReportSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_scriptReport_nestedAuthorizations = temporaryRecord_scriptReportSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_scriptReport_path = temporaryRecord_scriptReportSchema.get("path");
     MetadataBuilder temporaryRecord_scriptReport_pathParts = temporaryRecord_scriptReportSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_scriptReport_principalAncestorsIntIds = temporaryRecord_scriptReportSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_scriptReport_principalConceptsIntIds = temporaryRecord_scriptReportSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_principalpath = temporaryRecord_scriptReportSchema.get("principalpath");
     MetadataBuilder temporaryRecord_scriptReport_removedauthorizations = temporaryRecord_scriptReportSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_scriptReport_schema = temporaryRecord_scriptReportSchema.get("schema");
+    MetadataBuilder temporaryRecord_scriptReport_secondaryConceptsIntIds = temporaryRecord_scriptReportSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_scriptReport_shareDenyTokens = temporaryRecord_scriptReportSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_scriptReport_shareTokens = temporaryRecord_scriptReportSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_scriptReport_title = temporaryRecord_scriptReportSchema.get("title");
@@ -952,6 +1139,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_allReferences = temporaryRecord_vaultScanReportSchema.get("allReferences");
     MetadataBuilder temporaryRecord_vaultScanReport_allRemovedAuths = temporaryRecord_vaultScanReportSchema.get("allRemovedAuths");
     MetadataBuilder temporaryRecord_vaultScanReport_attachedAncestors = temporaryRecord_vaultScanReportSchema.get("attachedAncestors");
+    MetadataBuilder temporaryRecord_vaultScanReport_attachedPrincipalAncestorsIntIds = temporaryRecord_vaultScanReportSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_autocomplete = temporaryRecord_vaultScanReportSchema.get("autocomplete");
     MetadataBuilder temporaryRecord_vaultScanReport_caption = temporaryRecord_vaultScanReportSchema.get("caption");
     MetadataBuilder temporaryRecord_vaultScanReport_content = temporaryRecord_vaultScanReportSchema.get("content");
@@ -961,6 +1149,7 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_deleted = temporaryRecord_vaultScanReportSchema.get("deleted");
     MetadataBuilder temporaryRecord_vaultScanReport_denyTokens = temporaryRecord_vaultScanReportSchema.get("denyTokens");
     MetadataBuilder temporaryRecord_vaultScanReport_destructionDate = temporaryRecord_vaultScanReportSchema.get("destructionDate");
+    MetadataBuilder temporaryRecord_vaultScanReport_detachedPrincipalAncestorsIntIds = temporaryRecord_vaultScanReportSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_detachedauthorizations = temporaryRecord_vaultScanReportSchema.get("detachedauthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_errorOnPhysicalDeletion = temporaryRecord_vaultScanReportSchema.get("errorOnPhysicalDeletion");
     MetadataBuilder temporaryRecord_vaultScanReport_estimatedSize = temporaryRecord_vaultScanReportSchema.get("estimatedSize");
@@ -975,11 +1164,15 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder temporaryRecord_vaultScanReport_migrationDataVersion = temporaryRecord_vaultScanReportSchema.get("migrationDataVersion");
     MetadataBuilder temporaryRecord_vaultScanReport_modifiedBy = temporaryRecord_vaultScanReportSchema.get("modifiedBy");
     MetadataBuilder temporaryRecord_vaultScanReport_modifiedOn = temporaryRecord_vaultScanReportSchema.get("modifiedOn");
+    MetadataBuilder temporaryRecord_vaultScanReport_nestedAuthorizations = temporaryRecord_vaultScanReportSchema.get("nestedAuthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_path = temporaryRecord_vaultScanReportSchema.get("path");
     MetadataBuilder temporaryRecord_vaultScanReport_pathParts = temporaryRecord_vaultScanReportSchema.get("pathParts");
+    MetadataBuilder temporaryRecord_vaultScanReport_principalAncestorsIntIds = temporaryRecord_vaultScanReportSchema.get("principalAncestorsIntIds");
+    MetadataBuilder temporaryRecord_vaultScanReport_principalConceptsIntIds = temporaryRecord_vaultScanReportSchema.get("principalConceptsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_principalpath = temporaryRecord_vaultScanReportSchema.get("principalpath");
     MetadataBuilder temporaryRecord_vaultScanReport_removedauthorizations = temporaryRecord_vaultScanReportSchema.get("removedauthorizations");
     MetadataBuilder temporaryRecord_vaultScanReport_schema = temporaryRecord_vaultScanReportSchema.get("schema");
+    MetadataBuilder temporaryRecord_vaultScanReport_secondaryConceptsIntIds = temporaryRecord_vaultScanReportSchema.get("secondaryConceptsIntIds");
     MetadataBuilder temporaryRecord_vaultScanReport_shareDenyTokens = temporaryRecord_vaultScanReportSchema.get("shareDenyTokens");
     MetadataBuilder temporaryRecord_vaultScanReport_shareTokens = temporaryRecord_vaultScanReportSchema.get("shareTokens");
     MetadataBuilder temporaryRecord_vaultScanReport_title = temporaryRecord_vaultScanReportSchema.get("title");
@@ -996,12 +1189,14 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder facet_field_allReferences = facet_fieldSchema.get("allReferences");
     MetadataBuilder facet_field_allRemovedAuths = facet_fieldSchema.get("allRemovedAuths");
     MetadataBuilder facet_field_attachedAncestors = facet_fieldSchema.get("attachedAncestors");
+    MetadataBuilder facet_field_attachedPrincipalAncestorsIntIds = facet_fieldSchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_field_autocomplete = facet_fieldSchema.get("autocomplete");
     MetadataBuilder facet_field_caption = facet_fieldSchema.get("caption");
     MetadataBuilder facet_field_createdBy = facet_fieldSchema.get("createdBy");
     MetadataBuilder facet_field_createdOn = facet_fieldSchema.get("createdOn");
     MetadataBuilder facet_field_deleted = facet_fieldSchema.get("deleted");
     MetadataBuilder facet_field_denyTokens = facet_fieldSchema.get("denyTokens");
+    MetadataBuilder facet_field_detachedPrincipalAncestorsIntIds = facet_fieldSchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_field_detachedauthorizations = facet_fieldSchema.get("detachedauthorizations");
     MetadataBuilder facet_field_elementPerPage = facet_fieldSchema.get("elementPerPage");
     MetadataBuilder facet_field_errorOnPhysicalDeletion = facet_fieldSchema.get("errorOnPhysicalDeletion");
@@ -1019,15 +1214,19 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder facet_field_migrationDataVersion = facet_fieldSchema.get("migrationDataVersion");
     MetadataBuilder facet_field_modifiedBy = facet_fieldSchema.get("modifiedBy");
     MetadataBuilder facet_field_modifiedOn = facet_fieldSchema.get("modifiedOn");
+    MetadataBuilder facet_field_nestedAuthorizations = facet_fieldSchema.get("nestedAuthorizations");
     MetadataBuilder facet_field_openByDefault = facet_fieldSchema.get("openByDefault");
     MetadataBuilder facet_field_order = facet_fieldSchema.get("order");
     MetadataBuilder facet_field_orderResult = facet_fieldSchema.get("orderResult");
     MetadataBuilder facet_field_pages = facet_fieldSchema.get("pages");
     MetadataBuilder facet_field_path = facet_fieldSchema.get("path");
     MetadataBuilder facet_field_pathParts = facet_fieldSchema.get("pathParts");
+    MetadataBuilder facet_field_principalAncestorsIntIds = facet_fieldSchema.get("principalAncestorsIntIds");
+    MetadataBuilder facet_field_principalConceptsIntIds = facet_fieldSchema.get("principalConceptsIntIds");
     MetadataBuilder facet_field_principalpath = facet_fieldSchema.get("principalpath");
     MetadataBuilder facet_field_removedauthorizations = facet_fieldSchema.get("removedauthorizations");
     MetadataBuilder facet_field_schema = facet_fieldSchema.get("schema");
+    MetadataBuilder facet_field_secondaryConceptsIntIds = facet_fieldSchema.get("secondaryConceptsIntIds");
     MetadataBuilder facet_field_shareDenyTokens = facet_fieldSchema.get("shareDenyTokens");
     MetadataBuilder facet_field_shareTokens = facet_fieldSchema.get("shareTokens");
     MetadataBuilder facet_field_title = facet_fieldSchema.get("title");
@@ -1039,12 +1238,14 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder facet_query_allReferences = facet_querySchema.get("allReferences");
     MetadataBuilder facet_query_allRemovedAuths = facet_querySchema.get("allRemovedAuths");
     MetadataBuilder facet_query_attachedAncestors = facet_querySchema.get("attachedAncestors");
+    MetadataBuilder facet_query_attachedPrincipalAncestorsIntIds = facet_querySchema.get("attachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_query_autocomplete = facet_querySchema.get("autocomplete");
     MetadataBuilder facet_query_caption = facet_querySchema.get("caption");
     MetadataBuilder facet_query_createdBy = facet_querySchema.get("createdBy");
     MetadataBuilder facet_query_createdOn = facet_querySchema.get("createdOn");
     MetadataBuilder facet_query_deleted = facet_querySchema.get("deleted");
     MetadataBuilder facet_query_denyTokens = facet_querySchema.get("denyTokens");
+    MetadataBuilder facet_query_detachedPrincipalAncestorsIntIds = facet_querySchema.get("detachedPrincipalAncestorsIntIds");
     MetadataBuilder facet_query_detachedauthorizations = facet_querySchema.get("detachedauthorizations");
     MetadataBuilder facet_query_elementPerPage = facet_querySchema.get("elementPerPage");
     MetadataBuilder facet_query_errorOnPhysicalDeletion = facet_querySchema.get("errorOnPhysicalDeletion");
@@ -1062,15 +1263,19 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder facet_query_migrationDataVersion = facet_querySchema.get("migrationDataVersion");
     MetadataBuilder facet_query_modifiedBy = facet_querySchema.get("modifiedBy");
     MetadataBuilder facet_query_modifiedOn = facet_querySchema.get("modifiedOn");
+    MetadataBuilder facet_query_nestedAuthorizations = facet_querySchema.get("nestedAuthorizations");
     MetadataBuilder facet_query_openByDefault = facet_querySchema.get("openByDefault");
     MetadataBuilder facet_query_order = facet_querySchema.get("order");
     MetadataBuilder facet_query_orderResult = facet_querySchema.get("orderResult");
     MetadataBuilder facet_query_pages = facet_querySchema.get("pages");
     MetadataBuilder facet_query_path = facet_querySchema.get("path");
     MetadataBuilder facet_query_pathParts = facet_querySchema.get("pathParts");
+    MetadataBuilder facet_query_principalAncestorsIntIds = facet_querySchema.get("principalAncestorsIntIds");
+    MetadataBuilder facet_query_principalConceptsIntIds = facet_querySchema.get("principalConceptsIntIds");
     MetadataBuilder facet_query_principalpath = facet_querySchema.get("principalpath");
     MetadataBuilder facet_query_removedauthorizations = facet_querySchema.get("removedauthorizations");
     MetadataBuilder facet_query_schema = facet_querySchema.get("schema");
+    MetadataBuilder facet_query_secondaryConceptsIntIds = facet_querySchema.get("secondaryConceptsIntIds");
     MetadataBuilder facet_query_shareDenyTokens = facet_querySchema.get("shareDenyTokens");
     MetadataBuilder facet_query_shareTokens = facet_querySchema.get("shareTokens");
     MetadataBuilder facet_query_title = facet_querySchema.get("title");
@@ -1078,9 +1283,6 @@ public final class GeneratedRobotsMigrationCombo {
     MetadataBuilder facet_query_tokensHierarchy = facet_querySchema.get("tokensHierarchy");
     MetadataBuilder facet_query_usedByModule = facet_querySchema.get("usedByModule");
     MetadataBuilder facet_query_visibleInTrees = facet_querySchema.get("visibleInTrees");
-  }
-
-  private void createGroupSchemaTypeMetadatas(MetadataSchemaTypesBuilder types, MetadataSchemaTypeBuilder groupSchemaType, MetadataSchemaBuilder groupSchema) {
   }
 
   public void applySchemasDisplay(SchemasDisplayManager manager) {
@@ -1101,6 +1303,6 @@ public final class GeneratedRobotsMigrationCombo {
 
   public void applyGeneratedRoles() {
     RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();;
-	  rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageGlobalLinks", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.unlimitedBatchProcess", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.viewSystemState", "robots.manageRobots")));
+    rolesManager.updateRole(rolesManager.getRole(collection, "ADM").withNewPermissions(asList("core.accessDeleteAllTemporaryRecords", "core.batchProcess", "core.deleteContentVersion", "core.deletePublicSavedSearch", "core.editAllAnnotation", "core.ldapConfigurationManagement", "core.manageConnectors", "core.manageEmailServer", "core.manageExcelReport", "core.manageFacets", "core.manageGlobalLinks", "core.manageLabels", "core.manageMetadataExtractor", "core.manageMetadataSchemas", "core.managePrintableReport", "core.manageSearchBoost", "core.manageSecurity", "core.manageSystemCollections", "core.manageSystemConfiguration", "core.manageSystemDataImports", "core.manageSystemGroups", "core.manageSystemGroupsActivation", "core.manageSystemUpdates", "core.manageSystemUsers", "core.manageTaxonomies", "core.manageTrash", "core.manageValueList", "core.managerTemporaryRecords", "core.modifyPublicSavedSearch", "core.seeAllTemporaryRecords", "core.unlimitedBatchProcess", "core.useExternalAPIS", "core.viewEvents", "core.viewLoginNotificationAlert", "core.viewSystemBatchProcesses", "core.viewSystemState", "robots.manageRobots")));
   }
 }

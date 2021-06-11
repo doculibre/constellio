@@ -1,39 +1,45 @@
 package com.constellio.app.ui.framework.data.event.category;
 
+import com.constellio.app.api.extensions.DataProviderFactoryExtension;
+import com.constellio.app.api.extensions.DataProviderFactoryExtension.EventsListDataProviderFactoryExtensionParams;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.pages.events.EventCategory;
 import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.joda.time.LocalDateTime;
 
+import java.util.List;
+
 public class EventsListDataProviderFactory {
 
 	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory,
-																			  ModelLayerFactory modelLayerFactory,
+																			  AppLayerFactory appLayerFactory,
 																			  String collection, String currentUserName,
 																			  LocalDateTime startDate,
 																			  LocalDateTime endDate) {
-		return getEventsListDataProviderFactory(eventCategory, modelLayerFactory, collection, currentUserName, startDate, endDate, null);
+		return getEventsListDataProviderFactory(eventCategory, appLayerFactory, collection, currentUserName, startDate, endDate, null);
 	}
 
 	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory,
-																			  ModelLayerFactory modelLayerFactory,
+																			  AppLayerFactory appLayerFactory,
 																			  String collection, String currentUserName,
 																			  String id) {
-		return getEventsListDataProviderFactory(eventCategory, modelLayerFactory, collection, currentUserName, null, null, id);
+		return getEventsListDataProviderFactory(eventCategory, appLayerFactory, collection, currentUserName, null, null, id);
 	}
 
 	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory,
-																			  ModelLayerFactory modelLayerFactory,
+																			  AppLayerFactory appLayerFactory,
 																			  String collection,
 																			  String currentUserName) {
-		return getEventsListDataProviderFactory(eventCategory, modelLayerFactory, collection, currentUserName, null, null, null);
+		return getEventsListDataProviderFactory(eventCategory, appLayerFactory, collection, currentUserName, null, null, null);
 	}
 
 	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory,
-																			  ModelLayerFactory modelLayerFactory,
+																			  AppLayerFactory appLayerFactory,
 																			  String collection, String currentUserName,
 																			  LocalDateTime startDate,
 																			  LocalDateTime endDate, String id) {
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		switch (eventCategory) {
 			case SYSTEM_USAGE:
 				return new SystemUsageEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
@@ -75,8 +81,31 @@ public class EventsListDataProviderFactory {
 				return new BatchProcessEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
 			case SIGNED_DOCUMENTS:
 				return new BySignedDocumentEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
+			case SCANNED_DOCUMENTS:
+				return new ByScannedDocumentEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
 			default:
-				throw new RuntimeException("Unsupported");
+				return getEventsCategoryDataProviderFromExtensions(eventCategory.toString(), appLayerFactory, collection,
+						currentUserName, startDate, endDate, id);
 		}
+	}
+
+	private static EventsCategoryDataProvider getEventsCategoryDataProviderFromExtensions(String eventCategory,
+																						  AppLayerFactory appLayerFactory,
+																						  String collection,
+																						  String currentUserName,
+																						  LocalDateTime startDate,
+																						  LocalDateTime endDate,
+																						  String id) {
+		List<DataProviderFactoryExtension> extensions =
+				appLayerFactory.getExtensions().forCollection(collection).dataProviderFactoryExtensions.getExtensions();
+		EventsListDataProviderFactoryExtensionParams params =
+				new EventsListDataProviderFactoryExtensionParams(eventCategory, startDate, endDate, currentUserName, id);
+		for (DataProviderFactoryExtension extension : extensions) {
+			EventsCategoryDataProvider dataProvider = extension.getEventsListDataProviderFactory(params);
+			if (dataProvider != null) {
+				return dataProvider;
+			}
+		}
+		throw new RuntimeException("Unsupported");
 	}
 }

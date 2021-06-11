@@ -18,6 +18,7 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserDocumentToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserFolderToVOBuilder;
+import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
@@ -33,7 +34,6 @@ import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.frameworks.validation.OptimisticLockException;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -48,6 +48,8 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.Html5File;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -231,7 +233,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 								.where(rm.document.contentHashes()).isEqualTo(contentVersionVO.getDuplicatedHash())
 						).filteredByStatus(StatusFilter.ACTIVES)
 						.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER, Schemas.TITLE))
-						.setNumberOfRows(100).filteredWithUser(getCurrentUser());
+						.setNumberOfRows(100).filteredWithUserRead(getCurrentUser());
 				Metadata userMetadata = userDocumentSchema.getMetadata(UserDocument.USER);
 				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 				LogicalSearchQuery duplicateUserDocumentsQuery = new LogicalSearchQuery()
@@ -241,24 +243,21 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 								.andWhere(userMetadata).is(currentUser.getWrappedRecord()))
 						.filteredByStatus(StatusFilter.ACTIVES)
 						.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER, Schemas.TITLE))
-						.filteredWithUser(getCurrentUser());
+						.filteredWithUserRead(getCurrentUser());
 				List<UserDocument> duplicateUserDocuments = rm.searchUserDocuments(duplicateUserDocumentsQuery);
 				if (duplicateDocuments.size() > 0 || duplicateUserDocuments.size() > 0) {
-					StringBuilder message = new StringBuilder($("ContentManager.hasFoundDuplicateWithConfirmation", StringUtils.defaultIfBlank(contentVersionVO.getFileName(), "")));
-					message.append("<br>");
+					VerticalLayout verticalLayout = new VerticalLayout();
+					verticalLayout.addComponent(new Label($("ContentManager.hasFoundDuplicateWithConfirmationPlainText", StringUtils.defaultIfBlank(contentVersionVO.getFileName(), ""))));
+					VerticalLayout components = new VerticalLayout();
 					for (Document document : duplicateDocuments) {
-						message.append("<br>-");
-						message.append(document.getTitle());
-						message.append(": ");
-						message.append(generateDisplayLink(document));
+						components.addComponents(new Label(document.getTitle() + ": "), generateDisplayLink(document));
+						verticalLayout.addComponent(components);
 					}
 					for (UserDocument userDocument : duplicateUserDocuments) {
-						message.append("<br>-");
-						message.append(userDocument.getTitle());
-						message.append(": ");
-						message.append(generateDisplayLink(userDocument));
+						components.addComponents(new Label(userDocument.getTitle() + ": "), generateUserDocumentDisplayLink());
+						verticalLayout.addComponent(components);
 					}
-					view.showUploadMessage(message.toString());
+					view.showUploadMessage(verticalLayout);
 					newContentSinceLastRefresh = true;
 				}
 			}
@@ -399,18 +398,28 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		}
 	}
 
-	String generateDisplayLink(Document document) {
+	private LinkButton generateDisplayLink(Document document) {
 		String constellioUrl = eimConfigs.getConstellioUrl();
 		String displayURL = RMNavigationConfiguration.DISPLAY_DOCUMENT;
 		String url = constellioUrl + "#!" + displayURL + "/" + document.getId();
-		return "<a href=\"" + url + "\">" + url + "</a>";
+		return getUrlButton(url);
 	}
 
-	String generateDisplayLink(UserDocument userDocument) {
+	private LinkButton generateUserDocumentDisplayLink() {
 		String constellioUrl = eimConfigs.getConstellioUrl();
 		String displayURL = RMNavigationConfiguration.LIST_USER_DOCUMENTS;
 		String url = constellioUrl + "#!" + displayURL;
-		return "<a href=\"" + url + "\">" + url + "</a>";
+		return getUrlButton(url);
+	}
+
+	private LinkButton getUrlButton(String url) {
+		return new LinkButton(url) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				view.openURL(url);
+				view.closeAllWindows();
+			}
+		};
 	}
 
 	@Override

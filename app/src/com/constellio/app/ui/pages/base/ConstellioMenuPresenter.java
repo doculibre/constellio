@@ -7,8 +7,8 @@ import com.constellio.app.services.systemSetup.SystemLocalConfigsManager;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.i18n.i18n;
-import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.conf.FoldersLocator;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
@@ -39,8 +39,11 @@ public class ConstellioMenuPresenter implements Serializable {
 
 	private transient ModelLayerFactory modelLayerFactory;
 
+	private String currentCollection;
+
 	public ConstellioMenuPresenter(ConstellioMenu constellioMenu) {
 		this.constellioMenu = constellioMenu;
+		this.currentCollection = constellioMenu.getSessionContext().getCurrentCollection();
 
 		constellioFactories = constellioMenu.getConstellioFactories();
 		initTransientObjects();
@@ -263,6 +266,13 @@ public class ConstellioMenuPresenter implements Serializable {
 		}
 
 		return null;
+	}
+
+	public boolean hasChangedCollection(BaseView newView) {
+		String oldCollection = currentCollection;
+		String newCollection = currentCollection = newView.getCollection();
+
+		return oldCollection != null && !oldCollection.equals(newCollection);
 	}
 
 }

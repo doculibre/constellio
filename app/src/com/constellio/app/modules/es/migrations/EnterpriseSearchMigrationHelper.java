@@ -69,7 +69,7 @@ public class EnterpriseSearchMigrationHelper {
 			MetadataBuilder connectorInstanceConnectorType = connectorInstanceSchema
 					.getMetadata(ConnectorInstance.CONNECTOR_TYPE).getInheritance();
 
-			MetadataSchemaTypeBuilder typeBuilder = types.createNewSchemaType(schemaType);
+			MetadataSchemaTypeBuilder typeBuilder = types.createNewSchemaTypeWithSecurity(schemaType);
 			MetadataSchemaBuilder schemaBuilder = typeBuilder.getDefaultSchema();
 			typeBuilder.setInTransactionLog(false);
 			MetadataBuilder connectorDocConnector = schemaBuilder.createUndeletable(ConnectorDocument.CONNECTOR)

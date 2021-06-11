@@ -8,6 +8,7 @@ public class AzureADUserSynchConfig {
 	private String groupsFilter;
 	private String usersFilter;
 	private List<String> userGroups;
+	private String usernameType;
 
 	public String getApplicationKey() {
 		return applicationKey;
@@ -51,6 +52,15 @@ public class AzureADUserSynchConfig {
 
 	public AzureADUserSynchConfig setUserGroups(List<String> userGroups) {
 		this.userGroups = userGroups;
+		return this;
+	}
+
+	public String getUserNameType() {
+		return usernameType;
+	}
+
+	public AzureADUserSynchConfig setUserNameType(String usernameType) {
+		this.usernameType = usernameType;
 		return this;
 	}
 }

@@ -1,5 +1,6 @@
 package com.constellio.app.ui.framework.components;
 
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.Panel;
@@ -20,15 +21,15 @@ public class DurationPanel extends Panel {
 		setSizeFull();
 		addStyleName(ValoTheme.PANEL_BORDERLESS);
 
-		daysComponent = new TextField($("days"));
+		daysComponent = new BaseTextField($("days"));
 		//daysComponent.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator_withMinValue"), 0, 100));
 		horizontalLayout.addComponent(daysComponent);
 
-		hoursComponent = new TextField($("hours"));
+		hoursComponent = new BaseTextField($("hours"));
 		//hoursComponent.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator"), 0, 23));
 		horizontalLayout.addComponent(hoursComponent);
 
-		minComponent = new TextField($("mns"));
+		minComponent = new BaseTextField($("mns"));
 		//minComponent.addValidator(new IntegerRangeValidator($("com.vaadin.data.validator.IntegerRangeValidator"), 0, 59));
 
 		horizontalLayout.addComponent(minComponent);

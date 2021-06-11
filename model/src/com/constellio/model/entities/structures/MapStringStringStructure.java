@@ -11,8 +11,8 @@ import java.util.Set;
 
 public class MapStringStringStructure implements ModifiableStructure, Map<String, String> {
 
-	Map<String, String> stringStringMap;
-	boolean dirty;
+	protected Map<String, String> stringStringMap;
+	protected boolean dirty;
 
 	public MapStringStringStructure() {
 		stringStringMap = new HashMap<>();
@@ -73,14 +73,6 @@ public class MapStringStringStructure implements ModifiableStructure, Map<String
 	}
 
 	@Override
-	public String toString() {
-		return "MapStringString{" +
-			   "stringStringMap=" + stringStringMap +
-			   ", dirty=" + dirty +
-			   '}';
-	}
-
-	@Override
 	public int hashCode() {
 		return HashCodeBuilder.reflectionHashCode(this, "dirty");
 	}
@@ -113,5 +105,13 @@ public class MapStringStringStructure implements ModifiableStructure, Map<String
 	@Override
 	public String get(Object key) {
 		return stringStringMap.get(key);
+	}
+
+	@Override
+	public String toString() {
+		return "MapStringString{" +
+			   "stringStringMap=" + stringStringMap +
+			   ", dirty=" + dirty +
+			   '}';
 	}
 }

@@ -2,16 +2,18 @@ package com.constellio.app.modules.core;
 
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.records.wrappers.Source;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
@@ -46,10 +48,11 @@ public class CoreTypes {
 		codesList.add(UserDocument.SCHEMA_TYPE);
 		codesList.add(UserFolder.SCHEMA_TYPE);
 		codesList.add(Printable.SCHEMA_TYPE);
-		codesList.add(Authorization.SCHEMA_TYPE);
+		codesList.add(RecordAuthorization.SCHEMA_TYPE);
 		codesList.add(Report.SCHEMA_TYPE);
 		codesList.add(SearchEvent.SCHEMA_TYPE);
 		codesList.add(ThesaurusConfig.SCHEMA_TYPE);
+		codesList.add(Source.SCHEMA_TYPE);
 
 		//Deprecated types :
 		codesList.add(WorkflowTask.SCHEMA_TYPE);

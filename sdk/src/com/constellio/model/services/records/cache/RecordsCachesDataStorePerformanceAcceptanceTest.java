@@ -53,7 +53,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 				@Override
 				public void alter(MetadataSchemaTypesBuilder typesBuilder) {
 					for (String type : types) {
-						typesBuilder.createNewSchemaType(type).getDefaultSchema().create("boolean1").setType(BOOLEAN)
+						typesBuilder.createNewSchemaTypeWithSecurity(type).getDefaultSchema().create("boolean1").setType(BOOLEAN)
 								.setEssentialInSummary(true);
 					}
 				}
@@ -119,7 +119,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 				@Override
 				public void alter(MetadataSchemaTypesBuilder typesBuilder) {
 					for (String type : types) {
-						MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType(type);
+						MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaTypeWithSecurity(type);
 						typeBuilder.setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
 						typeBuilder.getDefaultSchema().create("boolean1").setType(BOOLEAN)
 								.setEssentialInSummary(true);
@@ -213,7 +213,7 @@ public class RecordsCachesDataStorePerformanceAcceptanceTest extends ConstellioT
 				@Override
 				public void alter(MetadataSchemaTypesBuilder typesBuilder) {
 					for (String type : types) {
-						MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaType(type);
+						MetadataSchemaTypeBuilder typeBuilder = typesBuilder.createNewSchemaTypeWithSecurity(type);
 						typeBuilder.setRecordCacheType(RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE);
 						typeBuilder.getDefaultSchema().create("boolean1").setType(BOOLEAN)
 								.setEssentialInSummary(true);

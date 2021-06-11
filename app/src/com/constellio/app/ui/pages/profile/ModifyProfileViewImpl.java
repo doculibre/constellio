@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.components.converters.TempFileUploadToCon
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.EditablePasswordField;
 import com.constellio.app.ui.framework.components.fields.ExtraTabAdditionalRecordField;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -104,7 +105,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
 
-		usernameField = new TextField();
+		usernameField = new BaseTextField();
 		usernameField.setCaption($("ModifyProfileView.username"));
 		usernameField.setRequired(true);
 		usernameField.setNullRepresentation("");
@@ -159,30 +160,30 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		});
 		imageField.setEnabled(presenter.canModify());
 
-		firstNameField = new TextField();
+		firstNameField = new BaseTextField();
 		firstNameField.setCaption($("ModifyProfileView.firstName"));
 		firstNameField.setRequired(!presenter.isLDAPAuthentication());
 		firstNameField.setNullRepresentation("");
 		firstNameField.setId("firstName");
 		firstNameField.addStyleName("firstName");
-		firstNameField.setEnabled(presenter.canModify());
+		firstNameField.setEnabled(presenter.canModify() && presenter.isLocalUser());
 
-		lastNameField = new TextField();
+		lastNameField = new BaseTextField();
 		lastNameField.setCaption($("ModifyProfileView.lastName"));
 		lastNameField.setRequired(!presenter.isLDAPAuthentication());
 		lastNameField.setNullRepresentation("");
 		lastNameField.setId("lastName");
 		lastNameField.addStyleName("lastName");
-		lastNameField.setEnabled(presenter.canModify());
+		lastNameField.setEnabled(presenter.canModify() && presenter.isLocalUser());
 
-		emailField = new TextField();
+		emailField = new BaseTextField();
 		emailField.setCaption($("ModifyProfileView.email"));
 		emailField.setRequired(!presenter.isLDAPAuthentication());
 		emailField.setNullRepresentation("");
 		emailField.setId("email");
 		emailField.addStyleName("email");
 		emailField.addValidator(new EmailValidator($("ModifyProfileView.invalidEmail")));
-		emailField.setEnabled(presenter.canModify());
+		emailField.setEnabled(presenter.canModify() && presenter.isLocalUser());
 
 		personalEmailsField = new TextArea();
 		personalEmailsField.setCaption($("ModifyProfileView.personalEmails"));
@@ -203,7 +204,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 			}
 		});
 
-		phoneField = new TextField();
+		phoneField = new BaseTextField();
 		phoneField.setCaption($("ModifyProfileView.phone"));
 		phoneField.setRequired(false);
 		phoneField.setNullRepresentation("");
@@ -211,7 +212,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		phoneField.addStyleName("phone");
 		phoneField.setEnabled(presenter.canModify());
 
-		faxField = new TextField();
+		faxField = new BaseTextField();
 		faxField.setCaption($("UserCredentialView.fax"));
 		faxField.setRequired(false);
 		faxField.setNullRepresentation("");
@@ -219,7 +220,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		faxField.addStyleName("phone");
 		faxField.setEnabled(presenter.canModify());
 
-		jobTitleField = new TextField();
+		jobTitleField = new BaseTextField();
 		jobTitleField.setCaption($("UserCredentialView.jobTitle"));
 		jobTitleField.setRequired(false);
 		jobTitleField.setNullRepresentation("");
@@ -227,7 +228,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		jobTitleField.addStyleName("phone");
 		jobTitleField.setEnabled(presenter.canModify());
 
-		addressField = new TextField();
+		addressField = new BaseTextField();
 		addressField.setCaption($("ModifyProfileView.address"));
 		addressField.setRequired(false);
 		addressField.setNullRepresentation("");

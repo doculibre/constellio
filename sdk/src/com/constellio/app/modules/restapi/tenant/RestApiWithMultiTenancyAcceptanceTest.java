@@ -1,11 +1,11 @@
 package com.constellio.app.modules.restapi.tenant;
 
 import com.constellio.app.modules.restapi.RestApiConfigs;
+import com.constellio.app.modules.restapi.apis.v1.folder.dto.FolderDto;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.HashingUtils;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
-import com.constellio.app.modules.restapi.folder.dto.FolderDto;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.data.utils.TenantUtils;
 import com.constellio.data.utils.TimeProvider;

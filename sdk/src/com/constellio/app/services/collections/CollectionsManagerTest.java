@@ -83,6 +83,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 	@Mock ModifiableSolrParams params;
 	@Mock ConfigManager configManager;
 	@Mock Record aNewCollection, anotherNewCollection;
+	@Mock com.constellio.app.services.actionDisplayManager.MenusDisplayManager menusDisplayManager;
 
 	com.constellio.app.services.collections.CollectionsManager collectionsManager;
 
@@ -105,6 +106,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
 		when(modelLayerFactory.getSearchConfigurationsManager()).thenReturn(searchConfigurationsManager);
 		when(modelLayerFactory.getSynonymsConfigurationsManager()).thenReturn(synonymsConfigurationsManager);
+		when(appLayerFactory.getMenusDisplayManager()).thenReturn(menusDisplayManager);
 
 		collectionsManager = spy(new com.constellio.app.services.collections.CollectionsManager(
 				appLayerFactory, modulesManager, new Delayed<>(migrationServices), systemGlobalConfigsManager));
@@ -120,11 +122,11 @@ public class CollectionsManagerTest extends ConstellioTest {
 				.createCollectionRecordWithCode("zeCollection", "zeCollection", Arrays.asList("fr"));
 		doNothing().when(collectionsManager).initializeCollection(anyString());
 
-		collectionsManager.createCollectionInCurrentVersion("zeCollection", Arrays.asList("fr"));
+		collectionsManager.createCollection("zeCollection", Arrays.asList("fr"));
 
 		verify(collectionsManager).createCollectionConfigs("zeCollection");
 		verify(collectionsListManager).addCollection(eq("zeCollection"), eq(Arrays.asList("fr")), anyByte());
-		verify(migrationServices).migrate("zeCollection", null, true);
+		verify(migrationServices).migrate("zeCollection", true);
 		verify(collectionsManager).initializeCollection("zeCollection");
 	}
 
@@ -135,7 +137,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(collectionsListManager.getCollections()).thenReturn(Arrays.asList("zeCollection", "anotherCollection"));
 
 		try {
-			collectionsManager.createCollectionInCurrentVersion("zeCollection", Arrays.asList("fr"));
+			collectionsManager.createCollection("zeCollection", Arrays.asList("fr"));
 			fail("CollectionsServicesRuntimeException_CollectionWithGivenCodeAlreadyExists expected");
 		} catch (CollectionsManagerRuntimeException_CollectionWithGivenCodeAlreadyExists e) {
 			// OK
@@ -152,7 +154,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		doThrow(otherManagerException).when(collectionsManager).createCollectionConfigs("zeCollection");
 
 		try {
-			collectionsManager.createCollectionInCurrentVersion("zeCollection", Arrays.asList("fr"));
+			collectionsManager.createCollection("zeCollection", Arrays.asList("fr"));
 		} catch (Exception thrown) {
 			assertThat(thrown).isSameAs(otherManagerException);
 		}
@@ -203,7 +205,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 			throws Exception {
 
 		try {
-			collectionsManager.createCollectionInCurrentVersion("zeCollection", Arrays.asList("en"));
+			collectionsManager.createCollection("zeCollection", Arrays.asList("en"));
 			fail("CollectionsServicesRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage expected");
 		} catch (CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage e) {
 			//OK
@@ -218,7 +220,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 			throws Exception {
 
 		try {
-			collectionsManager.createCollectionInCurrentVersion("zeCollection", Arrays.asList("fr", "klingon"));
+			collectionsManager.createCollection("zeCollection", Arrays.asList("fr", "klingon"));
 			fail("CollectionsServicesRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage expected");
 		} catch (CollectionsManagerRuntimeException_InvalidLanguage e) {
 			//OK

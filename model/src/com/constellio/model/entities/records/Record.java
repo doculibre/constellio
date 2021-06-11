@@ -3,8 +3,10 @@ package com.constellio.model.entities.records;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordId;
+import com.constellio.data.dao.dto.records.RecordIdSupplier;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -16,7 +18,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
-public interface Record extends Serializable, CollectionObject, Supplier<Record> {
+public interface Record extends Serializable, CollectionObject, Supplier<Record>, RecordIdSupplier {
 
 	String PUBLIC_TOKEN = "__public__";
 
@@ -150,10 +152,12 @@ public interface Record extends Serializable, CollectionObject, Supplier<Record>
 	RecordDTO getRecordDTO();
 
 	enum GetMetadataOption {
-		NO_SUMMARY_METADATA_VALIDATION, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE, NO_DECRYPTION;
+		NO_SUMMARY_METADATA_VALIDATION, DIRECT_GET_FROM_DTO, RARELY_HAS_VALUE, NO_DECRYPTION, ONLY_MAIN_STRUCTURE_VALUE;
 	}
 
 	enum SetMetadataOption {
 		NO_DECRYPTION;
 	}
+
+	NestedRecordAuthorizations getNestedAuthorizations();
 }

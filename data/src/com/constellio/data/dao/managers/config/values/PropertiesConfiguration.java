@@ -37,4 +37,5 @@ public class PropertiesConfiguration implements Serializable {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
+	public static PropertiesConfiguration NULL_VALUE = new PropertiesConfiguration(null, null);
 }

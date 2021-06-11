@@ -102,6 +102,10 @@ public class LocalDependency<T> implements Dependency {
 		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.CONTENT, false);
 	}
 
+	public static LocalDependency<String> toAText(String metadataCode) {
+		return new LocalDependency<>(metadataCode, false, false, MetadataValueType.TEXT, false);
+	}
+
 	@Override
 	public String getLocalMetadataCode() {
 		return metadataCode;

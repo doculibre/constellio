@@ -23,7 +23,7 @@ public class CollectionServicesAPI {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String createCollection(CollectionResource resource) {
 		try {
-			collectionsServices().createCollectionInCurrentVersion(resource.getCollection(), resource.getLanguages());
+			collectionsServices().createCollection(resource.getCollection(), resource.getLanguages());
 			return "Ok";
 		} catch (NoMoreCollectionAvalibleException noMoreCollectionAvalibleException) {
 			noMoreCollectionAvalibleException.printStackTrace();

@@ -144,7 +144,7 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			params.getModifiableImportRecord().addField(Document.CONTENT,
 					new StructureImportContent(contentFactory.toString(document.getContent())));
 		}
-
+		params.getModifiableImportRecord().addField(Document.IS_MODEL, document.isModel());
 	}
 
 	private void manageFolder(OnWriteRecordParams params) {
@@ -161,6 +161,7 @@ public class RMRecordExportExtension extends RecordExportExtension {
 			}
 		}
 
+		params.getModifiableImportRecord().addField(Folder.IS_MODEL, folder.isModel());
 	}
 
 	public MetadataSchemaTypes getTypes() {

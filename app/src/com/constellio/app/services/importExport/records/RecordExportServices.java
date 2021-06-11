@@ -17,6 +17,7 @@ import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.solr.SolrDataStoreTypesUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
@@ -24,15 +25,16 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
@@ -42,12 +44,19 @@ import com.constellio.model.entities.structures.MapStringListStringStructure;
 import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.entities.structures.MapStringStringStructureFactory;
+import com.constellio.model.entities.structures.UrlsStructure;
+import com.constellio.model.entities.structures.UrlsStructureFactory;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.ContentImportVersion;
+import com.constellio.model.services.records.ImportContent;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.SimpleImportContent;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,13 +68,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 
 public class RecordExportServices {
 
@@ -97,8 +111,10 @@ public class RecordExportServices {
 			//
 			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
 			StringBuilder contentPaths = new StringBuilder();
+			Set<String> hashesToIncludeInZip = new HashSet<>();
 			try {
-				writeRecords(writer, options, contentPaths, tempFolder);
+				WriteRecordsResponse response = writeRecords(writer, options, contentPaths, tempFolder);
+				hashesToIncludeInZip = response.hashesToIncludeInZip;
 			} finally {
 				writer.close();
 			}
@@ -116,6 +132,22 @@ public class RecordExportServices {
 			if (tempFolder.listFiles() == null || tempFolder.listFiles().length == 0) {
 				throw new ExportServicesRuntimeException_NoRecords();
 			}
+
+			if (!hashesToIncludeInZip.isEmpty()) {
+				File zipContents = new File(tempFolder, "data");
+				zipContents.mkdirs();
+
+				hashesToIncludeInZip.forEach(hash -> {
+					try {
+						modelLayerFactory.getDataLayerFactory().getContentsDao().copyFileFromVault(hash, new File(zipContents, hash));
+					} catch (Throwable t) {
+						t.printStackTrace();
+					}
+				});
+
+
+			}
+
 			zipService.zip(zipFile, asList(tempFolder.listFiles()));
 
 
@@ -134,13 +166,12 @@ public class RecordExportServices {
 	}
 
 
-	private void writeRecords(ImportRecordOfSameCollectionWriter writer,
-							  RecordExportOptions options, StringBuilder contentPaths,
-							  File tempFolder) {
-
+	private WriteRecordsResponse writeRecords(ImportRecordOfSameCollectionWriter writer,
+											  RecordExportOptions options, StringBuilder contentPaths,
+											  File tempFolder) {
 
 		Set<String> receivedTypes = new HashSet<>();
-
+		Set<String> hashesToIncludeInZip = new HashSet<>();
 
 		Iterator<Record> recordsToExportIterator = options.getRecordsToExportIterator();
 
@@ -180,10 +211,11 @@ public class RecordExportServices {
 			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, record.getTypeCode(),
 					id, metadataSchema.getLocalCode());
 
-			writeRecord(record, modifiableImportRecord, options, contentPaths);
+			WriteRecordsResponse recordsResponse = writeRecord(record, modifiableImportRecord, options, contentPaths);
 			if (options.isIncludeAuthorizations()) {
 				writeRecordAuthorizations(record.getId(), collection, options, contentPaths, writer);
 			}
+			hashesToIncludeInZip.addAll(recordsResponse.hashesToIncludeInZip);
 
 			appLayerFactory.getExtensions().forCollection(collection)
 					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord, options.isForSameSystem(), tempFolder));
@@ -194,6 +226,8 @@ public class RecordExportServices {
 		if (!atLestOneRecord) {
 			throw new ExportServicesRuntimeException_NoRecords();
 		}
+
+		return new WriteRecordsResponse(hashesToIncludeInZip);
 	}
 
 	private void writeRecordAuthorizations(String recordId, String collection, RecordExportOptions options,
@@ -202,8 +236,8 @@ public class RecordExportServices {
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		for (SecurityModelAuthorization authorization : authorizationsList) {
-			Record authorizationRecord = authorization.getDetails().get();
-			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, Authorization.SCHEMA_TYPE, authorization.getDetails().getId());
+			Record authorizationRecord = ((RecordAuthorization) authorization.getDetails()).get();
+			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, RecordAuthorization.SCHEMA_TYPE, authorization.getDetails().getId());
 			writeRecord(authorizationRecord, modifiableImportRecord, options, contentPaths);
 
 			String sharedById = authorization.getDetails().getSharedBy();
@@ -233,14 +267,14 @@ public class RecordExportServices {
 				Record record = recordServices.getDocumentById(authorization.getTargetRecordId().stringValue());
 				if (metadataSchemasManager.getSchemaTypes(collection).getSchemaType(targetSchemaType).hasMetadataWithCode("code")) {
 
-					modifiableImportRecord.with(Authorization.TARGET, "code:" + record.get(Schemas.CODE));
+					modifiableImportRecord.with(RecordAuthorization.TARGET, "code:" + record.get(Schemas.CODE));
 				} else if (record.get(Schemas.LEGACY_ID) != null) {
-					modifiableImportRecord.with(Authorization.TARGET, record.get(Schemas.LEGACY_ID));
+					modifiableImportRecord.with(RecordAuthorization.TARGET, record.get(Schemas.LEGACY_ID));
 
 				}
 			}
 
-			modifiableImportRecord.with(Authorization.PRINCIPALS, principals);
+			modifiableImportRecord.with(RecordAuthorization.PRINCIPALS, principals);
 
 			writer.write(modifiableImportRecord);
 
@@ -287,12 +321,20 @@ public class RecordExportServices {
 
 	}
 
+	@AllArgsConstructor
+	private static class WriteRecordsResponse {
 
-	private void writeRecord(Record record, ModifiableImportRecord modifiableImportRecord,
-							 final RecordExportOptions options, StringBuilder contentPaths) {
+		@Getter
+		Set<String> hashesToIncludeInZip;
+
+	}
+
+	private WriteRecordsResponse writeRecord(Record record, ModifiableImportRecord modifiableImportRecord,
+											 final RecordExportOptions options, StringBuilder contentPaths) {
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(record);
 
 
+		Set<String> hashesToIncludeInZip = new HashSet<>();
 		for (Metadata metadata : metadataSchemaTypes.getSchemaOf(record).getMetadatas()) {
 
 			if (isMetadataExported(metadata, record, metadataSchemaTypes)) {
@@ -308,19 +350,56 @@ public class RecordExportServices {
 					if (metadata.getType() == STRUCTURE) {
 						convertStructureMetadataValue(record, modifiableImportRecord, metadata);
 
+					} else if (metadata.getType() == CONTENT) {
+						convertContentMetadata(modifiableImportRecord, options, metadataSchemaTypes, metadata, rawValue);
+
 					} else {
 						convertMetadata(modifiableImportRecord, options, metadataSchemaTypes, metadata, rawValue);
 					}
 				}
 
-				if (metadata.getType() == MetadataValueType.CONTENT) {
+				if (metadata.getType() == CONTENT) {
 					for (Content content : record.<Content>getValues(metadata)) {
-						writeContentPath(content, contentPaths);
+						if (options.includeContents) {
+							hashesToIncludeInZip.addAll(content.getHashOfAllVersions());
+						} else {
+							writeContentPath(content, contentPaths);
+						}
+
 					}
 				}
 			}
 		}
 
+		return new WriteRecordsResponse(hashesToIncludeInZip);
+	}
+
+	private void convertContentMetadata(ModifiableImportRecord modifiableImportRecord, RecordExportOptions options,
+										MetadataSchemaTypes metadataSchemaTypes, Metadata metadata, Object rawValue) {
+
+		Function<Content, ImportContent> contentConversionFunction = (content) -> {
+			List<ContentImportVersion> versions = new ArrayList<>();
+
+			content.getVersions().forEach(version -> {
+				versions.add(new ContentImportVersion(
+						"hash:" + version.getHash(),
+						version.getFilename(),
+						version.isMajor(),
+						version.getComment(),
+						version.getLastModificationDateTime()));
+			});
+			;
+			return new SimpleImportContent(versions);
+		};
+
+		if (metadata.isMultivalue()) {
+			modifiableImportRecord.addField(metadata.getLocalCode(),
+					((List<Content>) rawValue).stream().map(contentConversionFunction).collect(toList()));
+		} else if (rawValue != null) {
+			modifiableImportRecord.addField(metadata.getLocalCode(),
+					contentConversionFunction.apply((Content) rawValue));
+
+		}
 	}
 
 	private boolean isMetadataExported(Metadata metadata, Record record, MetadataSchemaTypes metadataSchemaTypes) {
@@ -386,11 +465,17 @@ public class RecordExportServices {
 		} else if (structureFactory.getClass().equals(MapStringStringStructureFactory.class)) {
 			manageMapStringStringStructureFactory(record, metadata, modifiableImportRecord);
 
+		} else if (structureFactory.getClass().equals(UrlsStructureFactory.class)) {
+			manageUrlsStructureFactory(record, metadata, modifiableImportRecord);
+
 		} else if (structureFactory.getClass().equals(CommentFactory.class)) {
 			manageCommentFactory(record, metadata, modifiableImportRecord);
 
 		} else if (structureFactory.getClass().equals(EmailAddressFactory.class)) {
 			manageEmailAddressFactory(record, metadata, modifiableImportRecord);
+
+		} else if (structureFactory instanceof SeparatedStructureFactory) {
+			manageSeparatedStructureFactory(record, metadata, modifiableImportRecord);
 
 		}
 	}
@@ -450,6 +535,25 @@ public class RecordExportServices {
 				return;
 			} else {
 				modifiableImportRecord.addField(metadata.getLocalCode(), mapStringStringStructure);
+			}
+		}
+	}
+
+	private void manageUrlsStructureFactory(Record record, Metadata metadata,
+											ModifiableImportRecord modifiableImportRecord) {
+		List<UrlsStructure> urlsStructureList;
+		UrlsStructure urlsStructure;
+
+		if (metadata.isMultivalue()) {
+			urlsStructureList = record.getList(metadata);
+
+			modifiableImportRecord.addField(metadata.getLocalCode(), urlsStructureList);
+		} else {
+			urlsStructure = record.get(metadata);
+			if (urlsStructure == null) {
+				return;
+			} else {
+				modifiableImportRecord.addField(metadata.getLocalCode(), urlsStructure);
 			}
 		}
 	}
@@ -514,6 +618,30 @@ public class RecordExportServices {
 				modifiableImportRecord.addField(metadata.getLocalCode(), getEmailAddressHashMap(emailAddress));
 			}
 		}
+	}
+
+	private void manageSeparatedStructureFactory(Record record, Metadata metadata,
+												 ModifiableImportRecord modifiableImportRecord) {
+
+		ModifiableStructure structure = record.get(metadata);
+
+		if (structure != null) {
+			Map<String, Object> map = ((SeparatedStructureFactory) metadata.getStructureFactory()).toFields(structure);
+			Map<String, Object> mapWithDataStore = new HashMap<>(map.size());
+			map.forEach((code, value) -> {
+				String codeWithDataStore = code + "_" + SolrDataStoreTypesUtils.getTypeOrMultivalueExtensionForValue(value);
+				Object correctedValue = value;
+				if (correctedValue != null && correctedValue instanceof Boolean) {
+					correctedValue = Boolean.TRUE.equals(value) ? "__TRUE__" : "__FALSE__";
+				} else if (correctedValue instanceof List && !((List<?>) correctedValue).isEmpty() && ((List<?>) correctedValue).get(0) instanceof Boolean) {
+					correctedValue = ((List<Object>) correctedValue).stream()
+							.map(val -> val = Boolean.TRUE.equals(val) ? "__TRUE__" : "__FALSE__").collect(Collectors.toList());
+				}
+				mapWithDataStore.put(codeWithDataStore, correctedValue);
+			});
+			modifiableImportRecord.addField(metadata.getLocalCode(), mapWithDataStore);
+		}
+
 	}
 
 

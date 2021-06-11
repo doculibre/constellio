@@ -1,11 +1,11 @@
 package com.constellio.model.services.batch.controller;
 
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.Stats;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
@@ -26,7 +26,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
@@ -108,7 +107,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			throws Exception {
 
 		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()
-			&& ReindexingServices.getReindexingInfos() == null
+			&& !modelLayerFactory.isReindexing()
 			&& new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isInBatchProcessesSchedule()
 			//	&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
 		) {
@@ -171,6 +170,11 @@ public class BatchProcessControllerThread extends ConstellioThread {
 							@Override
 							public AsyncTaskBatchProcess getBatchProcess() {
 								return process;
+							}
+
+							@Override
+							public ModelLayerFactory getModelLayerFactory() {
+								return modelLayerFactory;
 							}
 
 						};

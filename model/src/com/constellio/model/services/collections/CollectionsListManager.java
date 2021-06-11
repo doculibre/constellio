@@ -141,7 +141,13 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 		Document document = configManager.getXML(CONFIG_FILE_PATH).getDocument();
 		List<String> collections = new ArrayList<>();
 		for (Element collectionElement : document.getRootElement().getChildren()) {
+			String byteIdString = collectionElement.getAttributeValue("byteId");
 			collections.add(collectionElement.getName());
+			if (Strings.isNotBlank(byteIdString)) {
+				byte byteId = Byte.parseByte(byteIdString);
+				int collectionIndex = byteId - Byte.MIN_VALUE;
+				collectionKeys[collectionIndex] = collectionElement.getName();
+			}
 		}
 		return Collections.unmodifiableList(collections);
 	}
@@ -245,6 +251,7 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 				return (byte) (i + Byte.MIN_VALUE);
 			}
 		}
+
 
 		throw new CollectionIdNotSetRuntimeException(collectionCode);
 	}

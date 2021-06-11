@@ -9,6 +9,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
+import org.apache.solr.client.solrj.io.SolrClientCache;
 import org.apache.solr.client.solrj.io.stream.SolrStream;
 import org.apache.solr.client.solrj.io.stream.TupleStream;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
@@ -39,6 +40,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 	private List<SolrClient> solrClients = new ArrayList<>();
 	private final String url;
 	private IOServicesFactory ioServicesFactory;
+	protected SolrClientCache clientCache = new SolrClientCache();
 
 	public HttpSolrServerFactory(String url, IOServicesFactory ioServicesFactory) {
 		super();
@@ -64,6 +66,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 
 	@Override
 	public synchronized void clear() {
+		clientCache.close();
 		for (AtomicFileSystem atomicFileSystem : atomicFileSystems) {
 			atomicFileSystem.close();
 		}
@@ -74,6 +77,11 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 				LOGGER.error("Error while closing solr client", ioe);
 			}
 		}
+	}
+
+	@Override
+	public SolrClientCache getSolrClientCache() {
+		return clientCache;
 	}
 
 	private static boolean atomicFileSystemDoesNotSupportHttpSolrWarningShown = false;

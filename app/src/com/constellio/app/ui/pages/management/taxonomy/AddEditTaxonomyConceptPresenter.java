@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
+import com.constellio.app.extensions.records.params.GetRecordsToSaveInSameTransactionAsParentRecordParams;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -97,7 +98,6 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 			Record record = toRecord(recordVO);
 			recordServices().recalculate(record);
 
-
 			if (isReindexationNeeded) {
 				Transaction transaction = new Transaction();
 				transaction.setUser(getCurrentUser());
@@ -105,7 +105,8 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 				appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 				view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
 			} else {
-				addOrUpdate(record);
+				addOrUpdate(record, appCollectionExtentions.getRecordsToSaveInSameTransactionAsParentRecord(new GetRecordsToSaveInSameTransactionAsParentRecordParams(recordVO, view.getForm())));
+
 				view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
 			}
 		} catch (Exception e) {

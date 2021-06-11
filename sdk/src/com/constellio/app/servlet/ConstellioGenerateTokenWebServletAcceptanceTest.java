@@ -5,7 +5,9 @@ import com.constellio.sdk.tests.setups.Users;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebRequest;
+import com.gargoylesoftware.htmlunit.WebResponse;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpStatus;
 import org.assertj.core.api.Condition;
 import org.jdom2.Document;
 import org.jdom2.JDOMException;
@@ -59,29 +61,49 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 
 		for (boolean usingHeader : new boolean[]{false, true}) {
 
-			assertThat(callWebservice("admin", "1qaz2wsx", "2d", null, usingHeader))
+			assertThat(callWebservice("admin", "1qaz2wsx", "2d", null, usingHeader).getContentAsString())
 					.is(returningValidCredentialUntil(dateTime(2014, 1, 4, 3, 0, 3)))
 					.has(returnedServiceKey("adminkey"));
 
-			assertThat(callWebservice("bob", "1qaz2wsx", "3j", null, usingHeader))
+			assertThat(callWebservice("bob", "1qaz2wsx", "3j", null, usingHeader).getContentAsString())
 					.is(returningValidCredentialUntil(dateTime(2014, 1, 5, 3, 0, 3)))
 					.has(returnedServiceKey("agent_bob"));
 
-			assertThat(callWebservice("dakota", "wololo", "49h", null, usingHeader))
+			assertThat(callWebservice("dakota", "wololo", "49h", null, usingHeader).getContentAsString())
 					.is(returningValidCredentialUntil(dateTime(2014, 1, 4, 4, 0, 3)))
 					.has(returnedServiceKey("agent_dakota"));
 
-			assertThat(callWebservice("admin", "1qaz2wsx", "26", "alice", usingHeader))
+			assertThat(callWebservice("admin", "1qaz2wsx", "26", "alice", usingHeader).getContentAsString())
 					.is(returningValidCredentialUntil(dateTime(2014, 1, 3, 5, 0, 3)))
 					.has(returnedServiceKey("agent_alice"));
 
-			assertThat(callWebservice("", "wololo", "12h", null, usingHeader)).isEqualTo(PARAM_USERNAME_REQUIRED);
-			assertThat(callWebservice("admin", "", "12h", null, usingHeader)).isEqualTo(PARAM_PASSWORD_REQUIRED);
-			assertThat(callWebservice("admin", "1qaz", "", null, usingHeader)).isEqualTo(PARAM_DURATION_REQUIRED);
-			assertThat(callWebservice("admin", "wololo", "12h", null, usingHeader)).isEqualTo(BAD_USERNAME_PASSWORD);
-			assertThat(callWebservice("dakota", "wololo", "12h", "alice", usingHeader)).isEqualTo(REQUIRE_ADMIN_RIGHTS);
-			assertThat(callWebservice("admin", "1qaz2wsx", "12h", "johny", usingHeader)).isEqualTo(BAD_ASUSER);
-			assertThat(callWebservice("admin", "1qaz2wsx", "12w", "alice", usingHeader)).isEqualTo(BAD_DURATION);
+			WebResponse missingUsernameResponse = callWebservice("", "wololo", "12h", null, usingHeader);
+			assertThat(missingUsernameResponse.getContentAsString()).isEqualTo(PARAM_USERNAME_REQUIRED);
+			assertThat(missingUsernameResponse.getStatusCode()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+
+			WebResponse missingPasswordResponse = callWebservice("admin", "", "12h", null, usingHeader);
+			assertThat(missingPasswordResponse.getContentAsString()).isEqualTo(PARAM_PASSWORD_REQUIRED);
+			assertThat(missingPasswordResponse.getStatusCode()).isEqualTo(HttpStatus.SC_UNAUTHORIZED);
+
+			WebResponse missingDurationResponse = callWebservice("admin", "1qaz", "", null, usingHeader);
+			assertThat(missingDurationResponse.getContentAsString()).isEqualTo(PARAM_DURATION_REQUIRED);
+			assertThat(missingDurationResponse.getStatusCode()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+
+			WebResponse invalidUsernamePasswordCombinationResponse = callWebservice("admin", "wololo", "12h", null, usingHeader);
+			assertThat(invalidUsernamePasswordCombinationResponse.getContentAsString()).isEqualTo(BAD_USERNAME_PASSWORD);
+			assertThat(invalidUsernamePasswordCombinationResponse.getStatusCode()).isEqualTo(HttpStatus.SC_UNAUTHORIZED);
+
+			WebResponse invalidPermissionsResponse = callWebservice("dakota", "wololo", "12h", "alice", usingHeader);
+			assertThat(invalidPermissionsResponse.getContentAsString()).isEqualTo(REQUIRE_ADMIN_RIGHTS);
+			assertThat(invalidPermissionsResponse.getStatusCode()).isEqualTo(HttpStatus.SC_UNAUTHORIZED);
+
+			WebResponse invalidAsUserParamResponse = callWebservice("admin", "1qaz2wsx", "12h", "johny", usingHeader);
+			assertThat(invalidAsUserParamResponse.getContentAsString()).isEqualTo(BAD_ASUSER);
+			assertThat(invalidAsUserParamResponse.getStatusCode()).isEqualTo(HttpStatus.SC_UNAUTHORIZED);
+
+			WebResponse invalidDurationResponse = callWebservice("admin", "1qaz2wsx", "12w", "alice", usingHeader);
+			assertThat(invalidDurationResponse.getContentAsString()).isEqualTo(BAD_DURATION);
+			assertThat(invalidDurationResponse.getStatusCode()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
 		}
 	}
 
@@ -148,16 +170,17 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 		};
 	}
 
-	private String callWebservice(String username, String password, String duration, String asUser, boolean usingHeader)
+	private WebResponse callWebservice(String username, String password, String duration, String asUser,
+									   boolean usingHeader)
 			throws Exception {
 		WebClient webClient = new WebClient();
+		webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
 		WebRequest webRequest;
 
 		if (usingHeader) {
 			String url = "http://localhost:7070/constellio/generateToken";
 
 			webRequest = new WebRequest(new URL(url));
-
 			webRequest.setAdditionalHeader("username", username);
 			webRequest.setAdditionalHeader("password", password);
 			webRequest.setAdditionalHeader("duration", duration);
@@ -173,8 +196,7 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 		}
 
 		Page page = webClient.getPage(webRequest);
-		String html = page.getWebResponse().getContentAsString();
-		return html;
+		return page.getWebResponse();
 	}
 
 }

@@ -93,7 +93,6 @@ import static java.util.Arrays.asList;
 import static java.util.Locale.ENGLISH;
 
 public class RMTestRecords {
-
 	public CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
 
 	public String categoryId_Z = "categoryId_Z";
@@ -287,6 +286,18 @@ public class RMTestRecords {
 	public String folder_C53 = "C53";
 	public String folder_C54 = "C54";
 	public String folder_C55 = "C55";
+
+	public List<String> folders = Arrays.asList(folder_A01, folder_A02, folder_A03, folder_A04, folder_A05, folder_A06, folder_A07,
+			folder_A08, folder_A09, folder_A10, folder_A11, folder_A12, folder_A13, folder_A14, folder_A15, folder_A16, folder_A17,
+			folder_A18, folder_A19, folder_A20, folder_A21, folder_A22, folder_A23, folder_A24, folder_A25, folder_A26, folder_A27,
+			folder_A42, folder_A43, folder_A44, folder_A45, folder_A46, folder_A47, folder_A48, folder_A49, folder_A50, folder_A51,
+			folder_A52, folder_A53, folder_A54, folder_A55, folder_A56, folder_A57, folder_A58, folder_A59, folder_A79, folder_A80,
+			folder_A81, folder_A82, folder_A83, folder_A84, folder_A85, folder_A86, folder_A87, folder_A88, folder_A89, folder_A90,
+			folder_A91, folder_A92, folder_A93, folder_A94, folder_A95, folder_A96, folder_B01, folder_B02, folder_B03, folder_B04,
+			folder_B05, folder_B06, folder_B07, folder_B08, folder_B09, folder_B30, folder_B31, folder_B32, folder_B33, folder_B34,
+			folder_B35, folder_B50, folder_B51, folder_B52, folder_B53, folder_B54, folder_B55, folder_C01, folder_C02, folder_C03,
+			folder_C04, folder_C05, folder_C06, folder_C07, folder_C08, folder_C09, folder_C30, folder_C31, folder_C32, folder_C33,
+			folder_C34, folder_C35, folder_C50, folder_C51, folder_C52, folder_C53, folder_C54, folder_C55);
 
 	public String document_A19 = "docA19";
 	public String document_A49 = "docA49";

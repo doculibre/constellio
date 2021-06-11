@@ -52,7 +52,7 @@ public class ConstellioPluginConfigurationManager {
 
 	public List<String> getActivePluginsIds() {
 		List<String> activePluginIds = getPluginsWithStatus(ENABLED);
-		LOGGER.warn("Active plugin ids of tenant '" + TenantUtils.getTenantId() + "' : " + activePluginIds);
+		LOGGER.trace("Active plugin ids of tenant '" + TenantUtils.getTenantId() + "' : " + activePluginIds);
 		return activePluginIds;
 	}
 
@@ -72,7 +72,7 @@ public class ConstellioPluginConfigurationManager {
 
 	public void markPluginAsEnabled(String pluginId)
 			throws ConstellioPluginConfigurationManagerRuntimeException {
-		LOGGER.warn("marking plugin '" + pluginId + " ' as enabled for tenant " + TenantUtils.getTenantId(), new Exception());
+		LOGGER.trace("marking plugin '" + pluginId + " ' as enabled for tenant " + TenantUtils.getTenantId(), new Exception());
 		ConstellioPluginStatus status = prValidateModule(pluginId);
 		switch (status) {
 			case INVALID:
@@ -104,7 +104,7 @@ public class ConstellioPluginConfigurationManager {
 
 	public void markPluginAsDisabled(String pluginId)
 			throws ConstellioPluginConfigurationManagerRuntimeException {
-		LOGGER.warn("marking plugin '" + pluginId + " ' as disabled for tenant " + TenantUtils.getTenantId(), new Exception());
+		LOGGER.trace("marking plugin '" + pluginId + " ' as disabled for tenant " + TenantUtils.getTenantId(), new Exception());
 		ConstellioPluginStatus status = prValidateModule(pluginId);
 		switch (status) {
 			case INVALID:
@@ -148,7 +148,7 @@ public class ConstellioPluginConfigurationManager {
 
 	public void installPlugin(String pluginId, String pluginTitle, String version, String requiredConstellioVersion) {
 		//LOGGER.info("Detected plugin : " + pluginId + "-" + version + " (" + pluginTitle + ")");
-		LOGGER.warn("installing plugin '" + pluginId + " ' for tenant " + TenantUtils.getTenantId(), new Exception());
+		LOGGER.trace("installing plugin '" + pluginId + " ' for tenant " + TenantUtils.getTenantId(), new Exception());
 		final ConstellioPluginInfo pluginInfo = new ConstellioPluginInfo()
 				.setLastInstallDate(TimeProvider.getLocalDate())
 				.setPluginStatus(READY_TO_INSTALL)
@@ -265,7 +265,7 @@ public class ConstellioPluginConfigurationManager {
 	}
 
 	void invalidateModule(final String pluginId, final PluginActivationFailureCause cause, final Throwable throwable) {
-		LOGGER.warn("invalidate module'" + pluginId + " ' for tenant " + TenantUtils.getTenantId(), new Exception());
+		LOGGER.trace("invalidate module'" + pluginId + " ' for tenant " + TenantUtils.getTenantId(), new Exception());
 		if (pluginId != null) {
 			configManager.updateXML(PLUGINS_CONFIG_PATH, new DocumentAlteration() {
 				@Override

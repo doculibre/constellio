@@ -478,7 +478,7 @@ public class MetadataSchemaBuilder {
 
 		Map<String, Set<String>> allAutoMetadatasDependencies = newSchemaUtils().calculatedMetadataDependencies(newMetadatas);
 
-		List<String> sequenceMetadatas = newMetadatas.onlySequence().toLocalCodesList();
+		List<String> sequenceMetadatas = newMetadatas.onlySequenceAndAdvancedSequence().toLocalCodesList();
 		Set<String> metadatasDependingOnSequence = new HashSet<>(sequenceMetadatas);
 		Map<String, Set<String>> autoMetadatasDependencies = new HashMap<>();
 		Map<String, Set<String>> autoMetadatasDependenciesBasedOnSequence = new HashMap<>();
@@ -534,7 +534,7 @@ public class MetadataSchemaBuilder {
 		steps.add(new ValidateUsingSchemaValidatorsRecordPreparationStep(new ArrayList<>(recordValidators)));
 
 		if (!sequenceMetadatas.isEmpty()) {
-			steps.add(new SequenceRecordPreparationStep(newMetadatas.onlySequence()));
+			steps.add(new SequenceRecordPreparationStep(newMetadatas.onlySequenceAndAdvancedSequence()));
 		}
 
 		if (!autoMetasBasedOnSequence.isEmpty()) {

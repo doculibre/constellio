@@ -144,6 +144,12 @@ public class EventTypeUtils implements Serializable {
 			return $("ListEventsView.batchProcessEvents.created");
 		} else if (eventType.equals(EventType.SIGN_DOCUMENT)) {
 			return $("ListEventsView.signature");
+		} else if (eventType.equals(EventType.SIGNATURE_REQUEST)) {
+			return $("ListEventsView.signatureRequest");
+		} else if (eventType.equals(EventType.EMPTY_DOCUMENT)) {
+			return $("ListEventsView.emptyDocuments");
+		} else if (eventType.equals(EventType.SCANNED_DOCUMENT)) {
+			return $("ListEventsView.scannedDocument");
 		} else {
 			throw new UnsupportedEventTypeRuntimeException(eventType);
 		}
@@ -192,6 +198,8 @@ public class EventTypeUtils implements Serializable {
 			} else if (eventType.equals(EventType.SIGN_DOCUMENT)) {
 				metadataCodes.add(Event.USERNAME);
 				metadataCodes.add(Event.IP);
+			} else if (eventType.equals(EventType.SCANNED_DOCUMENT)) {
+				metadataCodes.add(Event.PAGE_COUNT);
 			}
 		} else if (isUserEvent(eventType) ||
 				   isGroupEvent(eventType)) {

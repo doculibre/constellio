@@ -81,7 +81,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 					Metadata parentMetadata = schema.getMetadata(HierarchicalValueListItem.PARENT);
 					LogicalSearchQuery query = new LogicalSearchQuery();
 					query.setCondition(from(schema).where(parentMetadata).is(recordVO.getRecord()));
-					query.filteredWithUser(getCurrentUser());
+					query.filteredWithUserRead(getCurrentUser());
 					query.filteredByStatus(StatusFilter.ACTIVES);
 					query.sortAsc(Schemas.TITLE);
 					return query;

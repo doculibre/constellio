@@ -11,6 +11,8 @@ import java.util.Map;
 
 public interface SessionContext extends Serializable, ExternalWebSignIn {
 
+	public static final String BYPASS_SSO = "bypassSso";
+
 	<T extends Object> T getAttribute(String key);
 
 	void setAttribute(String key, Object value);

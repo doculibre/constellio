@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.any;
@@ -26,6 +27,7 @@ import static java.util.Arrays.asList;
 
 public class ConditionTemplateFactory {
 
+	private static final Pattern NUMBER_REGEX_PATTERN = Pattern.compile("\\d+");
 	private String collection;
 	private ModelLayerFactory modelLayerFactory;
 
@@ -72,53 +74,77 @@ public class ConditionTemplateFactory {
 				}
 			};
 		}
-		String cleanedText = AccentApostropheCleaner.removeAccents(text).toLowerCase();
 
-		String[] cleanedTextWords = cleanedText.split(" ");
+		final LogicalSearchCondition logicalSearchCondition;
+		List<LogicalSearchCondition> conditions = new ArrayList<>();
 
-		final LogicalSearchCondition condition;
-		metadatas = new ArrayList<>(metadatas);
+		String[] splittedTextWords = text.split(" ");
+		List<String> cleanedForAutocompleteExtraFieldsWordsList = new ArrayList<>();
+		List<String> cleanedForAutocompleteFieldsWordsList = new ArrayList<>();
+		String lastWord = "";
 
-		boolean schemaAutocomplete = false;
-		for (Metadata metadata : metadatas) {
-			schemaAutocomplete |= metadata.getLocalCode().equals(Schemas.SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode());
-		}
-
-		if (!schemaAutocomplete) {
-			metadatas.add(Schemas.SCHEMA_AUTOCOMPLETE_FIELD);
-		}
-
-		if (cleanedTextWords.length == 1) {
-			if (cleanedText.endsWith(" ")) {
-				condition = whereAny(metadatas).isEqualTo(cleanedText.trim());
+		for (int i = 0; i < splittedTextWords.length; i++) {
+			String splittedTextWord = splittedTextWords[i];
+			boolean containsNumber = NUMBER_REGEX_PATTERN.matcher(splittedTextWord).find();
+			if (!containsNumber && !splittedTextWord.contains("-") && !splittedTextWord.contains("_") && !splittedTextWord.contains(".")) {
+				cleanedForAutocompleteExtraFieldsWordsList.add(cleanText(splittedTextWord));
 			} else {
-				condition = whereAny(metadatas).isStartingWithText(cleanedText.trim())
-						.orWhereAny(metadatas).isEqualTo(cleanedText.trim());
+				cleanedForAutocompleteFieldsWordsList.add(cleanText(splittedTextWord));
 			}
-		} else {
+			if (i == splittedTextWords.length - 1) {
+				lastWord = cleanText(splittedTextWord);
+			}
+		}
+
+		conditions.add(buildCondition(cleanedForAutocompleteFieldsWordsList, asList(Schemas.SCHEMA_AUTOCOMPLETE_FIELD), text.endsWith(" "),
+				lastWord));
+		List<Metadata> queryMetadatas = getListWithAutocompleteFieldMetadata(metadatas);
+		conditions.add(buildCondition(cleanedForAutocompleteExtraFieldsWordsList, queryMetadatas, text.endsWith(" "), lastWord));
+		conditions.removeIf(condition -> condition == null);
+		logicalSearchCondition = allConditions(conditions);
+
+		return ongoing -> ongoing.where(logicalSearchCondition);
+	}
+
+	private static List<Metadata> getListWithAutocompleteFieldMetadata(List<Metadata> metadatas) {
+		boolean schemaAutocompleteAlreadyIncluded = false;
+		for (Metadata metadata : metadatas) {
+			if (metadata.getLocalCode().equals(Schemas.SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode())) {
+				schemaAutocompleteAlreadyIncluded = true;
+			}
+		}
+		List<Metadata> queryMetadatas = new ArrayList<>(metadatas);
+		if (!schemaAutocompleteAlreadyIncluded) {
+			queryMetadatas.add(Schemas.SCHEMA_AUTOCOMPLETE_FIELD);
+		}
+		return queryMetadatas;
+	}
+
+	private static String cleanText(String text) {
+		return AccentApostropheCleaner.removeAccents(text).replace("(", "").replace(")", "").toLowerCase();
+	}
+
+	private static LogicalSearchCondition buildCondition(List<String> cleanedTextWords, List<Metadata> metadatas,
+														 boolean endsWithSpace, String lastWord) {
+		LogicalSearchCondition condition;
+		if (cleanedTextWords.size() >= 1) {
 			List<LogicalSearchCondition> conditions = new ArrayList<>();
-			for (int i = 0; i < cleanedTextWords.length; i++) {
-				if (i + 1 == cleanedTextWords.length) {
-					if (cleanedText.endsWith(" ")) {
-						conditions.add(whereAny(metadatas).isEqualTo(cleanedTextWords[i]));
+			for (int i = 0; i < cleanedTextWords.size(); i++) {
+				if (lastWord.equals(cleanedTextWords.get(i))) {
+					if (endsWithSpace) {
+						conditions.add(whereAny(metadatas).isEqualTo(cleanedTextWords.get(i)));
 					} else {
-						conditions.add(whereAny(metadatas).isStartingWithText(cleanedTextWords[i])
-								.orWhereAny(metadatas).isEqualTo(cleanedTextWords[i]));
+						conditions.add(whereAny(metadatas).isStartingWithText(cleanedTextWords.get(i)));
 					}
 				} else {
-					conditions.add(whereAny(metadatas).isEqualTo(cleanedTextWords[i]));
+					conditions.add(whereAny(metadatas).isEqualTo(cleanedTextWords.get(i)));
 				}
 			}
 			condition = allConditions(conditions);
+		} else {
+			condition = null;
 		}
-
-		return new LogicalSearchConditionBuilder() {
-			@Override
-			public LogicalSearchCondition build(OngoingLogicalSearchCondition ongoing) {
-				return ongoing.where(condition);
-			}
-		};
-
+		return condition;
 	}
 
 	public ConditionTemplate metadatasHasAnalyzedValue(String value, Metadata... metadatas) {

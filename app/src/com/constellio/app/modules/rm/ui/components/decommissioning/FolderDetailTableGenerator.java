@@ -1,5 +1,15 @@
 package com.constellio.app.modules.rm.ui.components.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleReferenceDisplay;
@@ -16,6 +26,7 @@ import com.constellio.app.ui.framework.components.fields.number.BaseDoubleField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
+import com.vaadin.data.Container;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.converter.Converter.ConversionException;
@@ -26,16 +37,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String CHECKBOX = "checkbox";
@@ -113,6 +114,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		boolean askedForApprobation = presenter.isInApprobation() && !presenter.canApprove();
 		if (!(askedForApprobation || presenter.isApproved() || presenter.isProcessed())) {
 			table.addGeneratedColumn(CHECKBOX, this);
+			table.setColumnCollapsible(CHECKBOX, false);
 			table.setColumnHeader(CHECKBOX, "");
 			table.setColumnAlignment(CHECKBOX, Align.CENTER);
 			visibleColumns.add(CHECKBOX);
@@ -120,6 +122,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 
 		if (displayOrderNumber) {
 			table.addGeneratedColumn(ORDER, this);
+			table.setColumnCollapsible(ORDER, false);
 			table.setColumnHeader(ORDER, "#");
 			table.setColumnAlignment(ORDER, Align.CENTER);
 			visibleColumns.add(ORDER);
@@ -133,6 +136,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 
 		if (displaySort) {
 			table.addGeneratedColumn(SORT, this);
+			table.setColumnCollapsible(SORT, false);
 			table.setColumnHeader(SORT, $("DecommissioningListView.sort." + presenter.getSortAction()));
 			table.setColumnAlignment(SORT, Align.CENTER);
 			visibleColumns.add(SORT);
@@ -140,60 +144,65 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 
 		if (displayValidation) {
 			table.addGeneratedColumn(VALIDATION_CHECKBOX, this);
+			table.setColumnCollapsible(VALIDATION_CHECKBOX, false);
 			table.setColumnHeader(VALIDATION_CHECKBOX, $("DecommissioningListView.folderDetails.checkbox"));
 			visibleColumns.add(VALIDATION_CHECKBOX);
 		}
+		
+		table.addGeneratedColumn(FOLDER, this, true);
+		table.setColumnCollapsible(FOLDER, false);
+		table.setColumnHeader(FOLDER, $("DecommissioningListView.folderDetails.folder"));
+		table.setColumnExpandRatio(FOLDER, 1);
+		visibleColumns.add(FOLDER);
+		
+		if (presenter.canCurrentUserManageContainers() && !presenter.areContainersHidden()) {
+			table.addGeneratedColumn(CONTAINER, this, true);
+			table.setColumnCollapsible(CONTAINER, false);
+			table.setColumnHeader(CONTAINER, $("DecommissioningListView.folderDetails.container"));
+			visibleColumns.add(CONTAINER);
+		}
+		
+		if (displayCategory) {
+			table.addGeneratedColumn(CATEGORY_CODE, this, true);
+			table.setColumnCollapsible(CATEGORY_CODE, false);
+			table.setColumnHeader(CATEGORY_CODE, $("DecommissioningListView.folderDetails.categoryCode"));
+			visibleColumns.add(CATEGORY_CODE);
+		}
+
+		if (displayRetentionRule) {
+			table.addGeneratedColumn(RETENTION_RULE, this, true);
+			table.setColumnCollapsible(RETENTION_RULE, false);
+			table.setColumnHeader(RETENTION_RULE, $("DecommissioningListView.folderDetails.retentionRule"));
+			visibleColumns.add(RETENTION_RULE);
+		}
+
+		table.addGeneratedColumn(LINEAR_SIZE, this, true);
+		table.setColumnHeader(LINEAR_SIZE, $("folderLinearSize"));
+		visibleColumns.add(LINEAR_SIZE);
+
+		table.addGeneratedColumn(MEDIUM, this, true);
+		table.setColumnHeader(MEDIUM, $("DecommissioningListView.folderDetails.medium"));
+		visibleColumns.add(MEDIUM);
+
+		table.addGeneratedColumn(FOLDER_ID, this, true);
+		table.setColumnHeader(FOLDER_ID, $("DecommissioningListView.folderDetails.id"));
+		visibleColumns.add(FOLDER_ID);
 
 		List<Metadata> userSummaryMetadatas = presenter.getUserSummaryMetadatas();
-
 		userSummaryMetadatas.sort(Comparator.comparing(this::getLabel));
 		for (Metadata metadata : userSummaryMetadatas) {
 			String code = metadata.getLocalCode();
 			switch (code) {
 				case Folder.TITLE:
-					table.addGeneratedColumn(FOLDER, this);
-					table.setColumnHeader(FOLDER, $("DecommissioningListView.folderDetails.folder"));
-					table.setColumnExpandRatio(FOLDER, 1);
-					visibleColumns.add(FOLDER);
-					break;
 				case Folder.CONTAINER:
-					if (presenter.canCurrentUserManageContainers() && !presenter.areContainersHidden()) {
-						table.addGeneratedColumn(CONTAINER, this);
-						table.setColumnHeader(CONTAINER, $("DecommissioningListView.folderDetails.container"));
-						visibleColumns.add(CONTAINER);
-					}
-					break;
 				case Folder.RETENTION_RULE:
-					if (displayRetentionRule) {
-						table.addGeneratedColumn(RETENTION_RULE, this);
-						table.setColumnHeader(RETENTION_RULE, $("DecommissioningListView.folderDetails.retentionRule"));
-						visibleColumns.add(RETENTION_RULE);
-					}
-					break;
 				case Folder.CATEGORY:
-					if (displayCategory) {
-						table.addGeneratedColumn(CATEGORY_CODE, this);
-						table.setColumnHeader(CATEGORY_CODE, $("DecommissioningListView.folderDetails.categoryCode"));
-						visibleColumns.add(CATEGORY_CODE);
-					}
-					break;
 				case Folder.LINEAR_SIZE:
-					table.addGeneratedColumn(LINEAR_SIZE, this);
-					table.setColumnHeader(LINEAR_SIZE, $("folderLinearSize"));
-					visibleColumns.add(LINEAR_SIZE);
-					break;
 				case Folder.MEDIUM_TYPES:
-					table.addGeneratedColumn(MEDIUM, this);
-					table.setColumnHeader(MEDIUM, $("DecommissioningListView.folderDetails.medium"));
-					visibleColumns.add(MEDIUM);
-					break;
 				case "id":
-					table.addGeneratedColumn(FOLDER_ID, this);
-					table.setColumnHeader(FOLDER_ID, $("DecommissioningListView.folderDetails.id"));
-					visibleColumns.add(FOLDER_ID);
 					break;
 				default:
-					table.addGeneratedColumn(code, this);
+					table.addGeneratedColumn(code, this, false);
 					table.setColumnHeader(code, getLabel(metadata));
 					visibleColumns.add(code);
 			}
@@ -240,7 +249,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			case LINEAR_SIZE:
 				return buildLinearSize(detail);
 			case ORDER:
-				return buildOrderNumber(detail);
+				return buildOrderNumber(detail, source);
 			default:
 				Map<String, Object> summaryMetadatasMap = detail.getSummaryMetadatasMap();
 				if (summaryMetadatasMap.containsKey(columnId)) {
@@ -251,8 +260,10 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		}
 	}
 
-	private Object buildOrderNumber(FolderDetailVO detail) {
-		return new Label(presenter.getOrderNumber(detail.getFolderId()));
+	private Object buildOrderNumber(FolderDetailVO detail, Table table) {
+		Container.Indexed container = (Container.Indexed) table.getContainerDataSource();
+		int displayedIndex = container.indexOfId(detail) + 1;
+		return new Label("" + displayedIndex);
 	}
 
 	private Component buildCheckBox(final FolderDetailVO detail) {

@@ -76,7 +76,12 @@ public class MetadataIndexCacheDataStore implements Closeable {
 	public <K> RecordCountHookDataIndexRetriever<K> registerRecordCountHook(byte collectionId,
 																			MetadataIndexCacheDataStoreHook hook) {
 
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collectionId);
+		MetadataSchemaTypes types = null;
+		try {
+			types = schemasManager.getSchemaTypes(collectionId);
+		} catch(Throwable ignored) {
+			//OK, types are not initialized, but they are monitored
+		}
 		RecordCountHookHandler handler = new RecordCountHookHandler(hook, types);
 		hooks.add(collectionId, handler);
 		return new RecordCountHookDataIndexRetriever(handler.getMap());
@@ -86,7 +91,12 @@ public class MetadataIndexCacheDataStore implements Closeable {
 	public <K> RecordIdsHookDataIndexRetriever<K> registerRecordIdsHook(
 			byte collectionId, MetadataIndexCacheDataStoreHook hook) {
 
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collectionId);
+		MetadataSchemaTypes types = null;
+		try {
+			types = schemasManager.getSchemaTypes(collectionId);
+		} catch(Throwable ignored) {
+			//OK, types are not initialized, but they are monitored
+		}
 		RecordIdsHookHandler handler = new RecordIdsHookHandler<>(hook, types);
 		hooks.add(collectionId, handler);
 		return new RecordIdsHookDataIndexRetriever<>(handler.getMap());
@@ -283,6 +293,9 @@ public class MetadataIndexCacheDataStore implements Closeable {
 
 	public List<RecordId> searchIds(MetadataSchemaType schemaType, Metadata metadata, Object value) {
 
+		if (value instanceof List<?>) {
+			throw new IllegalArgumentException("value cannot be a List. Seperately call for each item");
+		}
 
 		if (metadata != null && metadata.getSchemaTypeCode().equals("global")) {
 			metadata = schemaType.getDefaultSchema().get(metadata.getLocalCode());
@@ -414,11 +427,20 @@ public class MetadataIndexCacheDataStore implements Closeable {
 
 		if (!LangUtils.isEqual(newValue, oldValue)) {
 			if (!metadataIndexMap.isEmpty()) {
-				removeRecordIdToMapByValue(oldValue, oldVersion.getRecordId(), metadataIndexMap, currentMetadata);
+
+				if (currentMetadata.isUniqueValue() && currentMetadata.isMultivalue()) {
+					((List<?>) oldValue).forEach(valueToRemove -> removeRecordIdToMapByValue(valueToRemove, oldVersion.getRecordId(), metadataIndexMap, currentMetadata));
+				} else {
+					removeRecordIdToMapByValue(oldValue, oldVersion.getRecordId(), metadataIndexMap, currentMetadata);
+				}
 			}
 
 			if (!isNewValueNull) {
-				addRecordIdToMapByValue(newValue, newVersion.getRecordId(), metadataIndexMap, currentMetadata);
+				if (currentMetadata.isUniqueValue() && currentMetadata.isMultivalue()) {
+					((List<?>) newValue).forEach(valueToAdd -> addRecordIdToMapByValue(valueToAdd, oldVersion.getRecordId(), metadataIndexMap, currentMetadata));
+				} else {
+					addRecordIdToMapByValue(newValue, newVersion.getRecordId(), metadataIndexMap, currentMetadata);
+				}
 			}
 		}
 	}
@@ -444,7 +466,12 @@ public class MetadataIndexCacheDataStore implements Closeable {
 		if (!isObjectNullOrEmpty(newValue)) {
 			MetadataIndex metadataIndexMap = getMetadataIndexMap(schemaType, currentMetadata, true);
 
-			addRecordIdToMapByValue(newValue, newVersion.getRecordId(), metadataIndexMap, currentMetadata);
+			if (currentMetadata.isUniqueValue() && currentMetadata.isMultivalue()) {
+				RecordId recordId = newVersion.getRecordId();
+				((List<Object>) newValue).forEach(value -> addRecordIdToMapByValue(value, recordId, metadataIndexMap, currentMetadata));
+			} else {
+				addRecordIdToMapByValue(newValue, newVersion.getRecordId(), metadataIndexMap, currentMetadata);
+			}
 		}
 	}
 

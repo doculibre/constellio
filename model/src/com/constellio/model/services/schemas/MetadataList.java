@@ -553,6 +553,17 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList onlySequenceAndAdvancedSequence() {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		for (Metadata metadata : nestedList) {
+			DataEntryType type = metadata.getDataEntry().getType();
+			if (type == DataEntryType.SEQUENCE || type == DataEntryType.ADVANCED_SEQUENCE) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
 	public MetadataList onlyNotSystemReserved() {
 		List<Metadata> filteredMetadatasList = new ArrayList<>();
 		for (Metadata metadata : nestedList) {

@@ -79,6 +79,9 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 		if (value instanceof Double) {
 			return "double:" + value;
 
+		} else if (value instanceof Integer) {
+			return "integer:" + value;
+
 		} else if (value instanceof Boolean) {
 			return "boolean:" + value;
 
@@ -107,6 +110,9 @@ public class FileSystemReindexingAggregatedValuesTempStorage implements Reindexi
 
 		if ("double".equals(type)) {
 			return Double.valueOf(restOfValue);
+
+		} else if ("integer".equals(type)) {
+			return Integer.valueOf(restOfValue);
 
 		} else if ("boolean".equals(type)) {
 			return Boolean.valueOf(restOfValue);

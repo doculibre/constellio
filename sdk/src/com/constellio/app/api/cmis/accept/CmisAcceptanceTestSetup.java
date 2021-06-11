@@ -15,7 +15,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -80,11 +79,11 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 	@Override
 	public void setUp() {
 
-		MetadataSchemaTypeBuilder documentFondType = typesBuilder.createNewSchemaType("documentFond");
-		categoryType = typesBuilder.createNewSchemaType("category");
-		MetadataSchemaTypeBuilder administrativeUnitType = typesBuilder.createNewSchemaType("administrativeUnit");
-		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("folder").setSecurity(true);
-		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("document").setSecurity(true);
+		MetadataSchemaTypeBuilder documentFondType = typesBuilder.createNewSchemaTypeWithSecurity("documentFond");
+		categoryType = typesBuilder.createNewSchemaTypeWithSecurity("category");
+		MetadataSchemaTypeBuilder administrativeUnitType = typesBuilder.createNewSchemaTypeWithSecurity("administrativeUnit");
+		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaTypeWithSecurity("folder").setSecurity(true);
+		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaTypeWithSecurity("document").setSecurity(true);
 
 		setupTaxonomy1(documentFondType, categoryType);
 		setupTaxonomy2(administrativeUnitType);

@@ -30,6 +30,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -194,4 +195,7 @@ public class ListExternalLinksPresenter extends BasePresenter<ListExternalLinksV
 		return result;
 	}
 
+	public boolean hasExternalLinks() {
+		return CollectionUtils.isEmpty(rm.getFolder(folderId).getExternalLinks()) ? false : true;
+	}
 }

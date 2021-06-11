@@ -2,8 +2,11 @@ package com.constellio.app.start;
 
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.utils.dev.Toggle;
+import com.google.common.collect.Lists;
+import org.eclipse.jetty.http.HttpCookie;
 import org.eclipse.jetty.http.HttpVersion;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.ForwardedRequestCustomizer;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
@@ -37,15 +40,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.servlet.Servlet;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class ApplicationStarter {
 
@@ -74,7 +68,6 @@ public class ApplicationStarter {
 		List<String> resources = new ArrayList<String>();
 		resources.add(params.getWebContentDir().getAbsolutePath());
 
-
 		server = newServer(params);
 
 		// Static file handler
@@ -98,6 +91,11 @@ public class ApplicationStarter {
 		handler.setClassLoader(Thread.currentThread().getContextClassLoader());
 
 		handler.getSessionHandler().getSessionCookieConfig().setHttpOnly(true);
+
+		if (params.isSSL() || params.isHttpsViaProxy()) {
+			handler.getSessionHandler().getSessionCookieConfig().setSecure(true);
+			handler.getSessionHandler().getSessionCookieConfig().setComment(HttpCookie.SAME_SITE_NONE_COMMENT);
+		}
 		//https://bugs.eclipse.org/bugs/show_bug.cgi?id=326612 secure cookie is already enable automatically
 
 		server.setHandler(handler);
@@ -141,6 +139,7 @@ public class ApplicationStarter {
 			http_config.setOutputBufferSize(32768);
 			http_config.setSendServerVersion(false);
 			http_config.setRequestHeaderSize(REQUEST_HEADER_SIZE);
+			http_config.addCustomizer(new ForwardedRequestCustomizer());
 
 			ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(http_config));
 			http.setPort(params.getPort());
@@ -166,7 +165,8 @@ public class ApplicationStarter {
 		Server sslServer = new Server();
 
 		String keystorePath = new FoldersLocator().getKeystoreFile().getAbsolutePath();
-		SslContextFactory sslContextFactory = new SslContextFactory(keystorePath);
+		SslContextFactory sslContextFactory = new SslContextFactory.Server();
+		sslContextFactory.setKeyStorePath(keystorePath);
 		sslContextFactory.setKeyStorePassword(params.getKeystorePassword());
 		sslContextFactory.addExcludeProtocols("SSLv3", "SSLv2", "SSLv2Hello", "TLSv1", "TLSv1.1");
 		sslContextFactory.setSessionCachingEnabled(true);
@@ -203,6 +203,8 @@ public class ApplicationStarter {
 		src.setStsIncludeSubDomains(true);
 		https_config.addCustomizer(src);
 
+		https_config.addCustomizer(new ForwardedRequestCustomizer());
+
 		ServerConnector https = new ServerConnector(sslServer,
 				new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
 				new HttpConnectionFactory(https_config));
@@ -233,10 +235,28 @@ public class ApplicationStarter {
 		registerFilter(pathRelativeToConstellioContext, new FilterHolder(filter));
 	}
 
+
+	public static void registerFilterIfEmpty(String pathRelativeToConstellioContext, Filter filter) {
+		registerFilterIfEmpty(pathRelativeToConstellioContext, new FilterHolder(filter));
+	}
+
 	public static synchronized void registerFilter(String pathRelativeToConstellioContext, FilterHolder filterHolder) {
 		if (handler == null) {
 			if (!filterMappings.containsKey(pathRelativeToConstellioContext)) {
 				filterMappings.put(pathRelativeToConstellioContext, new ArrayList<FilterHolder>());
+			}
+			filterMappings.get(pathRelativeToConstellioContext).add(filterHolder);
+		} else {
+			handler.addFilter(filterHolder, pathRelativeToConstellioContext, EnumSet.allOf(DispatcherType.class));
+		}
+	}
+
+	public static synchronized void registerFilterIfEmpty(String pathRelativeToConstellioContext,
+														  FilterHolder filterHolder) {
+		if (handler == null) {
+			if (!filterMappings.containsKey(pathRelativeToConstellioContext)) {
+				filterMappings.put(pathRelativeToConstellioContext, new ArrayList<FilterHolder>());
+				filterMappings.get(pathRelativeToConstellioContext).add(filterHolder);
 			}
 			filterMappings.get(pathRelativeToConstellioContext).add(filterHolder);
 		} else {
@@ -274,5 +294,12 @@ public class ApplicationStarter {
 			handler.getServletHandler().setFilterMappings(new FilterMapping[0]);
 		}
 		filterMappings.clear();
+	}
+
+	public static List<ServletHolder> getServletHolders() {
+		if (handler != null) {
+			return Lists.newArrayList(handler.getServletHandler().getServlets());
+		}
+		return new ArrayList<>(servletMappings.values());
 	}
 }

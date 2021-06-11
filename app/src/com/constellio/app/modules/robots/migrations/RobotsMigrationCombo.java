@@ -31,7 +31,7 @@ public class RobotsMigrationCombo implements ComboMigrationScript {
 
 	@Override
 	public String getVersion() {
-		return getVersions().get(getVersions().size() - 1).getVersion();
+		return "combo";
 	}
 
 	GeneratedRobotsMigrationCombo generatedComboMigration;

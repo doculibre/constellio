@@ -56,6 +56,14 @@ TextAnnotation.prototype.fromJSON = function(json) {
 	}
 };
 
+TextAnnotation.prototype.getPreText = function() {
+	return "";
+}
+
+TextAnnotation.prototype.getPostText = function() {
+	return "";
+}
+
 TextAnnotation.prototype.bind = function(htmlElement) {
 	Annotation.prototype.bind.call(this, htmlElement);
 	
@@ -85,16 +93,28 @@ TextAnnotation.prototype.convertTextToImage = function() {
 			var imageScale = 5;
 	
 			var type = self.getType();
-			var bigCanvas = $("<div>").appendTo('body');  // This will be the 3x sized canvas we're going to render
+			var bigCanvas = $("<div>").appendTo('body');  // This will be the 5x sized canvas we're going to render
 			bigCanvas[0].classList.add(type);
 			bigCanvas[0].classList.add(type + "-copy-canvas");
 			var scaledElement = $(self.textElement).clone()
 			.css({
 				'display': '',
 				'transform': 'scale('+ imageScale + ',' + imageScale + ')',
-				'transform-origin': '0 0'
+				'transform-origin': '0 0',
+				'white-space': 'pre'
 			})
 			.appendTo(bigCanvas);
+			
+			var preText = self.getPreText();
+			if (preText && preText != "") {
+				var preTextNode = document.createTextNode(preText);
+				scaledElement.prepend(preTextNode);
+			}
+			var postText = self.getPostText();
+			if (postText && postText != "") {
+				var postTextNode = document.createTextNode(postText);
+				scaledElement.append(postTextNode);
+			}
 	
 			var oldWidth = scaledElement.width();
 			var oldHeight = scaledElement.height();

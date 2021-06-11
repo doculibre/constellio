@@ -190,10 +190,8 @@ public class MetadataDeletionService {
 				new SchemaUtils().getSchemaTypeCode(metadata));
 		LogicalSearchCondition query;
 		Object defaultValue = metadata.getDefaultValue();
-		if (defaultValue != null) {
-			if (metadata.isEncrypted()) {
-				defaultValue = encryptionServices.encryptWithAppKey(defaultValue.toString());
-			}
+
+		if (defaultValue != null && !metadata.isEncrypted()) {
 			query = from(schemaType).where(metadata).isNotEqual(defaultValue).andWhere(metadata)
 					.isNotNull();
 		} else {

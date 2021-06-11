@@ -29,7 +29,6 @@ import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
 import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -62,7 +61,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		implements FieldOverridePresenter, SearchCriteriaPresenter, DynamicParametersPresenter {
@@ -214,25 +212,16 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	@Override
 	public List<MetadataVO> getMetadataAllowedInCriteria() {
 		MetadataSchemaType schemaType = types().getSchemaType(schemaFilter);
-		List<FacetValue> schema_s = modelLayerFactory.newSearchServices().query(new LogicalSearchQuery()
-				.setNumberOfRows(0)
-				.setCondition(from(schemaType).returnAll()).addFieldFacet("schema_s").filteredWithUser(getCurrentUser()))
-				.getFieldFacetValues("schema_s");
 		Set<String> metadataCodes = new HashSet<>();
-		if (schema_s != null) {
-			for (FacetValue facetValue : schema_s) {
-				if (facetValue.getQuantity() > 0) {
-					String schema = facetValue.getValue();
-					for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-						if (metadata.getInheritance() != null && metadata.isEnabled()) {
-							metadataCodes.add(metadata.getInheritance().getCode());
-						} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
-							metadataCodes.add(metadata.getCode());
-						}
-					}
+		schemaType.getAllSchemas().stream().forEach(schema -> {
+			for (Metadata metadata : schema.getMetadatas()) {
+				if (metadata.getInheritance() != null && metadata.isEnabled()) {
+					metadataCodes.add(metadata.getInheritance().getCode());
+				} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
+					metadataCodes.add(metadata.getCode());
 				}
 			}
-		}
+		});
 
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
@@ -440,7 +429,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	}
 
 	protected LogicalSearchQuery getSearchQuery(List<Criterion> searchCriteria) {
-		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition(searchCriteria)).filteredWithUser(getCurrentUser())
+		LogicalSearchQuery query = new LogicalSearchQuery(getSearchCondition(searchCriteria)).filteredWithUserRead(getCurrentUser())
 				.filteredByStatus(StatusFilter.ACTIVES).setPreferAnalyzedFields(true);
 
 		query.setReturnedMetadatas(

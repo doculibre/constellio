@@ -37,7 +37,9 @@ public class SchemaRecordActionsServices {
 
 	public boolean isDeleteActionPossible(Record record, User user) {
 		return appLayerCollectionExtensions.isDeleteActionPossibleOnSchemaRecord(record, user)
-			   && modelLayerCollectionextensions.validateDeleteAuthorized(record, user).isEmpty() && recordServices.validateLogicallyDeletable(record, user).isEmpty();
+			   && modelLayerCollectionextensions.validateDeleteAuthorized(record, user).isEmpty()
+			   && recordServices.validateLogicallyDeletable(record, user).isEmpty()
+			   && modelLayerCollectionextensions.isValueListManageable(record.getSchemaCode());
 	}
 
 	public boolean isSequencesActionPossible(Record record, User user, BaseView view) {

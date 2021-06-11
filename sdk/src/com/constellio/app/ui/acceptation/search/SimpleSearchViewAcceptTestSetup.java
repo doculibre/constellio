@@ -42,7 +42,7 @@ public class SimpleSearchViewAcceptTestSetup extends SchemasSetup {
 
 	@Override
 	public void setUp() {
-		MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(DOCUMENT);
+		MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaTypeWithSecurity(DOCUMENT);
 		builder.getDefaultSchema().create("bodyText").addLabel(Language.French, "Body text").setType(MetadataValueType.TEXT)
 				.setSearchable(true);
 		builder.getDefaultSchema().create("number").addLabel(Language.French, "Number").setType(MetadataValueType.NUMBER)

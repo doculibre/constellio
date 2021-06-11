@@ -19,11 +19,11 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
+import com.constellio.model.entities.records.ImpactHandlingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.UnhandledRecordModificationImpactHandler;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -83,7 +83,8 @@ public class RMMigrationTo6_2 implements MigrationScript {
 				}
 
 				transaction.setSkippingRequiredValuesValidation(true);
-				recordServices.executeWithImpactHandler(transaction, new UnhandledRecordModificationImpactHandler());
+				transaction.getRecordUpdateOptions().setImpactHandlingMode(ImpactHandlingMode.NEXT_SYSTEM_REINDEXING);
+				recordServices.execute(transaction);
 			}
 		}.execute(from(rm.retentionRule.schemaType()).returnAll());
 	}

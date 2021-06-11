@@ -8,6 +8,7 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.GetRecordOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
@@ -123,7 +124,7 @@ public class FileIconUtils implements Serializable {
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
 		try {
-			return getIconForRecordId(recordServices.getDocumentById(recordId), false);
+			return getIconForRecordId(recordServices.get(recordId, GetRecordOptions.RETURNING_SUMMARY), false);
 		} catch (Exception e) {
 			return null;
 		}

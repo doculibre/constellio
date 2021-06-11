@@ -138,10 +138,12 @@ public class StreamFactoriesServices {
 	}
 
 	public void closeQuietly(CloseableStreamFactory<InputStream> inputStreamFactory) {
-		try {
-			inputStreamFactory.close();
-		} catch (IOException e) {
-			return;
+		if (inputStreamFactory != null) {
+			try {
+				inputStreamFactory.close();
+			} catch (IOException e) {
+				return;
+			}
 		}
 	}
 

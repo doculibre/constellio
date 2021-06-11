@@ -64,12 +64,12 @@ public class SingletonConstellioFactoriesInstanceProvider implements ConstellioF
 					//Nothing, just re-entering the while loop for an other attempt
 
 				} catch (AppLayerFactoryRuntineException_ErrorsDuringInitializeShouldNotRetry t) {
-					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. This tenant is now offline");
+					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. This tenant is now offline", t);
 					brokenFactoriesMap.put(tenantId, t.getCause());
 					clear(currentTenantId);
 
 				} catch (Throwable t) {
-					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. This tenant is now offline");
+					LOGGER.info("Factories of tenant '" + tenantId + "' failed to initialize. This tenant is now offline", t);
 					brokenFactoriesMap.put(tenantId, t);
 					clear(currentTenantId);
 

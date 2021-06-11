@@ -1,6 +1,5 @@
 package com.constellio.model.services.users.sync;
 
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
@@ -9,16 +8,25 @@ import com.constellio.model.conf.ldap.services.LDAPServicesFactory;
 import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GroupAddUpdateRequest;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.model.services.users.sync.model.LDAPUsersAndGroups;
 import com.constellio.model.services.users.sync.model.LDAPUsersAndGroupsBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -27,14 +35,20 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.stubbing.OngoingStubbing;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LDAPUserSyncManagerRealTest extends ConstellioTest {
@@ -50,14 +64,17 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	LDAPServicesImpl ldapServices;
 
 
-	private LDAPServerConfiguration ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
-	private LDAPUserSyncConfiguration ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
+	private LDAPServerConfiguration ldapServerConfiguration;
+	private LDAPUserSyncConfiguration ldapUserSyncConfiguration;
 
 	private final String extraCollection = "extraCollection";
 
 	@Before
 	public void setup()
 			throws Exception {
+		ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
+		ldapUserSyncConfiguration = LDAPTestConfig.getLDAPUserSyncConfiguration();
+		
 		//givenConstellioProperties(LDAPTestConfig.getConfigMap());
 		prepareSystem(withZeCollection().withAllTestUsers(),
 				withCollection(businessCollection).withAllTestUsers(),
@@ -284,6 +301,38 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 	}
 
+	@Test
+	public void whenUpdatingUserThenKeepServiceKeysAndTokens()
+			throws Exception {
+		UserServices userServices = modelLayerFactory.newUserServices();
+
+		LDAPGroup caballeros = caballeros();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros)
+				.build());
+
+		sync();
+
+		assertThat(user("dusty").getServiceKey()).isNull();
+		assertThat(user("dusty").getTokenKeys()).isEmpty();
+
+		String serviceKey = userServices.giveNewServiceKey("dusty");
+		String token1 = userServices.generateToken("dusty");
+		String token2 = userServices.generateToken("dusty");
+		String token3 = userServices.generateToken("dusty");
+		assertThat(user("dusty").getServiceKey()).isEqualTo(serviceKey);
+		assertThat(user("dusty").getTokenKeys()).containsOnly(token1, token2, token3);
+
+		//desync philippe and modify name and email
+
+		sync();
+		assertThat(user("dusty").getServiceKey()).isEqualTo(serviceKey);
+		assertThat(user("dusty").getTokenKeys()).containsOnly(token1, token2, token3);
+
+	}
+
+
 	/**
 	 * Lorsqu’un utilisateur synchronisé est rapporté, son nom, prénom et email est ajusté
 	 *
@@ -421,18 +470,23 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User importedUser = user("philippe", businessCollection);
-		UserCredential userCredentialImportedUser = user("philippe");
-		assertThat(importedUser.getFirstName()).isEqualTo("Philippe");
-		assertThat(importedUser.getEmail()).isEqualTo("philippe@doculibre.ca");
-		assertThat(userCredentialImportedUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
+
+		try {
+			user("philippe", businessCollection);
+			fail("Exception expected");
+		} catch (UserServicesRuntimeException_UserIsNotInCollection e) {
+			//OK
+		}
+
+		assertThat(getModelLayerFactory().newUserServices().getNullableUserInfos("philippe").getCollections())
+				.containsOnly("extraCollection");
 	}
 
 	/**
 	 * Lorsqu’un utilisateur synchronisé est rapporté avec une nouvelle assignation, celle-ci est appliquée dans toutes les collections synchronisées et seulement celles-ci
 	 */
 	@Test
-	public void WhenUserSyncedWithANewGroupAssignedApplyOnEveryChosenCollectionsOnSync() {
+	public void whenUserSyncedWithANewGroupAssignedApplyOnEveryChosenCollectionsOnSync() {
 		this.ldapUserSyncConfiguration =
 				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
@@ -479,7 +533,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	 * Lorsqu’un utilisateur synchronisé est rapporté sans une assignation à un groupe synchronisé, celle-ci est retirée dans toutes les collections synchronisées et seulement celles-ci
 	 */
 	@Test
-	public void WhenUserSyncedWithoutAGroupAssignedPreviouslyApplyOnEveryChosenCollectionsOnSync() {
+	public void whenUserSyncedWithoutAGroupAssignedPreviouslyApplyOnEveryChosenCollectionsOnSync() {
 		this.ldapUserSyncConfiguration =
 				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
@@ -598,6 +652,10 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		userAddUpdateRequestBusiness.addToGroupsInCollection(asList("heroes"), businessCollection);
 		userServices.execute(userAddUpdateRequestBusiness);
 
+		User businessNic = user("nicolas", businessCollection);
+		Group localHeroes = group("heroes", businessCollection);
+		assertThat(businessNic.getUserGroups()).contains(localHeroes.getId());
+
 		this.ldapUserSyncConfiguration =
 				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(zeCollection, extraCollection, businessCollection));
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
@@ -613,13 +671,14 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 		sync();
 
-		User businessNic = user("nicolas", businessCollection);
+		businessNic = user("nicolas", businessCollection);
 
-		Group localHeroes = group("heroes", businessCollection);
+		localHeroes = group("heroes", businessCollection);
 		Group localPilotes = group("pilotes", businessCollection);
 		Group localCaballeros = group("caballeros", businessCollection);
 
-		assertThat(businessNic.getUserGroups()).containsAll(asList(localHeroes.getId(), localPilotes.getId()));
+		assertThat(businessNic.getUserGroups()).contains(localHeroes.getId());
+		assertThat(businessNic.getUserGroups()).contains(localPilotes.getId());
 	}
 
 	/**
@@ -744,7 +803,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	@Test
 	public void givenSyncGroupIsNotOnLDAPAnymoreSyncUsersLoseThatGroupAssignation() {
 		this.ldapUserSyncConfiguration =
-				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection));
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
 		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
 		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
@@ -761,7 +820,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		sync();
 
 		this.ldapUserSyncConfiguration =
-				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection));
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
 		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
 		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
@@ -797,9 +856,9 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	 */
 	@Test
 	public void givenSyncGroupHasParentGroupAlsoSyncAllCollectionsHaveSubGroupInParent() {
-		Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.enable();
 		this.ldapUserSyncConfiguration =
 				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+		setFetchSubGroupsEnabled(true);
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
 		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
 		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
@@ -848,9 +907,9 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	 */
 	@Test
 	public void givenSyncGroupHasNoParentAnymoreGroupBecomesRootInAllCollections() {
-		Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.enable();
 		this.ldapUserSyncConfiguration =
 				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
+		setFetchSubGroupsEnabled(true);
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
 		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
 		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
@@ -898,7 +957,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	 */
 	@Test
 	public void givenSyncGroupParentAndSubGroupAreNotFetchedRemoveParentAndSubGroup() {
-		Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.enable();
+		setFetchSubGroupsEnabled(true);
 		this.ldapUserSyncConfiguration =
 				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
@@ -954,7 +1013,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	 */
 	@Test
 	public void givenSyncGroupParentAndAreNotFetchedRemoveParentAndUnsyncedSubGroup() {
-		Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.enable();
+		setFetchSubGroupsEnabled(true);
 		UserServices userServices = modelLayerFactory.newUserServices();
 		this.ldapUserSyncConfiguration =
 				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection, zeCollection, extraCollection));
@@ -1110,18 +1169,17 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		}
 		assertThat(importedUser3).isNull();
 
-		//zecollection has no chuck
-		User localUser = null;
+		User zeChuck = null;
 		try {
-			localUser = user(chuckNorris, zeCollection);
+			zeChuck = user(chuckNorris, zeCollection);
 		} catch (Exception e) {
 		}
 
-		UserCredential userCredentialLocalUser = user(chuckNorris);
+		UserCredential chuckCredential = user(chuckNorris);
 		//assertThat(localUser.getLastName()).isEqualTo("Norris");
-		assertThat(localUser).isNull();
-		assertThat(userCredentialLocalUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED); //credential is still replaced
-		assertThat(userCredentialLocalUser.getEmail()).isEqualTo("chuckofldap@doculibre.ca"); //credential is still replaced
+		assertThat(zeChuck).isNotNull();
+		assertThat(chuckCredential.getSyncMode()).isEqualTo(UserSyncMode.SYNCED); //credential is still replaced
+		assertThat(chuckCredential.getEmail()).isEqualTo("chuckofldap@doculibre.ca"); //credential is still replaced
 
 
 		//extracollection has the changes of the changes
@@ -1135,12 +1193,12 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		assertThat(importedUser3).isNotNull();
 
 		//extracollection has chuck Synced
-		localUser = user(chuckNorris, extraCollection);
-		userCredentialLocalUser = user(chuckNorris);
-		assertThat(localUser.getLastName()).isEqualTo("Norris ldap");
-		assertThat(localUser).isNotNull();
-		assertThat(userCredentialLocalUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
-		assertThat(localUser.getEmail()).isEqualTo("chuckofldap@doculibre.ca");
+		User extraChuck = user(chuckNorris, extraCollection);
+		chuckCredential = user(chuckNorris);
+		assertThat(extraChuck.getLastName()).isEqualTo("Norris ldap");
+		assertThat(extraChuck).isNotNull();
+		assertThat(chuckCredential.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
+		assertThat(extraChuck.getEmail()).isEqualTo("chuckofldap@doculibre.ca");
 
 		//businesscollection has the changes of the changes
 		importedUser = user("nicolas", businessCollection);
@@ -1153,12 +1211,12 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		assertThat(importedUser3).isNotNull();
 
 
-		localUser = user(chuckNorris, businessCollection);
-		userCredentialLocalUser = user(chuckNorris);
+		User businessChuck = user(chuckNorris, businessCollection);
+		chuckCredential = user(chuckNorris);
 		//assertThat(localUser.getLastName()).isEqualTo("Norris ldap");
-		assertThat(localUser).isNotNull();
-		assertThat(userCredentialLocalUser.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
-		assertThat(localUser.getJobTitle()).isEqualTo("actor");
+		assertThat(businessChuck).isNotNull();
+		assertThat(chuckCredential.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
+		assertThat(businessChuck.getJobTitle()).isEqualTo("actor");
 
 	}
 
@@ -1249,8 +1307,7 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenUserAzureHasDifferentUsernameButSameDNThenUpdateUserInsteadOfCreateActivateAndDoNotChangeUsername() {
-
+	public void whenUserAzureHasDifferentUsernameButSameDNAndNoReferencesThenDeleteUserAndCreateActivateAndNewUsername() {
 		this.ldapUserSyncConfiguration =
 				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
 		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
@@ -1279,15 +1336,351 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		sync();
 
 		//userCredential is to ldap
-		User nicolasSync = user("nicolas", businessCollection);
-		UserCredential userCredentialLocalUser = user("nicolas");
+		User falseNicolasSync = user("falseNicolas", businessCollection);
+		UserCredential userCredentialLocalUser = user("falseNicolas");
 
 		assertThat(userCredentialLocalUser.getDn()).isEqualTo("2143e922-0361-45a2-bc9a-7fd426c5e5bd");
 		assertThat(userCredentialLocalUser.getFirstName()).isEqualTo("Nicodas");
-		assertThat(nicolasSync.getLastName()).isEqualTo("Bégin");
-		assertThat(nicolasSync.getEmail()).isEqualTo("falsenicolas@doculibre.ca");
+		assertThat(falseNicolasSync.getLastName()).isEqualTo("Bégin");
+		assertThat(falseNicolasSync.getEmail()).isEqualTo("falsenicolas@doculibre.ca");
+
+
+		try {
+			User nicolasSync = user("Nicolas", businessCollection);
+			fail("Nicolas user shouldn't exist anymore");
+		} catch (Exception e) {
+			// OK
+		}
+
+		UserCredential userCredentialNicolas = user("Nicolas");
+		assertThat(userCredentialNicolas).isNull();
+	}
+
+	@Test
+	public void whenUserAzureHasDifferentUsernameButSameDNAndReferencesThenDeleteUserAndCreateActivateAndNewUsernameWithSamePermission()
+			throws Exception {
+
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup pilotes = pilotes();
+		LDAPGroup caballeros = caballeros();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(caballeros, pilotes)
+				.build());
+		sync();
+
+		MetadataSchema refSchema = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(businessCollection)
+				.getSchema(Event.DEFAULT_SCHEMA);
+		Record refRecord = getModelLayerFactory().newRecordServices().newRecordWithSchema(refSchema);
+		refRecord.set(Schemas.CREATED_BY, user("nicolas", businessCollection).getId());
+		getModelLayerFactory().newRecordServices().add(refRecord);
+
+		User nicolasSync = user("Nicolas", businessCollection);
+		AuthorizationsServices authorizationsServices = getModelLayerFactory().newAuthorizationsServices();
+		authorizationsServices.add(authorizationForUsers(nicolasSync).on(refRecord).givingReadWriteAccess());
+
+		List<Authorization> sourceUserAuthorizations = authorizationsServices.getRecordAuthorizations(nicolasSync);
+		assertThat(sourceUserAuthorizations).isNotEmpty();
+		for (Authorization authorization : sourceUserAuthorizations) {
+			assertThat(authorization.getPrincipals()).contains(nicolasSync.getId());
+		}
+
+		Group localHeroes = group("heroes", businessCollection);
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		UserAddUpdateRequest userAddUpdateRequestBusiness = userServices.addUpdate("nicolas");
+		userAddUpdateRequestBusiness.addToGroupsInCollection(asList(localHeroes.getCode()), businessCollection);
+		userServices.execute(userAddUpdateRequestBusiness);
+		nicolasSync = user("Nicolas", businessCollection);
+		assertThat(nicolasSync.getUserGroups()).contains(localHeroes.getId());
+
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(falseNicolas().addGroups(caballeros))
+				.add(caballeros)
+				.build());
+
+		sync();
+
+		//userCredential is to ldap
+		User falseNicolasSync = user("falseNicolas", businessCollection);
+		UserCredential userCredentialLocalUser = user("falseNicolas");
+
+		assertThat(userCredentialLocalUser.getDn()).isEqualTo("2143e922-0361-45a2-bc9a-7fd426c5e5bd");
+		assertThat(userCredentialLocalUser.getFirstName()).isEqualTo("Nicodas");
+		assertThat(falseNicolasSync.getLastName()).isEqualTo("Bégin");
+		assertThat(falseNicolasSync.getEmail()).isEqualTo("falsenicolas@doculibre.ca");
+
+		Group cabalerosGroup = group("caballeros", businessCollection);
+		assertThat(falseNicolasSync.getUserGroups()).containsOnly(localHeroes.getId(), cabalerosGroup.getId());
+
+		sourceUserAuthorizations = authorizationsServices.getRecordAuthorizations(nicolasSync);
+		assertThat(sourceUserAuthorizations).isNotEmpty();
+		for (Authorization authorization : sourceUserAuthorizations) {
+			assertThat(authorization.getPrincipals()).contains(falseNicolasSync.getId());
+		}
+
+
+		nicolasSync = user("Nicolas", businessCollection);
+		assertThat(nicolasSync).isNotNull();
+		assertThat(nicolasSync.isLogicallyDeletedStatus()).isTrue();
+
+		UserCredential userCredentialNicolas = user("Nicolas");
+		assertThat(userCredentialNicolas).isNotNull();
+		assertThat(userCredentialNicolas.isLogicallyDeletedStatus()).isTrue();
+	}
+
+	/**
+	 * Lorsqu’un utilisateur au statut inactif est rapporté, son statut change pour actif
+	 *
+	 * @throws Exception
+	 */
+	@Test
+	public void givenUserSyncConfiguredThenUsernameCaseInsensitive()
+			throws Exception {
+		UserServices userServices = modelLayerFactory.newUserServices();
+
+		LDAPGroup caballeros = caballeros();
+		LDAPGroup pilotes = pilotes();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas().addGroups(caballeros, pilotes))
+				.add(philippe().addGroup(caballeros))
+				.add(dusty().addGroup(caballeros))
+				.add(caballeros, pilotes)
+				.build());
+
+		sync();
+
+		User importedUser2 = user("pHiLiPpE", businessCollection);
+		UserCredential userCredentialImportedUser2 = user("philippe");
+		assertThat(importedUser2.getFirstName()).isEqualTo("Philippe");
+		assertThat(importedUser2.getLastName()).isEqualTo("Houle");
+		assertThat(importedUser2.getEmail()).isEqualTo("philippe@doculibre.ca");
+		assertThat(importedUser2.getMsExchDelegateListBL()).isEmpty();
+		assertThat(userCredentialImportedUser2.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
+
+		//desync philippe and modify name and email
+		UserAddUpdateRequest request = userServices.addUpdate("philippe")
+				.setFirstName("Phillip")
+				.setEmail("phillip@doculibre.ca")
+				.setCollections(asList(businessCollection))
+				.stopSyncingLDAP();
+		userServices.execute(request);
+
+		sync();
+
+		//Phillip is not synced, therefore keeps his change
+		importedUser2 = user("philippe", businessCollection);
+		userCredentialImportedUser2 = user("philippe");
+		assertThat(importedUser2.getFirstName()).isEqualTo("Phillip");
+		assertThat(importedUser2.getEmail()).isEqualTo("phillip@doculibre.ca");
+		assertThat(userCredentialImportedUser2.getSyncMode()).isEqualTo(UserSyncMode.NOT_SYNCED);
+
+		//putting back on sync should resync user
+		UserAddUpdateRequest request2 = userServices.addUpdate("philippe")
+				.setCollections(asList(businessCollection))
+				.resumeSyncingLDAP();
+		userServices.execute(request2);
+
+		sync();
+
+		importedUser2 = user("PHILippe", businessCollection);
+		userCredentialImportedUser2 = user("philIPPE");
+		assertThat(importedUser2.getFirstName()).isEqualTo("Philippe");
+		assertThat(importedUser2.getLastName()).isEqualTo("Houle");
+		assertThat(importedUser2.getEmail()).isEqualTo("philippe@doculibre.ca");
+		assertThat(userCredentialImportedUser2.getSyncMode()).isEqualTo(UserSyncMode.SYNCED);
+	}
+	
+	@Test
+	public void givenMissingAdminFromCollectionBeforeSyncThenAddedBySync() {
+		RecordDeleteServices recordDeleteServices = new RecordDeleteServices(modelLayerFactory);
+		UserServices userServices = modelLayerFactory.newUserServices();
+		
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder().build());
+		
+		User zeAdmin = userServices.getUserInCollection(User.ADMIN, zeCollection);
+		User businessAdmin = userServices.getUserInCollection(User.ADMIN, businessCollection);
+		
+		recordDeleteServices.logicallyDelete(zeAdmin.get(), User.GOD);
+		recordDeleteServices.logicallyDelete(businessAdmin.get(), User.GOD);
+		
+		sync();
+		
+		zeAdmin = userServices.getUserInCollection(User.ADMIN, zeCollection);
+		businessAdmin = userServices.getUserInCollection(User.ADMIN, businessCollection);
+		assertThat(zeAdmin.isLogicallyDeletedStatus()).isFalse();
+		assertThat(businessAdmin.isLogicallyDeletedStatus()).isFalse();
+	}
+	
+	@Test
+	public void givenSyncUsersOnlyIfInAcceptedGroupsEnabledWhenUserMatchingRegexesButNotInSyncedGroupThenNotAddedBySync() {
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		setSyncUsersOnlyIfInAcceptedGroupsEnabled(true);
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup caballeros = caballeros();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(caballeros)
+				.add(nicolas())
+				.add(philippe().addGroup(caballeros))
+				.build());
+
+		sync();
+		
+		try {
+			user("nicolas", businessCollection);
+			fail("User nicolas shouldn't exist in collection");
+		} catch (UserServicesRuntimeException_NoSuchUser e) {
+			// Shouldn't be added if configuration is enabled
+		}
+		User bizPhilippe = user("philippe", businessCollection);
+		assertThat(bizPhilippe).isNotNull();
+	}
+
+	@Test
+	public void givenLocallyCreatedGroupIsSyncedThenNoMoreLocallyCreated() {
+
+		UserServices userServices = modelLayerFactory.newUserServices();
+		userServices.createGroup("caballeros", req->req.setName("Ze caballeros").addCollection(zeCollection));
+		assertThat(group("caballeros", zeCollection).getCaption()).isEqualTo("Ze caballeros");
+		assertThat(group("caballeros", zeCollection).isLocallyCreated()).isTrue();
+
+
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup caballeros = caballeros();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(caballeros)
+				.add(nicolas())
+				.add(philippe().addGroup(caballeros))
+				.build());
+
+		sync();
+
+		assertThat(group("caballeros", zeCollection).getCaption()).isEqualTo("The three caballeros");
+		assertThat(group("caballeros", zeCollection).isLocallyCreated()).isFalse();
+
+
 
 	}
+	
+	@Test
+	public void givenSyncUsersOnlyIfInAcceptedGroupsDisabledWhenUserMatchingRegexesButNotInSyncedGroupThenNotAddedBySync() {
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		setSyncUsersOnlyIfInAcceptedGroupsEnabled(false);
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPGroup caballeros = caballeros();
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(caballeros)
+				.add(nicolas())
+				.add(philippe().addGroup(caballeros))
+				.build());
+
+		sync();
+		
+		User bizNicolas = user("nicolas", businessCollection);
+		User bizPhilippe = user("philippe", businessCollection);
+		assertThat(bizNicolas).isNotNull();
+		assertThat(bizPhilippe).isNotNull();
+	}
+	
+	@Test
+	public void givenPreviouslySyncedUserNotInAcceptedGroupWhenSyncUsersOnlyIfInAcceptedGroupsEnabledThenNotRemovedBySync() {
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		setSyncUsersOnlyIfInAcceptedGroupsEnabled(false);
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas())
+				.build());
+
+		sync();
+		
+		User bizNicolas = user("nicolas", businessCollection);
+		assertThat(bizNicolas).isNotNull();
+
+		setSyncUsersOnlyIfInAcceptedGroupsEnabled(true);
+
+		sync();
+		
+		try {
+			user("nicolas", businessCollection);
+			fail("User nicolas shouldn't exist in collection");
+		} catch (UserServicesRuntimeException_NoSuchUser e) {
+			// Shouldn't be added if configuration is enabled
+		}
+	}
+	
+	@Test
+	public void givenLDAPAuthenticationInactiveAndSyncEnabledThenNoScheduledSync() {
+		this.ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfigurationInactive();
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+		
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPUserSyncManager ldapUserSyncManager = newLDAPUserSyncManager();
+		ldapUserSyncManager.initialize();
+		verify(ldapConfigurationManager, never()).setNextUsersSyncFireTime(any(Date.class));
+	}
+	
+	@Test
+	public void givenLDAPAuthenticationActiveAndSyncEnabledThenScheduledSync() {
+		this.ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+		
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+
+		LDAPUserSyncManager ldapUserSyncManager = newLDAPUserSyncManager();
+		ldapUserSyncManager.initialize();
+		verify(ldapConfigurationManager, times(1)).setNextUsersSyncFireTime(any(Date.class));
+	}
+	
+	@Test
+	public void givenLDAPAuthenticationInactiveAndSyncEnabledThenSync() {
+		this.ldapServerConfiguration = LDAPTestConfig.getLDAPServerConfiguration();
+		when(ldapConfigurationManager.getLDAPServerConfiguration()).thenReturn(this.ldapServerConfiguration);
+		
+		this.ldapUserSyncConfiguration =
+				LDAPTestConfig.getLDAPUserSyncConfigurationWithSelectedCollections(asList(businessCollection));
+		when(ldapServicesFactory.newLDAPServices(any())).thenReturn(this.ldapServices);
+		when(ldapConfigurationManager.getLDAPUserSyncConfiguration(anyBoolean())).thenReturn(this.ldapUserSyncConfiguration);
+
+		whenRetrievingInfosFromLDAP().thenReturn(new LDAPUsersAndGroupsBuilder()
+				.add(nicolas())
+				.build());
+
+		sync();
+		
+		User bizNicolas = user("nicolas", businessCollection);
+		assertThat(bizNicolas).isNotNull();
+	}
+	
 	// ----- Utility methods
 
 	private void saveValidLDAPConfigWithEntrepriseCollectionSelected() {
@@ -1299,6 +1692,14 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 
 	private OngoingStubbing<LDAPUsersAndGroups> whenRetrievingInfosFromLDAP() {
 		return when(ldapServices.importUsersAndGroups(any(LDAPServerConfiguration.class), any(LDAPUserSyncConfiguration.class), anyString()));
+	}
+
+	private void setFetchSubGroupsEnabled(boolean enabled) {
+		ldapUserSyncConfiguration.setFetchSubGroupsEnabled(enabled);
+	}
+
+	private void setSyncUsersOnlyIfInAcceptedGroupsEnabled(boolean enabled) {
+		ldapUserSyncConfiguration.setSyncUsersOnlyIfInAcceptedGroups(enabled);
 	}
 
 	private UserCredential user(String code) {
@@ -1313,18 +1714,20 @@ public class LDAPUserSyncManagerRealTest extends ConstellioTest {
 		return modelLayerFactory.newUserServices().getAllUsersInGroup(group, false, true);
 	}
 
-	private Group group(String username, String collection) {
-		return modelLayerFactory.newUserServices().getGroupInCollection(username, collection);
+	private Group group(String code, String collection) {
+		return modelLayerFactory.newUserServices().getGroupInCollection(code, collection);
+	}
+
+	private LDAPUserSyncManager newLDAPUserSyncManager() {
+		return new LDAPUserSyncManager(this.modelLayerFactory,this.ldapConfigurationManager, modelLayerFactory.newRecordServices(),
+				modelLayerFactory.getDataLayerFactory(), modelLayerFactory.newUserServices(),
+				modelLayerFactory.getDataLayerFactory().getConstellioJobManager(), ldapServicesFactory);
 	}
 
 	private void sync() {
-		LDAPUserSyncManager ldapUserSyncManager = new LDAPUserSyncManager(this.ldapConfigurationManager, modelLayerFactory.newRecordServices(),
-				modelLayerFactory.getDataLayerFactory(), modelLayerFactory.newUserServices(),
-				modelLayerFactory.getDataLayerFactory().getConstellioJobManager(), ldapServicesFactory);
-
+		LDAPUserSyncManager ldapUserSyncManager = newLDAPUserSyncManager();
 		ldapUserSyncManager.synchronizeIfPossible();
 	}
-
 
 	private LDAPUser nicolas() {
 		return new LDAPUser().setEmail("nicolas@doculibre.ca").setFamilyName("Belisle")

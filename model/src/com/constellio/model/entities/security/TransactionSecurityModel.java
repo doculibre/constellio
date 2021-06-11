@@ -4,7 +4,9 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.structures.NestedRecordAuthorizations;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.AuthorizationDetailsFilter;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -42,8 +44,8 @@ public class TransactionSecurityModel implements SecurityModel {
 
 
 		for (Record record : transaction.getRecords()) {
-			if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				Authorization auth = Authorization.wrapNullable(record, types);
+			if (RecordAuthorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				Authorization auth = RecordAuthorization.wrapNullable(record, types);
 				modifiedAuths.add(auth);
 			}
 		}
@@ -63,8 +65,8 @@ public class TransactionSecurityModel implements SecurityModel {
 		Set<String> ajustedAuths = new HashSet<>();
 		Map<String, Integer> indexMap = null;
 		for (Record record : transaction.getRecords()) {
-			if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				Authorization authorization = Authorization.wrapNullable(record, types);
+			if (RecordAuthorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				Authorization authorization = RecordAuthorization.wrapNullable(record, types);
 				if (id.equals(authorization.getTarget())) {
 
 					if (indexMap == null) {
@@ -110,12 +112,18 @@ public class TransactionSecurityModel implements SecurityModel {
 		List<SecurityModelAuthorization> nonDeletedReturnedAuths = new ArrayList<>();
 
 		for (SecurityModelAuthorization auth : returnedAuths) {
-			if (!Boolean.TRUE.equals(((Authorization) auth.getDetails()).get(Schemas.LOGICALLY_DELETED_STATUS))) {
+			if (!Boolean.TRUE.equals(((RecordAuthorization) auth.getDetails()).get(Schemas.LOGICALLY_DELETED_STATUS))) {
 				nonDeletedReturnedAuths.add(auth);
 			}
 		}
 
 		return nonDeletedReturnedAuths;
+	}
+
+	@Override
+	public List<SecurityModelAuthorization> wrapNestedAuthorizationsOnTarget(
+			NestedRecordAuthorizations authorizations) {
+		return nestedSecurityModel.wrapNestedAuthorizationsOnTarget(authorizations);
 	}
 
 	private SecurityModelAuthorization wrap(Authorization details) {
@@ -143,7 +151,7 @@ public class TransactionSecurityModel implements SecurityModel {
 
 		for (Record record : transaction.getRecords()) {
 			if (record.getId().equals(authId)) {
-				Authorization authorization = Authorization.wrapNullable(record, types);
+				Authorization authorization = RecordAuthorization.wrapNullable(record, types);
 				if (nestedAuthorization == null) {
 					return wrap(authorization);
 

@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class UserAddUpdateRequest {
 
@@ -29,6 +30,8 @@ public class UserAddUpdateRequest {
 
 	private Map<String, List<String>> addToGroupInCollection;
 	private Map<String, List<String>> removeFromGroupInCollection;
+
+	private String transferPermissionFrom;
 
 	private Map<String, LocalDateTime> newTokens;
 	private List<String> removedtokens;
@@ -58,6 +61,15 @@ public class UserAddUpdateRequest {
 		this.currentGroups = new ArrayList<>(currentGroups);
 	}
 
+
+	public UserAddUpdateRequest transferPermission(String username) {
+		transferPermissionFrom = username;
+		return this;
+	}
+
+	public String getTransferPermissionFrom() {
+		return transferPermissionFrom;
+	}
 
 	public boolean isStopSyncingLDAP() {
 		return stopSyncingLDAP;
@@ -201,6 +213,11 @@ public class UserAddUpdateRequest {
 
 	public UserAddUpdateRequest setHasAgreedToPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy) {
 		this.modifiedProperties.put(UserCredential.HAS_AGREED_TO_PRIVACY_POLICY, hasAgreedToPrivacyPolicy);
+		return this;
+	}
+
+	public UserAddUpdateRequest setHasSeenLatestMessageAtLogin(Boolean hasSeenLatestMessageAtLogin) {
+		this.modifiedProperties.put(UserCredential.HAS_SEEN_LATEST_MESSAGE_AT_LOGIN, hasSeenLatestMessageAtLogin);
 		return this;
 	}
 
@@ -493,6 +510,15 @@ public class UserAddUpdateRequest {
 
 	public boolean isModified(String metadataCode) {
 		return modifiedProperties.containsKey(metadataCode)
-			   || (modifiedCollectionsProperties.values().stream().anyMatch(m -> m.containsKey(metadataCode)));
+			   || modifiedCollectionsProperties.values().stream().anyMatch(m -> m.containsKey(metadataCode));
+	}
+
+	public boolean isModified(String metadataCode, Object value) {
+		boolean isModified = false;
+		if (modifiedProperties.containsKey(metadataCode)) {
+			isModified = !Objects.equals(modifiedProperties.get(metadataCode), value);
+		}
+
+		return isModified || modifiedCollectionsProperties.values().stream().anyMatch(m -> m.containsKey(metadataCode));
 	}
 }

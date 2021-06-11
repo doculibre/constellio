@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTest {
 	Record papa, television;
 
+	//TODO Fail with Solr6
 	@Test
 	public void givenSynonymFeatureDiabeledWhenIndexingDocumentsAndSearchForAWordThenNoDocumentContainTheWordsSynonymIsReturned()
 			throws Exception {
@@ -36,6 +37,7 @@ public class SynonymFeatureAcceptanceTest extends SolrSafeConstellioAcceptanceTe
 		assertThat(results).containsOnly(papa);
 	}
 
+	//TODO Fail with Solr6
 	@Test
 	public void givenSynonymFeatureEnabledWhenIndexingDocumentsAndSearchForAWordThenAllDocumentsContainTheWordAndItsSynonymAreReturned()
 			throws Exception {

@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
 import com.constellio.app.modules.rm.ui.components.decommissioning.DecomApprobationRequestWindowButton;
@@ -15,6 +16,8 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -77,6 +80,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -129,6 +133,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 	public DecommissioningListViewImpl() {
 		presenter = new DecommissioningListPresenter(this);
+	}
+
+	public RecordVO getDecommissioningList() {
+		return decommissioningList;
 	}
 
 	@Override
@@ -209,6 +217,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				presenter.refreshList();
+				presenter.decommissioningList();
 			}
 		});
 
@@ -228,8 +237,20 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> buttons = super.buildActionMenuButtons(event);
+	protected String getActionMenuBarCaption() {
+		return null;
+	}
+
+	@Override
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				buildActionButtons().stream().map(MenuItemActionConverter::toMenuItemAction).collect(Collectors.toList())
+		);
+	}
+
+	protected List<Button> buildActionButtons() {
+		List<Button> buttons = new ArrayList<>();
 
 		buttons.add(buildEditButton());
 		buttons.add(buildDeleteButton());
@@ -561,7 +582,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			public boolean isVisible() {
 				return presenter.isDocumentsCertificateButtonVisible();
 			}
-
+			@Override
+			public boolean isEnabled() {
+				return presenter.isDocumentsCertificateButtonVisible();
+			}
 		};
 		button.setCaption($("DecommissioningListView.documentsCertificate"));
 		button.addStyleName(ValoTheme.BUTTON_LINK);
@@ -574,6 +598,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				presenter.getFoldersReportContentName()) {
 			@Override
 			public boolean isVisible() {
+				return presenter.isFoldersCertificateButtonVisible();
+			}
+			@Override
+			public boolean isEnabled() {
 				return presenter.isFoldersCertificateButtonVisible();
 			}
 
@@ -637,6 +665,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 					} catch (Exception e) {
 					}
 				}
+				presenter.refreshView();
 			}
 		});
 
@@ -810,7 +839,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			}
 		};
 
-		if(presenter.sortFolderList()) {
+		if (presenter.sortFolderList()) {
 			container.setItemSorter(buildItemSorter());
 		}
 
@@ -1133,6 +1162,25 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				newContainerDetail = presenter.getContainerDetail(containerVO.getId());
 			}
 			addContainerToComponent(newContainerDetail, containerTable, containerComponent);
+		}
+	}
+
+	@Override
+	public void refreshFolderDetailsVO() {
+		refreshBaseTable(processableFolders);
+		refreshBaseTable(packageableFolders);
+		refreshBaseTable(selectedFolders);
+		refreshBaseTable(foldersToValidate);
+	}
+
+	private void refreshBaseTable(BaseTable baseTable) {
+		if (baseTable.isVisible()) {
+			Container container = baseTable.getContainerDataSource();
+			if (container instanceof RefreshableBeanItemContainer) {
+				((RefreshableBeanItemContainer) container).fireContainerPropertySetChange();
+			} else {
+				baseTable.refreshRowCache();
+			}
 		}
 	}
 

@@ -146,7 +146,7 @@ public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		LogicalSearchCondition condition = from(rm.folderSchemaType()).returnAll();
-		return assertThat(searchServices.getResultsCount(new LogicalSearchQuery(condition).filteredWithUser(user)));
+		return assertThat(searchServices.getResultsCount(new LogicalSearchQuery(condition).filteredWithUserRead(user)));
 	}
 
 	@Test

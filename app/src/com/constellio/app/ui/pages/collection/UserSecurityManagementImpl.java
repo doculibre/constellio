@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.collection;
 
-import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -25,7 +23,6 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -38,8 +35,6 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class UserSecurityManagementImpl extends BaseViewImpl implements SecurityManagement {
 
-	public static final String STYLE_NAME = "display-folder";
-
 	private final VerticalLayout mainLayout;
 	private VerticalLayout contentLayout;
 	private ViewableRecordVOTablePanel viewerPanel;
@@ -49,11 +44,8 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 	private StringAutocompleteField<String> searchField;
 	private VerticalLayout searchLayout;
 
-	private RMModuleExtensions rmModuleExtensions;
-
 	private RecordVODataProvider userDataProvider;
 	private UserSecurityManagementPresenter presenter;
-	private TabSheet.SelectedTabChangeListener selectedTabChangeListener;
 	private OptionGroup.ValueChangeListener optionValueChangeListener;
 
 	public UserSecurityManagementImpl() {
@@ -67,33 +59,27 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 		presenter.forParams(null);
 		mainLayout = new VerticalLayout();
 		this.buildMainComponent(null);
-		rmModuleExtensions = getConstellioFactories().getAppLayerFactory()
-				.getExtensions().forCollection(getCollection()).forModule(ConstellioRMModule.ID);
+		presenter.viewAssembled();
 	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		mainLayout.addStyleName("display-folder-view");
-		mainLayout.setSizeFull();
+		mainLayout.addStyleName("user-security-management");
+		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
 
 		activeGroup = new OptionGroup();
 		activeGroup.addItem(UserComponentStatus.ACTIVE);
-		activeGroup.setItemCaption(UserComponentStatus.ACTIVE, $("UserCredentialStatus.a"));
+		activeGroup.setItemCaption(UserComponentStatus.ACTIVE, $("UserCredentialStatus." + UserComponentStatus.ACTIVE.getCode()));
 		activeGroup.addItem(UserComponentStatus.INACTIVE);
-		activeGroup.setItemCaption(UserComponentStatus.INACTIVE, $("UserCredentialStatus.i"));
+		activeGroup.setItemCaption(UserComponentStatus.INACTIVE, $("UserCredentialStatus." + UserComponentStatus.INACTIVE.getCode()));
 		activeGroup.select(UserComponentStatus.ACTIVE);
 
 		activeGroup.addValueChangeListener(optionValueChangeListener = new OptionGroup.ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				if (activeGroup.getValue().equals(UserComponentStatus.ACTIVE)) {
-					presenter.setActive(true);
-				} else {
-					presenter.setActive(false);
-				}
-				presenter.clearSearch();
-
+				boolean active = activeGroup.getValue().equals(UserComponentStatus.ACTIVE); 
+				presenter.activeSelectionChanged(active);
 			}
 		});
 		activeGroup.addStyleName("horizontal");
@@ -122,7 +108,6 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 
 	@Override
 	public VerticalLayout createTabLayout() {
-
 		final RecordVOLazyContainer recordVOContainer = new RecordVOLazyContainer(userDataProvider);
 		viewerPanel = createViewerPanel(recordVOContainer);
 
@@ -130,7 +115,7 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 			clearSearchButton = new LinkButton($("CollectionSecurityManagement.clearSearch")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					presenter.clearSearch();
+					presenter.clearSearchRequested();
 					searchField.setValue("");
 				}
 			};
@@ -155,25 +140,20 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 				}
 			});
 			searchField.setWidth("100%");
-			searchField.addStyleName("folder-search-field");
 			searchButton = new SearchButton() {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					String searchValue = searchField.getValue();
-					final String value = searchValue.endsWith("*") ? searchValue : searchValue + "*";
-					presenter.changeUserDataProvider(value);
-
+					presenter.searchRequested(searchValue);
 				}
 			};
-			searchButton.addStyleName("folder-search-button");
 			searchButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 			searchButton.setIconOnly(true);
 			OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
 				@Override
 				public void onEnterKeyPressed() {
 					String searchValue = searchField.getValue();
-					final String value = searchValue.endsWith("*") ? searchValue : searchValue + "*";
-					presenter.changeUserDataProvider(value);
+					presenter.searchRequested(searchValue);
 				}
 			};
 			onEnterHandler.installOn(searchField);
@@ -300,7 +280,7 @@ public class UserSecurityManagementImpl extends BaseViewImpl implements Security
 				presenter.displayButtonClicked(user);
 			}
 		});
-		panel.addStyleName("folder-content-table");
+		panel.setCountCaption($("UserSecurityManagement.users", recordVOContainer.size()));
 		return panel;
 	}
 

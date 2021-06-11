@@ -1,6 +1,7 @@
 package com.constellio.data.dao.services.cache;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -8,6 +9,8 @@ import java.util.Set;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 
 public abstract class AutoReloadingConstellioCache implements ConstellioCache {
+
+	private static final String NULL_VALUE = "--NULL--";
 
 	ConstellioCache nestedConstellioCache;
 
@@ -27,7 +30,15 @@ public abstract class AutoReloadingConstellioCache implements ConstellioCache {
 		T value = nestedConstellioCache.get(key);
 		if (value == null) {
 			value = reload(key);
-			put(key, value, WAS_OBTAINED);
+			if (value == null) {
+				put(key, NULL_VALUE, WAS_OBTAINED);
+			} else {
+				put(key, value, WAS_OBTAINED);
+			}
+		}
+
+		if (NULL_VALUE.equals(value)) {
+			return null;
 		}
 		return value;
 	}
@@ -64,7 +75,14 @@ public abstract class AutoReloadingConstellioCache implements ConstellioCache {
 
 	@Override
 	public List<Object> getAllValues() {
-		return nestedConstellioCache.getAllValues();
+		List<Object> values = new ArrayList<>(nestedConstellioCache.getAllValues());
+		Iterator<Object> it = values.iterator();
+		while (it.hasNext()) {
+			if (NULL_VALUE.equals(it.next())) {
+				it.remove();
+			}
+		}
+		return values;
 	}
 
 	@Override

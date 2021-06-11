@@ -58,15 +58,16 @@ public class CartEmailService {
 			String signature = getSignature(user);
 			String subject = "";
 			String from = user.getEmail();
+			String userFullName = user.getFirstName() +" "+ user.getLastName();
 			List<MessageAttachment> attachments = getAttachments(cartDocuments, requestUser);
 
 			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-			EmailMessageParams params = new EmailMessageParams("cart", signature, subject, from, attachments);
+			EmailMessageParams params = new EmailMessageParams("cart", signature, subject, from, attachments, userFullName);
 			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage(params);
 			if (emailMessage == null) {
 				EmailServices emailServices = new EmailServices();
 				ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
-				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments, configs);
+				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments, configs, userFullName);
 				message.writeTo(outputStream);
 				String filename = "cart.eml";
 				InputStream inputStream = ioServices.newFileInputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.in");

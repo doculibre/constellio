@@ -25,18 +25,18 @@ public class ContentConversionManager implements AutoCloseable {
 		workingFolder = ioServices.newTemporaryFolder("ContentConversionManager");
 	}
 
-	public Content replaceContentByPDFA(Content content) {
+	public Content replaceContentByPDF(Content content, boolean convertToPdfA) {
 		ContentVersion current = content.getCurrentVersion();
-		ContentVersionDataSummary summary = convertAndUpload(current);
+		ContentVersionDataSummary summary = convertAndUpload(current, convertToPdfA);
 		ContentVersion pdfVersion = createVersion(current, summary);
 		return ContentImpl.create(content.getId(), pdfVersion, content.getHistoryVersions());
 	}
 
-	public void convertContentToPDFA(User user, Content content) {
+	public void convertContentToPDF(User user, Content content, boolean pdfA) {
 		String pdfFilename = changeExtension(content.getCurrentVersion().getFilename());
 
 		ContentVersion current = content.getCurrentVersion();
-		ContentVersionDataSummary summary = convertAndUpload(current);
+		ContentVersionDataSummary summary = convertAndUpload(current, pdfA);
 
 		content.updateContentWithName(user, summary, true, pdfFilename);
 	}
@@ -46,14 +46,14 @@ public class ContentConversionManager implements AutoCloseable {
 		ioServices.deleteDirectoryWithoutExpectableIOException(workingFolder);
 	}
 
-	private ContentVersionDataSummary convertAndUpload(ContentVersion current) {
+	private ContentVersionDataSummary convertAndUpload(ContentVersion current, boolean pdfA) {
 		InputStream original = contentManager.getContentInputStream(current.getHash(), "ContentConversionManager-original");
 		InputStream converted = null;
 
 		File convertedFile = null;
 
 		try {
-			convertedFile = conversionManager.convertToPDF(original, current.getFilename(), workingFolder);
+			convertedFile = conversionManager.convertToPDF(original, current.getFilename(), workingFolder, pdfA);
 			converted = ioServices.newFileInputStream(convertedFile, "ContentConversionManager-converted");
 			return contentManager.upload(converted, current.getFilename()).getContentVersionDataSummary();
 		} catch (FileNotFoundException e) {

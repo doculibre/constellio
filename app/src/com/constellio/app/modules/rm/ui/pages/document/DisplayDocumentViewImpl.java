@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
+import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -17,6 +18,9 @@ import com.constellio.app.modules.rm.ui.pages.extrabehavior.SecurityWithNoUrlPar
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
+import com.constellio.app.services.actionDisplayManager.MenuDisplayList;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.services.migrations.VersionsComparator;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.AuthorizationVO;
@@ -38,8 +42,10 @@ import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl.ValidateFileName;
 import com.constellio.app.ui.framework.components.diff.DiffPanel;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
@@ -93,7 +99,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -102,8 +107,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS;
+import static com.constellio.app.modules.rm.services.menu.behaviors.util.DocumentUtil.getEmailDocumentFileNameValidator;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl.DisplayMode.PRINCIPALS;
 
@@ -172,6 +179,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		if (event != null) {
 			presenter.forParams(event.getParameters());
 		}
+
+		buildActionMenuButtons();
 	}
 
 	@Override
@@ -541,16 +550,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		}
 	}
 
-	//	@Override
-	//	protected ClickListener getBackButtonClickListener() {
-	//		return new ClickListener() {
-	//			@Override
-	//			public void buttonClick(ClickEvent event) {
-	//				presenter.backButtonClicked();
-	//			}
-	//		};
-	//	}
-
 	@Override
 	public void setTasks(final RecordVODataProvider dataProvider) {
 		Table tasksTable = new RecordVOTable(dataProvider) {
@@ -626,18 +625,62 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		List<Button> quickActionMenuButtons = new ArrayList<>();
-		if (nestedView) {
-			quickActionMenuButtons.add(displayDocumentButton);
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		List<String> excludedActionTypes = new ArrayList<>();
+
+		if (!nestedView) {
+			excludedActionTypes.add(DocumentMenuItemActionType.DOCUMENT_DISPLAY.name());
 		}
-		quickActionMenuButtons.add(openDocumentButton);
-		quickActionMenuButtons.add(editDocumentButton);
-		return quickActionMenuButtons;
+
+		List<MenuItemAction> menuItemActions = buildRecordVOActionButtonFactory(excludedActionTypes).buildMenuItemActions();
+
+		menuItemActions.stream()
+				.filter(menuItemAction -> menuItemAction.getType().equals(DocumentMenuItemActionType.DOCUMENT_EDIT))
+				.forEach(menuItemAction -> updateMenuActionBasedOnButton(menuItemAction, editDocumentButton));
+
+		menuItemActions.stream()
+				.filter(menuItemAction -> menuItemAction.getType().equals(DocumentMenuItemActionType.DOCUMENT_DISPLAY))
+				.forEach(menuItemAction -> updateMenuActionBasedOnButton(menuItemAction, displayDocumentButton));
+
+		menuItemActions.stream()
+				.filter(menuItemAction -> menuItemAction.getType().equals(DocumentMenuItemActionType.DOCUMENT_OPEN))
+				.forEach(menuItemAction -> updateMenuActionBasedOnButton(menuItemAction, openDocumentButton));
+
+		menuItemActions.stream()
+				.filter(menuItemAction -> menuItemAction.getType().equals(DocumentMenuItemActionType.DOCUMENT_DOWNLOAD))
+				.forEach(menuItemAction -> updateMenuActionBasedOnButton(menuItemAction, downloadDocumentButton));
+
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				menuItemActions
+		);
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+
+		ActionMenuDisplay actionMenuDisplay = new ActionMenuDisplay(defaultActionMenuDisplay) {
+			@Override
+			public Supplier<String> getSchemaTypeCodeSupplier() {
+				return presenter.getSchema()::getTypeCode;
+			}
+
+			@Override
+			public Supplier<MenuItemRecordProvider> getMenuItemRecordProviderSupplier() {
+				return buildRecordVOActionButtonFactory()::buildMenuItemRecordProvider;
+			}
+
+			@Override
+			public int getQuickActionCount() {
+				return nestedView ? 2 : MenuDisplayList.QUICK_ACTION_COUNT_DEFAULT;
+			}
+		};
+
+		return actionMenuDisplay;
+	}
+
+
+	protected void buildActionMenuButtons() {
 		displayDocumentButton = new DisplayButton($("DisplayDocumentView.displayDocument"), false) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -676,13 +719,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 		editDocumentButton.setCaptionVisibleOnMobile(false);
+	}
 
-		List<String> excludedActionTypes = Arrays.asList(
-				DocumentMenuItemActionType.DOCUMENT_BORROWED_MESSAGE.name(),
-				DocumentMenuItemActionType.DOCUMENT_DISPLAY.name(),
-				DocumentMenuItemActionType.DOCUMENT_OPEN.name(),
-				DocumentMenuItemActionType.DOCUMENT_EDIT.name());
-		return new RecordVOActionButtonFactory(documentVO, this, excludedActionTypes).build();
+	private RecordVOActionButtonFactory buildRecordVOActionButtonFactory() {
+		return buildRecordVOActionButtonFactory(Collections.emptyList());
+	}
+
+	private RecordVOActionButtonFactory buildRecordVOActionButtonFactory(List<String> excludedActionTypes) {
+		return new RecordVOActionButtonFactory(documentVO, excludedActionTypes);
 	}
 
 	@Override
@@ -696,18 +740,21 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		displayDocumentButton.setVisible(state.isVisible());
 		displayDocumentButton.setEnabled(state.isVisible());
 		actionButtonStateChanged(displayDocumentButton);
+		refreshActionMenu();
 	}
 
 	public void setOpenDocumentButtonState(ComponentState state) {
 		openDocumentButton.setVisible(state.isVisible());
 		openDocumentButton.setEnabled(state.isVisible());
 		actionButtonStateChanged(openDocumentButton);
+		refreshActionMenu();
 	}
 
 	public void setDownloadDocumentButtonState(ComponentState state) {
 		if (downloadDocumentButton != null) {
 			downloadDocumentButton.setVisible(state.isVisible());
 			downloadDocumentButton.setEnabled(state.isVisible());
+			refreshActionMenu();
 		}
 	}
 
@@ -715,6 +762,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		editDocumentButton.setVisible(state.isVisible());
 		editDocumentButton.setEnabled(state.isEnabled());
 		actionButtonStateChanged(editDocumentButton);
+		refreshActionMenu();
 	}
 
 	public void navigateToSelf() {
@@ -726,7 +774,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			if (documentVO != null) {
 				Map<RecordVO, MetadataVO> record = new HashMap<>();
 				record.put(documentVO, documentVO.getMetadata(Document.CONTENT));
-				uploadWindow = new UpdateContentVersionWindowImpl(record) {
+
+				ValidateFileName validateFileName = getEmailDocumentFileNameValidator(documentVO.getSchemaCode());
+
+				uploadWindow = new UpdateContentVersionWindowImpl(record, false, validateFileName) {
 					@Override
 					public void close() {
 						super.close();
@@ -823,11 +874,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	}
 
 	@Override
-	protected boolean isActionMenuBar() {
-		return true;
-	}
-
-	@Override
 	protected String getActionMenuBarCaption() {
 		return null;
 	}
@@ -919,7 +965,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		String tableCaption = "";
 		Table table = new BaseTable(getClass().getName(), tableCaption, container);
 		table.setPageLength(container.size());
-		new Authorizations(source, PRINCIPALS, false, true, true, false, getSessionContext().getCurrentLocale()).attachTo(table, false);
+		new Authorizations(source, PRINCIPALS, false, true, true, presenter.seeSourceField(),
+				false, getSessionContext().getCurrentLocale()).attachTo(table, false);
 		return table;
 	}
 
@@ -936,7 +983,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			@Override
 			protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 				final AuthorizationVO authorization = (AuthorizationVO) itemId;
-				EditAuthorizationButton button = new EditAuthorizationButton(authorization) {
+				EditAuthorizationButton button = new EditAuthorizationButton(authorization, presenter.getRecord(), presenter.getUser()) {
 					@Override
 					protected void onSaveButtonClicked(AuthorizationVO authorizationVO) {
 						presenter.onAutorizationModified(authorization);
@@ -947,7 +994,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 						return super.isVisible() && presenter.getUser().getId().equals(authorization.getSharedBy());
 					}
 				};
-				button.setVisible(inherited || !authorization.isSynched());
+				button.setVisible(inherited || (!authorization.isSynched() && !authorization.isNested()));
 				return button;
 			}
 		});
@@ -968,7 +1015,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 								presenter.getUser().hasAny(RMPermissionsTo.MANAGE_SHARE, MANAGE_DOCUMENT_AUTHORIZATIONS).on(getRecordVO().getRecord()));
 					}
 				};
-				deleteButton.setVisible(inherited || !authorization.isSynched());
+				deleteButton.setVisible(inherited || (!authorization.isSynched() && !authorization.isNested()));
 				return deleteButton;
 			}
 		});

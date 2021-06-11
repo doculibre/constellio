@@ -6,15 +6,15 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.records.wrappers.ScriptReport;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-import static com.constellio.model.entities.records.wrappers.Authorization.OVERRIDE_INHERITED;
+import static com.constellio.model.entities.records.wrappers.RecordAuthorization.OVERRIDE_INHERITED;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
@@ -53,7 +53,7 @@ public class CoreMigrationTo_7_7_1 implements MigrationScript {
 						.setType(MetadataValueType.STRING).setUniqueValue(true).setSystemReserved(true);
 			}
 
-			MetadataSchemaBuilder authorizationSchema = typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA);
+			MetadataSchemaBuilder authorizationSchema = typesBuilder.getSchema(RecordAuthorization.DEFAULT_SCHEMA);
 			if (!authorizationSchema.hasMetadata(OVERRIDE_INHERITED)) {
 				authorizationSchema.createUndeletable(OVERRIDE_INHERITED).setType(BOOLEAN);
 			}
@@ -63,7 +63,7 @@ public class CoreMigrationTo_7_7_1 implements MigrationScript {
 			}
 
 			if (!typesBuilder.hasSchemaType(SearchEvent.SCHEMA_TYPE)) {
-				MetadataSchemaTypeBuilder searchEvent = typesBuilder.createNewSchemaType(SearchEvent.SCHEMA_TYPE);
+				MetadataSchemaTypeBuilder searchEvent = typesBuilder.createNewSchemaTypeWithSecurity(SearchEvent.SCHEMA_TYPE);
 				searchEvent.setDataStore(DataStore.EVENTS);
 				searchEvent.createMetadata(SearchEvent.USERNAME).setType(STRING);
 				searchEvent.createMetadata(SearchEvent.QUERY).setType(STRING);

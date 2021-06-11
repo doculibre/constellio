@@ -67,6 +67,9 @@ import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIV
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAccessType.R;
+import static com.constellio.model.entities.records.structures.NestedRecordAuthorizations.NestedRecordAccessType.RW;
+import static com.constellio.model.entities.records.structures.NestedRecordAuthorizations.nonCascadingAuthToPrincipals;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -340,6 +343,37 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 	}
 
 	@Test
+	public void givenUserHaveNestedAuthorizationsOnSomeFoldersThenValidTreeForFolderSelectionUsingPlanTaxonomy()
+			throws Exception {
+
+		givenUserHasNestedReadAccessTo(records.folder_A18, records.folder_A08);
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy()
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X)
+				.has(resultsInOrder(records.categoryId_X100))
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_X100))
+				.has(itemsWithChildren(records.categoryId_X100))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X100)
+				.has(numFoundAndListSize(1))
+				.has(linkable(records.folder_A18))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A18)
+				.is(empty())
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
+	@Test
 	public void givenUserHaveAuthorizationsOnSomeFoldersThenValidTreeForDocumentSelectionUsingPlanTaxonomy()
 			throws Exception {
 
@@ -378,11 +412,85 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 
 	}
 
+
+	@Test
+	public void givenUserHaveNestedAuthorizationsOnSomeFoldersThenValidTreeForDocumentSelectionUsingPlanTaxonomy()
+			throws Exception {
+
+
+		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType("folder")
+				.getCacheType()).isEqualTo(RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE);
+
+		givenUserHasNestedReadAccessTo(records.folder_A18, records.folder_A08);
+
+		//shoulf fail, since it is leading to no documents, but this behavior is tolerated
+//		assertThatRootWhenSelectingADocumentUsingPlanTaxonomy()
+//				.has(numFoundAndListSize(0));
+
+		assertThatRootWhenSelectingADocumentUsingPlanTaxonomy()
+				.has(numFoundAndListSize(2))
+				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_X100))
+				.has(itemsWithChildren(records.categoryId_X100))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X100)
+				.has(numFoundAndListSize(1))
+				.has(resultsInOrder(records.folder_A18))
+				.has(unlinkable(records.folder_A18))
+				.has(itemsWithChildren(records.folder_A18))
+				.has(solrQueryCounts(0, 0, 0));
+
+		//Since auth is non-cascading, documents are not visible
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.folder_A18)
+				.is(empty())
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
+
 	@Test
 	public void givenUserHaveReadAuthorizationsOnSomeFoldersThenValidTreeForFolderSelectionUsingUnitsTaxonomy()
 			throws Exception {
 
 		givenUserHasReadAccessTo(records.folder_A18, records.folder_A08);
+
+		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy()
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.unitId_10))
+				.has(itemsWithChildren(records.unitId_10))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.unitId_10)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.unitId_10a))
+				.has(itemsWithChildren(records.unitId_10a))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.unitId_10a)
+				.has(numFoundAndListSize(2))
+				.has(linkable(records.folder_A18, records.folder_A08))
+				.has(resultsInOrder(records.folder_A08, records.folder_A18))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.folder_A18)
+				.is(empty())
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
+
+	@Test
+	public void givenUserHaveNestedReadAuthorizationsOnSomeFoldersThenValidTreeForFolderSelectionUsingUnitsTaxonomy()
+			throws Exception {
+
+		givenUserHasNestedReadAccessTo(records.folder_A18, records.folder_A08);
 
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy()
 				.has(numFoundAndListSize(1))
@@ -414,6 +522,39 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 
 		givenUserHasWriteAccessTo(records.folder_A18, records.folder_A08);
 		givenUserHasReadAccessTo(records.folder_C02, records.folder_A17);
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withWriteAccess)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.unitId_10))
+				.has(itemsWithChildren(records.unitId_10))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.unitId_10, withWriteAccess)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.unitId_10a))
+				.has(itemsWithChildren(records.unitId_10a))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.unitId_10a, withWriteAccess)
+				.has(numFoundAndListSize(2))
+				.has(linkable(records.folder_A18, records.folder_A08))
+				.has(resultsInOrder(records.folder_A08, records.folder_A18))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingUnitTaxonomy(records.folder_A18, withWriteAccess)
+				.is(empty())
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
+
+	@Test
+	public void givenUserHaveNestedReadAndWriteAuthorizationsOnSomeFoldersThenValidTreeForFolderSelectionWithWriteUsingUnitsTaxonomy()
+			throws Exception {
+
+		givenUserHasNestedWriteAccessTo(records.folder_A18, records.folder_A08);
+		givenUserHasNestedReadAccessTo(records.folder_C02, records.folder_A17);
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy(withWriteAccess)
@@ -473,6 +614,42 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 				.has(solrQueryCounts(0, 0, 0));
 
 	}
+
+
+	@Test
+	public void givenUserHaveNestedAuthorizationsOnSomeFoldersThenValidTreeForCategorySelectionUsingPlanTaxonomy()
+			throws Exception {
+
+		givenUserHasNestedReadAccessTo(records.folder_A18, records.folder_A08);
+
+		assertThatRootWhenSelectingACategoryUsingPlanTaxonomy()
+				.has(numFoundAndListSize(2))
+				.has(linkable(records.categoryId_X))
+				.has(unlinkable(records.categoryId_Z))
+				.has(resultsInOrder(records.categoryId_X, records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_X, records.categoryId_Z))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X)
+				.has(numFoundAndListSize(2))
+				.has(linkable(records.categoryId_X100, records.categoryId_X13))
+				.has(resultsInOrder(records.categoryId_X13, records.categoryId_X100))
+				.has(itemsWithChildren(records.categoryId_X100))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X100)
+				.has(numFoundAndListSize(2))
+				.has(linkable(records.categoryId_X110, records.categoryId_X120))
+				.has(resultsInOrder(records.categoryId_X110, records.categoryId_X120))
+				.has(noItemsWithChildren())
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingACategoryUsingPlanTaxonomy(records.categoryId_X110)
+				.is(empty())
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
 
 
 	@Test
@@ -638,6 +815,18 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 	}
 
 	@Test
+	public void givenUserHaveNestedAuthorizationsOnSomeFoldersThenEmptyTreeForUnitSelectionUsingUnitTaxonomy()
+			throws Exception {
+
+		givenUserHasNestedReadAccessTo(records.folder_A18, records.folder_A08);
+
+		assertThatRootWhenSelectingAnAdministrativeUnitUsingUnitTaxonomy()
+				.is(empty())
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
+	@Test
 	public void givenUserHaveAuthorizationsOnASubFolderThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
 			throws Exception {
 
@@ -645,6 +834,51 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 		getModelLayerFactory().newRecordServices().add(subFolder);
 
 		givenUserHasReadAccessTo(subFolder.getId());
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy()
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_Z))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z100))
+				.has(itemsWithChildren(records.categoryId_Z100))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z100)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z120))
+				.has(itemsWithChildren(records.categoryId_Z120))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z120)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.folder_A20))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20)
+				.has(numFoundAndListSize(1))
+				.has(linkable(subFolder.getId()))
+				.has(itemsWithChildren(subFolder.getId()))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(subFolder.getId())
+				.is(empty())
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
+
+	@Test
+	public void givenUserHaveNestedAuthorizationsOnASubFolderThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+		Folder subFolder = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
+		getModelLayerFactory().newRecordServices().add(subFolder);
+
+		givenUserHasNestedReadAccessTo(subFolder.getId());
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy()
 				.has(numFoundAndListSize(1))
@@ -1276,7 +1510,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 		TaxonomiesSearchOptions defaultOptions = new TaxonomiesSearchOptions();
 		TaxonomiesSearchOptions optionsWithNoInvisibleRecords = new TaxonomiesSearchOptions()
-				.setShowInvisibleRecordsInLinkingMode(false);
+				.setShowInvisibleRecords(false);
 
 		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder")
 				.setActualTransferDate(LocalDate.now()).setActualDestructionDate(LocalDate.now());
@@ -1345,7 +1579,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 		TaxonomiesSearchOptions defaultOptions = new TaxonomiesSearchOptions();
 		TaxonomiesSearchOptions optionsWithNoInvisibleRecords = new TaxonomiesSearchOptions()
-				.setShowInvisibleRecordsInLinkingMode(false);
+				.setShowInvisibleRecords(false);
 
 		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder1")
 				.setActualTransferDate(LocalDate.now()).setActualDestructionDate(LocalDate.now());
@@ -1418,7 +1652,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 		TaxonomiesSearchOptions defaultOptions = new TaxonomiesSearchOptions();
 		TaxonomiesSearchOptions optionsWithNoInvisibleRecords = new TaxonomiesSearchOptions()
-				.setShowInvisibleRecordsInLinkingMode(false);
+				.setShowInvisibleRecords(false);
 
 		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(records.getFolder_A20()
 				.setActualTransferDate(LocalDate.now())));
@@ -2756,7 +2990,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true)
-				.setShowInvisibleRecordsInLinkingMode(false);
+				.setShowInvisibleRecords(false);
 
 		assertThatRootWhenSelectingFolderUsingPlanTaxonomy(records.getAdmin(), options)
 				.has(resultsInOrder(records.categoryId_X, "category_Y_id", records.categoryId_Z))
@@ -3294,6 +3528,27 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
 	}
 
+	private void givenUserHasNestedReadAccessTo(String... ids) {
+
+		for (String id : ids) {
+			RecordServices recordServices = getModelLayerFactory().newRecordServices();
+			Record record = recordServices.get(id);
+
+			record.getNestedAuthorizations().add(nonCascadingAuthToPrincipals(alice).accessType(R));
+			try {
+				recordServices.update(record);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
+	}
+
 	private void givenUserHasNegativeReadAccessTo(String... ids) {
 		for (String id : ids) {
 			getModelLayerFactory().newAuthorizationsServices().add(authorizationForUsers(alice).on(id).givingNegativeReadAccess());
@@ -3312,6 +3567,27 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_LinkableTreesAcceptTes
 					.add(authorizationForUsers(alice).on(id).givingReadWriteAccess());
 		}
 		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
+	}
+
+	private void givenUserHasNestedWriteAccessTo(String... ids) {
+
+		for (String id : ids) {
+			RecordServices recordServices = getModelLayerFactory().newRecordServices();
+			Record record = recordServices.get(id);
+
+			record.getNestedAuthorizations().add(nonCascadingAuthToPrincipals(alice).accessType(RW));
+			try {
+				recordServices.update(record);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
 	}
 

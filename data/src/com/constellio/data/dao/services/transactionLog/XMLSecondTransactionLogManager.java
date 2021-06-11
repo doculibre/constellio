@@ -137,7 +137,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 				BackgroundThreadConfiguration.repeatingAction(MERGE_LOGS_ACTION, newRegroupAndMoveInVaultRunnable())
 						.handlingExceptionWith(STOP).executedEvery(configuration.getSecondTransactionLogMergeFrequency()));
 
-		if (bigVaultServer.countDocuments() == 0) {
+		if (bigVaultServer.countDocuments() <= 1) {
 			regroupAndMove();
 			destroyAndRebuildSolrCollection();
 		}
@@ -162,6 +162,7 @@ public class XMLSecondTransactionLogManager implements SecondTransactionLogManag
 
 	@Override
 	public void transactionLOGReindexationStartStrategy() {
+		LOGGER.info("Preparing a new transaction log before reindexing by zipping the previous tlog and moving it in the vault...");
 		regroupAndMove();
 		File tlogsFolder = contentDao.getFileOf("tlogs/");
 		Collection<File> tlogs = FileUtils.listFiles(tlogsFolder, new String[]{"tlog"}, false);

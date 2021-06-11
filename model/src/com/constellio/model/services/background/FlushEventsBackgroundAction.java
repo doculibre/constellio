@@ -2,7 +2,6 @@ package com.constellio.model.services.background;
 
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 
 public class FlushEventsBackgroundAction implements Runnable {
 
@@ -14,7 +13,7 @@ public class FlushEventsBackgroundAction implements Runnable {
 
 	@Override
 	public void run() {
-		if (ReindexingServices.getReindexingInfos() == null
+		if (!modelLayerFactory.isReindexing()
 			&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
 			&& Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			modelLayerFactory.getDataLayerFactory().newEventsDao().flush();

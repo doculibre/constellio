@@ -1,42 +1,23 @@
 package com.constellio.app.modules.rm.ui.util;
 
-import static com.constellio.app.utils.HttpRequestUtils.isLocalhost;
-import static com.constellio.app.utils.HttpRequestUtils.isMacOsX;
-import static com.constellio.app.utils.HttpRequestUtils.isWindows;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.extensions.api.AgentExtension.AgentUrlExtension;
 import com.constellio.app.modules.rm.extensions.api.AgentExtension.AgentUrlExtension.GetAgentUrlParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.services.appManagement.AppManagementService;
-import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.application.ConstellioVaadinServlet;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.UserDocumentVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.utils.HttpRequestUtils;
 import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.utils.UnicodeUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -45,14 +26,26 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.SystemWideUserInfos;
 import com.constellio.model.services.users.UserServices;
-import com.vaadin.server.Page;
-import com.vaadin.server.VaadinServlet;
 import com.vaadin.server.VaadinServletService;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
+import static com.constellio.app.utils.HttpRequestUtils.isLocalhost;
+import static com.constellio.app.utils.HttpRequestUtils.isMacOsX;
+import static com.constellio.app.utils.HttpRequestUtils.isWindows;
 
 public class ConstellioAgentUtils {
 
@@ -89,40 +82,15 @@ public class ConstellioAgentUtils {
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 		if (rmConfigs.isAgentEnabled()) {
-			String baseURL;
-			if (request != null) {
-				baseURL = HttpRequestUtils.getBaseURL(request, true);
-			} else {
-				Page page = Page.getCurrent();
-				URI location = page.getLocation();
-				String contextPath = VaadinServlet.getCurrent().getServletContext().getContextPath();
-
-				String schemeSpecificPart = location.getSchemeSpecificPart().substring(2);
-				String schemeSpecificPartBeforeContextPath;
-				if (StringUtils.isNotBlank(contextPath)) {
-					if (schemeSpecificPart.indexOf(contextPath) != -1) {
-						schemeSpecificPartBeforeContextPath = StringUtils.substringBeforeLast(schemeSpecificPart, contextPath);
-					} else {
-						contextPath = null;
-						schemeSpecificPartBeforeContextPath = StringUtils.removeEnd(schemeSpecificPart, "/");
-					}
-				} else {
-					schemeSpecificPartBeforeContextPath = StringUtils.removeEnd(schemeSpecificPart, "/");
-				}
-
-				StringBuffer baseURLSB = new StringBuffer();
-				baseURLSB.append(location.getScheme());
-				baseURLSB.append("://");
-				baseURLSB.append(schemeSpecificPartBeforeContextPath);
-				if (StringUtils.isNotBlank(contextPath)) {
-					baseURLSB.append(contextPath);
-				}
-				baseURL = baseURLSB.toString();
+			ConstellioEIMConfigs eimConfigs = new ConstellioEIMConfigs(systemConfigurationsManager);
+			String baseURL = eimConfigs.getConstellioUrl();
+			if (!baseURL.endsWith("/")) {
+				baseURL += "/";
 			}
-
+			
 			StringBuffer sb = new StringBuffer();
 			sb.append(baseURL);
-			sb.append("/agentPath");
+			sb.append("agentPath");
 			agentBaseURL = sb.toString();
 		} else {
 			agentBaseURL = null;
@@ -158,7 +126,7 @@ public class ConstellioAgentUtils {
 									 SessionContext sessionContext, AppLayerFactory appLayerFactory) {
 		String agentURL;
 		request = ensureRequest(request);
-		if (recordVO != null && contentVersionVO != null && isAgentSupported(request)) {
+		if (Toggle.AGENT_PLUGIN_INSTALLED.isEnabled() && recordVO != null && contentVersionVO != null && isAgentSupported(request)) {
 			// FIXME Should not obtain ConstellioFactories through singleton
 			if (appLayerFactory == null) {
 				appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
@@ -180,7 +148,9 @@ public class ConstellioAgentUtils {
 					User user = userServices.getUserInCollection(userVO.getUsername(), recordVO.getRecord().getCollection());
 					String url = rmModuleExtensions.getAgentExtensions().getAgentUrlExtension().getValue()
 							.getAgentUrl(new GetAgentUrlParams(user, recordVO.getId(), request));
-					if (url != null) {
+					if (AgentUrlExtension.FORCE_NULL_VALUE.equals(url)) {
+						return null;
+					} else if (url != null) {
 						return url;
 					}
 				}
@@ -231,9 +201,9 @@ public class ConstellioAgentUtils {
 		if (request == null) {
 			request = VaadinServletService.getCurrentServletRequest();
 		}
-		if (request == null) {
-			request = ConstellioVaadinServlet.getCurrentHttpServletRequest();
-		}
+//		if (request == null) {
+//			request = ConstellioVaadinServlet.getCurrentHttpServletRequest();
+//		}
 		return request;
 	}
 
@@ -275,14 +245,7 @@ public class ConstellioAgentUtils {
 										  SessionContext sessionContext) {
 		String resourcePath;
 
-		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-
 		Record record = recordVO.getRecord();
-		//		if (record == null || record.getRecordDTOMode() != RecordDTOMode.FULLY_LOADED) {
-		//			record = recordServices.getDocumentById(recordVO.getId());
-		//		}
 		String schemaCode = record.getSchemaCode();
 		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 
@@ -296,7 +259,7 @@ public class ConstellioAgentUtils {
 		MetadataSchemaTypes types = types(sessionContext);
 		if (UserDocument.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			UserDocument userDocument = new UserDocument(record, types);
-			if (currentUserId.equals(userDocument.getUser())) {
+			if (currentUserId.equals(userDocument.getUser()) && userDocument.getUserFolder() == null) {
 				StringBuffer sb = new StringBuffer();
 				sb.append("/");
 				sb.append(currentUsername);
@@ -391,7 +354,7 @@ public class ConstellioAgentUtils {
 		File agentVersionFile = new File(agentFolder, "constellio-agent.version");
 		String version;
 		try {
-			version = FileUtils.readFileToString(agentVersionFile);
+			version = FileUtils.readFileToString(agentVersionFile, "UTF-8");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -399,11 +362,7 @@ public class ConstellioAgentUtils {
 	}
 
 	public static boolean isAdvancedFeaturesEnabled() {
-		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-		AppManagementService appManagementService = appLayerFactory.newApplicationService();
-		LicenseInfo licenseInfo = appManagementService.getLicenseInfo();
-		return licenseInfo != null && licenseInfo.getExpirationDate().isAfter(new LocalDate());
+		return true;
 	}
 	
 	public static void main(String[] args)

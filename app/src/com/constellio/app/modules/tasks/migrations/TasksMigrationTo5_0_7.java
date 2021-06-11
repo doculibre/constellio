@@ -294,7 +294,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		private MetadataSchemaTypeBuilder createTaskSchemaType(MetadataSchemaTypesBuilder typesBuilder,
 															   MetadataSchemaBuilder taskType) {
 			MetadataSchemaTypeBuilder taskStatusType = typesBuilder.getSchemaType(TaskStatus.SCHEMA_TYPE);
-			MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(Task.SCHEMA_TYPE).setSecurity(true).setSmallCode("t");
+			MetadataSchemaTypeBuilder schemaType = types().createNewSchemaTypeWithSecurity(Task.SCHEMA_TYPE).setSecurity(true).setSmallCode("t");
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 			defaultSchema.defineValidators().add(TaskValidator.class);
 

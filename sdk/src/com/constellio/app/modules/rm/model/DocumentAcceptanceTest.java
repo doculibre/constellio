@@ -291,6 +291,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenADocumentIsCreatedWithThumbnailAndPdfTronIsActivatedThenFilePreviewIsCreated() throws Exception {
+		assumeContentConversionAvailable();
 		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
 
 		systemConfigurationsManager.setValue(ConstellioEIMConfigs.PDFTRON_LICENSE, "licence");
@@ -362,7 +363,7 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCreatingADocumentWithAMicrosofContentThenConverted()
 			throws Exception {
-
+		assumeContentConversionAvailable();
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
 
 		ContentVersionDataSummary version1 = contentManager.upload(getTestResourceFile("test.docx"));

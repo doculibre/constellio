@@ -390,7 +390,7 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 	private List<Record> findRecords(LogicalSearchCondition condition, User user) {
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(condition);
-		query.filteredWithUser(user);
+		query.filteredWithUserRead(user);
 		return searchServices.search(query);
 	}
 
@@ -410,12 +410,12 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 
 		LogicalSearchQuery query = new LogicalSearchQuery();
 		query.setCondition(from(setup.folderSchema.instance()).returnAll());
-		query.filteredWithUser(user);
+		query.filteredWithUserRead(user);
 		recordIds.addAll(searchServices.searchRecordIds(query));
 
 		query = new LogicalSearchQuery();
 		query.setCondition(from(setup.documentSchema.instance()).returnAll());
-		query.filteredWithUser(user);
+		query.filteredWithUserRead(user);
 		recordIds.addAll(searchServices.searchRecordIds(query));
 		return recordIds;
 	}

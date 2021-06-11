@@ -26,6 +26,7 @@ public class GetPdfJSAnnotationsConfigServlet extends BasePdfJSServlet {
 		PdfJSServices pdfJSServices = newPdfJSServices();
 
 		String pdfJSAnnotationsConfig = pdfJSServices.getAnnotationsConfig(record, metadata, user, localeCode, serviceKey, token, urlPrefix);
+		preventCache(request, response);
 		writeResponse(pdfJSAnnotationsConfig, request, response);
 	}
 

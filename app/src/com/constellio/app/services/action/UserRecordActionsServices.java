@@ -7,6 +7,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -52,7 +53,9 @@ public class UserRecordActionsServices {
 	}
 
 	public boolean isChangeStatusActionPossible(Record record, User user) {
-		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		User targetUser = core.wrapUser(record);
+		return (!User.ADMIN.equals(targetUser.getUsername()) || !UserCredentialStatus.ACTIVE.equals(user.getStatus()))
+			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 
@@ -85,7 +88,9 @@ public class UserRecordActionsServices {
 	}
 
 	public boolean isDeleteActionPossible(Record record, User user) {
-		return userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
+		User targetUser = core.wrapUser(record);
+		return !User.ADMIN.equals(targetUser.getUsername())
+			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SYSTEM_USERS)
 			   && userServices.has(user).globalPermissionInAnyCollection(CorePermissions.MANAGE_SECURITY);
 	}
 

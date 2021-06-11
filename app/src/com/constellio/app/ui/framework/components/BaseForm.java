@@ -316,7 +316,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 	}
 
 	protected boolean isAddButtonsToStaticFooter() {
-		return ComponentTreeUtils.findParent(this, Window.class) == null;
+		return !ConstellioUI.getCurrent().isNested() && ComponentTreeUtils.findParent(this, Window.class) == null;
 	}
 
 	protected List<String> getOrderedTabCaptions(T viewObject) {

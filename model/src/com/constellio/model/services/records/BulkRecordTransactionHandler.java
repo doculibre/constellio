@@ -11,10 +11,11 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntimeException.BulkRecordTransactionHandlerRuntimeException_ExceptionExecutingTransaction;
 import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntimeException.BulkRecordTransactionHandlerRuntimeException_Interrupted;
-import com.constellio.model.services.records.cache.RecordsCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,8 +25,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
-public class BulkRecordTransactionHandler {
+import static com.constellio.model.entities.records.ImpactHandlingMode.HANDLE_ALL_IN_TRANSACTION_OR_EXCEPTION;
+import static com.constellio.model.entities.records.ImpactHandlingMode.HANDLE_LATER;
+import static com.constellio.model.entities.records.ImpactHandlingMode.NEXT_SYSTEM_REINDEXING;
+
+public class BulkRecordTransactionHandler implements Closeable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(BulkRecordTransactionHandler.class);
 
@@ -65,6 +71,8 @@ public class BulkRecordTransactionHandler {
 
 	boolean closed = false;
 
+	List<Consumer<Transaction>> completedTransactionCallBacks = new ArrayList<>();
+
 	public BulkRecordTransactionHandler(RecordServices recordServices, String resourceName) {
 		this(recordServices, resourceName, new BulkRecordTransactionHandlerOptions());
 	}
@@ -83,6 +91,16 @@ public class BulkRecordTransactionHandler {
 			throw new BulkRecordTransactionHandlerRuntimeException_Interrupted(e);
 		}
 
+	}
+
+	public BulkRecordTransactionHandler registerCompletedTransactionCallBack(
+			Consumer<Transaction> completedRecordCallBack) {
+		this.completedTransactionCallBacks.add(completedRecordCallBack);
+		return this;
+	}
+
+	public void unregisterCompletedTransactionCallBacks() {
+		this.completedTransactionCallBacks.clear();
 	}
 
 	public synchronized void append(Record record) {
@@ -241,7 +259,6 @@ public class BulkRecordTransactionHandler {
 				private void handle(BulkRecordTransactionHandlerTask task) {
 					try {
 						Transaction transaction = new Transaction(task.records);
-						RecordsCache cache = recordServices.getRecordsCaches().getCache(transaction.getCollection());
 						for (Record referencedRecord : task.referencedRecords.values()) {
 							transaction.addReferencedRecord(referencedRecord);
 						}
@@ -255,15 +272,21 @@ public class BulkRecordTransactionHandler {
 						switch (options.recordModificationImpactHandling) {
 
 							case IN_SAME_TRANSACTION:
+								transaction.getRecordUpdateOptions().setImpactHandlingMode(HANDLE_ALL_IN_TRANSACTION_OR_EXCEPTION);
 								recordServices.execute(transaction);
 								break;
 							case START_BATCH_PROCESS:
-								recordServices.executeHandlingImpactsAsync(transaction);
+								transaction.getRecordUpdateOptions().setImpactHandlingMode(HANDLE_LATER);
+								recordServices.execute(transaction);
 								break;
 							case NO_IMPACT_HANDLING:
-								recordServices.executeWithImpactHandler(transaction, null);
+								transaction.getRecordUpdateOptions().setImpactHandlingMode(NEXT_SYSTEM_REINDEXING);
+								recordServices.execute(transaction);
 								break;
 						}
+
+						completedTransactionCallBacks.forEach(callback -> callback.accept(transaction));
+
 					} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_ExceptionWhileCalculating e) {
 						SystemLogger.error(e.getMessage());
 					} catch (Exception e) {
@@ -316,6 +339,11 @@ public class BulkRecordTransactionHandler {
 	private boolean isQueueEmptyAndWorkersWaiting() {
 		return tasks.isEmpty() && availableWorkers.get() == threadList.size()
 			   && createdTasksCounter.get() == completedTasksCounter.get();
+	}
+
+	@Override
+	public void close() throws IOException {
+		closeAndJoin();
 	}
 
 	static class BulkRecordTransactionHandlerTask {

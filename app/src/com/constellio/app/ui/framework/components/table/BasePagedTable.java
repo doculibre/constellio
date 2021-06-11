@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components.table;
 
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
@@ -106,7 +107,7 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 		pageSize.setSpacing(true);
 
 		Label page = new Label($("SearchResultTable.page"));
-		final TextField currentPage = new TextField();
+		final TextField currentPage = new BaseTextField();
 		currentPage.setConverter(Integer.class);
 		currentPage.setConvertedValue(getCurrentPage());
 		currentPage.setWidth("45px");

@@ -36,6 +36,9 @@ import java.util.List;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+/**
+ * Export retention rule using gala standard
+ */
 public class RetentionRuleXMLExporter {
 
 	private static final String W3C_XML_SCHEMA_NS_URI = "http://www.w3.org/2001/XMLSchema";

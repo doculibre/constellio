@@ -23,7 +23,12 @@ public abstract class VaultContentEntry {
 	}
 
 	public DaoFile getThumbnails() {
-		String name = vaultFile.getName() + ".jpegConversion";
+		String name = vaultFile.getName() + ".thumbnail";
+		return vaultFile.getContentDao().getFile(name);
+	}
+
+	public DaoFile getIcapScan() {
+		String name = vaultFile.getName() + ".icapscan";
 		return vaultFile.getContentDao().getFile(name);
 	}
 

@@ -3,6 +3,7 @@ package com.constellio.model.services.background;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -46,11 +47,11 @@ public class AuthorizationWithTimeRangeTokenUpdateBackgroundAction implements Ru
 			List<Authorization> auths = schemas.getAllAuthorizationsInUnmodifiableState();
 			for (Authorization auth : auths) {
 				if (auth.hasModifiedStatusSinceLastTokenRecalculate()) {
-					auth = auth.getCopyOfOriginalRecord();
+					auth = ((RecordAuthorization) auth).getCopyOfOriginalRecord();
 					try {
 						Transaction tx = new Transaction();
 						tx.setOptions(validationExceptionSafeOptions().setForcedReindexationOfMetadatas(ALL()));
-						tx.add(auth.setLastTokenRecalculate(getLocalDate()));
+						tx.add(((RecordAuthorization) auth).setLastTokenRecalculate(getLocalDate()));
 
 						Record target = recordServices.getDocumentById(auth.getTarget());
 						MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(target);

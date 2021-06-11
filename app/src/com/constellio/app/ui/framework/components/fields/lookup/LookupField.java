@@ -1,24 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -78,6 +59,24 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class LookupField<T extends Serializable> extends CustomField<Object> {
 
@@ -128,11 +127,21 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 		}
 	}
 
+	public void forceInitContent() {
+		getContent();
+	}
+
 	@Override
 	public void setReadOnly(boolean readOnly) {
 		super.setReadOnly(readOnly);
 		if (autoCompleteField != null) {
 			autoCompleteField.setReadOnly(readOnly);
+		}
+		if (lookupWindowButton != null) {
+			lookupWindowButton.setEnabled(!readOnly);
+		}
+		if (clearButton != null) {
+			clearButton.setEnabled(!readOnly);
 		}
 	}
 
@@ -840,7 +849,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<Ob
 				informationLayout.removeComponent(currentInformationComponent);
 			}
 			currentInformationComponent = initItemInformationContent(object);
-			currentInformationComponent.setWidth("200px");
+//			currentInformationComponent.setWidth("200px");
 			informationLayout.addComponent(currentInformationComponent);
 			itemsAndInformationLayout.addComponent(informationLayout);
 		}

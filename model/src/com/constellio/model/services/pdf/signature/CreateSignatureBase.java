@@ -233,6 +233,8 @@ public abstract class CreateSignatureBase implements SignatureInterface {
 	}
 
 	/**
+	 * http://www.verypdf.com/document/pdf-format-reference/pg_0733.htm
+	 * 
 	 * Get the access permissions granted for this document in the DocMDP transform parameters
 	 * dictionary. Details are described in the table "Entries in the DocMDP transform parameters
 	 * dictionary" in the PDF specification.
@@ -241,8 +243,15 @@ public abstract class CreateSignatureBase implements SignatureInterface {
 	 * @return the permission value. 0 means no DocMDP transform parameters dictionary exists. Other
 	 * return values are 1, 2 or 3. 2 is also returned if the DocMDP transform parameters dictionary
 	 * is found but did not contain a /P entry, or if the value is outside the valid range.
+	 * 
+	 * 0: Unset
+	 * 1: No changes to the document are permitted; any change to the docu-ment invalidates the signature.
+	 * 2: Permitted changes are filling in forms, instantiating page templates,and signing; other changes invalidate the signature.
+	 * 3: Permitted changes are the same as for2, as well as annotation creation,deletion, and modification; other changes invalidate the signature.
+	 * 
+	 * Default value: 2
 	 */
-	public int getMDPPermission(PDDocument doc) {
+	public static int getMDPPermission(PDDocument doc) {
 		COSBase base = doc.getDocumentCatalog().getCOSObject().getDictionaryObject(COSName.PERMS);
 		if (base instanceof COSDictionary) {
 			COSDictionary permsDict = (COSDictionary) base;

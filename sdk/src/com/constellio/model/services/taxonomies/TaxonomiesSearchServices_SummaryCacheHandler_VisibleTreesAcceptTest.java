@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -14,12 +15,16 @@ import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueId
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -32,6 +37,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.ConditionTemplate;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.solr.common.params.SolrParams;
@@ -50,7 +56,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForGroups;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.nonCascadingNestedAuthorizationForGroups;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.nonCascadingNestedAuthorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.createFoldersAndDocumentsWithNegativeAuths;
@@ -160,6 +169,123 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				.has(recordsWithChildren(subFolderId))
 				.has(numFoundAndListSize(4))
 				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
+	@Test
+	public void givenLogicallyDeletedTaxonomyConceptWhenNavigatingUsingDisplayModeThenShownWithItsContent()
+			throws Exception {
+
+		ValueListServices services = new ValueListServices(getAppLayerFactory(), zeCollection);
+		Taxonomy taxonomy = services.createTaxonomy("zeTaxo", TestUtils.asMap(Language.French, "Ze taxo"), false);
+		Metadata metadata = services.createAMultivalueClassificationMetadataInGroup(taxonomy, Folder.SCHEMA_TYPE, "gr", "grrr");
+		MetadataSchemaType schemaType = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
+				.getSchemaType(taxonomy.getSchemaTypes().get(0));
+
+		Record concept = recordServices.newRecordWithSchema(schemaType.getDefaultSchema())
+				.set(Schemas.CODE, "zeCode").set(Schemas.TITLE, "zeTitle");
+		recordServices.add(concept);
+
+		Record childConcept = recordServices.newRecordWithSchema(schemaType.getDefaultSchema())
+				.set(Schemas.CODE, "zeChildCode").set(Schemas.TITLE, "zeChildTitle")
+				.set(schemaType.getDefaultSchema().getMetadata("parent"), concept);
+		recordServices.add(childConcept);
+
+
+		Record childConcept2 = recordServices.newRecordWithSchema(schemaType.getDefaultSchema())
+				.set(Schemas.CODE, "zeChildCode2").set(Schemas.TITLE, "zeChildTitle2")
+				.set(schemaType.getDefaultSchema().getMetadata("parent"), concept);
+		recordServices.add(childConcept2);
+
+		recordServices.update(records.getFolder_A16().set(metadata, asList(concept)));
+		recordServices.update(records.getFolder_A17().set(metadata, asList(childConcept)));
+
+
+		recordServices.logicallyDelete(childConcept, User.GOD);
+		recordServices.logicallyDelete(childConcept2, User.GOD);
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions();
+		options.setForceLinkableCalculation(false);
+
+		assertThatRootWhenUserNavigateUsingCustomTaxonomy(records.getDakota_managerInA_userInB(), taxonomy.getCode(), options)
+				.has(recordsInOrder(concept.getId()))
+				.has(recordsWithChildren(concept.getId()))
+				.has(unlinkable(concept.getId()))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingCustomTaxonomy(records.getDakota_managerInA_userInB(), taxonomy.getCode(), concept.getId(), options)
+				.has(recordsInOrder(childConcept.getId(), records.folder_A16))
+				.has(recordsWithChildren(childConcept.getId(), records.folder_A16))
+				.has(unlinkable(childConcept.getId(), records.folder_A16))
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingCustomTaxonomy(records.getDakota_managerInA_userInB(), taxonomy.getCode(), childConcept.getId(), options)
+				.has(recordsInOrder(records.folder_A17))
+				.has(recordsWithChildren(records.folder_A17))
+				.has(unlinkable(records.folder_A17))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingCustomTaxonomy(records.getDakota_managerInA_userInB(), taxonomy.getCode(), childConcept2.getId(), options)
+				.has(recordsInOrder())
+				.has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		options = new TaxonomiesSearchOptions();
+		options.setForceLinkableCalculation(true);
+
+		assertThatRootWhenUserNavigateUsingCustomTaxonomy(records.getDakota_managerInA_userInB(), taxonomy.getCode(), options)
+				.has(recordsInOrder(concept.getId()))
+				.has(linkable(concept.getId()))
+				.has(recordsWithChildren(concept.getId()))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingCustomTaxonomy(records.getDakota_managerInA_userInB(), taxonomy.getCode(), concept.getId(), options)
+				.has(recordsInOrder(childConcept.getId(), records.folder_A16))
+				.has(recordsWithChildren(childConcept.getId(), records.folder_A16))
+				.has(unlinkable(childConcept.getId()))
+				.has(linkable( records.folder_A16))
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingCustomTaxonomy(records.getDakota_managerInA_userInB(), taxonomy.getCode(), childConcept.getId(), options)
+				.has(recordsInOrder(records.folder_A17))
+				.has(recordsWithChildren(records.folder_A17))
+				.has(linkable(records.folder_A17))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingCustomTaxonomy(records.getDakota_managerInA_userInB(), taxonomy.getCode(), childConcept2.getId(), options)
+				.has(recordsInOrder())
+				.has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		recordServices.logicallyDelete(concept, User.GOD);
+
+		options = new TaxonomiesSearchOptions();
+		options.setForceLinkableCalculation(false);
+
+		assertThatRootWhenUserNavigateUsingCustomTaxonomy(records.getDakota_managerInA_userInB(), taxonomy.getCode(), options)
+				.has(recordsInOrder(concept.getId()))
+				.has(recordsWithChildren(concept.getId()))
+				.has(unlinkable(concept.getId()))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+
+		options = new TaxonomiesSearchOptions();
+		options.setForceLinkableCalculation(true);
+
+		assertThatRootWhenUserNavigateUsingCustomTaxonomy(records.getDakota_managerInA_userInB(), taxonomy.getCode(), options)
+				.has(recordsInOrder(concept.getId()))
+				.has(unlinkable(concept.getId()))
+				.has(recordsWithChildren(concept.getId()))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
 
 	}
 
@@ -280,24 +406,213 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 	}
 
 	@Test
-	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords()
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case1()
 			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(false, false, false, false);
+	}
 
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case2()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(false, false, true, false);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case3()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(false, true, false, false);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case4()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(false, true, true, false);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case5()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(true, false, false, false);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case6()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(true, false, true, false);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case7()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(true, true, false, false);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case8()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(true, true, true, false);
+	}
+
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case9()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(false, false, false, true);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case10()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(false, false, true, true);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case11()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(false, true, false, true);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case12()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(false, true, true, true);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case13()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(true, false, false, true);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case14()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(true, false, true, true);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case15()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(true, true, false, true);
+	}
+
+	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords_case16()
+			throws Exception {
+		whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(true, true, true, true);
+	}
+
+
+	private void whenUserIsNavigatingAdminUnitTaxonomyThenOnlySeeConceptsContainingAccessibleRecords(
+			boolean groupSecurity, boolean writeAccess, boolean showHiddentRecords, boolean nestedAuths)
+			throws Exception {
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions();
+		getModelLayerFactory().newUserServices().createGroup("robinGroup", (req) -> {
+			req.setName("Robin group").addCollection(zeCollection);
+		});
+		getModelLayerFactory().newUserServices().createGroup("sasquatchGroup", (req) -> {
+			req.setName("Sasquatch group").addCollection(zeCollection);
+		});
+		getModelLayerFactory().newUserServices().execute(robin, (req) -> {
+			req.addToGroupInCollection("robinGroup", zeCollection);
+		});
+		getModelLayerFactory().newUserServices().execute(sasquatch, (req) -> {
+			req.addToGroupInCollection("sasquatchGroup", zeCollection);
+		});
+
+
 		User sasquatch = users.sasquatchIn(zeCollection);
 		User robin = users.robinIn(zeCollection);
 		User admin = users.adminIn(zeCollection);
-		authsServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
-		authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
 
-		authsServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
-		authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
-		authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
+
+		Group sasquatchGroup = getModelLayerFactory().newUserServices().getGroupInCollection("sasquatchGroup", zeCollection);
+		Group robinGroup = getModelLayerFactory().newUserServices().getGroupInCollection("robinGroup", zeCollection);
+
+		if (groupSecurity) {
+			if (writeAccess) {
+				if (nestedAuths) {
+					authsServices.add(nonCascadingNestedAuthorizationForGroups(sasquatchGroup).on("B06").givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForGroups(sasquatchGroup).on(records.unitId_20d).givingReadWriteAccess(), admin);
+					authsServices.add(nonCascadingNestedAuthorizationForGroups(robinGroup).on("B06").givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForGroups(robinGroup).on(records.unitId_12c).givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForGroups(robinGroup).on(records.unitId_30).givingReadWriteAccess(), admin);
+				} else {
+					authsServices.add(authorizationForGroups(sasquatchGroup).on("B06").givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForGroups(sasquatchGroup).on(records.unitId_20d).givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForGroups(robinGroup).on("B06").givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForGroups(robinGroup).on(records.unitId_12c).givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForGroups(robinGroup).on(records.unitId_30).givingReadWriteAccess(), admin);
+				}
+			} else {
+				if (nestedAuths) {
+					authsServices.add(nonCascadingNestedAuthorizationForGroups(sasquatchGroup).on("B06").givingReadAccess(), admin);
+					authsServices.add(authorizationForGroups(sasquatchGroup).on(records.unitId_20d).givingReadAccess(), admin);
+					authsServices.add(nonCascadingNestedAuthorizationForGroups(robinGroup).on("B06").givingReadAccess(), admin);
+					authsServices.add(authorizationForGroups(robinGroup).on(records.unitId_12c).givingReadAccess(), admin);
+					authsServices.add(authorizationForGroups(robinGroup).on(records.unitId_30).givingReadAccess(), admin);
+				} else {
+					authsServices.add(authorizationForGroups(sasquatchGroup).on("B06").givingReadAccess(), admin);
+					authsServices.add(authorizationForGroups(sasquatchGroup).on(records.unitId_20d).givingReadAccess(), admin);
+					authsServices.add(authorizationForGroups(robinGroup).on("B06").givingReadAccess(), admin);
+					authsServices.add(authorizationForGroups(robinGroup).on(records.unitId_12c).givingReadAccess(), admin);
+					authsServices.add(authorizationForGroups(robinGroup).on(records.unitId_30).givingReadAccess(), admin);
+				}
+
+			}
+		} else {
+			if (writeAccess) {
+				if (nestedAuths) {
+					authsServices.add(nonCascadingNestedAuthorizationForUsers(sasquatch).on("B06").givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadWriteAccess(), admin);
+					authsServices.add(nonCascadingNestedAuthorizationForUsers(robin).on("B06").givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadWriteAccess(), admin);
+				} else {
+					authsServices.add(nonCascadingNestedAuthorizationForUsers(sasquatch).on("B06").givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadWriteAccess(), admin);
+					authsServices.add(nonCascadingNestedAuthorizationForUsers(robin).on("B06").givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadWriteAccess(), admin);
+					authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadWriteAccess(), admin);
+				}
+
+			} else {
+				if (nestedAuths) {
+					authsServices.add(nonCascadingNestedAuthorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
+					authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
+					authsServices.add(nonCascadingNestedAuthorizationForUsers(robin).on("B06").givingReadAccess(), admin);
+					authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
+					authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
+				} else {
+					authsServices.add(authorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
+					authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
+					authsServices.add(authorizationForUsers(robin).on("B06").givingReadAccess(), admin);
+					authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
+					authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
+				}
+			}
+		}
+
+		if (showHiddentRecords) {
+			Folder b06 = rm.getFolder("B06");
+			givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+			recordServices.update(b06.setActualTransferDate(LocalDate.now()));
+			assertThat(b06.<Boolean>get(Schemas.VISIBLE_IN_TREES)).isFalse();
+		}
+
 		recordServices.refresh(robin);
 		recordServices.refresh(sasquatch);
 		waitForBatchProcess();
 		assertThat(robin.hasReadAccess().on(recordServices.getDocumentById("B06"))).isTrue();
 		assertThat(sasquatch.hasReadAccess().on(recordServices.getDocumentById("B06"))).isTrue();
+		if (writeAccess) {
+			assertThat(robin.hasWriteAccess().on(recordServices.getDocumentById("B06"))).isTrue();
+			assertThat(sasquatch.hasWriteAccess().on(recordServices.getDocumentById("B06"))).isTrue();
+		}
+
+		if (showHiddentRecords) {
+			options.setShowInvisibleRecords(true);
+		}
 
 		//Sasquatch
 		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(sasquatch, options)
@@ -348,6 +663,59 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				.has(recordsWithChildren("B06"))
 				.has(numFoundAndListSize(1))
 				.has(solrQueryCounts(0, 0, 0));
+
+		if (writeAccess) {
+			options.setRequiredAccess(Role.WRITE);
+			//Sasquatch
+			assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(sasquatch, options)
+					.has(recordsInOrder(records.unitId_10))
+					.has(recordsWithChildren(records.unitId_10))
+					.has(numFoundAndListSize(1))
+					.has(solrQueryCounts(0, 0, 0));
+
+			assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_10, options)
+					.has(recordsInOrder(records.unitId_12))
+					.has(recordsWithChildren(records.unitId_12))
+					.has(numFoundAndListSize(1))
+					.has(solrQueryCounts(0, 0, 0));
+
+			assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12, options)
+					.has(recordsInOrder(records.unitId_12b))
+					.has(recordsWithChildren(records.unitId_12b))
+					.has(numFoundAndListSize(1))
+					.has(solrQueryCounts(0, 0, 0));
+
+			assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12b, options)
+					.has(recordsInOrder("B06"))
+					.has(recordsWithChildren("B06"))
+					.has(numFoundAndListSize(1))
+					.has(solrQueryCounts(0, 0, 0));
+
+			//Robin
+			assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(robin, options)
+					.has(recordsInOrder(records.unitId_10, records.unitId_30))
+					.has(recordsWithChildren(records.unitId_10, records.unitId_30))
+					.has(numFoundAndListSize(2))
+					.has(solrQueryCounts(0, 0, 0));
+
+			assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_10, options)
+					.has(recordsInOrder(records.unitId_12))
+					.has(recordsWithChildren(records.unitId_12))
+					.has(numFoundAndListSize(1))
+					.has(solrQueryCounts(0, 0, 0));
+
+			assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_12, options)
+					.has(recordsInOrder(records.unitId_12b))
+					.has(recordsWithChildren(records.unitId_12b))
+					.has(numFoundAndListSize(1))
+					.has(solrQueryCounts(0, 0, 0));
+
+			assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_12b, options)
+					.has(recordsInOrder("B06"))
+					.has(recordsWithChildren("B06"))
+					.has(numFoundAndListSize(1))
+					.has(solrQueryCounts(0, 0, 0));
+		}
 
 	}
 
@@ -433,6 +801,88 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 	}
 
 	@Test
+	public void whenUserIsNavigatingAdminUnitTaxonomyAlwaysDisplayingConceptsWithNestedReadAccessThenOnlySeeConceptsContainingAccessibleRecordsAndThoseWithReadAccess()
+			throws Exception {
+
+		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
+		User sasquatch = users.sasquatchIn(zeCollection);
+		User robin = users.robinIn(zeCollection);
+		User admin = users.adminIn(zeCollection);
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(sasquatch).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(sasquatch).on(records.unitId_20d).givingReadAccess(), admin);
+
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(robin).on("B06").givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_12c).givingReadAccess(), admin);
+		authsServices.add(authorizationForUsers(robin).on(records.unitId_30).givingReadAccess(), admin);
+
+		recordServices.refresh(sasquatch);
+		recordServices.refresh(robin);
+		waitForBatchProcess();
+		//Sasquatch
+		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(sasquatch, options)
+				.has(recordsInOrder(records.unitId_10, records.unitId_20))
+				.has(recordsWithChildren(records.unitId_10, records.unitId_20))
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_10, options)
+				.has(recordsInOrder(records.unitId_12))
+				.has(recordsWithChildren(records.unitId_12))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12, options)
+				.has(recordsInOrder(records.unitId_12b))
+				.has(recordsWithChildren(records.unitId_12b))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12b, options)
+				.has(recordsInOrder("B06"))
+				.has(recordsWithChildren("B06"))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(sasquatch, records.unitId_12c, options)
+				.has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		//Robin
+		assertThatRootWhenUserNavigateUsingAdministrativeUnitsTaxonomy(robin, options)
+				.has(recordsInOrder(records.unitId_10, records.unitId_30))
+				.has(recordsWithChildren(records.unitId_10, records.unitId_30))
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_10, options)
+				.has(recordsInOrder(records.unitId_12))
+				.has(recordsWithChildren(records.unitId_12))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_12, options)
+				.has(recordsInOrder(records.unitId_12b, records.unitId_12c))
+				.has(recordsWithChildren(records.unitId_12b))
+				.has(numFoundAndListSize(2))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_30, options)
+				.has(recordsInOrder(records.unitId_30c))
+				.has(recordsWithChildren(records.unitId_30c))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingAdminUnitsTaxonomy(robin, records.unitId_12b, options)
+				.has(recordsInOrder("B06"))
+				.has(recordsWithChildren("B06"))
+				.has(numFoundAndListSize(1))
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
+
+	@Test
 	public void whenAdminIsNavigatingAdminUnityWithVisibleRecordsAlwaysDisplayingConceptsWithReadAccessThenSeesRecordsAndAllConcepts()
 			throws Exception {
 
@@ -458,6 +908,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				.has(solrQueryCounts(0, 0, 0));
 
 	}
+
 
 	@Test
 	@InDevelopmentTest
@@ -668,6 +1119,7 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 
 	}
 
+
 	@Test
 	public void givenLogicallyDeletedRecordsInVisibleRecordsThenNotShownInTree()
 			throws Exception {
@@ -682,6 +1134,41 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder1.getId()).givingReadAccess());
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder2.getId()).givingReadAccess());
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
+
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+		User sasquatch = users.sasquatchIn(zeCollection);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
+				.has(numFoundAndListSize(1))
+				.has(recordsWithChildren(records.categoryId_X));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
+	@Test
+	public void givenLogicallyDeletedRecordsWithNestedAuthVisibleRecordsThenNotShownInTree()
+			throws Exception {
+
+		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
+		Folder subFolder2 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
+		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
+
+		getModelLayerFactory().newRecordServices().logicallyDelete(subFolder1.getWrappedRecord(), User.GOD);
+		getModelLayerFactory().newRecordServices().logicallyDelete(subFolder2.getWrappedRecord(), User.GOD);
+
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder1.getId()).givingReadAccess());
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder2.getId()).givingReadAccess());
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
 
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 		User sasquatch = users.sasquatchIn(zeCollection);
@@ -740,6 +1227,44 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 
 	}
 
+
+	@Test
+	public void givenInvisibleInTreeRecordsInVisibleRecordWithNestedAuthThenNotShownInTree()
+			throws Exception {
+
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+
+		Folder subFolder1 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder")
+				.setActualTransferDate(LocalDate.now()).setActualDestructionDate(LocalDate.now());
+		Folder subFolder2 = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder")
+				.setActualTransferDate(LocalDate.now());
+		getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(subFolder1, subFolder2));
+
+		assertThat(subFolder2.<Boolean>get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
+
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder1.getId()).givingReadAccess());
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).on(subFolder2.getId()).givingReadAccess());
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
+				.has(numFoundAndListSize(1))
+				.has(recordsWithChildren(records.categoryId_X));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
 	@Test
 	public void givenInvisibleInTreeRecordsThenNotShownInTree()
 			throws Exception {
@@ -754,6 +1279,41 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_A20).givingReadAccess());
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
+				.has(numFoundAndListSize(1))
+				.has(recordsWithChildren(records.categoryId_X));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
+
+	@Test
+	public void givenInvisibleInTreeRecordsWithNestedAuthsThenNotShownInTree()
+			throws Exception {
+
+		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("00000000309", "00000000310", "00000000311", "00000000312"));
+
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
+
+		getModelLayerFactory().newRecordServices()
+				.execute(new Transaction().addAll(records.getFolder_A20().setActualTransferDate(LocalDate.now())));
+
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_A20).givingReadAccess());
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
 
 		User sasquatch = users.sasquatchIn(zeCollection);
 
@@ -802,6 +1362,34 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 	}
 
 	@Test
+	public void givenLogicallyDeletedRecordsWithNestedAuthsThenNotShownInTree()
+			throws Exception {
+
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_A20).givingReadAccess());
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).on(records.folder_C01).givingReadAccess());
+
+		getModelLayerFactory().newRecordServices().logicallyDelete(records.getFolder_A20().getWrappedRecord(), User.GOD);
+
+		User sasquatch = users.sasquatchIn(zeCollection);
+		assertThatRootWhenUserNavigateUsingPlanTaxonomy(sasquatch)
+				.has(numFoundAndListSize(1))
+				.has(recordsWithChildren(records.categoryId_X));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z100).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.categoryId_Z120).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(sasquatch, records.folder_A20).has(numFoundAndListSize(0))
+				.has(solrQueryCounts(0, 0, 0));
+
+	}
+
+
+	@Test
 	public void given10000FoldersAndUserHasOnlyAccessToTheLastOnesThenDoesNotIteratorOverAllNodesToFindThem()
 			throws Exception {
 
@@ -829,6 +1417,60 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(folderNearEnd));
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(subFolderNearEnd));
+		waitForBatchProcess();
+
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		final AtomicInteger queryCount = new AtomicInteger();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
+				.add(new BigVaultServerExtension() {
+
+
+					@Override
+					public void afterQuery(AfterQueryParams params) {
+
+						if (params.getQueryName() == null || !params.getQueryName().contains("*SDK*")) {
+							queryCount.incrementAndGet();
+						}
+					}
+				});
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
+				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
+				.has(solrQueryCounts(1, 2, 0))
+				.has(secondSolrQueryCounts(1, 2, 0));
+
+		assertThat(queryCount.get()).isEqualTo(0);
+	}
+
+	@Test
+	public void given10000FoldersAndUserHasOnlyNestedAccessToTheLastOnesThenDoesNotIteratorOverAllNodesToFindThem()
+			throws Exception {
+
+		Folder folderNearEnd = null;
+		Folder subFolderNearEnd = null;
+		List<Folder> addedRecords = new ArrayList<>();
+
+		int size = 4999;
+		for (int i = 0; i < size; i++) {
+			String paddedIndex = ZeroPaddedSequentialUniqueIdGenerator.zeroPaddedNumber(i);
+			Folder folder = rm.newFolder().setTitle("Dossier #" + paddedIndex).setRetentionRuleEntered(records.ruleId_1)
+					.setCategoryEntered(records.categoryId_X13).setOpenDate(LocalDate.now())
+					.setAdministrativeUnitEntered(records.unitId_10a);
+			addedRecords.add(folder);
+			if (i == size - 2) {
+				folderNearEnd = folder;
+			}
+
+			if (i == size - 1) {
+				subFolderNearEnd = rm.newFolder().setTitle("Sub folder").setParentFolder(folder).setOpenDate(LocalDate.now());
+				addedRecords.add(subFolderNearEnd);
+			}
+		}
+		recordServices.execute(new Transaction().addAll(addedRecords).setOptimisticLockingResolution(EXCEPTION));
+
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(folderNearEnd));
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(subFolderNearEnd));
 		waitForBatchProcess();
 
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
@@ -1078,6 +1720,54 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 
 
 	@Test
+	public void given5000FoldersAndUserHasOnlyNestedAccessToTheLastOnesThenDoesNotIteratorOverAllNodesToFindThemAndUseSolr()
+			throws Exception {
+
+		Folder folderNearEnd = null;
+		Folder subFolderNearEnd = null;
+		List<Folder> addedRecords = new ArrayList<>();
+
+		int size = 4999;
+		for (int i = 0; i < size; i++) {
+			String paddedIndex = ZeroPaddedSequentialUniqueIdGenerator.zeroPaddedNumber(i);
+			Folder folder = rm.newFolder().setTitle("Dossier #" + paddedIndex).setRetentionRuleEntered(records.ruleId_1)
+					.setCategoryEntered(records.categoryId_X13).setOpenDate(LocalDate.now())
+					.setAdministrativeUnitEntered(records.unitId_10a);
+			addedRecords.add(folder);
+			if (i == size - 2) {
+				folderNearEnd = folder;
+			}
+
+			if (i == size - 1) {
+				subFolderNearEnd = rm.newFolder().setTitle("Sub folder").setParentFolder(folder).setOpenDate(LocalDate.now());
+				addedRecords.add(subFolderNearEnd);
+			}
+		}
+		recordServices.execute(new Transaction().addAll(addedRecords).setOptimisticLockingResolution(EXCEPTION));
+
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(folderNearEnd));
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(subFolderNearEnd));
+		waitForBatchProcess();
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		final AtomicInteger queryCount = new AtomicInteger();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
+				.add(new BigVaultServerExtension() {
+					@Override
+					public void afterQuery(SolrParams solrParams, long qtime) {
+						queryCount.incrementAndGet();
+					}
+				});
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
+				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
+				.has(solrQueryCounts(1, 2, 0))
+				.has(secondCallQueryCounts(1, 2, 0));
+
+	}
+
+
+	@Test
 	public void given1000FoldersAndUserHasOnlyAccessToTheLastOnesThenDoesNotIteratorOverAllNodesToFindThemAndUseCache()
 			throws Exception {
 
@@ -1105,6 +1795,54 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(folderNearEnd));
 		authsServices.add(authorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(subFolderNearEnd));
+		waitForBatchProcess();
+		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+
+		final AtomicInteger queryCount = new AtomicInteger();
+		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
+				.add(new BigVaultServerExtension() {
+					@Override
+					public void afterQuery(SolrParams solrParams, long qtime) {
+						queryCount.incrementAndGet();
+					}
+				});
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.sasquatchIn(zeCollection), records.categoryId_X13, withWriteAccess)
+				.has(recordsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
+				.has(solrQueryCounts(0, 0, 0))
+				.has(secondCallQueryCounts(0, 0, 0));
+
+	}
+
+
+	@Test
+	public void given1000FoldersAndUserHasOnlyNestedAccessToTheLastOnesThenDoesNotIteratorOverAllNodesToFindThemAndUseCache()
+			throws Exception {
+
+		Folder folderNearEnd = null;
+		Folder subFolderNearEnd = null;
+		List<Folder> addedRecords = new ArrayList<>();
+
+		int size = 999;
+		for (int i = 0; i < size; i++) {
+			String paddedIndex = ZeroPaddedSequentialUniqueIdGenerator.zeroPaddedNumber(i);
+			Folder folder = rm.newFolder().setTitle("Dossier #" + paddedIndex).setRetentionRuleEntered(records.ruleId_1)
+					.setCategoryEntered(records.categoryId_X13).setOpenDate(LocalDate.now())
+					.setAdministrativeUnitEntered(records.unitId_10a);
+			addedRecords.add(folder);
+			if (i == size - 2) {
+				folderNearEnd = folder;
+			}
+
+			if (i == size - 1) {
+				subFolderNearEnd = rm.newFolder().setTitle("Sub folder").setParentFolder(folder).setOpenDate(LocalDate.now());
+				addedRecords.add(subFolderNearEnd);
+			}
+		}
+		recordServices.execute(new Transaction().addAll(addedRecords).setOptimisticLockingResolution(EXCEPTION));
+
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(folderNearEnd));
+		authsServices.add(nonCascadingNestedAuthorizationForUsers(users.sasquatchIn(zeCollection)).givingReadWriteAccess().on(subFolderNearEnd));
 		waitForBatchProcess();
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
@@ -1671,57 +2409,51 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 		};
 	}
 
-	private Condition<? super List<TaxonomySearchRecord>> unlinkable(final String... ids) {
-		return new Condition<List<TaxonomySearchRecord>>() {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> linkable(final String... ids) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(List<TaxonomySearchRecord> records) {
+			public boolean matches(LinkableTaxonomySearchResponseCaller response) {
 
-				for (String id : ids) {
-					TaxonomySearchRecord foundRecord = null;
-					for (TaxonomySearchRecord record : records) {
-						if (id.equals(record.getRecord().getId())) {
-							if (foundRecord != null) {
-								throw new RuntimeException("Same record found twice");
-							}
-							foundRecord = record;
-						}
+				List<String> valueIds = new ArrayList<>();
+				for (TaxonomySearchRecord value : response.firstAnswer().getRecords()) {
+					if (value.isLinkable()) {
+						valueIds.add(value.getRecord().getId());
 					}
-					if (foundRecord == null) {
-						throw new RuntimeException("Record not found : " + id);
-					} else {
-						assertThat(foundRecord.isLinkable()).isFalse();
-					}
-
 				}
+				assertThat(valueIds).describedAs(description().toString()).containsOnly(ids);
 
+				List<String> valueIdsSecondCall = new ArrayList<>();
+				for (TaxonomySearchRecord value : response.secondAnswer().getRecords()) {
+					if (value.isLinkable()) {
+						valueIdsSecondCall.add(value.getRecord().getId());
+					}
+				}
+				assertThat(valueIdsSecondCall).describedAs(description().toString()).containsOnly(ids);
 				return true;
 			}
 		};
 	}
 
-	private Condition<? super List<TaxonomySearchRecord>> linkable(final String... ids) {
-		return new Condition<List<TaxonomySearchRecord>>() {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> unlinkable(final String... ids) {
+		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
-			public boolean matches(List<TaxonomySearchRecord> records) {
+			public boolean matches(LinkableTaxonomySearchResponseCaller response) {
 
-				for (String id : ids) {
-					TaxonomySearchRecord foundRecord = null;
-					for (TaxonomySearchRecord record : records) {
-						if (id.equals(record.getRecord().getId())) {
-							if (foundRecord != null) {
-								throw new RuntimeException("Same record found twice");
-							}
-							foundRecord = record;
-						}
+				List<String> valueIds = new ArrayList<>();
+				for (TaxonomySearchRecord value : response.firstAnswer().getRecords()) {
+					if (!value.isLinkable()) {
+						valueIds.add(value.getRecord().getId());
 					}
-					if (foundRecord == null) {
-						throw new RuntimeException("Record not found : " + id);
-					} else {
-						assertThat(foundRecord.isLinkable()).isTrue();
-					}
-
 				}
+				assertThat(valueIds).describedAs(description().toString()).containsOnly(ids);
 
+				List<String> valueIdsSecondCall = new ArrayList<>();
+				for (TaxonomySearchRecord value : response.secondAnswer().getRecords()) {
+					if (!value.isLinkable()) {
+						valueIdsSecondCall.add(value.getRecord().getId());
+					}
+				}
+				assertThat(valueIdsSecondCall).describedAs(description().toString()).containsOnly(ids);
 				return true;
 			}
 		};
@@ -1756,6 +2488,39 @@ public class TaxonomiesSearchServices_SummaryCacheHandler_VisibleTreesAcceptTest
 				if (rows == 10000) {
 					assertThat(response.getNumFound()).isEqualTo(response.getRecords().size());
 				}
+				return response;
+			}
+		});
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenUserNavigateUsingCustomTaxonomy(
+			final User user, String taxonomyCode, TaxonomiesSearchOptions options) {
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				LinkableTaxonomySearchResponse response = service.getVisibleRootConceptResponse(
+						user, zeCollection, taxonomyCode, options,
+						null);
+
+				return response;
+			}
+		});
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenUserNavigateUsingCustomTaxonomy(
+			final User user,
+			final String taxonomyCode,
+			final String taxonomyId, TaxonomiesSearchOptions options) {
+
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(taxonomyId);
+				LinkableTaxonomySearchResponse response = service
+						.getVisibleChildConceptResponse(user, taxonomyCode, inRecord,
+								options);
+
 				return response;
 			}
 		});

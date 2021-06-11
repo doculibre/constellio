@@ -11,6 +11,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.users.UserAddUpdateRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveUserFromSyncedCollection;
+import com.constellio.model.services.users.sync.LDAPUserSyncManager;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.ui.Alignment;
@@ -20,6 +21,8 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -32,6 +35,8 @@ import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RemoveUsersFromCollectionsWindowButton extends WindowButton {
+
+	private final static Logger LOGGER = LoggerFactory.getLogger(RemoveUsersFromCollectionsWindowButton.class);
 
 	private List<User> users;
 	private MenuItemActionBehaviorParams params;
@@ -157,11 +162,16 @@ public class RemoveUsersFromCollectionsWindowButton extends WindowButton {
 	}
 
 	private void executeAction(boolean stopSync) {
-		deleteUsersFromCollections(collectionsField.getSelectedValues(), stopSync);
+		try {
+			deleteUsersFromCollections(collectionsField.getSelectedValues(), stopSync);
 
-		params.getView().navigate().to().collectionSecurity();
-		params.getView().showMessage($("CollectionSecurityManagement.userRemovedFromCollection"));
-		getWindow().close();
+			params.getView().navigate().to().collectionSecurity();
+			params.getView().showMessage($("CollectionSecurityManagement.userRemovedFromCollection"));
+			getWindow().close();
+		} catch (Throwable t) {
+			LOGGER.error(t.getMessage(), t);
+			ConstellioUI.getCurrent().showErrorMessage(t.getMessage());
+		}
 	}
 
 	private void deleteUsersFromCollections(List<String> collections, boolean stopSync) {

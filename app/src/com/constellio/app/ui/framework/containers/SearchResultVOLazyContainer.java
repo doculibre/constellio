@@ -82,9 +82,6 @@ public class SearchResultVOLazyContainer extends LazyQueryContainer implements R
 				MetadataVO titleMetadataVO = schemaVO.getMetadata(Schemas.TITLE_CODE);
 				MetadataVO modifiedOnMetadataVO = schemaVO.getMetadata(Schemas.MODIFIED_ON.getCode());
 
-				List<MetadataVO> tableMetadataVOs = schemaVO.getTableMetadatas();
-				schemaVO.getMetadatas().removeAll(tableMetadataVOs);
-				// schemaVO.getMetadatas().clear();
 				schemaVO.getMetadatas().add(0, titleMetadataVO);
 				schemaVO.getMetadatas().add(1, modifiedOnMetadataVO);
 			}

@@ -6,6 +6,8 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestCalculatedSeparatedStructureCalculator;
+import com.constellio.app.ui.pages.search.criteria.SearchCriterionTestSetup.TestCalculatedSeparatedStructureFactory;
 import com.constellio.model.entities.enums.AutocompleteSplitCriteria;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -50,8 +52,7 @@ public class RecordTextInputDataProviderAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenSearchingCategoriesThenGoodBehavior()
-			throws Exception {
+	public void whenSearchingCategoriesThenGoodBehavior() throws Exception {
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -63,8 +64,11 @@ public class RecordTextInputDataProviderAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.add(records.getCategory_X100()).setKeywords(asList("majestueux bateaux"));
 		transaction.add(records.getCategory_X13()).setKeywords(asList("magnifiques bateaux"));
+		transaction.add(records.getCategory_Z100()).setKeywords(asList("extra (bateaux)"));
 		transaction.add(records.getCategory_X120()).setCode("b");
 		transaction.add(records.getCategory_ZE42()).setCode("Ze-42.05");
+		transaction.add(records.getCategory_Z200()).setTitle("K1 manteau");
+		transaction.add(records.getCategory_Z999()).setCode("PZ.90");
 		transaction.add(records.getCategory_Z110()).setTitle("Dossier d'étudiants au baccalauréat");
 		transaction.add(records.getCategory_Z111()).setTitle("Dossier étudiant en maîtrise");
 		getModelLayerFactory().newRecordServices().execute(transaction);
@@ -79,7 +83,7 @@ public class RecordTextInputDataProviderAcceptanceTest extends ConstellioTest {
 		);
 
 		assertThat(dataProvider.getData("Ze", 0, 20)).containsOnly("categoryId_ZE42", "categoryId_Z");
-		assertThat(dataProvider.getData("Ze-", 0, 20)).containsOnly("categoryId_ZE42", "categoryId_Z");
+		assertThat(dataProvider.getData("Ze-", 0, 20)).containsOnly("categoryId_ZE42");
 		assertThat(dataProvider.getData("Ze-4", 0, 20)).containsOnly("categoryId_ZE42");
 		assertThat(dataProvider.getData("Ze-42", 0, 20)).containsOnly("categoryId_ZE42");
 		assertThat(dataProvider.getData("Ze-42.", 0, 20)).containsOnly("categoryId_ZE42");
@@ -87,6 +91,7 @@ public class RecordTextInputDataProviderAcceptanceTest extends ConstellioTest {
 		assertThat(dataProvider.getData("Ze-42.05", 0, 20)).containsOnly("categoryId_ZE42");
 		assertThat(dataProvider.getData("Ze-42.051", 0, 20)).isEmpty();
 		assertThat(dataProvider.getData("Ze-42.04", 0, 20)).isEmpty();
+		assertThat(dataProvider.getData("Ze4205", 0, 20)).isEmpty();
 
 		assertThat(dataProvider.getData("c", 0, 20)).containsOnly("categoryId_X", "categoryId_Z");
 		assertThat(dataProvider.getData("ca", 0, 20)).containsOnly("categoryId_X", "categoryId_Z");
@@ -96,28 +101,37 @@ public class RecordTextInputDataProviderAcceptanceTest extends ConstellioTest {
 		assertThat(dataProvider.getData("cateGorY", 0, 20)).containsOnly("categoryId_X", "categoryId_Z");
 
 		assertThat(dataProvider.getData("b", 0, 20))
-				.containsOnly("categoryId_X100", "categoryId_X13", "categoryId_X120", "categoryId_Z110");
-		assertThat(dataProvider.getData("bateau", 0, 20)).containsOnly("categoryId_X100", "categoryId_X13");
-		//assertThat(dataProvider.getData("bateaux", 0, 20)).containsOnly("categoryId_X100", "categoryId_X13");
+				.containsOnly("categoryId_X100", "categoryId_X13", "categoryId_X120", "categoryId_Z110", "categoryId_Z100");
+		assertThat(dataProvider.getData("b", 0, 20))
+				.containsOnly("categoryId_X100", "categoryId_X13", "categoryId_X120", "categoryId_Z110", "categoryId_Z100");
 
-		assertThat(dataProvider.getData("magnifique bateau", 0, 20)).containsOnly("categoryId_X13");
-		assertThat(dataProvider.getData("magnifique bateaux", 0, 20)).containsOnly("categoryId_X13");
-		assertThat(dataProvider.getData("magnifiques bateau", 0, 20)).containsOnly("categoryId_X13");
 		assertThat(dataProvider.getData("magnifiques bateaux", 0, 20)).containsOnly("categoryId_X13");
+		assertThat(dataProvider.getData("magnifiques (bateaux", 0, 20)).containsOnly("categoryId_X13");
+		assertThat(dataProvider.getData("extra (bateaux", 0, 20)).containsOnly("categoryId_Z100");
+		assertThat(dataProvider.getData("extra.bateaux", 0, 20)).isEmpty();
+		assertThat(dataProvider.getData("extra bateaux", 0, 20)).containsOnly("categoryId_Z100");
 
-		assertThat(dataProvider.getData("majestueu bateau", 0, 20)).containsOnly("categoryId_X100");
-		assertThat(dataProvider.getData("majestueu bateaux", 0, 20)).containsOnly("categoryId_X100");
-		assertThat(dataProvider.getData("majestueux bateau", 0, 20)).containsOnly("categoryId_X100");
 		assertThat(dataProvider.getData("majestueux bateaux", 0, 20)).containsOnly("categoryId_X100");
 
 		assertThat(dataProvider.getData("dossier étudiant", 0, 20)).containsOnly("categoryId_Z110", "categoryId_Z111");
-		//assertThat(dataProvider.getData("dossier d'étudiant", 0, 20)).containsOnly("categoryId_Z110", "categoryId_Z111");
-		assertThat(dataProvider.getData("dossier étudiants", 0, 20)).containsOnly("categoryId_Z110", "categoryId_Z111");
-		//assertThat(dataProvider.getData("dossier d'étudiants", 0, 20)).containsOnly("categoryId_Z110", "categoryId_Z111");
-		assertThat(dataProvider.getData("dossiers étudiant", 0, 20)).containsOnly("categoryId_Z110", "categoryId_Z111");
-		//assertThat(dataProvider.getData("dossiers d'étudiant", 0, 20)).containsOnly("categoryId_Z110", "categoryId_Z111");
-		assertThat(dataProvider.getData("dossiers étudiants", 0, 20)).containsOnly("categoryId_Z110", "categoryId_Z111");
-		//assertThat(dataProvider.getData("dossiers d'étudiants", 0, 20)).containsOnly("categoryId_Z110", "categoryId_Z111");
+		assertThat(dataProvider.getData("P", 0, 20)).containsOnly("categoryId_Z999");
+		assertThat(dataProvider.getData("PZ", 0, 20)).containsOnly("categoryId_Z999");
+		assertThat(dataProvider.getData("PZ.", 0, 20)).containsOnly("categoryId_Z999");
+		assertThat(dataProvider.getData("PZ.9 ", 0, 20)).isEmpty();
+		assertThat(dataProvider.getData("PZ.9", 0, 20)).containsOnly("categoryId_Z999");
+		assertThat(dataProvider.getData("PZ.90", 0, 20)).containsOnly("categoryId_Z999");
+		assertThat(dataProvider.getData("90", 0, 20)).isEmpty();
+		assertThat(dataProvider.getData(".90", 0, 20)).isEmpty();
+
+		transaction.add(records.getCategory_Z999()).setTitle("manteau hiver");
+		transaction.add(records.getCategory_Z()).setTitle("K1 hiver");
+		getModelLayerFactory().newRecordServices().execute(transaction);
+		assertThat(dataProvider.getData("K", 0, 20)).containsOnly("categoryId_Z200", "categoryId_Z");
+		assertThat(dataProvider.getData("K1", 0, 20)).containsOnly("categoryId_Z200", "categoryId_Z");
+		assertThat(dataProvider.getData("K1 ", 0, 20)).containsOnly("categoryId_Z200", "categoryId_Z");
+		assertThat(dataProvider.getData("K1 m", 0, 20)).containsOnly("categoryId_Z200");
+		assertThat(dataProvider.getData("K1 manteau", 0, 20)).containsOnly("categoryId_Z200");
+		assertThat(dataProvider.getData("manteau", 0, 20)).containsOnly("categoryId_Z200", "categoryId_Z999");
 	}
 
 	@Test
@@ -144,6 +158,12 @@ public class RecordTextInputDataProviderAcceptanceTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection,
+				(MetadataSchemaTypesAlteration) types -> types.getSchema(Folder.DEFAULT_SCHEMA)
+						.create("separatedSequence").defineStructureFactory(TestCalculatedSeparatedStructureFactory.class)
+						.defineDataEntry().asCalculated(TestCalculatedSeparatedStructureCalculator.class)
+						.setSchemaAutocomplete(true).setSearchable(true));
+
 		Folder parent = records.getFolder_A01();
 		Folder children = records.getFolder_A02();
 
@@ -169,6 +189,16 @@ public class RecordTextInputDataProviderAcceptanceTest extends ConstellioTest {
 		recordServices.update(claudePoirierFolder);
 
 		reindex();
+
+		// autocomplete separated structure
+		SPEQueryResponse mainStructureValue = inputDataProvider
+				.searchAutocompleteField(users.adminIn(zeCollection), "Analysis of title '" + ginoChouinardFolder.getTitle() + "'", 0, 15);
+		assertThatRecords(mainStructureValue.getRecords()).extractingMetadata(Folder.TITLE)
+				.containsOnly(ginoChouinardFolder.getTitle(), claudePoirierFolder.getTitle());
+		mainStructureValue = inputDataProvider
+				.searchAutocompleteField(users.adminIn(zeCollection), "Analysis of title '" + claudePoirierFolder.getTitle() + "'", 0, 15);
+		assertThatRecords(mainStructureValue.getRecords()).extractingMetadata(Folder.TITLE)
+				.containsOnly(claudePoirierFolder.getTitle());
 
 		SPEQueryResponse gin = inputDataProvider
 				.searchAutocompleteField(users.adminIn(zeCollection), "gin", 0, 15);

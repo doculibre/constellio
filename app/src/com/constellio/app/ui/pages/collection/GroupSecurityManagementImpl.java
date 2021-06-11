@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.collection;
 
-import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.ui.entities.GroupVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -25,7 +23,6 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -49,15 +46,9 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 	private StringAutocompleteField<String> searchField;
 	private VerticalLayout searchLayout;
 
-	private RMModuleExtensions rmModuleExtensions;
-
 	private RecordVODataProvider groupDataProvider;
 	private GroupSecurityManagementPresenter presenter;
-	private TabSheet.SelectedTabChangeListener selectedTabChangeListener;
 	private OptionGroup.ValueChangeListener optionValueChangeListener;
-	private boolean nestedView;
-	private boolean dragNDropAllowed;
-	private boolean dragRowsEnabled;
 
 	public GroupSecurityManagementImpl() {
 		this(null);
@@ -69,35 +60,29 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 		});
 		presenter.forParams(null);
 		this.buildMainComponent(null);
-		rmModuleExtensions = getConstellioFactories().getAppLayerFactory()
-				.getExtensions().forCollection(getCollection()).forModule(ConstellioRMModule.ID);
+		presenter.viewAssembled();
 	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
-		mainLayout.addStyleName("display-folder-view");
-		mainLayout.setSizeFull();
+		mainLayout.addStyleName("group-security-management");
+		mainLayout.setWidth("100%");
 		mainLayout.setSpacing(true);
 
 		activeGroup = new OptionGroup();
 		activeGroup.addItem(GlobalGroupStatus.ACTIVE);
-		activeGroup.setItemCaption(GlobalGroupStatus.ACTIVE, $("UserCredentialStatus.a"));
+		activeGroup.setItemCaption(GlobalGroupStatus.ACTIVE, $("GlobalGroupStatus." + GlobalGroupStatus.ACTIVE.getCode()));
 		activeGroup.addItem(GlobalGroupStatus.INACTIVE);
-		activeGroup.setItemCaption(GlobalGroupStatus.INACTIVE, $("UserCredentialStatus.i"));
+		activeGroup.setItemCaption(GlobalGroupStatus.INACTIVE, $("GlobalGroupStatus." + GlobalGroupStatus.INACTIVE.getCode()));
 		activeGroup.select(GlobalGroupStatus.ACTIVE);
 		activeGroup.addStyleName("horizontal");
 
 		activeGroup.addValueChangeListener(optionValueChangeListener = new OptionGroup.ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				if (activeGroup.getValue().equals(GlobalGroupStatus.ACTIVE)) {
-					presenter.setActive(true);
-				} else {
-					presenter.setActive(false);
-				}
-				presenter.clearSearch();
-
+				boolean active = activeGroup.getValue().equals(GlobalGroupStatus.ACTIVE); 
+				presenter.activeSelectionChanged(active);
 			}
 		});
 
@@ -125,25 +110,15 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 
 	@Override
 	public VerticalLayout createTabLayout() {
-
 		final RecordVOLazyContainer recordVOContainer = new RecordVOLazyContainer(groupDataProvider);
 		viewerPanel = createViewerPanel(recordVOContainer);
-
-		viewerPanel.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				RecordVOItem recordItem = (RecordVOItem) event.getItem();
-				GroupVO groupVO = (GroupVO) recordItem.getRecord();
-				navigate().to().displayGlobalGroup(groupVO.getCode());
-			}
-		});
 		viewerPanel.addStyleName("folder-content-table");
 
 		if (clearSearchButton == null) {
 			clearSearchButton = new LinkButton($("CollectionSecurityManagement.clearSearch")) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					presenter.clearSearch();
+					presenter.clearSearchRequested();
 					searchField.setValue("");
 				}
 			};
@@ -173,9 +148,7 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					String searchValue = searchField.getValue();
-					final String value = searchValue.endsWith("*") ? searchValue : searchValue + "*";
-					presenter.changeGroupDataProvider(value);
-
+					presenter.searchRequested(searchValue);
 				}
 			};
 			searchButton.addStyleName("folder-search-button");
@@ -185,8 +158,7 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 				@Override
 				public void onEnterKeyPressed() {
 					String searchValue = searchField.getValue();
-					final String value = searchValue.endsWith("*") ? searchValue : searchValue + "*";
-					presenter.changeGroupDataProvider(value);
+					presenter.searchRequested(searchValue);
 				}
 			};
 			onEnterHandler.installOn(searchField);
@@ -277,7 +249,6 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 
 					@Override
 					public void selectionChanged(SelectionChangeEvent event) {
-
 						if (event.isAllItemsSelected()) {
 							selectedItemIds.addAll(getRecordVOContainer().getItemIds());
 							presenter.selectAllClicked();
@@ -312,7 +283,8 @@ public class GroupSecurityManagementImpl extends BaseViewImpl implements Securit
 				presenter.displayButtonClicked(group);
 			}
 		});
-		panel.addStyleName("folder-content-table");
+//		panel.addStyleName("folder-content-table");
+		panel.setCountCaption($("GroupSecurityManagement.groups", recordVOContainer.size()));
 		return panel;
 	}
 

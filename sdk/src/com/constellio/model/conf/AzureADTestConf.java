@@ -21,7 +21,7 @@ public class AzureADTestConf {
 		AzureADUserSynchConfig azurUserSynch = new AzureADUserSynchConfig()
 				.setClientId(SDKPasswords.testAzureSynchClientId())
 				.setApplicationKey(SDKPasswords.testAzureSynchApplicationKey());
-		return new LDAPUserSyncConfiguration(azurUserSynch, null, null, new Duration(10000000), null, asList(collections));
+		return new LDAPUserSyncConfiguration(azurUserSynch, null, null, new Duration(10000000), null, asList(collections), false, false, false);
 
 	}
 }

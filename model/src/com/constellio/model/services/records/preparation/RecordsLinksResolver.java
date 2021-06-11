@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.INTEGER;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
@@ -81,7 +82,7 @@ public class RecordsLinksResolver {
 			List<MetadataNetworkLink> reverseLinks = types.getMetadataNetwork().getLinksFrom(metadataToIncrement);
 			for (MetadataNetworkLink reverseLink : reverseLinks) {
 				if (reverseLink.getLinkType() == MetadataNetworkLinkType.AGGREGATION_INPUT &&
-					isNumberAndNonAggregatedMetadata(reverseLink.getToMetadata()) &&
+					isNumberOrIntegerAndNonAggregatedMetadata(reverseLink.getToMetadata()) &&
 					isSumAggregationMetadata(reverseLink.getFromMetadata()) &&
 					schema.hasMetadataWithCode(reverseLink.getToMetadata().getCode())) {
 
@@ -97,7 +98,7 @@ public class RecordsLinksResolver {
 					boolean deleted = !record.isActive() && (originalRecord != null && originalRecord.isActive());
 					boolean restored = record.isActive() && (originalRecord != null && !originalRecord.isActive());
 
-					double current = nullToZero(record.<Double>get(reverseLink.getToMetadata()));
+					double current = nullToZero(record.get(reverseLink.getToMetadata()));
 					double previous = originalRecord != null ?
 									  nullToZero(originalRecord.<Double>get(reverseLink.getToMetadata())) : 0;
 
@@ -189,8 +190,9 @@ public class RecordsLinksResolver {
 		return false;
 	}
 
-	private boolean isNumberAndNonAggregatedMetadata(Metadata metadata) {
-		return metadata.getType() == NUMBER && metadata.getDataEntry().getType() != AGGREGATED;
+	private boolean isNumberOrIntegerAndNonAggregatedMetadata(Metadata metadata) {
+		return (metadata.getType() == NUMBER || metadata.getType() == INTEGER) &&
+			   metadata.getDataEntry().getType() != AGGREGATED;
 	}
 
 	private boolean isRecordMetadataAlreadyModifiedInCurrentTransaction(Transaction transaction, String recordId,
@@ -220,7 +222,7 @@ public class RecordsLinksResolver {
 		for (MetadataNetworkLink link : types.getMetadataNetwork().getLinksTo(metadata)) {
 			if (link.getLevel() > 0 && link.getLinkType() == MetadataNetworkLinkType.AGGREGATION_INPUT &&
 				!metadatasToIncrement.contains(link.getFromMetadata().getCode()) &&
-				isNumberAndNonAggregatedMetadata(link.getToMetadata()) &&
+				isNumberOrIntegerAndNonAggregatedMetadata(link.getToMetadata()) &&
 				isSumAggregationMetadata(link.getFromMetadata()) &&
 				schema.hasMetadataWithCode(link.getToMetadata().getCode())) {
 				metadatasToIncrement.add(link.getFromMetadata().getCode());
@@ -229,12 +231,11 @@ public class RecordsLinksResolver {
 		return metadatasToIncrement;
 	}
 
-	private double nullToZero(Double value) {
-		return value != null ? value : 0.0;
+	private double nullToZero(Number value) {
+		return value != null ? value.doubleValue() : 0.0;
 	}
 
-	private AggregatedMetadataIncrementation createAggregatedMetadataIncrementation(String recordId, Metadata
-			metadata,
+	private AggregatedMetadataIncrementation createAggregatedMetadataIncrementation(String recordId, Metadata metadata,
 																					double delta) {
 		AggregatedMetadataIncrementation incrementation = new AggregatedMetadataIncrementation();
 		incrementation.setRecordId(recordId);

@@ -98,7 +98,11 @@ public class RMPermissionsTo {
 
 	public static final String VIEW_SYSTEM_FILENAME = permission(DOCUMENT_GROUP, "viewSystemFilename");
 
-	public static final String GENERATE_EXTERNAL_SIGNATURE_URL = permission(DOCUMENT_GROUP, "generateExternalSignatureUrl");
+	public static final String SEND_SIGNATURE_REQUEST = permission(DOCUMENT_GROUP, "generateExternalSignatureUrl");
+
+	public static final String GENERATE_PDFA_DOCUMENTS = permission(DOCUMENT_GROUP, "generatePdfADocuments");
+	public static final String GENERATE_PDFA_SEMIACTIVE_DOCUMENTS = permission(DOCUMENT_GROUP, "generatePdfASemiActiveDocuments");
+	public static final String GENERATE_PDFA_INACTIVE_DOCUMENTS = permission(DOCUMENT_GROUP, "generatePdfAInactiveDocuments");
 
 	// Decommissioning
 	private static final String DECOMMISSIONING = "decommissioning";
@@ -150,4 +154,10 @@ public class RMPermissionsTo {
 
 	public static final List<String> RM_COLLECTION_ON_SOMETHING = Arrays.asList(MANAGE_CLASSIFICATION_PLAN, CONSULT_CLASSIFICATION_PLAN, CONSULT_RETENTIONRULE, MANAGE_RETENTIONRULE);
 	public static final List<String> RM_COLLECTION_MANAGEMENT_PERMISSIONS = PERMISSIONS.getGroup(RM_MANAGEMENT);
+
+	public static final String CONSULT_LEGAL_REQUIREMENTS = permission(RM_MANAGEMENT, "consultLegalRequirements");
+	public static final String MANAGE_LEGAL_REQUIREMENTS = permission(RM_MANAGEMENT, "manageLegalRequirements");
+
+	public static final String CONTAINER_CONTENT_SUPPRESSION = permission(RM_MANAGEMENT, "containerContentSuppression");
+
 }

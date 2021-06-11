@@ -212,6 +212,8 @@ public class SchemasDisplayWriter {
 				config.getTableMetadataCodes());
 	}
 
+
+
 	private void process(SchemaDisplayConfig config, Element schemaDisplayConfigsElement, String metadataCodeName,
 						 List<String> metadataCodes) {
 		Element metadataCodesElement = getOrCreateElementFromParent(schemaDisplayConfigsElement, metadataCodeName);

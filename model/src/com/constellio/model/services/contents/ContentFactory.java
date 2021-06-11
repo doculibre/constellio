@@ -4,8 +4,8 @@ import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.enums.ContentCheckoutSource;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.services.search.query.logical.criteria.IsContainingTextCriterion;
 import com.constellio.model.utils.Lazy;
 import org.apache.commons.lang3.StringUtils;
@@ -18,7 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-public class ContentFactory implements StructureFactory {
+public class ContentFactory implements CombinedStructureFactory {
 
 	public static final String COLON_REPLACER = "$#$";
 	public static final String INFO_SEPARATOR = ":";
@@ -229,7 +229,7 @@ public class ContentFactory implements StructureFactory {
 		}
 
 		String filename = contentVersion.getFilename();
-		String modifiedBy = serializeUser(contentVersion.getModifiedBy());
+		String modifiedBy = contentVersion.getModifiedBy() == null ? "" : serializeUser(contentVersion.getModifiedBy());
 		String mimetype = contentVersion.getMimetype();
 		if (filename.equals(lastKnownFilename)) {
 			filename = "";

@@ -14,6 +14,7 @@ import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -22,8 +23,11 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
+import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -45,6 +49,7 @@ import java.util.Set;
 import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
@@ -69,6 +74,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	private RMSchemasRecordsServices rm;
 	private TasksSchemasRecordsServices tasks;
 	private RecordDeleteServices deleteService;
+	private MetadataSchemasManager metadataSchemasManager;
 
 	Category category;
 	Folder parentFolderInCategory_A, subFolder_B;
@@ -79,8 +85,8 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	private MetadataSchema customValueSchema;
 	private Metadata zMeta;
 
-	private Folder folder, folder2;
-	private Document document, document2, document3;
+	private Folder folder, folder2, folder3, folder4;
+	private Document document, document2, document3, document4;
 
 	private QueryCounter queryCounter;
 
@@ -92,6 +98,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
 		);
+		givenConfig(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS);
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		users.setUp(getModelLayerFactory().newUserServices(), zeCollection);
@@ -102,6 +109,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		tasks = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		RecordDao recordDao = getDataLayerFactory().newRecordDao();
 		deleteService = new RecordDeleteServices(recordDao, getModelLayerFactory());
+		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 
 		createCustomTaskSchema();
 		createCustomFolderSchema();
@@ -111,6 +119,10 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(folder);
 		folder2 = records.newFolderWithValuesAndId("fakeFolder2");
 		recordServices.add(folder2);
+		folder3 = records.newChildFolderWithIdIn("fakeFolder3", folder2);
+		recordServices.add(folder3);
+		folder4 = records.newChildFolderWithIdIn("fakeFolder4", folder3);
+		recordServices.add(folder4);
 
 		document = records.newDocumentWithIdIn("fakeDocument2", folder2);
 		recordServices.add(document);
@@ -118,6 +130,8 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		recordServices.add(document2);
 		document3 = records.newDocumentWithIdIn("fakeDocument2bb", folder2);
 		recordServices.add(document3);
+		document4 = records.newDocumentWithIdIn("fakeDocument4", folder4);
+		recordServices.add(document4);
 
 		queryCounter = new QueryCounter(getDataLayerFactory(), "RecordDeleteServicesAcceptanceTest");
 	}
@@ -364,5 +378,20 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		Record documentRecord3 = recordServices.getDocumentById(document3.getId());
 		assertThat(documentRecord3.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS)).isFalse();
 		assertThat(documentRecord3.<LocalDateTime>get(Schemas.LOGICALLY_DELETED_ON)).isNull();
+	}
+
+	@Test(expected = RecordServicesRuntimeException_CannotPhysicallyDeleteRecord.class)
+	public void givenALogicallyDeletedSummaryRecordInHierarchyIsReferencedByAnotherRecordThenCannotPhysicallyDeleteIt()
+			throws Exception {
+		assertThat(metadataSchemasManager.getSchemaTypeOf(folder2.get()).getCacheType().isSummaryCache()).isTrue();
+		assertThat(metadataSchemasManager.getSchemaTypeOf(document4.get()).getCacheType().isSummaryCache()).isTrue();
+
+		recordServices.add(rm.newRMTask().setTitle("test").setLinkedDocuments(singletonList(document4.getId())));
+
+		Record folderRecord = recordServices.get(folder2.get().getId());
+		deleteService.logicallyDelete(folderRecord, null);
+		recordServices.refresh(folderRecord);
+		deleteService.physicallyDelete(folderRecord, users.adminIn(zeCollection));
+		fail();
 	}
 }

@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.services.menu.behaviors;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -12,6 +11,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.actions.DocumentRecordActionsServices;
 import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingService;
 import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendReturnReminderEmailButton;
+import com.constellio.app.modules.rm.services.menu.behaviors.ui.SendSignatureRequestButton;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.BehaviorsUtil;
 import com.constellio.app.modules.rm.services.menu.behaviors.util.RMUrlUtil;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
@@ -20,8 +20,8 @@ import com.constellio.app.modules.rm.ui.buttons.CartWindowButton;
 import com.constellio.app.modules.rm.ui.buttons.CartWindowButton.AddedRecordType;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
+import com.constellio.app.modules.rm.ui.components.pdf.DocumentPdfFormatSelectorWindowImpl;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
-import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
@@ -49,14 +49,15 @@ import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.clipboard.CopyToClipBoard;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.BaseWindow;
-import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.SelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl.ValidateFileName;
+import com.constellio.app.ui.framework.components.dialogs.ConfirmDialogProperties;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -65,6 +66,7 @@ import com.constellio.app.ui.pages.home.HomeViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.PublishDocumentViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.app.ui.util.ViewUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -74,24 +76,16 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.records.wrappers.ExternalAccessUrl;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUrlStatus;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
-import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
-import com.constellio.model.services.emails.EmailServicesException.CannotSendEmailException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.logging.SearchEventServices;
@@ -117,8 +111,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
 import org.simplejavamail.converter.EmailConverter;
 import org.simplejavamail.email.AttachmentResource;
 import org.simplejavamail.email.Email;
@@ -131,10 +123,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
 
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.GENERATE_PDFA_DOCUMENTS;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.GENERATE_PDFA_INACTIVE_DOCUMENTS;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.GENERATE_PDFA_SEMIACTIVE_DOCUMENTS;
+import static com.constellio.app.modules.rm.services.menu.behaviors.util.DocumentUtil.getEmailDocumentFileNameValidator;
 import static com.constellio.app.ui.framework.components.ErrorDisplayUtil.showErrorMessage;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
@@ -142,7 +136,6 @@ import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DW
 import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 import static java.util.Arrays.asList;
-import static org.apache.calcite.sql.advise.SqlAdvisor.LOGGER;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -240,8 +233,40 @@ public class DocumentMenuItemActionBehaviors {
 	}
 
 	public void delete(Document documentSummary, MenuItemActionBehaviorParams params) {
-		Button deleteDocumentButton = getDeleteWithJustificationButton(documentSummary, params);
+		Button deleteDocumentButton;
+		if (isNeedingJustificationBeforeDeleting()) {
+			deleteDocumentButton = getDeleteWithJustificationButton(documentSummary, params);
+		} else {
+			deleteDocumentButton = getDeleteWithoutJustificationButton(documentSummary, params);
+		}
 		deleteDocumentButton.click();
+	}
+
+	private boolean isNeedingJustificationBeforeDeleting() {
+		RMConfigs rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		return rmConfigs.isNeedingAReasonBeforeDeletingDocuments();
+	}
+
+	private Button getDeleteWithoutJustificationButton(Document documentSummary, MenuItemActionBehaviorParams params) {
+		Document document = loadingFullRecordIfSummary(documentSummary);
+		final boolean isDocumentCheckout = documentRecordActionsServices.isContentCheckedOut(document.getContent());
+
+		Button deleteDocumentButton = new DeleteButton($("DisplayDocumentView.deleteDocument")) {
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				deleteDocument(document, null, params);
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				if (isDocumentCheckout) {
+					return $("DocumentMenuItemActionBehaviors.documentIsCheckoutDeleteConfirmationMessage");
+				} else {
+					return super.getConfirmDialogMessage();
+				}
+			}
+		};
+		return deleteDocumentButton;
 	}
 
 	@NotNull
@@ -285,23 +310,24 @@ public class DocumentMenuItemActionBehaviors {
 		document = loadingFullRecordIfSummary(document);
 		if (validateDeleteDocumentPossibleExtensively(document.getWrappedRecord(), params.getUser()).isEmpty()) {
 			String parentId = document.getFolder();
+			BaseView view = params.getView();
 			try {
 				SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
-						params.getView().getConstellioFactories(), params.getView().getSessionContext());
-				presenterUtils.delete(document.getWrappedRecord(), reason, true, 1);
+						view.getConstellioFactories(), view.getSessionContext());
+				presenterUtils.delete(document.getWrappedRecord(), reason, true, 0);
 			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-				params.getView().showMessage(MessageUtils.toMessage(e));
+				view.showMessage(MessageUtils.toMessage(e));
 				return;
 			} catch (RecordDeleteServicesRuntimeException e) {
-				params.getView().showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
+				view.showMessage(i18n.$("deletionFailed") + "\n" + MessageUtils.toMessage(e));
 				return;
 			}
-			if (BehaviorsUtil.reloadIfSearchView(params.getView())) {
+			if (BehaviorsUtil.reloadIfSearchView(view) || BehaviorsUtil.reloadIfWasSearchView(view)) {
 				return;
 			} else if (parentId != null) {
 				navigateToDisplayFolder(parentId, params.getFormParams());
 			} else {
-				params.getView().navigate().to().recordsManagement();
+				view.navigate().to().recordsManagement();
 			}
 		} else {
 			MessageUtils.getCannotDeleteWindow(validateDeleteDocumentPossibleExtensively(
@@ -333,6 +359,9 @@ public class DocumentMenuItemActionBehaviors {
 			@Override
 			protected Component buildWindowContent() {
 				String url = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
+				if (!url.endsWith("/")) {
+					url += "/";
+				}
 				String publicLink = url + "dl?id=" + document.getId();
 
 				Label link = new Label(publicLink);
@@ -468,31 +497,16 @@ public class DocumentMenuItemActionBehaviors {
 
 	public void createPdf(Document document, MenuItemActionBehaviorParams params) {
 		document = loadingFullRecordIfSummary(document);
-		String extention = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename());
+		User user = params.getUser();
 
-		if (!extention.toUpperCase().equals("PDF") && !extention.equals("PDFA")) {
-			Content content = document.getContent();
-			ContentConversionManager conversionManager = new ContentConversionManager(modelLayerFactory);
-			if (content != null) {
-				try {
-					conversionManager = new ContentConversionManager(modelLayerFactory);
-					conversionManager.convertContentToPDFA(params.getUser(), content);
-					recordServices.update(document.getWrappedRecord());
-
-					decommissioningLoggingService.logPdfAGeneration(document, params.getUser());
-
-					navigateToDisplayDocument(document.getId(), params.getFormParams());
-
-					params.getView().showMessage($("DocumentActionsComponent.createPDFASuccess"));
-				} catch (Exception e) {
-					params.getView().showErrorMessage(
-							$("DocumentActionsComponent.createPDFAFailure") + " : " + MessageUtils.toMessage(e));
-				} finally {
-					conversionManager.close();
-				}
-			}
+		DocumentPdfFormatSelectorWindowImpl pdfFormatSelectorWindow =
+				new DocumentPdfFormatSelectorWindowImpl(document, params.getUser(), params.getFormParams());
+		if ((document.getArchivisticStatus().isActive() && user.has(GENERATE_PDFA_DOCUMENTS).on(document)) ||
+			(document.getArchivisticStatus().isSemiActive() && user.has(GENERATE_PDFA_SEMIACTIVE_DOCUMENTS).on(document)) ||
+			(document.getArchivisticStatus().isInactive() && user.has(GENERATE_PDFA_INACTIVE_DOCUMENTS).on(document))) {
+			pdfFormatSelectorWindow.open();
 		} else {
-			params.getView().showMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
+			pdfFormatSelectorWindow.createPdf();
 		}
 	}
 
@@ -503,8 +517,7 @@ public class DocumentMenuItemActionBehaviors {
 		document.setPublishingStartDate(null);
 		try {
 			recordServices.update(document);
-			params.getView().refreshActionMenu();
-			params.getView().partialRefresh();
+			ViewUtils.baseViewRefresh(params);
 		} catch (RecordServicesException e) {
 			params.getView().showErrorMessage(MessageUtils.toMessage(e));
 		}
@@ -551,13 +564,7 @@ public class DocumentMenuItemActionBehaviors {
 					createUpdateContentVersionWindow(documentVO, params.getView(), new UpdateWindowCloseCallback() {
 						@Override
 						public void windowClosed() {
-							BaseView view = params.getView();
-							if (view instanceof DisplayDocumentView) {
-								view.refreshActionMenu();
-								view.partialRefresh();
-							} else {
-								view.updateUI();
-							}
+							ViewUtils.baseViewRefresh(params);
 						}
 					});
 			if (!isCheckedOutDocumentContentChanged(document)) {
@@ -671,7 +678,7 @@ public class DocumentMenuItemActionBehaviors {
 			@Override
 			protected void confirmButtonClick(ConfirmDialog dialog) {
 				unshareDocumentButtonClicked(ParamUtils.getCurrentParams(), document, params.getUser());
-				params.getView().partialRefresh();
+				ViewUtils.baseViewRefresh(params);
 			}
 		};
 
@@ -731,7 +738,7 @@ public class DocumentMenuItemActionBehaviors {
 
 	public void reportGeneratorButton(Document documentSummary, MenuItemActionBehaviorParams params) {
 		Document document = loadingFullRecordIfSummary(documentSummary);
-		RMSelectionPanelReportPresenter rmSelectionPanelReportPresenter = new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
+		SelectionPanelReportPresenter selectionPanelReportPresenter = new SelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
 			@Override
 			public String getSelectedSchemaType() {
 				return Document.SCHEMA_TYPE;
@@ -744,10 +751,8 @@ public class DocumentMenuItemActionBehaviors {
 		};
 
 		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"),
-				$("SearchView.metadataReportTitle"),
-				appLayerFactory, collection, false, false,
-				rmSelectionPanelReportPresenter, params.getView().getSessionContext()) {
-
+				$("SearchView.metadataReportTitle"), appLayerFactory, collection, selectionPanelReportPresenter,
+				params.getView().getSessionContext()) {
 		};
 
 		reportGeneratorButton.setRecordVoList(getDocumentVO(params, document));
@@ -799,6 +804,8 @@ public class DocumentMenuItemActionBehaviors {
 
 			recordServices.execute(transaction);
 
+			params.getView().showMessage($("DocumentMenuItemActionBehaviors.emailAttachmentExtracted"));
+
 			params.getView().updateUI();
 		} catch (Exception e) {
 			params.getView().showErrorMessage($("DocumentMenuItemActionBehaviors.errorWhileExtractingAttachements"));
@@ -808,154 +815,10 @@ public class DocumentMenuItemActionBehaviors {
 
 	}
 
-	public void generateExternalSignatureUrl(Document document, MenuItemActionBehaviorParams params) {
-		Button generateWindow = new WindowButton($("DocumentMenuItemActionBehaviors.generateSignatureAccess"),
-				$("DocumentMenuItemActionBehaviors.generateSignatureAccess"),
-				WindowButton.WindowConfiguration.modalDialog("570px", "305px")) {
-			@Override
-			protected Component buildWindowContent() {
-				VerticalLayout mainLayout = new VerticalLayout();
-				mainLayout.setSpacing(true);
-
-				BaseTextField nameField = new BaseTextField();
-				nameField.setCaption($("DocumentMenuItemActionBehaviors.externalUserFullname"));
-				nameField.setRequired(true);
-				nameField.setWidth("100%");
-				mainLayout.addComponent(nameField);
-
-				BaseTextField mailField = new BaseTextField();
-				mailField.setCaption($("DocumentMenuItemActionBehaviors.externalUserEmail"));
-				mailField.setRequired(true);
-				mailField.setWidth("100%");
-				mainLayout.addComponent(mailField);
-
-				JodaDateField dateField = new JodaDateField();
-				dateField.setCaption($("DocumentMenuItemActionBehaviors.expirationDate"));
-				dateField.setRequired(true);
-				mainLayout.addComponent(dateField);
-
-				BaseButton generateButton = new BaseButton($("LabelsButton.generate")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						if (nameField.getValue() == null) {
-							nameField.setRequiredError($("requiredField"));
-						} else if (mailField.getValue() == null) {
-							mailField.setRequiredError($("requiredField"));
-						} else if (dateField.getConvertedValue() == null) {
-							dateField.setRequiredError($("requiredField"));
-						} else {
-							try {
-								Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
-								createExternalSignatureUrl(document.getId(), nameField.getValue(),
-										mailField.getValue(), (LocalDate) dateField.getConvertedValue(),
-										locale.getLanguage(), params.getUser());
-								params.getView().showMessage($("EmailServerConfigView.results.success"));
-							} catch (Exception e) {
-								params.getView().showErrorMessage($("DocumentMenuItemActionBehaviors.errorGeneratingAccess"));
-							}
-
-							getWindow().close();
-						}
-					}
-				};
-				generateButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-				mainLayout.addComponent(generateButton);
-				mainLayout.setComponentAlignment(generateButton, Alignment.BOTTOM_CENTER);
-
-				return mainLayout;
-			}
-		};
-		generateWindow.click();
-	}
-
-	public String createExternalSignatureUrl(String documentId, String externalUserFullname, String externalUserEmail,
-											 LocalDate expirationDate, String language, User user)
-			throws RecordServicesException, CannotSendEmailException {
-		ExternalAccessUrl accessUrl = rm.newSignatureExternalAccessUrl()
-				.setToken(UUID.randomUUID().toString())
-				.setAccessRecord(documentId)
-				.setStatus(ExternalAccessUrlStatus.OPEN)
-				.setFullname(externalUserFullname)
-				.setEmail(externalUserEmail)
-				.setExpirationDate(expirationDate);
-		accessUrl.setCreatedBy(user.getId());
-		accessUrl.setCreatedOn(new LocalDateTime());
-
-		Transaction transaction = new Transaction();
-		transaction.add(accessUrl);
-
-		recordServices.execute(transaction);
-
-		sendExternalAccessMail(user, accessUrl, language, 1);
-
-		return getUrlFromExternalAccess(accessUrl, language);
-	}
-
-	private void sendExternalAccessMail(User sender, ExternalAccessUrl accessUrl, String language, int attempt)
-			throws CannotSendEmailException {
-		try {
-			EmailToSend emailToSend = newEmailToSend();
-
-			EmailAddress userAddress = new EmailAddress(accessUrl.getFullname(), accessUrl.getEmail());
-			emailToSend.setTemplate(RMEmailTemplateConstants.EXTERNAL_SIGNATURE_REQUEST);
-			emailToSend.setTo(Arrays.asList(userAddress));
-			emailToSend.setSendOn(TimeProvider.getLocalDateTime());
-			emailToSend.setSubject($("DocumentMenuItemActionBehaviors.signatureRequest"));
-			emailToSend.setParameters(buildSignatureRequestParameters(sender, accessUrl, language));
-
-			recordServices.add(emailToSend);
-		} catch (RecordServicesException e) {
-			if (attempt > 3) {
-				throw new CannotSendEmailException();
-			} else {
-				LOGGER.warn("Attempt #" + attempt + " to send email failed, retrying...", e);
-				sendExternalAccessMail(sender, accessUrl, language, attempt + 1);
-			}
-		}
-	}
-
-	private EmailToSend newEmailToSend() {
-		MetadataSchemaTypes schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		MetadataSchema schema = schemaTypes.getSchemaType(EmailToSend.SCHEMA_TYPE).getDefaultSchema();
-		Record emailToSendRecord = recordServices.newRecordWithSchema(schema);
-		return new EmailToSend(emailToSendRecord, schemaTypes);
-	}
-
-	private List<String> buildSignatureRequestParameters(User sender, ExternalAccessUrl accessUrl, String language) {
-		List<String> params = new ArrayList<>();
-
-		Document document = rm.getDocument(accessUrl.getAccessRecord());
-		String docText = " \"" + document.getTitle() + "\" (" + document.getId() + ")";
-
-		String dateFormat = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
-		String expiration = accessUrl.getExpirationDate().toString(dateFormat);
-
-		params.add("title" + EmailToSend.PARAMETER_SEPARATOR +
-				   $("DocumentMenuItemActionBehaviors.signatureRequest"));
-		params.add("greetings" + EmailToSend.PARAMETER_SEPARATOR +
-				   $("DocumentMenuItemActionBehaviors.signatureRequestGreetings", accessUrl.getFullname()));
-		params.add("message" + EmailToSend.PARAMETER_SEPARATOR +
-				   $("DocumentMenuItemActionBehaviors.signatureRequestMessage", sender.getTitle(), docText, expiration));
-		params.add("link" + EmailToSend.PARAMETER_SEPARATOR + getUrlFromExternalAccess(accessUrl, language));
-		params.add("linkMessage" + EmailToSend.PARAMETER_SEPARATOR + $("DocumentMenuItemActionBehaviors.signatureRequestLinkMessage"));
-		params.add("closure" + EmailToSend.PARAMETER_SEPARATOR +
-				   $("DocumentMenuItemActionBehaviors.signatureRequestClosure"));
-
-		return params;
-	}
-
-	private String getUrlFromExternalAccess(ExternalAccessUrl externalAccess, String language) {
-		String url = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
-
-		StringBuilder sb = new StringBuilder();
-		sb.append(url);
-		sb.append("signatureExternalAccess?id=");
-		sb.append(externalAccess.getId());
-		sb.append("&token=");
-		sb.append(externalAccess.getToken());
-		sb.append("&language=");
-		sb.append(language);
-		return sb.toString();
+	public void sendSignatureRequest(Document document, MenuItemActionBehaviorParams params) {
+		Button sendButton = new SendSignatureRequestButton(appLayerFactory, collection, params.getUser(), document,
+				params.getView());
+		sendButton.click();
 	}
 
 	public void createNewDocument(String folderId, User user, String newFileName, InputStream documentInputStream,
@@ -992,13 +855,7 @@ public class DocumentMenuItemActionBehaviors {
 		UpdateContentVersionWindowImpl uploadWindow = createUpdateContentVersionWindow(documentVO, params.getView(), new UpdateWindowCloseCallback() {
 			@Override
 			public void windowClosed() {
-				BaseView view = params.getView();
-				if (view instanceof DisplayDocumentView) {
-					view.refreshActionMenu();
-					view.partialRefresh();
-				} else {
-					view.updateUI();
-				}
+				ViewUtils.baseViewRefresh(params);
 			}
 		});
 
@@ -1038,12 +895,14 @@ public class DocumentMenuItemActionBehaviors {
 				VIEW_MODE.DISPLAY, params.getView().getSessionContext());
 	}
 
-	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(RecordVO recordVO, BaseView view,
+	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(DocumentVO documentVO, BaseView view,
 																			final UpdateWindowCloseCallback callback) {
 		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
-		recordMap.put(recordVO, recordVO.getMetadata(Document.CONTENT));
+		recordMap.put(documentVO, documentVO.getMetadata(Document.CONTENT));
 
-		return new UpdateContentVersionWindowImpl(recordMap) {
+		ValidateFileName validateFileName = getEmailDocumentFileNameValidator(documentVO.getSchemaCode());
+
+		return new UpdateContentVersionWindowImpl(recordMap, false, validateFileName) {
 			@Override
 			public void close() {
 				super.close();
@@ -1076,32 +935,59 @@ public class DocumentMenuItemActionBehaviors {
 
 	private void renameContentButtonClicked(Document document, MenuItemActionBehaviorParams params,
 											String newContentTitle) {
-		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
-				params.getView().getConstellioFactories(), params.getView().getSessionContext());
 		if (document != null) {
-			document = renameContentButtonClicked(document, newContentTitle);
-			presenterUtils.addOrUpdate(document.getWrappedRecord());
-			params.getView().updateUI();
-			//			navigateToDisplayDocument(document.getId(), params.getFormParams());
+			String oldExtension = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename());
+			String newExtension = FilenameUtils.getExtension(newContentTitle);
+			if (oldExtension.equals(newExtension)) {
+				renameContent(document, params, newContentTitle);
+			} else {
+				params.getView().showConfirmDialog(ConfirmDialogProperties.builder()
+						.title($("warning"))
+						.message($("DocumentContextMenu.renameContentExtensionWarning"))
+						.okCaption($("confirm"))
+						.cancelCaption($("cancel"))
+						.onCloseListener(confirmDialogResults -> {
+							switch (confirmDialogResults) {
+								case OK:
+									renameContent(document, params, newContentTitle);
+								case CANCEL:
+									return;
+							}
+
+						})
+						.build()
+				);
+			}
 		}
 	}
 
-	private Document renameContentButtonClicked(Document document, String newName) {
-		boolean isManualEntry = rm.folder.title().getDataEntry().getType() == DataEntryType.MANUAL;
-		if (document.getContent().getCurrentVersion().getFilename().equals(document.getTitle())) {
+	private void renameContent(Document document, MenuItemActionBehaviorParams params,
+							   String newContentTitle) {
+		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA,
+				params.getView().getConstellioFactories(), params.getView().getSessionContext());
+		document = renameContentButtonClicked(document, newContentTitle);
+		presenterUtils.addOrUpdate(document.getWrappedRecord());
+		params.getView().updateUI();
+		params.getView().showMessage($("DocumentContextMenu.fileRenamed"));
+	}
+
+	private Document renameContentButtonClicked(Document document, String newFileName) {
+		document = loadingFullRecordIfSummary(document);
+		String oldFileName = document.getContent().getCurrentVersion().getFilename();
+		boolean isManualEntry = rm.document.title().getDataEntry().getType() == DataEntryType.MANUAL;
+		if (oldFileName.equals(document.getTitle())) {
 			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
 					.getPopulateConfigs().isAddOnly()) {
-				document.setTitle(newName);
+				document.setTitle(removeExtensionIfConfigEnabled(newFileName));
 			}
-		} else if (FilenameUtils.removeExtension(document.getContent().getCurrentVersion().getFilename())
+		} else if (FilenameUtils.removeExtension(oldFileName)
 				.equals(document.getTitle())) {
 			if (isManualEntry && !rm.documentSchemaType().getDefaultSchema().getMetadata(Schemas.TITLE_CODE)
 					.getPopulateConfigs().isAddOnly()) {
-				document.setTitle(FilenameUtils.removeExtension(newName));
+				document.setTitle(removeExtensionIfConfigEnabled(newFileName));
 			}
 		}
-
-		document.getContent().renameCurrentVersion(newName);
+		document.getContent().renameCurrentVersion(newFileName);
 		return document;
 	}
 
@@ -1138,6 +1024,15 @@ public class DocumentMenuItemActionBehaviors {
 			return document;
 		}
 
+	}
+
+	private String removeExtensionIfConfigEnabled(String title) {
+
+		if (modelLayerFactory.getSystemConfigs().isRemoveExtensionFromRecordTitle()) {
+			title = FilenameUtils.removeExtension(title);
+		}
+
+		return title;
 	}
 
 	private static interface UpdateWindowCloseCallback {

@@ -50,7 +50,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 		LDAPServerConfiguration ldapServerConfiguration = new LDAPServerConfiguration(serverConfig, false);
 		AzureADUserSynchConfig azurConf = new AzureADUserSynchConfig().setApplicationKey("zApplicationKey").setClientId("synchClientId");
 		LDAPUserSyncConfiguration ldapUserSyncConfiguration = new LDAPUserSyncConfiguration(azurConf, azurUsersRegex,
-				azurGroupsRegex, azurDuration, null, azurCollections);
+				azurGroupsRegex, azurDuration, null, azurCollections, false, false, false);
 		ldapConfigManager.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 	}
 
@@ -64,7 +64,7 @@ public class LDAPConfigurationManagerAcceptanceTest extends ConstellioTest {
 		ldapConfigManager.saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 
 		assertThat(ldapConfigManager.isLDAPAuthentication()).isEqualTo(true);
-		assertThat(ldapConfigManager.idUsersSynchActivated()).isEqualTo(false);
+		assertThat(ldapConfigManager.isUsersSynchActivated()).isEqualTo(false);
 		ldapUserSyncConfiguration = ldapConfigManager.getLDAPUserSyncConfiguration();
 
 		assertThat(ldapUserSyncConfiguration.getDurationBetweenExecution()).isNull();

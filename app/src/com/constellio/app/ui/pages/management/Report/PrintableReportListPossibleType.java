@@ -3,10 +3,12 @@ package com.constellio.app.ui.pages.management.Report;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.LegalRequirement;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -16,7 +18,8 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 public enum PrintableReportListPossibleType {
 	FOLDER(Folder.SCHEMA_TYPE), DOCUMENT(Document.SCHEMA_TYPE), TASK(Task.SCHEMA_TYPE), CONTAINER(ContainerRecord.SCHEMA_TYPE),
 	STORAGE_SPACE(StorageSpace.SCHEMA_TYPE), CONNECTOR_HTTP_DOCUMENT(ConnectorHttpDocument.SCHEMA_TYPE),
-	CONNECTOR_LDAP_USER_DOCUMENT(ConnectorLDAPUserDocument.SCHEMA_TYPE), CONNECTOR_SMB_DOCUMENT(ConnectorSmbDocument.SCHEMA_TYPE), CATEGORY(Category.SCHEMA_TYPE), RETENTION_RULE(RetentionRule.SCHEMA_TYPE);
+	CONNECTOR_LDAP_USER_DOCUMENT(ConnectorLDAPUserDocument.SCHEMA_TYPE), CONNECTOR_SMB_DOCUMENT(ConnectorSmbDocument.SCHEMA_TYPE), CATEGORY(Category.SCHEMA_TYPE), RETENTION_RULE(RetentionRule.SCHEMA_TYPE),
+	ADMINISTRATIVE_UNIT(AdministrativeUnit.SCHEMA_TYPE), LEGAL_REQUIREMENT(LegalRequirement.SCHEMA_TYPE);
 
 	private final String schemaType;
 

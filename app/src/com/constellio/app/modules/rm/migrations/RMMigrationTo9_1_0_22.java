@@ -39,7 +39,7 @@ public class RMMigrationTo9_1_0_22 implements MigrationScript {
 		this.migrationResourcesProvider = migrationResourcesProvider;
 		this.appLayerFactory = appLayerFactory;
 
-		addEmailTemplates();
+		addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory);
 	}
 
 	private class SchemaAlterationFor9_1_0_22 extends MetadataSchemasAlterationHelper {
@@ -58,24 +58,26 @@ public class RMMigrationTo9_1_0_22 implements MigrationScript {
 		}
 	}
 
-	private void addEmailTemplates() {
+	public static void addEmailTemplates(String collection, MigrationResourcesProvider migrationResourcesProvider,
+										 AppLayerFactory appLayerFactory) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
 				.equals("fr")) {
-			addEmailTemplates("approvalRequestApprovedTemplate.html",
+			addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory, "approvalRequestApprovedTemplate.html",
 					RMEmailTemplateConstants.APPROVAL_REQUEST_APPROVED_TEMPLATE_ID);
 
-			addEmailTemplates("validationRequestValidatedTemplate.html",
+			addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory, "validationRequestValidatedTemplate.html",
 					RMEmailTemplateConstants.VALIDATION_REQUEST_VALIDATED_TEMPLATE_ID);
 		} else {
-			addEmailTemplates("approvalRequestApprovedTemplate_en.html",
+			addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory, "approvalRequestApprovedTemplate_en.html",
 					RMEmailTemplateConstants.APPROVAL_REQUEST_APPROVED_TEMPLATE_ID);
 
-			addEmailTemplates("validationRequestValidatedTemplate_en.html",
+			addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory, "validationRequestValidatedTemplate_en.html",
 					RMEmailTemplateConstants.VALIDATION_REQUEST_VALIDATED_TEMPLATE_ID);
 		}
 	}
 
-	private void addEmailTemplates(String templateFileName, String templateId) {
+	private static void addEmailTemplates(String collection, MigrationResourcesProvider migrationResourcesProvider,
+										  AppLayerFactory appLayerFactory, String templateFileName, String templateId) {
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
 				.getEmailTemplatesManager();
 		try (InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName)) {

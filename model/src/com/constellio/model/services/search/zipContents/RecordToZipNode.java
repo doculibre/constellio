@@ -19,11 +19,20 @@ public class RecordToZipNode {
 	private Set<String> allContentsNames = new HashSet<>();
 	Set<String> redundantContentsNames = new HashSet<>();
 
-	public RecordToZipNode(String recordId, String recordName, boolean canHaveChildren) {
+	public RecordToZipNode(String recordId, String recordAbbreviation, String recordName, boolean canHaveChildren) {
 		this.recordId = recordId;
 		this.recordName = recordName;
 		this.canHaveChildren = canHaveChildren;
 		this.uniqueNameInHierarchy = recordName;
+
+		if (recordAbbreviation == null) {
+
+			if (recordName.length() > 60) {
+				uniqueNameInHierarchy = recordName.substring(0, 37) + "..." + recordName.substring(recordName.length() - 20);
+			}
+		} else {
+			uniqueNameInHierarchy = recordAbbreviation;
+		}
 	}
 
 	public String getRecordId() {

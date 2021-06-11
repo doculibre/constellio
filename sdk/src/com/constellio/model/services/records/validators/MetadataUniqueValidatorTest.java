@@ -19,6 +19,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -103,13 +105,15 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		when(searchServices.hasResults(query.capture())).thenReturn(false);
 
 		when(record.isModified(metadata)).thenReturn(true);
-		when(record.get(metadata)).thenReturn(zeValue);
+		when(record.getValues(metadata)).thenReturn(Collections.singletonList(zeValue));
 
 		validator.validate(record, validationErrors, false);
 
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
 		assertThat(query.getValue().getCondition()).isEqualTo(
-				from(schemaType).where(metadata).isEqualTo(zeValue).andWhere(Schemas.IDENTIFIER).isNotEqual(zeId));
+				from(schemaType)
+						.where(Schemas.IDENTIFIER).isNotEqual(zeId)
+						.andWhere(metadata).isEqualTo(zeValue));
 	}
 
 	@Test
@@ -117,7 +121,7 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		ArgumentCaptor<LogicalSearchQuery> query = ArgumentCaptor.forClass(LogicalSearchQuery.class);
 		when(searchServices.hasResults(query.capture())).thenReturn(true);
 		when(record.isModified(metadata)).thenReturn(true);
-		when(record.get(metadata)).thenReturn(zeValue);
+		when(record.getValues(metadata)).thenReturn(Collections.singletonList(zeValue));
 		when(metadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
 		validator.validate(record, validationErrors, false);
@@ -125,7 +129,9 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 		assertThat(validationErrors.getValidationErrors()).hasSize(1);
 		assertThat(validationErrors.getValidationErrors().get(0).getCode()).isEqualTo(NON_UNIQUE_METADATA);
 		assertThat(query.getValue().getCondition()).isEqualTo(
-				from(schemaType).where(metadata).isEqualTo(zeValue).andWhere(Schemas.IDENTIFIER).isNotEqual(zeId));
+				from(schemaType)
+						.where(Schemas.IDENTIFIER).isNotEqual(zeId)
+						.andWhere(metadata).isEqualTo(zeValue));
 	}
 
 	@Test
@@ -137,5 +143,24 @@ public class MetadataUniqueValidatorTest extends ConstellioTest {
 
 		verify(searchServices, never()).hasResults(any(LogicalSearchQuery.class));
 		assertThat(validationErrors.getValidationErrors()).isEmpty();
+	}
+
+	@Test
+	public void givenUniqueMultivalueMetadataAndExistingRecordsThenError() {
+		ArgumentCaptor<LogicalSearchQuery> query = ArgumentCaptor.forClass(LogicalSearchQuery.class);
+		when(searchServices.hasResults(query.capture())).thenReturn(true);
+		when(record.getValues(metadata)).thenReturn(Arrays.asList(zeValue));
+		when(record.isModified(metadata)).thenReturn(true);
+		when(metadata.isMultivalue()).thenReturn(true);
+		when(metadata.getDataEntry()).thenReturn(new ManualDataEntry());
+
+		validator.validate(record, validationErrors, false);
+
+		assertThat(validationErrors.getValidationErrors()).hasSize(1);
+		assertThat(validationErrors.getValidationErrors().get(0).getCode()).isEqualTo(NON_UNIQUE_METADATA);
+		assertThat(query.getValue().getCondition()).isEqualTo(
+				from(schemaType)
+						.where(Schemas.IDENTIFIER).isNotEqual(zeId)
+						.andWhere(metadata).isContaining(Arrays.asList(zeValue)));
 	}
 }

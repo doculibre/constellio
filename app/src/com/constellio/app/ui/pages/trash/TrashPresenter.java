@@ -22,6 +22,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.QueryExecutionMethod;
 import com.constellio.model.services.trash.TrashServices;
 import com.constellio.model.services.trash.TrashServices.RecordsIdsAndTitles;
 import com.vaadin.server.Page;
@@ -112,8 +113,12 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 		};
 	}
 
-	private LogicalSearchQuery getQuery() {
-		return trashServices().getTrashRecordsQueryForType(view.getSelectedType(), getCurrentUser());
+	protected LogicalSearchQuery getQuery() {
+		LogicalSearchQuery trashRecordsQueryForType = trashServices().getTrashRecordsQueryForType(view.getSelectedType(), getCurrentUser());
+		if (searchServices().getResultsCount(trashRecordsQueryForType) >= 1000) {
+			trashRecordsQueryForType.setQueryExecutionMethod(QueryExecutionMethod.USE_SOLR);
+		}
+		return trashRecordsQueryForType;
 	}
 
 	private TrashServices trashServices() {

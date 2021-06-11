@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -45,6 +46,10 @@ public class FolderRecordActionsServices {
 	}
 
 	public boolean isAddDocumentActionPossible(Record record, User user) {
+		if (record.isLogicallyDeleted()) {
+			return false;
+		}
+
 		Folder folder = rm.wrapFolder(record);
 		if (user.hasWriteAccess().on(folder) && isEditActionPossible(record, user) &&
 			rmModuleExtensions.isAddDocumentActionPossibleOnFolder(rm.wrapFolder(record), user) &&
@@ -74,6 +79,10 @@ public class FolderRecordActionsServices {
 	}
 
 	public boolean isAddSubFolderActionPossible(Record record, User user) {
+		if (record.isLogicallyDeleted()) {
+			return false;
+		}
+
 		Folder folder = rm.wrapFolder(record);
 		if (user.hasWriteAccess().on(folder) && isEditActionPossible(record, user) &&
 			rmModuleExtensions.isAddSubFolderActionPossibleOnFolder(rm.wrapFolder(record), user) &&
@@ -98,7 +107,7 @@ public class FolderRecordActionsServices {
 	}
 
 	public boolean isDisplayActionPossible(Record record, User user) {
-		return hasUserReadAccess(record, user) &&
+		return hasUserReadAccess(record, user) && !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isDisplayActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
@@ -108,10 +117,31 @@ public class FolderRecordActionsServices {
 			return false;
 		}
 		return hasUserWriteAccess(record, user) &&
-			   !record.isLogicallyDeleted() &&
 			   rmModuleExtensions.isEditActionPossibleOnFolder(folder, user) &&
 			   !extensions.isModifyBlocked(folder.getWrappedRecord(), user) &&
 			   extensions.isRecordModifiableBy(folder.getWrappedRecord(), user);
+	}
+
+	public boolean isDuplicateActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+
+		boolean hasPermissionToCreateFolder;
+		if (folder.getParentFolder() == null) {
+			if (folder.getAdministrativeUnitEntered() == null) {
+				return true;
+			} else {
+				AdministrativeUnit unit = rm.getAdministrativeUnit(folder.getAdministrativeUnitEntered());
+				hasPermissionToCreateFolder = user.has(RMPermissionsTo.CREATE_FOLDERS).on(unit);
+			}
+		} else {
+			Folder parent = rm.getFolder(folder.getParentFolder());
+			hasPermissionToCreateFolder = isAddSubFolderActionPossible(parent.getWrappedRecord(), user);
+		}
+
+		return hasPermissionToCreateFolder &&
+			   !record.isLogicallyDeleted() &&
+			   rmModuleExtensions.isDuplicateActionPossibleOnFolder(folder, user) &&
+			   !extensions.isModifyBlocked(folder.getWrappedRecord(), user);
 	}
 
 	public boolean isDeleteActionPossible(Record record, User user) {
@@ -165,6 +195,16 @@ public class FolderRecordActionsServices {
 			return false;
 		}
 		return rmModuleExtensions.isCopyActionPossibleOnFolder(rm.wrapFolder(record), user);
+	}
+
+	public boolean isBatchDuplicateActionPossible(Record record, User user) {
+		Folder folder = rm.wrapFolder(record);
+		if (!hasUserReadAccess(record, user) ||
+			(folder.getPermissionStatus().isInactive() && !user.has(RMPermissionsTo.DUPLICATE_INACTIVE_FOLDER).on(folder)) ||
+			(folder.getPermissionStatus().isSemiActive() && !user.has(RMPermissionsTo.DUPLICATE_SEMIACTIVE_FOLDER).on(folder))) {
+			return false;
+		}
+		return rmModuleExtensions.isBatchDuplicateActionPossibleOnFolder(rm.wrapFolder(record), user);
 	}
 
 	public boolean isDownloadActionPossible(Record record, User user) {
@@ -337,6 +377,10 @@ public class FolderRecordActionsServices {
 
 	public boolean isCreateTaskActionPossible(Record record, User user) {
 		return hasUserReadAccess(record, user);
+	}
+
+	public boolean isGenerateExternalUploadLinkActionPossible(Record record, User user) {
+		return hasUserWriteAccess(record, user) && Toggle.EXTERNAL_UPLOAD_LINK.isEnabled();
 	}
 
 	private boolean hasUserWriteAccess(Record record, User user) {

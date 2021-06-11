@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static java.util.Arrays.asList;
 
@@ -69,6 +70,12 @@ public class SchemasDisplayManager
 		this.metadataSchemasManager = metadataSchemasManager;
 		this.cacheManager = cacheManager;
 		this.systemConfigManager = systemConfigManager;
+	}
+
+	public void executeInCollection(String collection, Consumer<SchemaTypesDisplayTransactionBuilder> txConsumer) {
+		SchemaTypesDisplayTransactionBuilder tx = newTransactionBuilderFor(collection);
+		txConsumer.accept(tx);
+		execute(tx.build());
 	}
 
 	public Set<String> getReturnedFieldsForSearch(String collection) {

@@ -15,7 +15,6 @@ import com.constellio.app.services.importExport.systemStateExport.SystemStateExp
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.dao.dto.records.RecordId;
-import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.CorePermissions;
@@ -204,7 +203,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 	public void exportToolsToXMLButtonClicked(boolean isSameCollection, boolean includeAuthorizations) {
 		RecordExportOptions options = new ExportPresenterServices(collection, appLayerFactory)
-				.buildOptionsForExportingTools(isSameCollection, includeAuthorizations, appCollectionExtentions);
+				.buildOptionsForExportingTools(isSameCollection, includeAuthorizations, appCollectionExtentions).setIncludeContents(true);
 		exportToXML(options);
 	}
 
@@ -359,10 +358,9 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	}
 
 	public void exportLogs() {
+
 		try {
-			List<String> logFilenames = asList("wrapper.log", "constellio.log", "constellio.log.1", "constellio.log.2",
-					"constellio.log.3", "constellio.log.4", "constellio.log.5");
-			File zipFile = modelLayerFactory.newLogServices().exportLogs(logFilenames, true);
+			File zipFile = modelLayerFactory.newLogServices().exportLogs(false);
 			if (zipFile == null) {
 				view.showErrorMessage($("ExportView.noLogs"));
 			} else {

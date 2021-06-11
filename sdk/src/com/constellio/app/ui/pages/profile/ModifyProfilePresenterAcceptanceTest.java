@@ -8,11 +8,13 @@ import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotChangeNameOfSyncedUser;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.SDKViewNavigation;
@@ -26,6 +28,7 @@ import org.mockito.Mock;
 import java.util.HashMap;
 import java.util.Locale;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -95,5 +98,43 @@ public class ModifyProfilePresenterAcceptanceTest extends ConstellioTest {
 		presenter.saveButtonClicked(profileVO, new HashMap<String, Object>());
 
 		assertThat(userServices.getUserConfigs(bobGratton).getPersonalEmails()).containsOnly("bob@hotmail.com", "bob@gmail.com");
+	}
+
+	@Test
+	public void whenSaveButtonClickedWithSyncedUserThenOK()
+			throws Exception {
+
+		userServices.createUser("synced", (req) -> req
+				.setCollections(asList(zeCollection))
+				.setName("Synced", "Test")
+				.setEmail("synced@test.com")
+				.setStatusForCollection(UserCredentialStatus.ACTIVE, zeCollection)
+				.ldapSyncRequest()
+		);
+
+		profileVO = new ProfileVO("synced", "Synced", "Test", "synced@test.com", "", "3333333",
+				RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1", null, null, null, false);
+		profileVO.setLoginLanguageCode("fr");
+
+		presenter.saveButtonClicked(profileVO, new HashMap<String, Object>());
+	}
+
+	@Test(expected = UserServicesRuntimeException_CannotChangeNameOfSyncedUser.class)
+	public void whenUpdatingNameWithSyncedUserThenException()
+			throws Exception {
+
+		userServices.createUser("synced", (req) -> req
+				.setCollections(asList(zeCollection))
+				.setName("Synced", "Test")
+				.setEmail("synced@test.com")
+				.setStatusForCollection(UserCredentialStatus.ACTIVE, zeCollection)
+				.ldapSyncRequest()
+		);
+
+		profileVO = new ProfileVO("synced", "Synced", "modified", "synced@test.com", "", "3333333",
+				RMNavigationConfiguration.LAST_VIEWED_FOLDERS, DefaultTabInFolderDisplay.METADATA, "taxo1", null, null, null, false);
+		profileVO.setLoginLanguageCode("fr");
+
+		presenter.saveButtonClicked(profileVO, new HashMap<String, Object>());
 	}
 }

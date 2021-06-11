@@ -133,9 +133,15 @@ public class ConstellioFactories {
 		Runnable markForCacheRebuildRunnable = () -> {
 			appLayerFactoryHolder.get().getSystemGlobalConfigsManager().markLocalCachesAsRequiringRebuild();
 		};
+
+		Supplier<Boolean> isReindexingSupplier = () -> {
+			AppLayerFactory appLayerFactory = appLayerFactoryHolder.get();
+			return appLayerFactory != null && appLayerFactory.isReindexing();
+		};
+
 		modelLayerFactory = decorator.decorateModelServicesFactory(new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator,
 				modelLayerConfiguration, decorator.getStatefullServiceDecorator(), modulesManager, instanceName, instanceId,
-				new ModelLayerFactoryFactory(), markForReindexingRunnable, markForCacheRebuildRunnable));
+				new ModelLayerFactoryFactory(), markForReindexingRunnable, markForCacheRebuildRunnable, isReindexingSupplier));
 
 		appLayerFactory = decorator.decorateAppServicesFactory(new AppLayerFactoryImpl(appLayerConfiguration, modelLayerFactory,
 				dataLayerFactory, decorator.getStatefullServiceDecorator(), instanceName, instanceId));

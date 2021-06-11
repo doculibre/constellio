@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -9,6 +10,9 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentCont
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerPresenterParam;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.services.actionDisplayManager.MenuDisplayList;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -18,6 +22,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -34,9 +39,11 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -66,6 +73,8 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		if (event != null) {
 			presenter.forParams(event.getParameters());
 		}
+
+		buildActionMenuButtons();
 	}
 
 	public DisplayContainerPresenter getPresenter() {
@@ -183,23 +192,71 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		List<String> excludedActionTypes = new ArrayList<>();
+
+		if (!isNested) {
+			excludedActionTypes.add(ContainerRecordMenuItemActionType.CONTAINER_CONSULT.name());
+		}
+
+		List<MenuItemAction> menuItemActions = buildRecordVOActionButtonFactory(excludedActionTypes).buildMenuItemActions();
+
+		if (consultButton != null) {
+			menuItemActions.stream()
+					.filter(menuItemAction -> menuItemAction.getType().equals(ContainerRecordMenuItemActionType.CONTAINER_CONSULT))
+					.forEach(menuItemAction -> updateMenuActionBasedOnButton(menuItemAction, consultButton));
+		}
+
+		if (editButton != null) {
+			menuItemActions.stream()
+					.filter(menuItemAction -> menuItemAction.getType().equals(ContainerRecordMenuItemActionType.CONTAINER_EDIT))
+					.forEach(menuItemAction -> updateMenuActionBasedOnButton(menuItemAction, editButton));
+		}
+
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				menuItemActions
+		);
+	}
+
+	@Override
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+
+		ActionMenuDisplay actionMenuDisplay = new ActionMenuDisplay(defaultActionMenuDisplay) {
+			@Override
+			public Supplier<String> getSchemaTypeCodeSupplier() {
+				return presenter.getSchema()::getTypeCode;
+			}
+
+			@Override
+			public Supplier<MenuItemRecordProvider> getMenuItemRecordProviderSupplier() {
+				return buildRecordVOActionButtonFactory()::buildMenuItemRecordProvider;
+			}
+
+			@Override
+			public int getQuickActionCount() {
+				return isNested ? 2 : MenuDisplayList.QUICK_ACTION_COUNT_DEFAULT;
+			}
+		};
+
+		return actionMenuDisplay;
+	}
+
+	private RecordVOActionButtonFactory buildRecordVOActionButtonFactory() {
+		return buildRecordVOActionButtonFactory(Collections.emptyList());
+	}
+
+	private RecordVOActionButtonFactory buildRecordVOActionButtonFactory(List<String> excludedActionTypes) {
+		excludedActionTypes.addAll(rmModuleExtensions.getFilteredActionsForContainers());
+		return new RecordVOActionButtonFactory(presenter.getContainer(), excludedActionTypes);
+	}
+
+	protected void buildActionMenuButtons() {
 		List<Button> buttonList = new RecordVOActionButtonFactory(presenter.getContainer(),
 				rmModuleExtensions.getFilteredActionsForContainers()).build();
 
 		consultButton = getConsultButton(buttonList);
-
-		if (consultButton != null) {
-			buttonList.remove(consultButton);
-		}
-
 		editButton = getEditButton(buttonList);
-
-		if (!isNested && editButton != null) {
-			buttonList.remove(editButton);
-		}
-
-		return buttonList;
 	}
 
 	private Button getConsultButton(List<Button> buttons) {
@@ -221,23 +278,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	}
 
 	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		if (consultButton != null && isNested) {
-			return Arrays.asList(consultButton);
-		} else if (editButton != null && !isNested) {
-			return Arrays.asList(editButton);
-		} else {
-			return Collections.emptyList();
-		}
-	}
-
-	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
-		return true;
-	}
-
-	@Override
-	protected boolean isActionMenuBar() {
 		return true;
 	}
 

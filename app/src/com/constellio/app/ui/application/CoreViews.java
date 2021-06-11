@@ -23,6 +23,7 @@ import java.util.Map;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.GROUP_ADD_EDIT;
 import static com.constellio.app.ui.application.NavigatorConfigurationService.GROUP_DISPLAY;
 import static com.constellio.app.ui.pages.globalGroup.AddEditGlobalGroupViewImpl.GLOBAL_GROUP_CODE;
+import static com.constellio.app.ui.params.ParamUtils.addParams;
 
 public class CoreViews {
 	protected Navigator navigator;
@@ -479,6 +480,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.FORM_DISPLAY_FORM + "/" + schemaCode);
 	}
 
+	public void menuDisplayForm(String schemaTypeCode) {
+		navigator.navigateTo(NavigatorConfigurationService.MENU_DISPLAY_FORM + "/" + schemaTypeCode);
+	}
+
 	public void declareUserDocument(String userDocumentId, String folderId) {
 		Map<String, String> params = new HashMap<>();
 		params.put("userDocumentId", userDocumentId);
@@ -501,8 +506,10 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.PRINTABLE_REPORT_MANAGE);
 	}
 
-	public void addPrintableReport() {
-		navigator.navigateTo(NavigatorConfigurationService.PRINTABLE_REPORT_ADD);
+	public void addPrintableReport(String schemaType) {
+		Map<String, String> params = new HashMap<>();
+		params.put("schemaType", schemaType);
+		navigator.navigateTo(addParams(NavigatorConfigurationService.PRINTABLE_REPORT_ADD, params));
 	}
 
 	public void editPrintableReport(String id) {

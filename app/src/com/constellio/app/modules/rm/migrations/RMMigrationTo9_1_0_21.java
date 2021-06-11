@@ -29,15 +29,17 @@ public class RMMigrationTo9_1_0_21 implements MigrationScript {
 		this.migrationResourcesProvider = migrationResourcesProvider;
 		this.appLayerFactory = appLayerFactory;
 
-		addEmailTemplates();
+		addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory);
 	}
 
-	private void addEmailTemplates() {
-		addEmailTemplates("alertDecommissioningEndedTemplate.html",
+	public static void addEmailTemplates(String collection, MigrationResourcesProvider migrationResourcesProvider,
+										 AppLayerFactory appLayerFactory) {
+		addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory, "alertDecommissioningEndedTemplate.html",
 				RMEmailTemplateConstants.ALERT_DECOMMISSIONING_ENDED);
 	}
 
-	private void addEmailTemplates(String templateFileName, String templateId) {
+	private static void addEmailTemplates(String collection, MigrationResourcesProvider migrationResourcesProvider,
+										  AppLayerFactory appLayerFactory, String templateFileName, String templateId) {
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
 				.getEmailTemplatesManager();
 		try (InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName)) {

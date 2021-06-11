@@ -54,6 +54,7 @@ public class MetadataSchemaTypes implements Serializable {
 
 	private final CollectionInfo collectionInfo;
 	private final Map<String, List<MetadataSchemaType>> classifiedSchemaTypes;
+	private final Map<String, List<MetadataSchemaType>> classifiedSchemaTypesIncludingSelf;
 
 
 	public MetadataSchemaTypes(CollectionInfo collectionInfo, int version, List<MetadataSchemaType> schemaTypes,
@@ -71,7 +72,8 @@ public class MetadataSchemaTypes implements Serializable {
 		this.languages = Collections.unmodifiableList(languages);
 		this.typeParentOfOtherTypes = buildTypeParentOfOtherTypes(schemaTypes);
 		this.schemaTypesById = buildTypesById(schemaTypes);
-		this.classifiedSchemaTypes = buildClassifiedSchemaTypes(schemaTypesSortedByDependency);
+		this.classifiedSchemaTypes = buildClassifiedSchemaTypes(schemaTypesSortedByDependency, false);
+		this.classifiedSchemaTypesIncludingSelf = buildClassifiedSchemaTypes(schemaTypesSortedByDependency, true);
 		this.metadataNetwork = metadataNetwork;
 		this.collectionInfo = collectionInfo;
 		for (MetadataSchemaType schemaType : schemaTypes) {
@@ -92,13 +94,13 @@ public class MetadataSchemaTypes implements Serializable {
 	}
 
 	private static Map<String, List<MetadataSchemaType>> buildClassifiedSchemaTypes(
-			List<MetadataSchemaType> schemaTypes) {
+			List<MetadataSchemaType> schemaTypes, boolean includingSelf) {
 		KeyListMap<String, MetadataSchemaType> classifiedSchemaTypes = new KeyListMap<>();
 		KeyListMap<String, String> classifiedSchemaTypesCodes = new KeyListMap<>();
 
 		for (MetadataSchemaType type : schemaTypes) {
 			for (MetadataSchemaType anotherType : schemaTypes) {
-				if (type != anotherType) {
+				if (includingSelf || type != anotherType) {
 					for (Metadata metadata : anotherType.getDefaultSchema().getMetadatas()) {
 						if ((metadata.isTaxonomyRelationship() || metadata.isChildOfRelationship())
 							&& type.getCode().equals(metadata.getReferencedSchemaTypeCode())) {
@@ -143,6 +145,11 @@ public class MetadataSchemaTypes implements Serializable {
 
 	public List<MetadataSchemaType> getClassifiedSchemaTypesIn(String schemaTypeCode) {
 		List<MetadataSchemaType> types = classifiedSchemaTypes.get(schemaTypeCode);
+		return types == null ? Collections.emptyList() : new ArrayList<>(types);
+	}
+
+	public List<MetadataSchemaType> getClassifiedSchemaTypesIncludingSelfIn(String schemaTypeCode) {
+		List<MetadataSchemaType> types = classifiedSchemaTypesIncludingSelf.get(schemaTypeCode);
 		return types == null ? Collections.emptyList() : new ArrayList<>(types);
 	}
 

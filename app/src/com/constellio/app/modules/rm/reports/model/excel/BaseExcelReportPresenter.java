@@ -9,7 +9,9 @@ import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.SeparatedStructureFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +94,9 @@ public class BaseExcelReportPresenter {
 			EnumWithSmallCodeToCaptionConverter captionConverter =
 					new EnumWithSmallCodeToCaptionConverter((Class<? extends EnumWithSmallCode>) metadataValue.getClass());
 			return captionConverter.convertToPresentation(((EnumWithSmallCode) metadataValue).getCode(), String.class, locale);
+		} else if (metadata.isSeparatedStructure()) {
+			SeparatedStructureFactory factory = (SeparatedStructureFactory) metadata.getStructureFactory();
+			return factory.toFields((ModifiableStructure) metadataValue).get(factory.getMainValueFieldName());
 		}
 
 		return metadataValue;

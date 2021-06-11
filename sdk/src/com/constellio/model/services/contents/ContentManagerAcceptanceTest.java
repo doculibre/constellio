@@ -85,7 +85,8 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 
 		ContentVersionDataSummary dataSummary = contentManager.upload(contentStream);
 
-		assertThat(dataSummary.getHash()).isEqualTo("L9ThxnotKPzthJ7hu3bnORuT6xI=");
+
+		assertThat(dataSummary.getHash()).isEqualTo("F7KODRT2FUUPZ3MET3Q3W5XHHENZH2YS");
 		assertThat(dataSummary.getMimetype()).isEqualTo("text/plain; charset=ISO-8859-1");
 		assertThat(dataSummary.getLength()).isEqualTo(43L);
 
@@ -266,21 +267,6 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 		contentManager.getParsedContent(hash);
 	}
 
-	@Test
-	public void givenEmptyNonYetParsedContentWhenUploadedThenUploaded()
-			throws Exception {
-		// Given
-		getModelLayerFactory().getSystemConfigurationsManager()
-				.setValue(ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
-		contentStream = newFileInputStream(modifyFileSystem().newTempFileWithContent(""));
-
-		// When
-		ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(contentStream, "someFileName").getContentVersionDataSummary();
-
-		// Then
-		assertThat(contentManager.getParsedContent("2jmj7l5rSw0yVb_vlWAYkK_YBwk=")).isNotNull();
-		assertThat(contentManager.getParsedContent("2jmj7l5rSw0yVb_vlWAYkK_YBwk=").getLength()).isEqualTo(0);
-	}
 
 	@Test(expected = IcapException.CommunicationFailure.class)
 	public void givenIcapActivatedWhenUploadingInfectedNonYetParsedContentThenCommunicationExceptionThrown()
@@ -302,7 +288,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		getModelLayerFactory().getSystemConfigurationsManager().setValue(ICAP_SCAN_ACTIVATED, true);
 		getModelLayerFactory().getSystemConfigurationsManager()
-				.setValue(ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+				.setValue(ICAP_SERVER_URL, "icap://localhost:1344/squidclamav");
 		contentStream = newFileInputStream(modifyFileSystem()
 				.newTempFileWithContent("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"));
 
@@ -324,7 +310,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		getModelLayerFactory().getSystemConfigurationsManager().setValue(ICAP_SCAN_ACTIVATED, true);
 		getModelLayerFactory().getSystemConfigurationsManager()
-				.setValue(ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+				.setValue(ICAP_SERVER_URL, "icap://localhost:1344/squidclamav");
 		contentStream = newFileInputStream(modifyFileSystem()
 				.newTempFileWithContent("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"));
 
@@ -339,7 +325,7 @@ public class ContentManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		getModelLayerFactory().getSystemConfigurationsManager().setValue(ICAP_SCAN_ACTIVATED, true);
 		getModelLayerFactory().getSystemConfigurationsManager()
-				.setValue(ICAP_SERVER_URL, "icap://132.203.123.103:1344/squidclamav");
+				.setValue(ICAP_SERVER_URL, "icap://localhost:1344/squidclamav");
 		contentStream = newFileInputStream(modifyFileSystem()
 				.newTempFileWithContent("X5O!P%@AP[4\\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*\n"));
 

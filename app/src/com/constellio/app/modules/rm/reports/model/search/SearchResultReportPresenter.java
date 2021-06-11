@@ -64,7 +64,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 	}
 
 	public SearchResultReportModel buildModel(ModelLayerFactory modelLayerFactory) {
-		SearchResultReportModel resultReportModel = new SearchResultReportModel();
+		SearchResultReportModel resultReportModel = new SearchResultReportModel(modelLayerFactory);
 
 		List<Metadata> orderedEnabledReportedMetadataList = getEnabledReportedMetadataList(modelLayerFactory);
 
@@ -120,7 +120,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 
 		LogicalSearchQuery newSearchQuery = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(asList(schemaTypeCode), collection).where(Schemas.IDENTIFIER)
-						.isIn(selectedRecords)).filteredWithUser(userInCollection)
+						.isIn(selectedRecords)).filteredWithUserRead(userInCollection)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList));
 		//		LogicalSearchCondition newCondition = searchQuery.getCondition().andWhere(Schemas.IDENTIFIER).isIn(selectedRecords);
 		//		LogicalSearchQuery newSearchQuery = searchQuery.setCondition(newCondition)
@@ -133,7 +133,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		ReturnedMetadatasFilter returnMetadata = ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList);
 		LogicalSearchQuery newSearchQuery = new LogicalSearchQuery()
-				.setCondition(LogicalSearchQueryOperators.from(asList(schemaTypeCode), collection).returnAll()).filteredWithUser(
+				.setCondition(LogicalSearchQueryOperators.from(asList(schemaTypeCode), collection).returnAll()).filteredWithUserRead(
 						userInCollection)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList))
 				.setStartRow(index)

@@ -28,6 +28,7 @@ public class Event extends RecordWrapper {
 	public static final String BATCH_PROCESS_ID = "batchProcessIdentifier";
 	public static final String TOTAL_MODIFIED_RECORD = "totalModifiedRecord";
 	public static final String CONTENT = "content";
+	public static final String PAGE_COUNT = "pageCount";
 
 	public Event(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE + "_");
@@ -220,6 +221,15 @@ public class Event extends RecordWrapper {
 
 	public Event setContent(Content content) {
 		set(CONTENT, content);
+		return this;
+	}
+
+	public Integer getPageCount() {
+		return get(PAGE_COUNT);
+	}
+
+	public Event setPageCount(Integer count) {
+		set(PAGE_COUNT, count);
 		return this;
 	}
 }

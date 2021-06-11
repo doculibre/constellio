@@ -11,12 +11,14 @@ import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.CoreRoles;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
@@ -159,12 +161,12 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		scripts.add(new RMMigrationTo8_1_2());
 		scripts.add(new RMMigrationTo8_1_4());
 		scripts.add(new RMMigrationTo8_2());
-		scripts.add(new RMMigrationTo8_2_42());
 		scripts.add(new RMMigrationTo8_2_1_4());
 		scripts.add(new RMMigrationTo8_2_1_5());
 		scripts.add(new RMMigrationTo8_2_2_4());
 		scripts.add(new RMMigrationTo8_2_2_5());
 		scripts.add(new RMMigrationTo8_2_3());
+		scripts.add(new RMMigrationTo8_2_42());
 		scripts.add(new RMMigrationTo8_3());
 		scripts.add(new RMMigrationTo8_3_1());
 		scripts.add(new RMMigrationTo8_3_1_1());
@@ -173,23 +175,55 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		scripts.add(new RMMigrationTo8_3_2_2());
 		scripts.add(new RMMigrationTo9_0());
 		scripts.add(new RMMigrationTo9_0_0_1());
-		scripts.add(new RMMigrationTo8_2_1_5());
 		scripts.add(new RMMigrationTo9_0_0_4());
 		scripts.add(new RMMigrationTo9_0_0_33());
 		scripts.add(new RMMigrationTo9_0_0_42());
-
 		scripts.add(new RMMigrationTo9_0_0_44());
 		scripts.add(new RMMigrationTo9_0_0_45());
 		scripts.add(new RMMigrationTo9_0_0_45_1());
 		scripts.add(new RMMigrationTo9_0_0_47());
 		scripts.add(new RMMigrationTo9_0_0_60_1());
+		scripts.add(new RMMigrationTo9_0_3_11());
+		scripts.add(new RMMigrationTo9_0_3_12());
+		scripts.add(new RMMigrationTo9_0_3_13());
+		scripts.add(new RMMigrationTo9_0_3_16());
+		scripts.add(new RMMigrationTo9_0_3_17());
+		scripts.add(new RMMigrationTo9_0_3_18());
+		scripts.add(new RMMigrationTo9_0_3_20());
+		scripts.add(new RMMigrationTo9_0_4_1());
+		scripts.add(new RMMigrationTo9_0_4_2());
+		scripts.add(new RMMigrationTo9_1_0());
+		scripts.add(new RMMigrationTo9_1_0_12());
+		scripts.add(new RMMigrationTo9_1_0_13());
+		scripts.add(new RMMigrationTo9_1_0_14());
+		scripts.add(new RMMigrationTo9_1_0_20());
+		scripts.add(new RMMigrationTo9_1_0_21());
+		scripts.add(new RMMigrationTo9_1_0_22());
+		scripts.add(new RMMigrationTo9_1_0_23());
+		scripts.add(new RMMigrationTo9_1_0_24());
+		scripts.add(new RMMigrationTo9_1_0_30());
+		scripts.add(new RMMigrationTo9_1_10());
+		scripts.add(new RMMigrationTo9_1_10_1());
+		scripts.add(new RMMigrationTo9_1_12());
+		scripts.add(new RMMigrationTo9_1_13());
+		scripts.add(new RMMigrationTo9_2_9());
+		scripts.add(new RMMigrationTo9_2_11());
+		scripts.add(new RMMigrationTo9_2_12());
+		scripts.add(new RMMigrationTo9_2_13());
+		scripts.add(new RMMigrationTo9_3());
+		scripts.add(new RMMigrationTo9_3_0_1());
+		scripts.add(new RMMigrationTo9_3_2());
+		scripts.add(new RMMigrationTo9_3_2_1());
+		scripts.add(new RMMigrationTo9_3_2_2());
+		scripts.add(new RMMigrationFrom9_3_UpdateTokensCalculator());
+		scripts.add(new RMMigrationFrom9_3_PrintableReports());
 
 		return scripts;
 	}
 
 	@Override
 	public String getVersion() {
-		return getVersions().get(getVersions().size() - 1).getVersion();
+		return "combo";//getVersions().get(getVersions().size() - 1).getVersion();
 	}
 
 	GeneratedRMMigrationCombo generatedComboMigration;
@@ -230,6 +264,10 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
 				types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.MAIN_COPY_RULE).addLabel(French, "Exemplaire");
+				types.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.FILENAME).setAvailableInSummary(true);
+				types.getDefaultSchema(Document.SCHEMA_TYPE).get(Document.ENCRYPTION_KEY).setAvailableInSummary(true);
+				types.getDefaultSchema(Folder.SCHEMA_TYPE).get(Schemas.MODIFIED_ON.getLocalCode()).setAvailableInSummary(true);
+				types.getDefaultSchema(Document.SCHEMA_TYPE).get(Schemas.MODIFIED_ON.getLocalCode()).setAvailableInSummary(true);
 			}
 		});
 
@@ -239,12 +277,21 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		taxonomiesManager.editTaxonomy(taxonomiesManager.getEnabledTaxonomyWithCode(collection, "admUnits"));
 
 		RMMigrationTo7_2.reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
-
+		RMMigrationTo9_0_3_20.addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory);
+		RMMigrationTo9_1_0_21.addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory);
+		RMMigrationTo9_1_0_22.addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory);
+		RMMigrationTo9_1_13.addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory);
+		RMMigrationTo9_1_0_12.addEmailTemplates(collection, migrationResourcesProvider, appLayerFactory);
+		RMMigrationTo9_1_0_13.reloadEmailTemplates(collection, migrationResourcesProvider, appLayerFactory);
 		rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.MANAGER)
 				.withNewPermissions(asList(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST)));
 
+		rolesManager.updateRole(rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR)
+				.withNewPermissions(asList(RMPermissionsTo.MANAGE_SHARE)));
+
+
 		rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.RGD)
-				.withNewPermissions(asList(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST)));
+				.withNewPermissions(asList(RMPermissionsTo.CREATE_DECOMMISSIONING_LIST, RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST, RMPermissionsTo.MANAGE_SHARE)));
 
 	}
 
@@ -334,6 +381,8 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		} catch (RecordServicesException e) {
 			throw new RuntimeException(e);
 		}
+
+		RMMigrationTo9_1_0.createRecords(collection, appLayerFactory, transaction);
 
 		return transaction;
 	}

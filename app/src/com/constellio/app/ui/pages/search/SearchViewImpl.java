@@ -2,6 +2,9 @@ package com.constellio.app.ui.pages.search;
 
 import com.constellio.app.api.extensions.ExtraTabForSimpleSearchResultExtention.ExtraTabInfo;
 import com.constellio.app.api.extensions.params.ExtraTabForSimpleSearchResultParams;
+import com.constellio.app.modules.restapi.core.util.ListUtils;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
 import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
@@ -23,6 +26,7 @@ import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.components.menuBar.RecordListMenuBar;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.search.FacetsSliderPanel;
@@ -101,6 +105,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -373,7 +378,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		createResultArea();
 
 		if (detailedView) {
-			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
+			((ViewableRecordVOSearchResultTable) resultsTable).setItemsPerPage(presenter.getSelectedPageLength());
 		}
 
 		refreshCapsule();
@@ -478,7 +483,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			facetsSliderPanel.setHeightUndefined();
 		}
 		presenter.setPageNumber(1);
-		facetsSliderPanel.setVisible(!hideFacet && (dataProvider.size() > 0 || !facetSelections.isEmpty()));
+		facetsSliderPanel.setVisible(!hideFacet && (!facetSelections.isEmpty() || dataProvider.getResultsCount() > 0));
 	}
 
 	@Override
@@ -718,6 +723,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					}
 				};
 			}
+
+			@Override
+			public boolean isSortPersisted() {
+				return false;
+			}
 		};
 		viewerPanel.setSearchTerm(presenter.getUserSearchExpression());
 		viewerPanel.addItemClickListener(new ItemClickListener() {
@@ -734,17 +744,16 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 		});
 
-		viewerPanel.setQuickActionButtons(getQuickActionMenuButtons());
 		selectionChangeListenerStorage.forEach(viewerPanel::addSelectionChangeListener);
-
 
 		int currentPage = presenter.getPageNumber();
 		int itemsPerPage = presenter.getSelectedPageLength();
 
-		viewerPanel.setItemsPerPageValue(itemsPerPage);
-		viewerPanel.getActualTable().setItemsPerPage(itemsPerPage);
-		viewerPanel.getActualTable().setCurrentPage(currentPage);
-		viewerPanel.getActualTable().addItemsPerPageChangeListener(new BaseTable.ItemsPerPageChangeListener() {
+		viewerPanel.setItemsPerPage(itemsPerPage);
+		viewerPanel.setCurrentPage(currentPage);
+		//		viewerPanel.getActualTable().setItemsPerPage(itemsPerPage);
+		//		viewerPanel.getActualTable().setCurrentPage(currentPage);
+		viewerPanel.addItemsPerPageChangeListener(new BaseTable.ItemsPerPageChangeListener() {
 			@Override
 			public void itemsPerPageChanged(ItemsPerPageChangeEvent event) {
 				int newItemsPerPage = event.getNewItemsPerPage();
@@ -752,7 +761,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 				presenter.setSelectedPageLength(newItemsPerPage);
 			}
 		});
-		viewerPanel.getActualTable().addPageChangeListener(new BaseTable.PageChangeListener() {
+		viewerPanel.addPageChangeListener(new BaseTable.PageChangeListener() {
 			public void pageChanged(BaseTable.PageChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
 				presenter.saveTemporarySearch(false);
@@ -778,7 +787,19 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	@Override
-	protected List<Button> getQuickActionMenuButtons() {
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				getMenuButtons().stream().map(MenuItemActionConverter::toMenuItemAction).collect(Collectors.toList())
+		);
+	}
+
+	@Override
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay);
+	}
+
+	protected List<Button> getMenuButtons() {
 		return Arrays.asList(buildSavedSearchButton());
 	}
 

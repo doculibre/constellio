@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.management.schemas;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.services.actionDisplayManager.MenuDisplayListBySchemaType;
+import com.constellio.app.services.actionDisplayManager.MenusDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
@@ -61,8 +63,18 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
 		view.navigate().to().listTabDisplayForm(params);
 	}
 
-	public void generateExcelWithMetadataInfo(MetadataSchemaTypeVO schemaTypeVO)
- 	{
+	public boolean editActionMenuButtonIsVisible(MetadataSchemaTypeVO schemaTypeVO) {
+		MenusDisplayManager menusDisplayManager = appLayerFactory.getMenusDisplayManager();
+		MenuDisplayListBySchemaType menuDisplayList = menusDisplayManager.getMenuDisplayList(collection);
+
+		return menuDisplayList.getActionDisplayList(schemaTypeVO.getCode()) != null;
+	}
+
+	public void editActionMenuButtonClicked(MetadataSchemaTypeVO schemaTypeVO) {
+		view.navigate().to().menuDisplayForm(schemaTypeVO.getCode());
+	}
+
+	public void generateExcelWithMetadataInfo(MetadataSchemaTypeVO schemaTypeVO) {
 		String titre = schemaTypeVO.getLabel(Language
 				.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
 		ByteArrayOutputStream byteArrayOutputStream = null;

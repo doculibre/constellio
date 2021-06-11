@@ -14,6 +14,7 @@ import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuth
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_UseOfAccessAndRole;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.RecordAuthorization;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -105,7 +106,7 @@ public class AuthorizationImportServices {
 		} else {
 			try {
 				AuthorizationAddRequest authorizationAddRequest = builder.buildAddRequest(importedAuthorization);
-				Authorization details = schemas.getSolrAuthorizationDetailsWithLegacyId(importedAuthorization.getId());
+				Authorization details = schemas.getAuthorizationWithLegacyId(importedAuthorization.getId());
 				if (details != null) {
 					authorizationServices.execute(authorizationDeleteRequest(details.getId(), collection));
 				}
@@ -113,8 +114,9 @@ public class AuthorizationImportServices {
 				String authId = authorizationServices.add(authorizationAddRequest);
 
 				try {
-					modelLayerFactory.newRecordServices()
-							.update(schemas.getSolrAuthorizationDetails(authId).setLegacyId(importedAuthorization.getId()));
+					modelLayerFactory.newRecordServices().update(
+							((RecordAuthorization) schemas.getSolrAuthorizationDetails(authId))
+									.setLegacyId(importedAuthorization.getId()));
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
 				}
@@ -133,7 +135,7 @@ public class AuthorizationImportServices {
 	private void deleteAuthorizationIfExists(AuthorizationsServices authorizationServices, String collection,
 											 String id) {
 		Authorization authorization = schemas
-				.getSolrAuthorizationDetailsWithLegacyId(id);// getAuthorizationIdByIdWithoutPrefix(collection, id);
+				.getAuthorizationWithLegacyId(id);// getAuthorizationIdByIdWithoutPrefix(collection, id);
 
 		if (authorization == null) {
 			LOGGER.warn("Authorization not deleted : no authorization with legacy id " + id);

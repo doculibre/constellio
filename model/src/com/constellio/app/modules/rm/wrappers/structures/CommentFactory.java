@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
@@ -9,7 +9,7 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 //AFTER : Move in core
-public class CommentFactory implements StructureFactory {
+public class CommentFactory implements CombinedStructureFactory {
 
 	private static final String NULL = "~null~";
 	public static final String DATE_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";

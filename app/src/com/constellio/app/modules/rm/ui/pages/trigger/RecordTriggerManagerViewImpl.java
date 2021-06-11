@@ -1,9 +1,12 @@
 package com.constellio.app.modules.rm.ui.pages.trigger;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.items.RecordVOItem;
@@ -19,6 +22,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -43,8 +49,15 @@ public class RecordTriggerManagerViewImpl extends BaseViewImpl implements Record
 	}
 
 	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		return Arrays.asList(buildAddRuleQuickActionButton());
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay) {
+			@Override
+			public Supplier<List<MenuItemAction>> getUseTheseActionsInQuickActionInsteadSupplier() {
+				return () -> Stream.of(
+						Arrays.asList(buildAddRuleQuickActionButton())
+				).map(MenuItemActionConverter::toMenuItemAction).collect(Collectors.toList());
+			}
+		};
 	}
 
 	private Button buildAddRuleQuickActionButton() {
@@ -60,11 +73,6 @@ public class RecordTriggerManagerViewImpl extends BaseViewImpl implements Record
 
 	@Override
 	protected boolean isOnlyQuickMenuActionVisible() {
-		return true;
-	}
-
-	@Override
-	protected boolean isActionMenuBar() {
 		return true;
 	}
 

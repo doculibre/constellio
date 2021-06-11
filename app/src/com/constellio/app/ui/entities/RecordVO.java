@@ -38,6 +38,7 @@ public class RecordVO implements Serializable {
 	private Set<String> excludedFormMetadataCodes;
 
 	final List<MetadataValueVO> metadataValues;
+	private List<MetadataValueVO> fakeMetadataToDisplay = new ArrayList();
 
 	VIEW_MODE viewMode;
 
@@ -138,6 +139,11 @@ public class RecordVO implements Serializable {
 		return schema;
 	}
 
+	public void addFakeMetadataToDisplay(MetadataValueVO metadataValueVO) {
+		fakeMetadataToDisplay.add(metadataValueVO);
+		metadataValues.add(metadataValueVO);
+	}
+
 	public List<MetadataValueVO> getMetadataValues() {
 		return metadataValues;
 	}
@@ -184,6 +190,8 @@ public class RecordVO implements Serializable {
 
 			}
 		}
+		displayMetadataValues.addAll(fakeMetadataToDisplay);
+
 		return displayMetadataValues;
 	}
 

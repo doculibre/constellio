@@ -19,6 +19,8 @@ public class AuthorizationVO implements Serializable {
 	String receivedFromMetadataLabel;
 	String receivedFromRecordCaption;
 	String negative;
+	String source;
+	boolean nested;
 	List<String> users;
 	List<String> groups;
 	List<String> records;
@@ -33,32 +35,36 @@ public class AuthorizationVO implements Serializable {
 	public static AuthorizationVO forUsers(String id) {
 		return new AuthorizationVO(
 				asList(id), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, null, false, null, null, null);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, null,
+				false, null, null, null, null, false);
 	}
 
 	public static AuthorizationVO forGroups(String id) {
 		return new AuthorizationVO(
 				new ArrayList<String>(), asList(id), new ArrayList<String>(), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, null, false, null, null, null);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, null,
+				false, null, null, null, null, false);
 	}
 
 	public static AuthorizationVO forContent(String id) {
 		return new AuthorizationVO(
 				new ArrayList<String>(), new ArrayList<String>(), asList(id), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, null, false, null, null, null);
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, null,
+				false, null, null, null, null, false);
 	}
 
 	public static AuthorizationVO forShare(String id) {
 		return new AuthorizationVO(
 				new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(),
-				new ArrayList<String>(), new ArrayList<String>(), null, null, null, id, false, null, null, $("AuthorizationsView.enable"));
+				new ArrayList<String>(), new ArrayList<String>(), null, null, null, id, false,
+				null, null, $("AuthorizationsView.enable"), null, false);
 	}
 
 	public AuthorizationVO(List<String> users, List<String> groups, List<String> records, List<String> accessRoles,
 						   List<String> userRoles, List<String> userRolesTitles, String authId, LocalDate startDate,
 						   LocalDate endDate, String sharedBy,
 						   boolean synched, String receivedFromMetadataLabel, String receivedFromRecordCaption,
-						   String negative) {
+						   String negative, String source, boolean nested) {
 		this.users = users;
 		this.records = records;
 		this.accessRoles = accessRoles;
@@ -73,6 +79,8 @@ public class AuthorizationVO implements Serializable {
 		this.receivedFromMetadataLabel = receivedFromMetadataLabel;
 		this.receivedFromRecordCaption = receivedFromRecordCaption;
 		this.negative = negative;
+		this.source = source;
+		this.nested = nested;
 	}
 
 	public List<String> getUsers() {
@@ -167,12 +175,28 @@ public class AuthorizationVO implements Serializable {
 		this.negative = negative;
 	}
 
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public void setNested(boolean nested) {
+		this.nested = nested;
+	}
+
 	public boolean isSynched() {
 		return synched;
 	}
 
 	public String getNegative() {
 		return negative;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public boolean isNested() {
+		return nested;
 	}
 
 	public String getReceivedFromMetadataLabel() {

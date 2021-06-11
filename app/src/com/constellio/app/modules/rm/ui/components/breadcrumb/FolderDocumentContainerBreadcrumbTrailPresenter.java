@@ -131,7 +131,7 @@ public class FolderDocumentContainerBreadcrumbTrailPresenter implements Serializ
 				folder = rmSchemasRecordsServices.wrapFolder(record);
 			} else {
 				Document document = rmSchemasRecordsServices.wrapDocument(record);
-				folder = rmSchemasRecordsServices.getFolder(document.getFolder());
+				folder = rmSchemasRecordsServices.getFolderSummary(document.getFolder());
 			}
 			if (administrativeUnitTaxonomy != null && administrativeUnitTaxonomy.getCode().equals(taxonomyCode)) {
 				selectedTaxonomy = administrativeUnitTaxonomy;
@@ -227,7 +227,7 @@ public class FolderDocumentContainerBreadcrumbTrailPresenter implements Serializ
 
 		List<BreadcrumbItem> breadcrumbItems = new ArrayList<>();
 		while (currentRecordId != null) {
-			Record currentRecord = schemaPresenterUtils.getRecord(currentRecordId);
+			Record currentRecord = schemaPresenterUtils.getSummaryRecord(currentRecordId);
 			String currentSchemaCode = currentRecord.getSchemaCode();
 			String currentSchemaTypeCode = SchemaUtils.getSchemaTypeCode(currentSchemaCode);
 			if (Folder.SCHEMA_TYPE.equals(currentSchemaTypeCode)) {

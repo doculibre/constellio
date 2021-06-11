@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderFie
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -21,10 +22,19 @@ public abstract class FolderFormImpl extends RecordForm implements FolderForm {
 		super(record, new FolderFieldFactory(
 				record.getSchema().getCollection(),
 				record.<CopyRetentionRule>getList(Folder.APPLICABLE_COPY_RULES),
-				record.getMetadataValue(record.getMetadata(Folder.RETENTION_RULE_ENTERED)).<String>getValue(),
+				getRetentionRuleEnteredValue(record),
 				record.getMetadataValue(record.getMetadata(Folder.PARENT_FOLDER)).<String>getValue()), constellioFactories);
 
 		extraField = new HashMap<>();
+	}
+
+
+	private static String getRetentionRuleEnteredValue(RecordVO record) {
+		MetadataVO metadataVO = record.getMetadataOrNull(Folder.RETENTION_RULE_ENTERED);
+		if (metadataVO != null) {
+			return record.getMetadataValue(metadataVO).getValue();
+		}
+		return null;
 	}
 
 	@Override

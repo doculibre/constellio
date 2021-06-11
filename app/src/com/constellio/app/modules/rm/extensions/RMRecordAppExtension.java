@@ -16,6 +16,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.ThemeUtils;
+import com.constellio.data.conf.ContentDaoType;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.UserDocument;
@@ -296,7 +297,11 @@ public class RMRecordAppExtension extends RecordAppExtension {
 				String metadataCode = recordVO.getMetadata(Document.CONTENT).getLocalCode();
 				String version = contentVersionVO.getVersion();
 
-				if (ConstellioResourceHandler.hasContentThumbnail(recordId, metadataCode, version)) {
+				//Blob storage content dao requires optimizations to properly support thumbnails, they must be stored locally
+				boolean supportingThumbnails = appLayerFactory.getModelLayerFactory().getDataLayerFactory()
+						.getDataLayerConfiguration().getContentDaoType() == ContentDaoType.FILESYSTEM;
+
+				if (supportingThumbnails && ConstellioResourceHandler.hasContentThumbnail(recordId, metadataCode, version)) {
 					result = ConstellioResourceHandler.createThumbnailResource(recordId, metadataCode, version, filename);
 				} else if (Email.SCHEMA.equals(schemaCode)) {
 					result = new ThemeResource("images/icons/64/mail_64.png");

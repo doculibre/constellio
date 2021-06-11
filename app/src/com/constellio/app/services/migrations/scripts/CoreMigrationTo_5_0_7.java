@@ -83,7 +83,7 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 		}
 
 		private void createFacetSchema(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaTypeBuilder facetTypes = typesBuilder.createNewSchemaType(Facet.SCHEMA_TYPE).setSecurity(false);
+			MetadataSchemaTypeBuilder facetTypes = typesBuilder.createNewSchemaTypeWithSecurity(Facet.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder facetSchema = facetTypes.getDefaultSchema();
 
 			facetSchema.createUndeletable(Facet.FIELD_DATA_STORE_CODE).setType(MetadataValueType.STRING)
@@ -124,7 +124,7 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 
 		private void createSendEmail(MetadataSchemaTypesBuilder typesBuilder) {
 
-			MetadataSchemaTypeBuilder schemaType = typesBuilder.createNewSchemaType(EmailToSend.SCHEMA_TYPE).setSecurity(false);
+			MetadataSchemaTypeBuilder schemaType = typesBuilder.createNewSchemaTypeWithSecurity(EmailToSend.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 
 			defaultSchema.createUndeletable(EmailToSend.FROM).setType(MetadataValueType.STRUCTURE).defineStructureFactory(
@@ -145,7 +145,7 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 		}
 
 		private MetadataSchemaTypeBuilder createReportSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(Report.SCHEMA_TYPE).setSecurity(false);
+			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaTypeWithSecurity(Report.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
 			defaultSchema.get(Report.TITLE).setMultiLingual(true);
 			defaultSchema.createUndeletable(Report.USERNAME).setType(STRING);
@@ -160,7 +160,7 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 		}
 
 		private MetadataSchemaTypeBuilder createSavedSearchSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(SavedSearch.SCHEMA_TYPE).setSecurity(false);
+			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaTypeWithSecurity(SavedSearch.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
 
 			defaultSchema.createUndeletable(SavedSearch.USER).setType(REFERENCE)

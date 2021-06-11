@@ -2,6 +2,7 @@ package com.constellio.model.extensions.behaviors;
 
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.extensions.events.schemas.PreparePhysicalDeleteFromTrashParams;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
@@ -39,6 +40,10 @@ public class SchemaExtension {
 	}
 
 	public void schemaInCreationBeforeSave(SchemaInCreationBeforeSaveEvent event) {
+	}
+
+	public boolean isRecordTitleShouldBeCalculatedFromContent(Record record) {
+		return true;
 	}
 
 	@AllArgsConstructor

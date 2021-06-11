@@ -5,6 +5,7 @@ import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.EventBusSendingServiceType;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.SecondTransactionLogType;
 import com.constellio.data.conf.SolrServerType;
@@ -71,10 +72,10 @@ import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.service.background.DataLayerBackgroundThreadsManager;
-import com.constellio.data.test.FaultInjectorSolrServerFactory;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.TenantUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.ignite.Ignite;
 import org.apache.solr.common.SolrDocument;
@@ -143,6 +144,16 @@ public class DataLayerFactory extends LayerFactoryImpl {
 		// TODO Possibility to configure the logger
 		this.bigVaultLogger = BigVaultLogger.disabled();
 		this.ioServicesFactory = ioServicesFactory;
+
+		if (TenantUtils.isSupportingTenants() && FoldersLocator.usingAppWrapper()) {
+			if (dataLayerConfiguration.getRecordsDaoCollection() == null
+				|| dataLayerConfiguration.getEventsDaoCollection() == null
+				|| dataLayerConfiguration.getNotificationsDaoCollection() == null) {
+				throw new RuntimeException("Required configurations with multiple tenants : " +
+										   "dao.records.collection, dao.events.collection, dao.notifications.collection");
+			}
+		}
+
 		this.solrServers = new SolrServers(newSolrServerFactory(), bigVaultLogger, dataLayerExtensions, dataLayerConfiguration);
 		this.dataLayerLogger = new DataLayerLogger();
 		this.sqlConnector = new SqlServerConnector();
@@ -433,11 +444,7 @@ public class DataLayerFactory extends LayerFactoryImpl {
 
 	private SolrServerFactory newHttpSolrServerFactory() {
 		String httpSolrUrl = dataLayerConfiguration.getRecordsDaoHttpSolrServerUrl();
-		SolrServerFactory solrServerFactory = new HttpSolrServerFactory(httpSolrUrl, ioServicesFactory);
-		if (dataLayerConfiguration.isRecordsDaoHttpSolrServerFaultInjectionEnabled()) {
-			solrServerFactory = new FaultInjectorSolrServerFactory(solrServerFactory);
-		}
-		return solrServerFactory;
+		return new HttpSolrServerFactory(httpSolrUrl, ioServicesFactory);
 	}
 
 	private SolrServerFactory newSolrCloudServerFactory() {

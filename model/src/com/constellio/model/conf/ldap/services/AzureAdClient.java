@@ -1,13 +1,14 @@
 package com.constellio.model.conf.ldap.services;
 
-import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.config.UserNameType;
 import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
-import com.microsoft.aad.adal4j.AuthenticationContext;
-import com.microsoft.aad.adal4j.AuthenticationResult;
+import com.microsoft.aad.msal4j.IAuthenticationResult;
+import com.microsoft.aad.msal4j.PublicClientApplication;
+import com.microsoft.aad.msal4j.UserNamePasswordParameters;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
@@ -16,19 +17,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
@@ -55,8 +50,6 @@ public class AzureAdClient {
 	// TODO : Use "graph.microsoft.com/v1.0" instead as recommended in https://blogs.msdn.microsoft.com/aadgraphteam/2016/07/08/microsoft-graph-or-azure-ad-graph/
 	private static final String GRAPH_API_URL = "https://graph.windows.net/";
 
-	private static final String GRAPH_API_VERSION = "1.6";
-
 	private static final String AUTHORITY_BASE_URL = "https://login.microsoftonline.com/";
 
 	private LDAPServerConfiguration ldapServerConfiguration;
@@ -66,7 +59,7 @@ public class AzureAdClient {
 	public AzureAdClient(final LDAPServerConfiguration ldapServerConfiguration) {
 		this.ldapServerConfiguration = ldapServerConfiguration;
 		this.ldapUserSyncConfiguration = null;
-		azureRequestHelper=null;
+		azureRequestHelper = null;
 	}
 
 	public AzureAdClient(final LDAPServerConfiguration ldapServerConfiguration,
@@ -97,10 +90,9 @@ public class AzureAdClient {
 
 		for (JSONArray jsonArray : jsonArrayList) {
 			for (int i = 0, length = jsonArray.length(); i < length; i++) {
-				String userName = jsonArray.getJSONObject(i).optString("userPrincipalName");
-
-				if (ldapUserSyncConfiguration.isUserAccepted(userName)) {
-					results.add(userName);
+				String userConfigValidationName = getUserNameForConfigValidation(jsonArray.getJSONObject(i));
+				if (ldapUserSyncConfiguration.isUserAccepted(userConfigValidationName)) {
+					results.add(userConfigValidationName);
 				}
 			}
 		}
@@ -117,10 +109,9 @@ public class AzureAdClient {
 
 		for (JSONArray jsonArray : azureRequestHelper.getAllGroupsResponse(ldapUserSyncConfiguration.getGroupsFilter())) {
 			for (int i = 0, length = jsonArray.length(); i < length; i++) {
-				String groupName = jsonArray.getJSONObject(i).optString("displayName");
-
-				if (ldapUserSyncConfiguration.isGroupAccepted(groupName)) {
-					results.add(groupName);
+				String groupConfigValidationName = getGroupNameForConfigValidation(jsonArray.getJSONObject(i));
+				if (ldapUserSyncConfiguration.isGroupAccepted(groupConfigValidationName)) {
+					results.add(groupConfigValidationName);
 				}
 			}
 		}
@@ -156,6 +147,8 @@ public class AzureAdClient {
 	public void getGroupsAndTheirUsers(final Map<String, LDAPGroup> ldapGroups, final Map<String, LDAPUser> ldapUsers) {
 		LOGGER.info("Getting groups and their members - start");
 
+		boolean fetchSubGroups = ldapUserSyncConfiguration.isFetchSubGroups();
+		boolean ignoreRegexForSubGroups = ldapUserSyncConfiguration.isIgnoreRegexForSubGroups();
 		int pageNum = 1;
 
 		List<JSONArray> stuff = azureRequestHelper.getAllGroupsResponse(ldapUserSyncConfiguration.getGroupsFilter());
@@ -185,17 +178,17 @@ public class AzureAdClient {
 							String objectUrl = membersArray.getJSONObject(im).optString("url");
 
 							if (objectUrl.endsWith("Microsoft.DirectoryServices.User")) {
-								JSONObject jsonObject;
+								JSONObject userJsonObject;
 								try {
-									jsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
+									userJsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
 								} catch (Exception ex) {
 									LOGGER.error("Error occured during get object url " + objectUrl, ex);
 									continue;
 								}
 
-								LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
-
-								if (Toggle.IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS.isEnabled() || ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
+								String userConfigValidationName = getUserNameForConfigValidation(userJsonObject);
+								if (ldapUserSyncConfiguration.isUserAccepted(userConfigValidationName)) {
+									LDAPUser ldapUser = buildLDAPUserFromJsonObject(userJsonObject);
 									if (ldapUsers.containsKey(ldapUser.getId())) {
 										ldapUser = ldapUsers.get(ldapUser.getId());
 									} else {
@@ -205,10 +198,13 @@ public class AzureAdClient {
 									ldapGroup.addUser(ldapUser.getId());
 									ldapUser.addGroup(ldapGroup);
 								}
-							} else if (objectUrl.endsWith("Microsoft.DirectoryServices.Group") && Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.isEnabled()) {
+							} else if (objectUrl.endsWith("Microsoft.DirectoryServices.Group") && fetchSubGroups) {
 								JSONObject jsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
 								LDAPGroup ldapSubGroup = buildLDAPGroupFromJsonObject(jsonObject, ldapGroup);
-								getSubGroupsAndTheirUsers(ldapSubGroup, ldapGroups, ldapUsers);
+								if (ignoreRegexForSubGroups || ldapUserSyncConfiguration.isGroupAccepted(ldapSubGroup.getSimpleName())) {
+									ldapGroups.put(ldapSubGroup.getDistinguishedName(), ldapSubGroup);
+									getSubGroupsAndTheirUsers(ldapSubGroup, ldapGroups, ldapUsers);
+								}
 							}
 						}
 					}
@@ -219,62 +215,63 @@ public class AzureAdClient {
 		LOGGER.info("Getting groups and their members - end");
 	}
 
-	public void getSubGroupsAndTheirUsers(LDAPGroup subgroup, final Map<String, LDAPGroup> ldapGroups,
+	public void getSubGroupsAndTheirUsers(LDAPGroup ldapGroup, final Map<String, LDAPGroup> ldapGroups,
 										  final Map<String, LDAPUser> ldapUsers) {
-		if (Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.isEnabled()) {
-			LOGGER.info("Getting groups and their members - start");
+		boolean fetchSubGroups = ldapUserSyncConfiguration.isFetchSubGroups();
+		boolean ignoreRegexForSubGroups = ldapUserSyncConfiguration.isIgnoreRegexForSubGroups();
+		if (fetchSubGroups) {
+			LOGGER.info("Getting sub groups and their members - start");
+			LOGGER.info("Processing sub groups");
 
-			int pageNum = 1;
-
-			LOGGER.info("Processing sub group");
-
-			if (ldapUserSyncConfiguration.isGroupAccepted(subgroup.getSimpleName())) {
-				ldapGroups.put(subgroup.getDistinguishedName(), subgroup);
+			// Getting all subgroups rather than only those matching the regular expression because we cannot reach this method unless the parent matched the regular expression
+			String groupConfigValidationName = getGroupNameForConfigValidation(ldapGroup);
+			if (ignoreRegexForSubGroups || ldapUserSyncConfiguration.isGroupAccepted(groupConfigValidationName)) {
 				List<JSONArray> groupMembersResponse = new ArrayList<>();
 				try {
-					groupMembersResponse = azureRequestHelper.getGroupMembersResponse(subgroup.getDistinguishedName());
+					groupMembersResponse = azureRequestHelper.getGroupMembersResponse(ldapGroup.getDistinguishedName());
 				} catch (Exception ex) {
-					LOGGER.error("Error occured during get group " + subgroup.getDistinguishedName() + " members", ex);
+					LOGGER.error("Error occured during get group " + ldapGroup.getDistinguishedName() + " members", ex);
 				}
 				for (JSONArray membersArray : groupMembersResponse) {
 					for (int im = 0, membersCount = membersArray.length(); im < membersCount; im++) {
 						String objectUrl = membersArray.getJSONObject(im).optString("url");
 
 						if (objectUrl.endsWith("Microsoft.DirectoryServices.User")) {
-							JSONObject jsonObject;
+							JSONObject userJsonObject;
 							try {
-								jsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
+								userJsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
 							} catch (Exception ex) {
 								LOGGER.error("Error occured during get object url " + objectUrl, ex);
 								continue;
 							}
 
-							LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
-
-							if (Toggle.IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS.isEnabled() || ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
+							String userConfigValidationName = getUserNameForConfigValidation(userJsonObject);
+							if (ldapUserSyncConfiguration.isUserAccepted(userConfigValidationName)) {
+								LDAPUser ldapUser = buildLDAPUserFromJsonObject(userJsonObject);
 								if (ldapUsers.containsKey(ldapUser.getId())) {
 									ldapUser = ldapUsers.get(ldapUser.getId());
 								} else {
 									ldapUsers.put(ldapUser.getId(), ldapUser);
 								}
 
-								subgroup.addUser(ldapUser.getId());
-								ldapUser.addGroup(subgroup);
+								ldapGroup.addUser(ldapUser.getId());
+								ldapUser.addGroup(ldapGroup);
 							}
 						} else if (objectUrl.endsWith("Microsoft.DirectoryServices.Group")) {
 							JSONObject jsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
-							LDAPGroup ldapSubGroup = buildLDAPGroupFromJsonObject(jsonObject, subgroup);
-							if (!ldapGroups.containsKey(jsonObject.optString("objectId"))) {
+							LDAPGroup ldapSubGroup = buildLDAPGroupFromJsonObject(jsonObject, ldapGroup);
+							String subGroupConfigValidationName = getGroupNameForConfigValidation(jsonObject);
+							if (!ldapGroups.containsKey(jsonObject.optString("objectId")) &&
+								(ignoreRegexForSubGroups || ldapUserSyncConfiguration.isGroupAccepted(subGroupConfigValidationName))) {
+								ldapGroups.put(ldapSubGroup.getDistinguishedName(), ldapSubGroup);
 								getSubGroupsAndTheirUsers(ldapSubGroup, ldapGroups, ldapUsers);
 							}
 						}
 					}
 				}
-
 			}
-
+			LOGGER.info("Getting sub groups and their members - end");
 		}
-		LOGGER.info("Getting sub group and their members - end");
 	}
 
 	private LDAPGroup buildLDAPGroupFromJsonObject(JSONObject groupJsonObject) {
@@ -292,9 +289,10 @@ public class AzureAdClient {
 	}
 
 	private LDAPUser buildLDAPUserFromJsonObject(JSONObject userJsonObject) {
+		String username = userJsonObject.optString("mailNickname");
 		LDAPUser ldapUser = new LDAPUser();
 		ldapUser.setId(userJsonObject.optString("objectId"));
-		ldapUser.setName(userJsonObject.optString("mailNickname"));//not displayName
+		ldapUser.setName(username);
 		ldapUser.setFamilyName(userJsonObject.optString("surname"));
 		ldapUser.setGivenName(userJsonObject.optString("givenName"));
 		//ldapUser.setEmail(userJsonObject.optString("email")); there mail but with several values instead we ll use userPrincipalName
@@ -308,6 +306,34 @@ public class AzureAdClient {
 		}
 
 		return ldapUser;
+	}
+
+	private String getGroupNameForConfigValidation(JSONObject groupJsonObject) {
+		return groupJsonObject.optString("displayName");
+	}
+
+	private String getGroupNameForConfigValidation(LDAPGroup ldapGroup) {
+		return ldapGroup.getSimpleName();
+	}
+
+	private String getUserNameForConfigValidation(JSONObject userJsonObject) {
+		String userNameForConfigValidation;
+		if (UserNameType.EMAIL.getCode().equals(ldapUserSyncConfiguration.getUsernameType())) {
+			userNameForConfigValidation = userJsonObject.optString("userPrincipalName");
+		} else {
+			userNameForConfigValidation = userJsonObject.optString("mailNickname");
+		}
+		return userNameForConfigValidation;
+	}
+
+	private String getUserNameForConfigValidation(LDAPUser ldapUser) {
+		String userNameForConfigValidation;
+		if (UserNameType.EMAIL.getCode().equals(ldapUserSyncConfiguration.getUsernameType())) {
+			userNameForConfigValidation = ldapUser.getEmail();
+		} else {
+			userNameForConfigValidation = ldapUser.getName();
+		}
+		return userNameForConfigValidation;
 	}
 
 	public void getUsersAndTheirGroups(final Map<String, LDAPGroup> ldapGroups, final Map<String, LDAPUser> ldapUsers) {
@@ -324,26 +350,25 @@ public class AzureAdClient {
 			LOGGER.info("Processing users page " + pageNum++ + " having " + groupsPageSize + " items");
 
 			for (int iu = 0; iu < groupsPageSize; iu++) {
-				JSONObject jsonObject = userArray.getJSONObject(iu);
-				if (jsonObject.has("url")) {
+				JSONObject userJsonObject = userArray.getJSONObject(iu);
+				if (userJsonObject.has("url")) {
 					try {
-						jsonObject = azureRequestHelper.getObjectResponseByUrl(jsonObject.optString("url"));
+						userJsonObject = azureRequestHelper.getObjectResponseByUrl(userJsonObject.optString("url"));
 					} catch (Exception e) {
-						LOGGER.error("Error occured during get object url " + jsonObject.optString("url"), e);
+						LOGGER.error("Error occured during get object url " + userJsonObject.optString("url"), e);
 						continue;
 					}
 				}
 
-				LDAPUser ldapUser = buildLDAPUserFromJsonObject(jsonObject);
-
-				if (ldapUserSyncConfiguration.isUserAccepted(ldapUser.getName())) {
+				String userConfigValidationName = getUserNameForConfigValidation(userJsonObject);
+				if (ldapUserSyncConfiguration.isUserAccepted(userConfigValidationName)) {
+					LDAPUser ldapUser = buildLDAPUserFromJsonObject(userJsonObject);
 					if (ldapUsers.containsKey(ldapUser.getId())) {
 						ldapUser = ldapUsers.get(ldapUser.getId());
 					} else {
 						ldapUsers.put(ldapUser.getId(), ldapUser);
 					}
 					//}
-
 
 					List<JSONArray> userGroupsResponse = new ArrayList<>();
 					try {
@@ -356,16 +381,17 @@ public class AzureAdClient {
 							String objectUrl = membershipsArray.getJSONObject(im).optString("url");
 
 							if (objectUrl.endsWith("Microsoft.DirectoryServices.Group")) {
+								JSONObject groupJsonObject;
 								try {
-									jsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
+									groupJsonObject = azureRequestHelper.getObjectResponseByUrl(objectUrl);
 								} catch (Exception e) {
 									LOGGER.error("Error occured during get object url " + objectUrl, e);
 									continue;
 								}
 
-								LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(jsonObject);
-
-								if (Toggle.IGNORE_CONFIGS_WHEN_SYNCHRONIZING_AZURE_RELATED_USERS_AND_GROUPS.isEnabled() || ldapUserSyncConfiguration.isGroupAccepted(ldapGroup.getSimpleName())) {
+								String groupConfigValidationName = getGroupNameForConfigValidation(groupJsonObject);
+								if (ldapUserSyncConfiguration.isGroupAccepted(groupConfigValidationName)) {
+									LDAPGroup ldapGroup = buildLDAPGroupFromJsonObject(groupJsonObject);
 									if (ldapGroups.containsKey(ldapGroup.getDistinguishedName())) {
 										ldapGroup = ldapGroups.get(ldapGroup.getDistinguishedName());
 									} else {
@@ -388,17 +414,16 @@ public class AzureAdClient {
 	public void authenticate(final String user, final String password)
 			throws CouldNotConnectUserToLDAP {
 		String authority = AUTHORITY_BASE_URL + ldapServerConfiguration.getTenantName();
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
-		AuthenticationResult authenticationResult = null;
+		IAuthenticationResult authenticationResult = null;
 
 		try {
-			AuthenticationContext authenticationContext = new AuthenticationContext(authority, true, executorService);
-			Future<AuthenticationResult> authenticationResultFuture = authenticationContext.acquireToken(
-					GRAPH_API_URL,
-					ldapServerConfiguration.getClientId(),
-					user,
-					password,
-					null);
+			PublicClientApplication clientApplication = PublicClientApplication
+					.builder(ldapServerConfiguration.getClientId())
+					.authority(authority)
+					.build();
+			UserNamePasswordParameters parameters = UserNamePasswordParameters
+					.builder(Collections.singleton("User.Read"), user, password.toCharArray()).build();
+			Future<IAuthenticationResult> authenticationResultFuture = clientApplication.acquireToken(parameters);
 			authenticationResult = authenticationResultFuture.get();
 		} catch (MalformedURLException mue) {
 			LOGGER.error("Malformed Azure AD authority URL " + authority);
@@ -409,8 +434,6 @@ public class AzureAdClient {
 
 			throw new CouldNotConnectUserToLDAP();
 		} catch (InterruptedException ignored) {
-		} finally {
-			executorService.shutdown();
 		}
 
 		if (authenticationResult == null) {

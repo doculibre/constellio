@@ -299,7 +299,7 @@ public class CartBatchProcessingPresenter implements BatchProcessingPresenter {
 		SPEQueryResponse speQueryResponse = searchServices.query(logicalSearchQuery);
 
 		LogicalSearchQuery logicalSearchQueryWithFilter = logicalSearchQuery
-				.filteredWithUser(user, CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS);
+				.filteredWithUserRead(user, CorePermissions.MODIFY_RECORDS_USING_BATCH_PROCESS);
 		long numberFound = searchServices.getResultsCount(logicalSearchQueryWithFilter);
 
 		return speQueryResponse.getNumFound() == numberFound;

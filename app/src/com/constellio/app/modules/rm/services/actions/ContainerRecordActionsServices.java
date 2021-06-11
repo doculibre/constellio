@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.data.utils.TimeProvider;
@@ -233,7 +234,7 @@ public class ContainerRecordActionsServices {
 		LogicalSearchCondition condition = from(rm.folder.schemaType())
 				.where(rm.folder.container()).isEqualTo(containerId)
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull();
-		return new LogicalSearchQuery(condition).filteredWithUser(user).filteredByStatus(StatusFilter.ACTIVES);
+		return new LogicalSearchQuery(condition).filteredWithUserRead(user).filteredByStatus(StatusFilter.ACTIVES);
 	}
 
 	private boolean isContainerRecyclingAllowed() {
@@ -267,5 +268,29 @@ public class ContainerRecordActionsServices {
 	public boolean isRemoveToSelectionActionPossible(Record record, User user) {
 		return user.hasReadAccess().on(record) &&
 			   rmModuleExtensions.isAddRemoveToSelectionActionPossibleOnContainerRecord(rm.wrapContainerRecord(record), user);
+	}
+
+	public boolean isDeleteContainerContent(Record record, User user) {
+		ContainerRecord containerRecord = rm.wrapContainerRecord(record);
+
+		LogicalSearchQuery containerFoldersQuery = new LogicalSearchQuery(from(rm.folder.schemaType(), rm.document.schemaType())
+				.where(rm.folder.container()).isEqualTo(containerRecord.getId()));
+
+		List<Record> records = searchServices.search(containerFoldersQuery);
+
+		List<Folder> folders = rm.wrapFolders(records);
+
+		if (folders.size() == 0) {
+			return false;
+		}
+
+		for (Folder currentFolder : folders) {
+			if (!user.has(RMPermissionsTo.CONTAINER_CONTENT_SUPPRESSION).on(currentFolder.getWrappedRecord()) ||
+				!user.hasDeleteAccess().on(currentFolder.getWrappedRecord())) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

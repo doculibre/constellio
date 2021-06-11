@@ -16,18 +16,19 @@ import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManage
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.data.conf.FoldersLocator;
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.HashMapBuilder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -209,67 +210,6 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		FileUtils.writeStringToFile(dest, fileWithoutProblems);
 	}
 
-	@Test
-	public void generateRMMigrations()
-			throws Exception {
-
-		configure(new DataLayerConfigurationAlteration() {
-			@Override
-			public void alter(InMemoryDataLayerConfiguration configuration) {
-				configuration.setSecondaryIdGeneratorType(IdGeneratorType.SEQUENTIAL);
-				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
-			}
-		});
-		configure(new AppLayerConfigurationAlteration() {
-			@Override
-			public void alter(InMemoryAppLayerConfiguration configuration) {
-				configuration.setFastMigrationsEnabled(false);
-			}
-		});
-
-		givenCollection(collection);
-		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
-		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
-		constellioModulesManager.installValidModuleAndGetInvalidOnes(new TaskModule(), collectionsListManager);
-		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new TaskModule());
-
-		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
-		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.rewriteInOrderAndGetCodes(collection);
-		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
-
-		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRMModule(), collectionsListManager);
-		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new ConstellioRMModule());
-
-		System.out.println(" ------ Migration script ------");
-
-		File migrationsResources = new File(new FoldersLocator().getI18nFolder(), "migrations");
-
-		generateI18n(new File(migrationsResources, "rm"));
-
-		MethodSpec constructor = generateConstructor();
-
-		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedRMMigrationCombo")
-				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-				.addField(String.class, "collection")
-				.addField(AppLayerFactory.class, "appLayerFactory")
-				.addField(MigrationResourcesProvider.class, "resourcesProvider")
-				//.addMethod(generateRecords())
-				.addMethods(generateTypes(typesBefore))
-				.addMethod(generateDisplayConfigs(codesBefore))
-				.addMethod(generateRoles(rolesBefore))
-				.addMethod(generateConstructor())
-				.build();
-
-		JavaFile file = JavaFile.builder("com.constellio.app.modules.rm.migrations", generatedClassSpec)
-				.addStaticImport(java.util.Arrays.class, "asList")
-				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
-				.build();
-		String newFile = resolveProblems(file);
-		File dest = new File(getFoldersLocator().getAppProject()
-							 + "/src/com/constellio/app/modules/rm/migrations/GeneratedRMMigrationCombo.java");
-		FileUtils.writeStringToFile(dest, newFile);
-	}
 
 	@Test
 	public void generateTasksMigrations()
@@ -332,6 +272,69 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 							 + "/src/com/constellio/app/modules/tasks/migrations/GeneratedTasksMigrationCombo.java");
 		FileUtils.writeStringToFile(dest, fileWithoutProblems);
 	}
+
+	@Test
+	public void generateRMMigrations()
+			throws Exception {
+
+		configure(new DataLayerConfigurationAlteration() {
+			@Override
+			public void alter(InMemoryDataLayerConfiguration configuration) {
+				configuration.setSecondaryIdGeneratorType(IdGeneratorType.SEQUENTIAL);
+				//when(configuration.createRandomUniqueKey()).thenReturn("123-456-789");
+			}
+		});
+		configure(new AppLayerConfigurationAlteration() {
+			@Override
+			public void alter(InMemoryAppLayerConfiguration configuration) {
+				configuration.setFastMigrationsEnabled(false);
+			}
+		});
+
+		givenCollection(collection);
+		CollectionsListManager collectionsListManager = getModelLayerFactory().getCollectionsListManager();
+		ConstellioModulesManager constellioModulesManager = getAppLayerFactory().getModulesManager();
+		constellioModulesManager.installValidModuleAndGetInvalidOnes(new TaskModule(), collectionsListManager);
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new TaskModule());
+
+		List<Role> rolesBefore = getModelLayerFactory().getRolesManager().getAllRoles(collection);
+		List<String> codesBefore = getAppLayerFactory().getMetadataSchemasDisplayManager()
+				.rewriteInOrderAndGetCodes(collection);
+		MetadataSchemaTypes typesBefore = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
+
+		constellioModulesManager.installValidModuleAndGetInvalidOnes(new ConstellioRMModule(), collectionsListManager);
+		constellioModulesManager.enableValidModuleAndGetInvalidOnes(collection, new ConstellioRMModule());
+
+		System.out.println(" ------ Migration script ------");
+
+		File migrationsResources = new File(new FoldersLocator().getI18nFolder(), "migrations");
+
+		generateI18n(new File(migrationsResources, "rm"));
+
+		MethodSpec constructor = generateConstructor();
+
+		TypeSpec generatedClassSpec = TypeSpec.classBuilder("GeneratedRMMigrationCombo")
+				.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+				.addField(String.class, "collection")
+				.addField(AppLayerFactory.class, "appLayerFactory")
+				.addField(MigrationResourcesProvider.class, "resourcesProvider")
+				//.addMethod(generateRecords())
+				.addMethods(generateTypes(typesBefore))
+				.addMethod(generateDisplayConfigs(codesBefore))
+				.addMethod(generateRoles(rolesBefore))
+				.addMethod(generateConstructor())
+				.build();
+
+		JavaFile file = JavaFile.builder("com.constellio.app.modules.rm.migrations", generatedClassSpec)
+				.addStaticImport(java.util.Arrays.class, "asList")
+				.addStaticImport(HashMapBuilder.class, "stringObjectMap")
+				.build();
+		String newFile = resolveProblems(file);
+		File dest = new File(getFoldersLocator().getAppProject()
+							 + "/src/com/constellio/app/modules/rm/migrations/GeneratedRMMigrationCombo.java");
+		FileUtils.writeStringToFile(dest, newFile);
+	}
+
 
 	@Test
 	public void generateRobotsMigrations()
@@ -664,9 +667,9 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 					main.addStatement("transaction.add(manager.getSchema(collection, $S).withFormMetadataCodes($L)"
 									  + ".withDisplayMetadataCodes($L).withSearchResultsMetadataCodes($L).withTableMetadataCodes($L))"
 							, schema.getCode(), asListLitteral(schemaDisplay.getFormMetadataCodes())
-							, asListLitteral(schemaDisplay.getDisplayMetadataCodes())
-							, asListLitteral(schemaDisplay.getSearchResultsMetadataCodes())
-							, asListLitteral(schemaDisplay.getTableMetadataCodes()));
+							, asListLitteral(replacingValuesStartingWith(schemaDisplay.getDisplayMetadataCodes(), schema.getNoInheritanceCode(), schema.getCode()))
+							, asListLitteral(replacingValuesStartingWith(schemaDisplay.getSearchResultsMetadataCodes(), schema.getNoInheritanceCode(), schema.getCode()))
+							, asListLitteral(replacingValuesStartingWith(schemaDisplay.getTableMetadataCodes(), schema.getNoInheritanceCode(), schema.getCode())));
 				}
 
 				for (Metadata metadata : schema.getMetadatas()) {
@@ -691,6 +694,18 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		MethodSpec spec = main.build();
 		System.out.println(spec.toString());
 		return spec;
+	}
+
+	private List<String> replacingValuesStartingWith(List<String> values, String shouldNeverStartWith,
+													 String shouldAlwaysStartWith) {
+
+		List<String> modifiedValues = new ArrayList<>();
+
+		for (String value : values) {
+			modifiedValues.add(value.replace(shouldNeverStartWith, shouldAlwaysStartWith));
+		}
+
+		return modifiedValues;
 	}
 
 	protected MethodSpec generateRoles(List<Role> rolesBefore) {
@@ -781,11 +796,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 							value = "records.get(" + mapping.get((String) record.get(metadata)) + ")";
 
 						} else if (metadata.getType() == MetadataValueType.STRUCTURE) {
-							String strStructure = metadata.getStructureFactory()
-									.toString((ModifiableStructure) record.get(metadata))
-									.replace("\"", "\\\"");
-							value = "new " + metadata.getStructureFactory().getClass().getName() + "().build(\"" + strStructure
-									+ "\")";
+							if (metadata.getStructureFactory() instanceof CombinedStructureFactory) {
+								String strStructure = ((CombinedStructureFactory) metadata.getStructureFactory())
+										.toString((ModifiableStructure) record.get(metadata))
+										.replace("\"", "\\\"");
+								value = "new " + metadata.getStructureFactory().getClass().getName() + "().build(\"" + strStructure
+										+ "\")";
+							} else {
+								throw new ImpossibleRuntimeException("Not yet supported!");
+							}
 						} else {
 							value = toValue(record.get(metadata));
 						}
@@ -884,7 +903,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		for (MetadataSchemaType type : metadataSchemaTypes) {
 			if (typesBeforeMigration == null || !typesBeforeMigration.hasType(type.getCode())) {
-				main.addStatement("$T $LSchemaType = typesBuilder.createNewSchemaType($S,false)$L",
+				main.addStatement("$T $LSchemaType = typesBuilder.createNewSchemaTypeWithSecurity($S,false)$L",
 						MetadataSchemaTypeBuilder.class, type.getCode(), type.getCode(), typeAlterations(type));
 
 				for (MetadataSchema schema : type.getAllSchemas()) {
@@ -1280,6 +1299,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		if (metadata.isEssentialInSummary()) {
 			method.addStatement("$L.setEssentialInSummary(true)", variable);
+		}
+
+		if (metadata.isAvailableInSummary()) {
+			method.addStatement("$L.setAvailableInSummary(true)", variable);
 		}
 
 		if (metadata.isSchemaAutocomplete()) {

@@ -28,7 +28,7 @@ public class MetadataBuilderWithPrepareAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenNewSchemaAndNewSchemaThenIdCorrespond() throws Exception {
-		MetadataSchemaBuilder type1DefaultSchema = typesBuilder.createNewSchemaType("type1").getDefaultSchema();
+		MetadataSchemaBuilder type1DefaultSchema = typesBuilder.createNewSchemaTypeWithSecurity("type1").getDefaultSchema();
 		type1DefaultSchema.createUndeletable("randomName1").setType(MetadataValueType.STRING);
 		type1DefaultSchema.createUndeletable("randomName2").setType(MetadataValueType.STRING);
 		type1DefaultSchema.createUndeletable(METADATA_NAME1).setType(MetadataValueType.STRING);

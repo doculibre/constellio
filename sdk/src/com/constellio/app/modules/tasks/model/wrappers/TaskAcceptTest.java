@@ -521,7 +521,7 @@ public class TaskAcceptTest extends ConstellioTest {
 				}
 
 				List<String> tasks = searchServices.searchRecordIds(new LogicalSearchQuery()
-						.filteredWithUser(user)
+						.filteredWithUserRead(user)
 						.setCondition(from(schemas.userTask.schemaType()).where(IDENTIFIER).isEqualTo(task.getId())));
 
 				booleanAssert = assertThat(!tasks.isEmpty()).describedAs(

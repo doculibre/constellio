@@ -1,12 +1,15 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.modules.rm.wrappers.LegalRequirement;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -22,6 +25,7 @@ public class AddEditTaxonomyConceptViewImpl extends BaseViewImpl implements AddE
 	AddEditTaxonomyConceptPresenter presenter;
 
 	RecordVO recordVO;
+	RecordForm recordForm;
 
 	public AddEditTaxonomyConceptViewImpl() {
 		this.presenter = new AddEditTaxonomyConceptPresenter(this);
@@ -48,7 +52,7 @@ public class AddEditTaxonomyConceptViewImpl extends BaseViewImpl implements AddE
 	protected Component buildMainComponent(ViewChangeEvent event) {
 
 		RecordFieldFactory formFieldFactory = getRecordFieldFactory();
-		RecordForm recordForm = new RecordForm(recordVO, formFieldFactory, getConstellioFactories()) {
+		recordForm = new RecordForm(recordVO, formFieldFactory, getConstellioFactories()) {
 			@Override
 			protected void saveButtonClick(RecordVO recordVO)
 					throws ValidationException {
@@ -62,6 +66,11 @@ public class AddEditTaxonomyConceptViewImpl extends BaseViewImpl implements AddE
 		};
 
 		for (final Field<?> field : recordForm.getFields()) {
+			if (!Toggle.DISPLAY_LEGAL_REQUIREMENTS.isEnabled()
+				&& field instanceof ListAddRemoveRecordLookupField
+				&& LegalRequirement.SCHEMA_TYPE.equalsIgnoreCase(((ListAddRemoveRecordLookupField) field).getSchemaTypeCode())) {
+				field.setVisible(false);
+			}
 			if (field instanceof ContentVersionUploadField) {
 				field.addValueChangeListener(new ValueChangeListener() {
 					@Override
@@ -75,4 +84,8 @@ public class AddEditTaxonomyConceptViewImpl extends BaseViewImpl implements AddE
 		return recordForm;
 	}
 
+	@Override
+	public RecordForm getForm() {
+		return recordForm;
+	}
 }

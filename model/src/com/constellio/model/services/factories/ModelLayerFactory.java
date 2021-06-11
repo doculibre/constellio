@@ -33,6 +33,7 @@ import com.constellio.model.services.pdf.pdtron.AnnotationLockManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesImpl;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordContentVersionHashCacheHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.RecordUsageCounterHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.TaxonomyRecordsHookRetriever;
 import com.constellio.model.services.records.cache.cacheIndexHook.impl.UserCredentialServiceKeyCacheHookRetriever;
@@ -206,4 +207,9 @@ public interface ModelLayerFactory extends LayerFactory {
 	UserCredentialTokenCacheHookRetriever getUserCredentialTokenCacheHookRetriever();
 
 	UserCredentialServiceKeyCacheHookRetriever getUserCredentialServiceKeyCacheHookRetriever();
+
+	RecordContentVersionHashCacheHookRetriever getRecordContentVersionHashCacheHookRetriever(String collection);
+
+	boolean isReindexing();
+
 }

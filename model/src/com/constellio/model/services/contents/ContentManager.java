@@ -63,7 +63,6 @@ import com.constellio.model.services.parser.FileParserException;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
@@ -177,7 +176,7 @@ public class ContentManager implements StatefulService {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.icapService = icapService;
-		this.thumbnailGenerator = new ThumbnailGenerator();
+		this.thumbnailGenerator = new ThumbnailGenerator(ioServices);
 		this.conversionManager = modelLayerFactory.getDataLayerFactory().getConversionManager();
 		this.dataLayerSystemExtensions = modelLayerFactory.getDataLayerFactory().getExtensions().getSystemWideExtensions();
 	}
@@ -188,7 +187,7 @@ public class ContentManager implements StatefulService {
 			@Override
 			public void run() {
 				if (Toggle.OLD_DELETE_UNUSED_CONTENT_METHOD.isEnabled() && serviceThreadEnabled
-					&& ReindexingServices.getReindexingInfos() == null
+					&& !modelLayerFactory.isReindexing()
 					&& modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled()
 					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
 					deleteUnreferencedContents();
@@ -200,7 +199,7 @@ public class ContentManager implements StatefulService {
 		Runnable handleRecordsMarkedForParsingRunnable = new Runnable() {
 			@Override
 			public void run() {
-				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
+				if (serviceThreadEnabled && !modelLayerFactory.isReindexing()
 					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
 					&& !Toggle.PERFORMANCE_TESTING.isEnabled()) {
 					boolean converted = handleRecordsMarkedForParsing();
@@ -223,7 +222,7 @@ public class ContentManager implements StatefulService {
 		Runnable generatePreviewsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
-				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
+				if (serviceThreadEnabled && !modelLayerFactory.isReindexing()
 					&& new ConstellioEIMConfigs(modelLayerFactory).isInViewerContentsConversionSchedule()
 					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()) {
 					convertPendingContentForPreview();
@@ -235,7 +234,7 @@ public class ContentManager implements StatefulService {
 			public void run() {
 				boolean isDeleteUnusedContentEnabled = modelLayerFactory.getConfiguration().isDeleteUnusedContentEnabled();
 				boolean isInScanVaultContentsSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanVaultContentsSchedule();
-				if (serviceThreadEnabled && ReindexingServices.getReindexingInfos() == null
+				if (serviceThreadEnabled && !modelLayerFactory.isReindexing()
 					&& modelLayerFactory.getRecordsCaches().areSummaryCachesInitialized()
 					&& isInScanVaultContentsSchedule
 					&& isEncodingSafeForScan()
@@ -468,6 +467,11 @@ public class ContentManager implements StatefulService {
 	public Content createEmptyMajor(User user, String filename, ContentVersionDataSummary newVersion) {
 		String uniqueId = uniqueIdGenerator.next();
 		return ContentImpl.create(uniqueId, user, filename, newVersion, true, true);
+	}
+
+	public Content createSystemContentFrom(File file) throws FileNotFoundException {
+		ContentVersionDataSummary version = upload(file);
+		return ContentImpl.createSystemContent(file.getName(), version);
 	}
 
 	public Content createSystemContent(String filename, ContentVersionDataSummary version) {
@@ -927,50 +931,58 @@ public class ContentManager implements StatefulService {
 		boolean converted = false;
 		if (!Toggle.PERFORMANCE_TESTING.isEnabled() && Toggle.CONTENT_CONVERSION.isEnabled()) {
 			for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
-				if (!closing.get()) {
-					List<Record> records = searchServices.search(new LogicalSearchQuery()
-							.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
-							.setNumberOfRows(20).sortDesc(Schemas.MODIFIED_ON).sortDesc(Schemas.CREATED_ON)
-							.setName("ContentManager:BackgroundThread:convertPendingContentForPreview()"));
+				List<Record> records = searchServices.search(new LogicalSearchQuery()
+						.setCondition(fromAllSchemasIn(collection).where(Schemas.MARKED_FOR_PREVIEW_CONVERSION).isTrue())
+						.setNumberOfRows(20).sortDesc(Schemas.MODIFIED_ON).sortDesc(Schemas.CREATED_ON)
+						.setName("ContentManager:BackgroundThread:convertPendingContentForPreview()"));
 
-					if (!records.isEmpty()) {
-						converted = true;
-						final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
-						try {
-							Transaction transaction = new Transaction();
-							transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions()
-									.setOverwriteModificationDateAndUser(false));
-							for (Record record : records) {
-								if (!closing.get()) {
-									try {
-										tryConvertRecordContents(record, tempFolder);
-									} catch (Throwable t) {
-										t.printStackTrace();
-										//unsupported extension
-									} finally {
-										transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
-									}
-								}
-							}
+				converted = convertRecordContentForPreview(records);
+			}
+		}
+		return converted;
+	}
+
+	public boolean convertRecordContentForPreview(List<Record> records) {
+		boolean converted = false;
+
+		if (!closing.get()) {
+			if (!records.isEmpty()) {
+				converted = true;
+				final File tempFolder = ioServices.newTemporaryFolder("previewConversion");
+				try {
+					Transaction transaction = new Transaction();
+					transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions()
+							.setOverwriteModificationDateAndUser(false));
+					for (Record record : records) {
+						if (!closing.get()) {
 							try {
-								transaction.setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(5));
-								transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-								transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
-								recordServices.executeWithoutImpactHandling(transaction);
-							} catch (RecordServicesException.OptimisticLocking e) {
-								LOGGER.trace("Optimistic locking occured with record " + e.getId());
-
-							} catch (RecordServicesException e) {
-								throw new RuntimeException(e);
+								tryConvertRecordContents(record, tempFolder);
+							} catch (Throwable t) {
+								t.printStackTrace();
+								//unsupported extension
+							} finally {
+								transaction.add(record.set(Schemas.MARKED_FOR_PREVIEW_CONVERSION, null));
 							}
-
-						} finally {
-							ioServices.deleteQuietly(tempFolder);
 						}
 					}
+					try {
+						transaction.setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(5));
+						transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+						transaction.getRecordUpdateOptions().setUpdateCalculatedMetadatas(false);
+						recordServices.executeWithoutImpactHandling(transaction);
+					} catch (RecordServicesException.OptimisticLocking e) {
+						LOGGER.trace("Optimistic locking occured with record " + e.getId());
+
+					} catch (RecordServicesException e) {
+						throw new RuntimeException(e);
+					}
+
+				} finally {
+					ioServices.deleteQuietly(tempFolder);
 				}
 			}
 		}
+
 		return converted;
 	}
 
@@ -1026,7 +1038,7 @@ public class ContentManager implements StatefulService {
 				if (LOG_CONVERSION_FILENAME_AND_SIZE.isEnabled()) {
 					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength() / (1024 * 1024));
 				}
-				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
+				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder, false);
 				contentDao.moveFileToVault(hash + ".preview", pdfPreviewFile, ONLY_IF_INEXISTING);
 
 			} catch (ContentDaoException_NoSuchContent e) {

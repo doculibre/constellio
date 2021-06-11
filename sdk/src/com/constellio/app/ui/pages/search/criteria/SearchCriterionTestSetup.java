@@ -1,12 +1,21 @@
 package com.constellio.app.ui.pages.search.criteria;
 
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.schemas.AbstractMapBasedSeparatedStructureFactory;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.StructureInstanciationParams;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class SearchCriterionTestSetup extends SchemasSetup {
 	public static final String SCHEMA_TYPE = "criterionTestRecord";
@@ -18,6 +27,7 @@ public class SearchCriterionTestSetup extends SchemasSetup {
 	public static final String A_DATE = "aDate";
 	public static final String A_DATE_TIME = "aDateTime";
 	public static final String AN_ENUM = "anEnum";
+	public static final String A_SEPARATED_STRUCTURE = "aSeparatedStructure";
 
 	public enum TestEnum implements EnumWithSmallCode {
 		VALUE1("a"), VALUE2("b"), VALUE3("c");
@@ -34,13 +44,86 @@ public class SearchCriterionTestSetup extends SchemasSetup {
 		}
 	}
 
+	public static class TestCalculatedSeparatedStructureCalculator implements MetadataValueCalculator<TestCalculatedSeparatedStructure> {
+
+		LocalDependency<String> titleDependency = LocalDependency.toAString("title");
+
+		@Override
+		public TestCalculatedSeparatedStructure calculate(CalculatorParameters parameters) {
+			String title = parameters.get(titleDependency);
+
+			TestCalculatedSeparatedStructure structure = new TestCalculatedSeparatedStructure();
+
+			structure.setAnalysisName("Analysis of title '" + title + "'");
+			if (title != null) {
+				structure.setTitleFirstLetter("" + title.charAt(0));
+				structure.setTitleLength("" + title.length());
+			}
+			return structure;
+		}
+
+		@Override
+		public TestCalculatedSeparatedStructure getDefaultValue() {
+			return null;
+		}
+
+		@Override
+		public List<? extends Dependency> getDependencies() {
+			return Arrays.asList(titleDependency);
+		}
+	}
+
+	public static class TestCalculatedSeparatedStructure extends AbstractMapBasedSeparatedStructureFactory.MapBasedStructure {
+
+		public String getAnalysisName() {
+			return get("analysisName");
+		}
+
+		public TestCalculatedSeparatedStructure setAnalysisName(String value) {
+			set("analysisName", value);
+			return this;
+		}
+
+		public String getTitleLength() {
+			return get("titleLength");
+		}
+
+		public TestCalculatedSeparatedStructure setTitleLength(String value) {
+			set("titleLength", value);
+			return this;
+		}
+
+		public String getTitleFirstLetter() {
+			return get("titleFirstLetter");
+		}
+
+		public TestCalculatedSeparatedStructure setTitleFirstLetter(String value) {
+			set("titleFirstLetter", value);
+			return this;
+		}
+
+	}
+
+	public static class TestCalculatedSeparatedStructureFactory extends AbstractMapBasedSeparatedStructureFactory {
+
+		@Override
+		protected MapBasedStructure newEmptyStructure(StructureInstanciationParams params) {
+			return new TestCalculatedSeparatedStructure();
+		}
+
+		@Override
+		public String getMainValueFieldName() {
+			return "analysisName";
+		}
+	}
+
 	public SearchCriterionTestSetup(String collection) {
 		super(collection);
 	}
 
 	@Override
 	public void setUp() {
-		MetadataSchemaBuilder builder = typesBuilder.createNewSchemaType(SCHEMA_TYPE).getDefaultSchema();
+		MetadataSchemaBuilder builder = typesBuilder.createNewSchemaTypeWithSecurity(SCHEMA_TYPE).getDefaultSchema();
 		builder.create(A_STRING).setType(MetadataValueType.STRING);
 		builder.create(A_BOOLEAN).setType(MetadataValueType.BOOLEAN);
 		// We cannot have integers yet
@@ -49,6 +132,7 @@ public class SearchCriterionTestSetup extends SchemasSetup {
 		builder.create(A_DATE).setType(MetadataValueType.DATE);
 		builder.create(A_DATE_TIME).setType(MetadataValueType.DATE_TIME);
 		builder.create(AN_ENUM).defineAsEnum(TestEnum.class);
+		builder.create(A_SEPARATED_STRUCTURE).defineStructureFactory(TestCalculatedSeparatedStructureFactory.class);
 	}
 
 	public CriterionTestRecord getShortcuts() {
@@ -97,6 +181,10 @@ public class SearchCriterionTestSetup extends SchemasSetup {
 
 		public Metadata anEnum() {
 			return getMetadata(DEFAULT_SCHEMA + "_" + AN_ENUM);
+		}
+
+		public Metadata aSeparatedStructure() {
+			return getMetadata(DEFAULT_SCHEMA + "_" + A_SEPARATED_STRUCTURE);
 		}
 	}
 }

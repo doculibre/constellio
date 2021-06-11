@@ -86,7 +86,7 @@ public class Criterion implements Serializable, ModifiableStructure {
 	public void setMetadata(String metadataCode, MetadataValueType type, String enumClassName) {
 		if (MetadataVO.getCodeWithoutPrefix(metadataCode).equals(CommonMetadataBuilder.PATH)) {
 			searchOperator = SearchOperator.IN_HIERARCHY;
-		} else if (type.isStringOrText()) {
+		} else if (type.isStringOrTextOrStructure()) {
 			searchOperator = SearchOperator.CONTAINS_TEXT;
 		} else if (type == MetadataValueType.BOOLEAN) {
 			searchOperator = SearchOperator.IS_TRUE;

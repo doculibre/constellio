@@ -1,12 +1,12 @@
 package com.constellio.model.entities.records.wrappers.structure;
 
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 import org.apache.commons.exec.util.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-public class ReportedMetadataFactory implements StructureFactory {
+public class ReportedMetadataFactory implements CombinedStructureFactory {
 	private static final String ELEMENTS_SEPARATOR = "~#~";
 
 	@Override

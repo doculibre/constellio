@@ -1,5 +1,18 @@
 package com.constellio.app.ui.framework.components.viewers.pdftron;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.UUID;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONObject;
+
 import com.constellio.app.api.pdf.signature.exceptions.PdfSignatureException;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -38,20 +51,9 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
 import elemental.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.json.simple.JSONObject;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.UUID;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 @JavaScript({"theme://jquery/jquery-2.1.4.min.js"})
 @Slf4j
@@ -87,6 +89,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 	private HorizontalLayout getAnnotationOfOtherVersionLayout;
 	private Button editAnnotationBtn;
 	private PdfTronSignatureAuthenticationWindowButton finalizeBtn;
+	private Button pdfDownloadNoAnnotationsButton;
 	private Label errorMsgLabel;
 
 	private VerticalLayout mainLayout;
@@ -102,7 +105,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 	private String searchTerm = null;
 	private ContentVersionVO contentVersion;
-
 
 	public PdfTronViewer(String recordId, ContentVersionVO contentVersion, String metadataCode, boolean readOnlyMode,
 						 String license) {
@@ -183,6 +185,15 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		editAnnotationBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		editAnnotationBtn.addStyleName(ValoTheme.BUTTON_LINK);
 
+		pdfDownloadNoAnnotationsButton = new BaseButton($("pdfTronViewer.downloadPdfNoAnnotation")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				com.vaadin.ui.JavaScript.eval("downloadPdfWithoutAnnotations()");
+			}
+		};
+		pdfDownloadNoAnnotationsButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+		pdfDownloadNoAnnotationsButton.addStyleName(ValoTheme.BUTTON_LINK);
+
 		Button enableDisableAnnotation = new BaseButton($("pdfTronViewer.hideAnnotation")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
@@ -229,6 +240,7 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 		if (!readOnlyMode) {
 			buttonLayout2.addComponent(editAnnotationBtn);
 		}
+		buttonLayout2.addComponent(pdfDownloadNoAnnotationsButton);
 		setMessageIfAnOtherUserOrAnOtherPageIsEditing(false);
 
 		if (pdfTronPresenter.canSignDocument()) {
@@ -257,7 +269,6 @@ public class PdfTronViewer extends VerticalLayout implements ViewChangeListener 
 
 		addComponent(mainLayout);
 	}
-
 
 	private void releaseLockAndSetReadOnly() {
 		stopThreadAndDontReleaseLock();

@@ -41,7 +41,7 @@ public class AdministrativeUnitTaxonomyPreparator extends BaseTaxonomyPreparator
 															 LinkableIdsList users,
 															 LinkableIdsList groups) {
 		List<AuthorizationAddRequest> authorizations = new ArrayList<>();
-		authorizations.add(rm.newAuthorization().forPrincipalsIds(groups.next()).on(unit).givingReadWriteAccess());
+		authorizations.add(rm.newAuthorizationAddRequest().forPrincipalsIds(groups.next()).on(unit).givingReadWriteAccess());
 		return authorizations;
 	}
 

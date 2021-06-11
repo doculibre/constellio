@@ -126,6 +126,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public boolean sortFolderList() {
+
 		return modelLayerFactory.getSystemConfigurationsManager().getValue(RMConfigs.ALLOW_SORTING_IN_FOLDER_LIST_OF_DECOMMISSIONING);
 	}
 
@@ -881,6 +882,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public void refreshView() {
 		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
+	}
+
+	public void refreshFolderDetails() {
+		view.refreshFolderDetailsVO();
 	}
 
 	public boolean canRemoveValidationRequest() {

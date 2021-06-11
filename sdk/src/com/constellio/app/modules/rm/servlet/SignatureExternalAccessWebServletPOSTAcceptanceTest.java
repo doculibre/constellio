@@ -1,9 +1,21 @@
 package com.constellio.app.modules.rm.servlet;
 
+import com.constellio.app.api.pdf.signature.config.ESignatureConfigs;
+import com.constellio.app.modules.restapi.apis.v1.validation.exception.ExpiredTokenException;
+import com.constellio.app.modules.restapi.apis.v1.validation.exception.UnauthenticatedUserException;
+import com.constellio.app.modules.restapi.apis.v1.validation.exception.UnauthorizedAccessException;
+import com.constellio.app.api.pdf.signature.config.ESignatureConfigs;
+import com.constellio.app.modules.restapi.core.exception.AtLeastOneParameterRequiredException;
+import com.constellio.app.modules.restapi.core.exception.InvalidAuthenticationException;
+import com.constellio.app.modules.restapi.core.exception.InvalidParameterCombinationException;
+import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
+import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
+import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.entities.records.Content;
@@ -13,51 +25,34 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.SmtpServerTestConfig;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.HttpMethod;
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebRequest;
-import com.gargoylesoftware.htmlunit.WebResponse;
-import com.gargoylesoftware.htmlunit.util.NameValuePair;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.LocalDate;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.File;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.ACTION_IMPOSSIBLE;
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.INVALID_DATE_PARAM;
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.INVALID_DOCUMENT_PARAM;
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_DATE_PARAM;
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_DOCUMENT_PARAM;
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_EXTERNAL_USER_EMAIL_PARAM;
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_EXTERNAL_USER_FULLNAME_PARAM;
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.MISSING_LANGUAGE_PARAM;
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.UNAUTHORIZED;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.HEADER_PARAM_AUTH;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_DOCUMENT;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_EXPIRATION_DATE;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_EXTERNAL_USER_EMAIL;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_EXTERNAL_USER_FULLNAME;
+import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_INTERNAL_USER;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_LANGUAGE;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_SERVICE_KEY;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends ConstellioTest {
 
@@ -69,6 +64,8 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 	private String roleWithoutPermission = "roleWithoutPermission";
 	private String misterXFullname = "Mister X";
 	private String misterXEmail = "noreply.doculibre2@gmail.com";
+
+	protected WebTarget webTarget;
 
 	private RMTestRecords records = new RMTestRecords(zeCollection);
 	private Users users = new Users();
@@ -86,9 +83,10 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 			throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
-		startApplication();
 
-		givenConfig(ConstellioEIMConfigs.SIGNING_KEYSTORE, getTestResourceFile("zipTestFile.7z"));
+		givenConfig(ESignatureConfigs.SIGNING_KEYSTORE, getTestResourceFile("zipTestFile.7z"));
+
+		webTarget = newWebTarget("signatureExternalAccess", new ObjectMapper(), false);
 
 		recordServices = getModelLayerFactory().newRecordServices();
 		userServices = getModelLayerFactory().newUserServices();
@@ -104,265 +102,517 @@ public class SignatureExternalAccessWebServletPOSTAcceptanceTest extends Constel
 				.addAccessToken(bobAuth, TimeProvider.getLocalDateTime().plusYears(1))
 				.addAccessToken(expiredAuth, TimeProvider.getLocalDateTime().minusDays(1)));
 
-		rolesManager.addRole(new Role(zeCollection, roleWithPermission, "Role with permission", new ArrayList<String>()));
-		rolesManager.addRole(new Role(zeCollection, roleWithoutPermission, "Role without permission", new ArrayList<String>()));
+		rolesManager.addRole(new Role(zeCollection, roleWithPermission, "Role with permission",
+				new ArrayList<String>()));
+		rolesManager.addRole(new Role(zeCollection, roleWithoutPermission, "Role without permission",
+				new ArrayList<String>()));
 
 		Role role = rolesManager.getRole(zeCollection, roleWithPermission);
-		role = role.withPermissions(asList(RMPermissionsTo.GENERATE_EXTERNAL_SIGNATURE_URL));
+		role = role.withPermissions(asList(RMPermissionsTo.SEND_SIGNATURE_REQUEST));
 		rolesManager.updateRole(role);
 
 		recordServices.update(userServices.getUserRecordInCollection(bobGratton, zeCollection)
 				.setUserRoles(asList(roleWithPermission)));
 	}
 
-	@After
-	public void tearDown()
-			throws Exception {
-		stopApplication();
+	@Test
+	public void validateServiceWithExternalUser() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
 	}
 
 	@Test
-	public void validateWebService()
-			throws Exception {
-		WebResponse response = callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, misterXEmail, getTomorrow(), validLanguage);
+	public void validateServiceWithInternalUser() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_INTERNAL_USER, users.aliceIn(zeCollection).getId())
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
 
-		assertThat(response.getStatusCode()).isEqualTo(HttpServletResponse.SC_OK);
+		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
 	}
 
 	@Test
-	public void whenCallingServiceWithMissingAuth()
-			throws Exception {
-		try {
-			callWebservice("", bobKey, records.document_A19, misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithMissingAuth should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
+	public void whenCallingServiceWithoutAuthorizationHeader() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.post(null);
+
+		assertThat(response.getStatus()).isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new InvalidAuthenticationException().getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithInvalidAuth()
-			throws Exception {
-		try {
-			callWebservice("fakeToken", bobKey, records.document_A19, misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithInvalidAuth should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
+	public void whenCallingServiceWithEmptyAuthorizationHeader() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "")
+				.post(null);
+
+		assertThat(response.getStatus()).isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new InvalidAuthenticationException().getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithExpiredAuth()
-			throws Exception {
-		try {
-			callWebservice(expiredAuth, bobKey, records.document_A19, misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithExpiredAuth should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
+	public void whenCallingServiceWithInvalidSchemeInAuthorizationHeader() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Basic ".concat(bobAuth))
+				.post(null);
+
+		assertThat(response.getStatus()).isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new InvalidAuthenticationException().getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithMissingServiceKey()
-			throws Exception {
-		try {
-			callWebservice(bobAuth, "", records.document_A19, misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithMissingServiceKey should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
+	public void whenCallingServiceWithoutSchemeInAuthorizationHeader() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, bobAuth)
+				.post(null);
+
+		assertThat(response.getStatus()).isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new InvalidAuthenticationException().getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithInvalidServiceKey()
-			throws Exception {
-		try {
-			callWebservice(bobAuth, "fakeKey", records.document_A19, misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithInvalidServiceKey should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
+	public void whenCallingServiceWithExpiredToken() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(expiredAuth))
+				.post(null);
+
+		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new ExpiredTokenException().getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithMissingDocument()
-			throws Exception {
-		try {
-			callWebservice(bobAuth, bobKey, "", misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithMissingDocument should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(MISSING_DOCUMENT_PARAM);
-		}
+	public void whenCallingServiceWithInvalidToken() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat("fakeToken"))
+				.post(null);
+
+		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new UnauthenticatedUserException().getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithNonExistingDocument()
-			throws Exception {
-		try {
-			callWebservice(bobAuth, bobKey, "fakeDocument", misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithNonExistingDocument should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(INVALID_DOCUMENT_PARAM);
-		}
+	public void whenCallingServiceWithoutServiceKeyParam() {
+		Response response = webTarget.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_SERVICE_KEY).getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithUserWithoutUrlGenerationPermission()
-			throws Exception {
-		try {
-			recordServices.update(userServices.getUserRecordInCollection(bobGratton, zeCollection)
-					.setUserRoles(asList(roleWithoutPermission)));
+	public void whenCallingServiceWithEmptyServiceKeyParam() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, "")
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
 
-			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithUserWithoutUrlGenerationPermission should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_SERVICE_KEY).getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithUserWithoutWritePermission()
-			throws Exception {
-		try {
-			Record record = recordServices.getDocumentById(records.document_A19);
-			User bobUser = userServices.getUserInCollection(bob, record.getCollection());
-			authorizationsServices.add(authorizationForUsers(bobUser).on(record).givingNegativeReadWriteAccess());
+	public void whenCallingServiceWithInvalidServiceKeyParam() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, "fakeKey")
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
 
-			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithUserWithoutWritePermission should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
+		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new UnauthenticatedUserException().getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithInvalidDocument()
-			throws Exception {
-		try {
-			callWebservice(bobAuth, bobKey, records.folder_A01, misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithInvalidDocument should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(INVALID_DOCUMENT_PARAM);
-		}
+	public void whenCallingServiceWithMissingDocument() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_DOCUMENT).getValidationError().getValidatorErrorCode()));
+	}
+
+	@Test
+	public void whenCallingServiceWithEmptyDocument() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, "")
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_DOCUMENT).getValidationError().getValidatorErrorCode()));
+	}
+
+	@Test
+	public void whenCallingServiceWithInvalidDocument() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.folder_A01)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new InvalidParameterException(PARAM_DOCUMENT, records.folder_A01).getValidationError().getValidatorErrorCode()));
+	}
+
+	@Test
+	public void whenCallingServiceWithNonExistingDocument() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, "fakeId")
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RecordNotFoundException("fakeId").getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
 	public void whenCallingServiceWithDocumentWithoutContent()
 			throws Exception {
-		try {
-			Document docWithoutContent = createDocumentWithoutContent();
-			callWebservice(bobAuth, bobKey, docWithoutContent.getId(), misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithDocumentWithoutContent should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(ACTION_IMPOSSIBLE);
-		}
+		Document docWithoutContent = createDocumentWithoutContent();
+
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, docWithoutContent.getId())
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new InvalidParameterException(PARAM_DOCUMENT, docWithoutContent.getId()).getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
 	public void whenCallingServiceWithDocumentWithUnsupportedContent()
 			throws Exception {
-		try {
-			Document docWithZipContent = createDocumentWithZipContent();
-			callWebservice(bobAuth, bobKey, docWithZipContent.getId(), misterXFullname, misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithDocumentWithUnsupportedContent should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(ACTION_IMPOSSIBLE);
-		}
+		Document docWithZipContent = createDocumentWithZipContent();
+
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, docWithZipContent.getId())
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new InvalidParameterException(PARAM_DOCUMENT, docWithZipContent.getId()).getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithMissingExternalUsername()
+	public void whenCallingServiceWithUserWithoutUrlGenerationPermission()
 			throws Exception {
-		try {
-			callWebservice(bobAuth, bobKey, records.document_A19, "", misterXEmail, getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithMissingExternalUsername should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(MISSING_EXTERNAL_USER_FULLNAME_PARAM);
-		}
+		recordServices.update(userServices.getUserRecordInCollection(bobGratton, zeCollection)
+				.setUserRoles(asList(roleWithoutPermission)));
+
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithMissingExternalUserEmail()
-			throws Exception {
-		try {
-			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, "", getTomorrow(), validLanguage);
-			fail("whenCallingServiceWithMissingExternalUserEmail should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(MISSING_EXTERNAL_USER_EMAIL_PARAM);
-		}
+	public void whenCallingServiceWithUserWithoutWritePermission() {
+		Record record = recordServices.getDocumentById(records.document_A19);
+		User bobUser = userServices.getUserInCollection(bob, record.getCollection());
+		authorizationsServices.add(authorizationForUsers(bobUser).on(record).givingNegativeReadWriteAccess());
+
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithMissingExpirationDate()
-			throws Exception {
-		try {
-			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, misterXEmail, "", validLanguage);
-			fail("whenCallingServiceWithMissingExpirationDate should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(MISSING_DATE_PARAM);
-		}
+	public void whenCallingServiceWithBothUser() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_INTERNAL_USER, users.aliceIn(zeCollection).getId())
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new InvalidParameterCombinationException(PARAM_INTERNAL_USER, PARAM_EXTERNAL_USER_FULLNAME).getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithInvalidExpirationDate()
-			throws Exception {
-		try {
-			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, misterXEmail, "fakeDate", validLanguage);
-			fail("whenCallingServiceWithInvalidExpirationDate should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(INVALID_DATE_PARAM);
-		}
+	public void whenCallingServiceWithMissingUser() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new AtLeastOneParameterRequiredException(PARAM_INTERNAL_USER, PARAM_EXTERNAL_USER_FULLNAME).getValidationError().getValidatorErrorCode()));
 	}
 
 	@Test
-	public void whenCallingServiceWithMissignLanguage()
-			throws Exception {
-		try {
-			callWebservice(bobAuth, bobKey, records.document_A19, misterXFullname, misterXEmail, getTomorrow(), "");
-			fail("whenCallingServiceWithMissignLanguage should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
-			assertThat(e.getStatusMessage()).isEqualTo(MISSING_LANGUAGE_PARAM);
-		}
+	public void whenCallingServiceWithEmptyInternalUser() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_INTERNAL_USER, "")
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new AtLeastOneParameterRequiredException(PARAM_INTERNAL_USER, PARAM_EXTERNAL_USER_FULLNAME).getValidationError().getValidatorErrorCode()));
 	}
 
-	private WebResponse callWebservice(String authToken, String serviceKey, String document,
-									   String externalUserFullname, String externalUserEmail, String expirationDate,
-									   String language) throws Exception {
-		WebClient webClient = new WebClient();
-		WebRequest webRequest;
+	@Test
+	public void whenCallingServiceWithNonExistingInternalUser() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_INTERNAL_USER, "fakeUser")
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
 
-		String url = "http://localhost:7070/constellio/signatureExternalAccess";
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RecordNotFoundException("fakeUser").getValidationError().getValidatorErrorCode()));
+	}
 
-		webRequest = new WebRequest(new URL(url));
+	@Test
+	public void whenCallingServiceWithInvalidInternalUser() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_INTERNAL_USER, records.folder_A01)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
 
-		webRequest.setHttpMethod(HttpMethod.POST);
-		webRequest.setAdditionalHeader(HEADER_PARAM_AUTH, "Bearer " + authToken);
-		webRequest.setRequestParameters(Arrays.asList(new NameValuePair(PARAM_SERVICE_KEY, serviceKey),
-				new NameValuePair(PARAM_DOCUMENT, document),
-				new NameValuePair(PARAM_EXTERNAL_USER_FULLNAME, externalUserFullname),
-				new NameValuePair(PARAM_EXTERNAL_USER_EMAIL, externalUserEmail),
-				new NameValuePair(PARAM_EXPIRATION_DATE, expirationDate),
-				new NameValuePair(PARAM_LANGUAGE, language)));
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new InvalidParameterException(PARAM_INTERNAL_USER, records.folder_A01).getValidationError().getValidatorErrorCode()));
+	}
 
-		Page page = webClient.getPage(webRequest);
-		return page.getWebResponse();
+	@Test
+	public void whenCallingServiceWithEmptyExternalUser() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, "")
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new AtLeastOneParameterRequiredException(PARAM_INTERNAL_USER, PARAM_EXTERNAL_USER_FULLNAME).getValidationError().getValidatorErrorCode()));
+	}
+
+	@Test
+	public void whenCallingServiceWithMissingEmail() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_EXTERNAL_USER_EMAIL).getValidationError().getValidatorErrorCode()));
+	}
+
+	@Test
+	public void whenCallingServiceWithEmptyEmail() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, "")
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_EXTERNAL_USER_EMAIL).getValidationError().getValidatorErrorCode()));
+	}
+
+	@Test
+	public void whenCallingServiceWithMissingExpirationDate() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_EXPIRATION_DATE).getValidationError().getValidatorErrorCode()));
+	}
+
+	@Test
+	public void whenCallingServiceWithEmptyExpirationDate() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, "")
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_EXPIRATION_DATE).getValidationError().getValidatorErrorCode()));
+	}
+
+	@Test
+	public void whenCallingServiceWithInvalidExpirationDate() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, "fakeDate")
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new InvalidParameterException(PARAM_EXPIRATION_DATE, "fakeDate").getValidationError().getValidatorErrorCode()));
+	}
+
+	@Test
+	public void whenCallingServiceWithMissingLang() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow()).request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_LANGUAGE).getValidationError().getValidatorErrorCode()));
+	}
+
+	@Test
+	public void whenCallingServiceWithEmptyLang() {
+		Response response = webTarget.queryParam(PARAM_SERVICE_KEY, bobKey)
+				.queryParam(PARAM_DOCUMENT, records.document_A19)
+				.queryParam(PARAM_EXTERNAL_USER_FULLNAME, misterXFullname)
+				.queryParam(PARAM_EXTERNAL_USER_EMAIL, misterXEmail)
+				.queryParam(PARAM_EXPIRATION_DATE, getTomorrow())
+				.queryParam(PARAM_LANGUAGE, "").request()
+				.header(HEADER_PARAM_AUTH, "Bearer ".concat(bobAuth))
+				.post(null);
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_LANGUAGE).getValidationError().getValidatorErrorCode()));
 	}
 
 	private Document createDocumentWithoutContent() throws Exception {

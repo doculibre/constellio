@@ -48,7 +48,10 @@ public class RMFavoritesTabSheet extends TabSheet {
 		User currentUser = presenterService.getCurrentUser(ConstellioUI.getCurrentSessionContext());
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(sessionContext.getCurrentCollection(), appLayerFactory);
-		List<String> favoritesDisplayOrder = currentUser.getList(RMUser.FAVORITES_DISPLAY_ORDER);
+		List<String> favoritesDisplayOrder = new ArrayList<>(currentUser.getList(RMUser.FAVORITES_DISPLAY_ORDER));
+		if (favoritesDisplayOrder.isEmpty()) {
+			favoritesDisplayOrder.add(user.getId());
+		}
 
 		favoritesDisplayOrder.stream().forEach(favoriteId -> {
 			boolean stillHasAccess = false;

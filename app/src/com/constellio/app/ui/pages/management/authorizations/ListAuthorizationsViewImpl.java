@@ -1,19 +1,10 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.vaadin.dialogs.ConfirmDialog;
-
+import com.constellio.app.modules.restapi.core.util.ListUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.shareManagement.ShareContentListView;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionConverter;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -26,6 +17,7 @@ import com.constellio.app.ui.framework.components.converters.GroupIdToCaptionCon
 import com.constellio.app.ui.framework.components.converters.JodaDateToStringConverter;
 import com.constellio.app.ui.framework.components.converters.TaxonomyRecordIdToContextCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.UserIdToCaptionConverter;
+import com.constellio.app.ui.framework.components.converters.ValueListItemIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
@@ -54,6 +46,17 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements ListAuthorizationsView {
 	public static final String INHERITED_AUTHORIZATIONS = "authorizations-inherited";
@@ -75,7 +78,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	private Table authorizations;
 	private Table authorizationsReceivedFromMetadatas;
 	private Table globalLinks;
-	protected Button detach;
+	protected Button attach, detach;
 	protected Button addSecondButton, addButton;
 	private boolean isViewReadOnly;
 
@@ -85,10 +88,19 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		List<Button> result = super.buildActionMenuButtons(event);
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				buildActionButtons().stream().map(MenuItemActionConverter::toMenuItemAction).collect(Collectors.toList()));
+	}
+
+	protected List<Button> buildActionButtons() {
+		List<Button> result = new ArrayList<>();
 		if (!(this instanceof ShareContentListView)) {
-			result.add(buildDetachButton());
+			if (presenter.seeAccessField() || presenter.seeRolesField()) {
+				result.add(buildAttachButton());
+				result.add(buildDetachButton());
+			}
 		}
 		result.add(buildAddButton());
 		if (this instanceof ListPrincipalAccessAuthorizationsView ||
@@ -99,34 +111,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	}
 
 	@Override
-	protected boolean isActionMenuBar() {
-		return true;
-	}
-
-	@Override
 	protected String getActionMenuBarCaption() {
-		return getQuickActionMenuButtons().isEmpty() ? super.getActionMenuBarCaption() : null;
-	}
-
-	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		List<Button> quickActionMenuButtons = new ArrayList<>();
-		List<Button> actionMenuButtons = getActionMenuButtons();
-		if (actionMenuButtons != null) {
-			List<Button> visibleButtons = actionMenuButtons.stream().filter(button -> button.isVisible() && button.isEnabled()).collect(Collectors.toList());
-			int remainingSpaceForQuickActions = 2;
-			for (Button button : visibleButtons) {
-				if (remainingSpaceForQuickActions > 0) {
-					remainingSpaceForQuickActions--;
-					quickActionMenuButtons.add(button);
-				} else {
-					break;
-				}
-			}
-			actionMenuButtons.stream().forEach(quickActionMenuButtons::add);
-		}
-
-		return quickActionMenuButtons;
+		return null;
 	}
 
 	protected abstract Button buildAddButton();
@@ -135,46 +121,43 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		return null;
 	}
 
+	private Button buildAttachButton() {
+		attach = buildConfirmButton(
+				$("ListContentAccessAuthorizationsView.attach"),
+				$("ListContentAccessAuthorizationsView.confirmAttach"),
+				() -> presenter.attachRequested(),
+				presenter.isDetacheable() && !presenter.isAttached());
+		return attach;
+	}
+
 	private Button buildDetachButton() {
-		if (presenter.seeAccessField()) {
-			detach = new ConfirmDialogButton($("ListContentAccessAuthorizationsView.detach")) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("ListContentAccessAuthorizationsView.comfirmDetach");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.detachRequested();
-				}
-
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && !isViewReadOnly();
-				}
-			};
-		}
-		if (presenter.seeRolesField()) {
-			detach = new ConfirmDialogButton($("ListContentRoleAuthorizationsView.detach")) {
-				@Override
-				protected String getConfirmDialogMessage() {
-					return $("ListContentRoleAuthorizationsView.comfirmDetach");
-				}
-
-				@Override
-				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.detachRequested();
-				}
-
-				@Override
-				public boolean isVisible() {
-					return super.isVisible() && !isViewReadOnly();
-				}
-			};
-		}
-		detach.setVisible(presenter.isDetacheable());
-		detach.setEnabled(presenter.isAttached());
+		detach = buildConfirmButton(
+				$("ListContentAccessAuthorizationsView.detach"),
+				$("ListContentAccessAuthorizationsView.confirmDetach"),
+				() -> presenter.detachRequested(),
+				presenter.isDetacheable() && presenter.isAttached());
 		return detach;
+	}
+
+	private Button buildConfirmButton(String caption, String message, Runnable action, boolean visible) {
+		Button button = new ConfirmDialogButton(caption) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return message;
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				action.run();
+			}
+
+			@Override
+			public boolean isVisible() {
+				return super.isVisible() && !isViewReadOnly();
+			}
+		};
+		button.setVisible(visible);
+		return button;
 	}
 
 	@Override
@@ -216,7 +199,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			buildInheritedAuthorizationsFromMetadatas(layout);
 			buildInheritedAuthorizations(layout);
 			buildOwnAuthorizations(layout);
-			detach.setEnabled(presenter.isAttached());
+			refreshActionMenu();
 		} else {
 			buildSharedAuthorizations(layout);
 			buildGlobalLinks(layout);
@@ -337,7 +320,9 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		Table table = new BaseTable(getClass().getName(), tableCaption, container);
 		table.setPageLength(container.size());
 		table.addStyleName((source == AuthorizationSource.OWN || source == AuthorizationSource.SHARED) ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
-		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeSharedBy(), presenter.seeAccessField(), isViewReadOnly(), getSessionContext().getCurrentLocale()).attachTo(table, presenter.isRecordNotATaxonomyConcept());
+		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeSharedBy(),
+				presenter.seeAccessField(), presenter.seeSourceField(), isViewReadOnly(), getSessionContext().getCurrentLocale())
+				.attachTo(table, presenter.isRecordNotATaxonomyConcept());
 		return table;
 	}
 
@@ -371,7 +356,9 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				@Override
 				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 					final AuthorizationVO authorization = (AuthorizationVO) itemId;
-					EditAuthorizationButton button = new EditAuthorizationButton(authorization) {
+					final Record record = presenter.getRecordVO().getRecord();
+					EditAuthorizationButton button = new EditAuthorizationButton(authorization,
+							record, presenter.getUser()) {
 						@Override
 						protected void onSaveButtonClicked(AuthorizationVO authorizationVO) {
 							presenter.authorizationModificationRequested(authorization);
@@ -382,7 +369,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 							return super.isVisible() && !isViewReadOnly();
 						}
 					};
-					button.setVisible(inherited || !authorization.isSynched());
+					button.setVisible(inherited || (!authorization.isSynched() && !authorization.isNested()));
 					return button;
 				}
 			});
@@ -402,7 +389,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 						return super.isVisible() && !isViewReadOnly();
 					}
 				};
-				deleteButton.setVisible(inherited || !authorization.isSynched());
+				deleteButton.setVisible(inherited || (!authorization.isSynched() && !authorization.isNested()));
 				return deleteButton;
 			}
 		});
@@ -499,9 +486,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		protected void buildNegativeAuthorizationField() {
 			negative = new ComboBox();
 			negative.setCaption($("AuthorizationsView.negativeAuthotization"));
-			negative.setEnabled(presenter.hasManageSecurityPermission());
 			negative.setVisible(presenter.isRecordNotATaxonomyConcept());
-			negative.setRequired(presenter.hasManageSecurityPermission());
+			negative.setRequired(true);
 			negative.setId("negative");
 			negative.setNullSelectionAllowed(false);
 			negative.addItems(asList($(ENABLE), $(DISABLE)));
@@ -520,6 +506,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	public static abstract class EditAuthorizationButton extends WindowButton {
 		private final AuthorizationVO authorization;
+		private final Record record;
+		private final User user;
 
 		@PropertyId("users") private ListAddRemoveRecordLookupField users;
 		@PropertyId("groups") private ListAddRemoveRecordLookupField groups;
@@ -527,10 +515,12 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		@PropertyId("startDate") protected JodaDateField startDate;
 		@PropertyId("endDate") protected JodaDateField endDate;
 
-		public EditAuthorizationButton(AuthorizationVO authorization) {
+		public EditAuthorizationButton(AuthorizationVO authorization, Record record, User user) {
 			super(EditButton.ICON_RESOURCE, $("ListAuthorizationsView.edit"), true,
 					WindowConfiguration.modalDialog("50%", "50%"));
 			this.authorization = authorization;
+			this.record = record;
+			this.user = user;
 			addStyleName(ValoTheme.BUTTON_BORDERLESS);
 		}
 
@@ -570,12 +560,10 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			groups.setId("groups");
 
 			accessRoles = new ListOptionGroup($("AuthorizationsView.access"));
-			accessRoles.addItem(Role.READ);
-			accessRoles.setItemCaption(Role.READ, $("AuthorizationsView.READ"));
-			accessRoles.addItem(Role.WRITE);
-			accessRoles.setItemCaption(Role.WRITE, $("AuthorizationsView.WRITE"));
-			accessRoles.addItem(Role.DELETE);
-			accessRoles.setItemCaption(Role.DELETE, $("AuthorizationsView.DELETE"));
+			for (String accessCode : getAllowedAccesses()) {
+				accessRoles.addItem(accessCode);
+				accessRoles.setItemCaption(accessCode, $("AuthorizationsView." + accessCode));
+			}
 			accessRoles.setMultiSelect(true);
 			for (String authorization : authorization.getAccessRoles()) {
 				accessRoles.setValue(authorization);
@@ -596,6 +584,21 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				endDate.setValue(authorization.getEndDate().toDate());
 			}
 		}
+
+		private List<String> getAllowedAccesses() {
+			List<String> results = new ArrayList<>(3);
+
+			if (user.hasReadAccess().on(record)) {
+				results.add(Role.READ);
+			}
+			if (user.hasWriteAccess().on(record)) {
+				results.add(Role.WRITE);
+			}
+			if (user.hasDeleteAccess().on(record)) {
+				results.add(Role.DELETE);
+			}
+			return results;
+		}
 	}
 
 	public static class Authorizations implements ColumnGenerator {
@@ -612,8 +615,9 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		public static final String RECEIVED_FROM_RECORD_CAPTION = "receivedFromRecordCaption";
 		public static final String BUTTONS = "buttons";
 		public static final String SHARE_ACCESS = "shareAccess";
+		public static final String SOURCE = "source";
 
-		private final AuthorizationSource source;
+		private final AuthorizationSource authorizationSource;
 		private final DisplayMode mode;
 		private boolean seeRolesField;
 		private boolean seeAccessField;
@@ -622,15 +626,18 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		private Locale currentLocale;
 		private final JodaDateToStringConverter converter;
 		private boolean isViewOnly;
+		private boolean seeSource;
 
-		public Authorizations(AuthorizationSource source, DisplayMode mode, boolean seeRolesField, boolean seeSharedBy,
-							  boolean seeAccessField, boolean isViewOnly, Locale currentLocale) {
-			this.source = source;
+		public Authorizations(AuthorizationSource authorizationSource, DisplayMode mode, boolean seeRolesField,
+							  boolean seeSharedBy,
+							  boolean seeAccessField, boolean seeSource, boolean isViewOnly, Locale currentLocale) {
+			this.authorizationSource = authorizationSource;
 			this.mode = mode;
 			this.seeRolesField = seeRolesField;
 			this.seeAccessField = seeAccessField;
 			this.seeSharedBy = seeSharedBy;
-			this.seeMetadataField = source == AuthorizationSource.INHERITED_FROM_METADATA;
+			this.seeMetadataField = authorizationSource == AuthorizationSource.INHERITED_FROM_METADATA;
+			this.seeSource = seeSource;
 			this.currentLocale = currentLocale;
 			this.isViewOnly = isViewOnly;
 			converter = new JodaDateToStringConverter();
@@ -690,6 +697,12 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				table.setColumnHeader(RECEIVED_FROM_RECORD_CAPTION, $("AuthorizationsView.receivedFromRecord"));
 			}
 
+			if (seeSource) {
+				table.addGeneratedColumn(SOURCE, this);
+				table.setColumnHeader(SOURCE, $("AuthorizationsView.source"));
+				columnIds.add(SOURCE);
+			}
+
 			table.addGeneratedColumn(POSITIVE_OR_NEGATIVE, this);
 			table.setColumnHeader(POSITIVE_OR_NEGATIVE, $("AuthorizationsView.type"));
 
@@ -702,13 +715,13 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			table.addGeneratedColumn(END_DATE, this);
 			table.setColumnHeader(END_DATE, $("AuthorizationsView.endDate"));
 
-			if (source == AuthorizationSource.OWN && !isViewOnly) {
+			if (authorizationSource == AuthorizationSource.OWN && !isViewOnly) {
 				table.setColumnHeader(BUTTONS, "");
 				table.setColumnWidth(BUTTONS, 80);
 				columnIds.add(BUTTONS);
-			} else if (source == AuthorizationSource.INHERITED_FROM_METADATA) {
+			} else if (authorizationSource == AuthorizationSource.INHERITED_FROM_METADATA) {
 				columnIds.add(RECEIVED_FROM_RECORD_CAPTION);
-			} else if (source == AuthorizationSource.SHARED && !isViewOnly) {
+			} else if (authorizationSource == AuthorizationSource.SHARED && !isViewOnly) {
 				table.setColumnHeader(BUTTONS, "");
 				table.setColumnWidth(BUTTONS, 80);
 				columnIds.add(BUTTONS);
@@ -744,6 +757,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 					return buildSharedByColumn(authorization.getSharedBy());
 				case SHARE_ACCESS:
 					return buildShareAccessColumn(authorization);
+				case SOURCE:
+					return buildSourceColumn(authorization.getSource());
 				default:
 					LocalDate date = (LocalDate) source.getItem(itemId).getItemProperty(columnId).getValue();
 					return converter.convertToPresentation(
@@ -781,6 +796,11 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		private Object buildSharedByColumn(String users) {
 			ReferenceDisplay sharedBy = new ReferenceDisplay(users, true, new UserIdToCaptionConverter());
 			return sharedBy;
+		}
+
+		private Object buildSourceColumn(String source) {
+			ReferenceDisplay sourceTitle = new ReferenceDisplay(source, true, new ValueListItemIdToCaptionConverter());
+			return sourceTitle;
 		}
 
 		private Component buildAccessColumn(List<String> roles) {

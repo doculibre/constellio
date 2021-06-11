@@ -10,6 +10,7 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordRuntimeException;
 import com.constellio.model.entities.records.RecordRuntimeException.CannotMerge;
+import com.constellio.model.entities.schemas.CombinedStructureFactory;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -97,7 +98,7 @@ public class RecordImplTest extends ConstellioTest {
 	@Mock ZeModifiableStructure zeStructure;
 	@Mock ZeModifiableStructure anotherStructure;
 	@Mock ZeModifiableStructure aThirdStructure;
-	@Mock StructureFactory stringStructureFactory;
+	@Mock CombinedStructureFactory stringStructureFactory;
 	@Mock MetadataSchemaType metadataSchemaType;
 
 	@Mock FieldsPopulator copyfieldsPopulator, copyfieldsPopulator2;
@@ -187,6 +188,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(factoredMetadata.getType()).thenReturn(MetadataValueType.STRUCTURE);
 		when(factoredMetadata.getStructureFactory()).thenReturn((StructureFactory) stringStructureFactory);
 		when(factoredMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
+		when(factoredMetadata.isCombinedStructure()).thenReturn(true);
 
 		when(zeSchema.getMetadata(factoredListMetadataCode)).thenReturn(factoredListMetadata);
 		when(factoredListMetadata.getLocalCode()).thenReturn(factoredListMetadataCode);
@@ -197,6 +199,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(factoredListMetadata.isMultivalue()).thenReturn(true);
 		when(factoredListMetadata.getStructureFactory()).thenReturn((StructureFactory) stringStructureFactory);
 		when(factoredListMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
+		when(factoredListMetadata.isCombinedStructure()).thenReturn(true);
 
 
 	}

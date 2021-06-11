@@ -101,14 +101,12 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		collectionsSet.add("otherCollection");
 		dakotaCredentialVO.setCollections(collectionsSet);
 		dakotaCredentialVO.setEmail("dakota1@constellio.com");
-		dakotaCredentialVO.setGlobalGroups(Arrays.asList(HEROES));
 		dakotaCredentialVO.setLastName("Lindien1");
 
 		presenter.saveButtonClicked(dakotaCredentialVO);
 
 		dakotaCredential = userServices.getUserInfos(DAKOTA);
 		assertThat(dakotaCredential.getFirstName()).isEqualTo("Dakota1");
-		assertThat(dakotaCredential.getGroupCodesInAnyCollection()).containsOnly(HEROES);
 		assertThat(dakotaCredential.getCollections()).containsOnly(zeCollection, "otherCollection");
 		assertThat(dakotaCredential.getLastName()).isEqualTo("Lindien1");
 		assertThat(dakotaCredential.getEmail()).isEqualTo("dakota1@constellio.com");
@@ -126,7 +124,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		collectionsSet.add("otherCollection");
 		dakotaCredentialVO.setCollections(collectionsSet);
 		dakotaCredentialVO.setEmail("dakota1@constellio.com");
-		dakotaCredentialVO.setGlobalGroups(Arrays.asList(HEROES));
 		dakotaCredentialVO.setLastName("Lindien1");
 
 		presenter.saveButtonClicked(dakotaCredentialVO);
@@ -134,7 +131,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		dakotaCredential = userServices.getUserInfos(DAKOTA);
 		verify(userCredentialView, never()).navigate();
 		assertThat(dakotaCredential.getFirstName()).isEqualTo("Dakota");
-		assertThat(dakotaCredential.getGroupCodesInAnyCollection()).containsOnly(HEROES);
 		assertThat(dakotaCredential.getCollections()).containsOnly(zeCollection);
 		assertThat(dakotaCredential.getLastName()).isEqualTo("L'Indien");
 		assertThat(dakotaCredential.getEmail()).isEqualTo("dakota@doculibre.com");
@@ -152,7 +148,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		collectionsSet.add("otherCollection");
 		newUserCredentialVO.setCollections(collectionsSet);
 		newUserCredentialVO.setEmail("user@constellio.com");
-		newUserCredentialVO.setGlobalGroups(Arrays.asList(HEROES));
 		newUserCredentialVO.setLastName("lastName");
 		newUserCredentialVO.setPassword("password");
 		newUserCredentialVO.setConfirmPassword("password");
@@ -161,7 +156,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		newUserCredential = userServices.getUserInfos("user");
 		assertThat(newUserCredential.getFirstName()).isEqualTo("User");
-		assertThat(newUserCredential.getGroupCodesInAnyCollection()).containsOnly(HEROES);
 		assertThat(newUserCredential.getCollections()).containsOnly(zeCollection, "otherCollection");
 		assertThat(newUserCredential.getLastName()).isEqualTo("lastName");
 		assertThat(newUserCredential.getEmail()).isEqualTo("user@constellio.com");
@@ -178,7 +172,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		collectionsSet.add("otherCollection");
 		newUserCredentialVO.setCollections(collectionsSet);
 		newUserCredentialVO.setEmail("user@constellio.com");
-		newUserCredentialVO.setGlobalGroups(Arrays.asList(HEROES));
 		newUserCredentialVO.setLastName("lastName");
 		newUserCredentialVO.setPassword("password");
 		newUserCredentialVO.setConfirmPassword("password1");
@@ -201,7 +194,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		collectionsSet.add("otherCollection");
 		newUserCredentialVO.setCollections(collectionsSet);
 		newUserCredentialVO.setEmail("user@constellio.com");
-		newUserCredentialVO.setGlobalGroups(Arrays.asList(HEROES));
 		newUserCredentialVO.setLastName("lastName");
 		newUserCredentialVO.setPassword("password");
 		newUserCredentialVO.setConfirmPassword("password");
@@ -224,7 +216,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 		collectionsSet.add("otherCollection");
 		newUserCredentialVO.setCollections(collectionsSet);
 		newUserCredentialVO.setEmail("user@constellio.com");
-		newUserCredentialVO.setGlobalGroups(Arrays.asList(HEROES));
 		newUserCredentialVO.setLastName("lastName");
 		newUserCredentialVO.setPassword("password");
 		newUserCredentialVO.setConfirmPassword("password");
@@ -234,7 +225,6 @@ public class AddEditUserCredentialPresenterAcceptTest extends ConstellioTest {
 
 		newUserCredential = userServices.getUserInfos("user");
 		assertThat(newUserCredential.getFirstName()).isEqualTo("User");
-		assertThat(newUserCredential.getGroupCodesInAnyCollection()).containsOnly(HEROES);
 		assertThat(newUserCredential.getCollections()).containsOnly(zeCollection, "otherCollection");
 		assertThat(newUserCredential.getLastName()).isEqualTo("lastName");
 		assertThat(newUserCredential.getEmail()).isEqualTo("user@constellio.com");

@@ -5,6 +5,7 @@ import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.solr.SolrDataStoreTypesFactory;
 import com.constellio.data.utils.Delayed;
 import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException;
@@ -28,6 +29,8 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypte
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssential;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMarkedForDeletion;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMarkedForTypeMigrationToString;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMarkedMultivalueMigrationToTrue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsScripted;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -77,6 +80,32 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 
 		assertThat(zeSchema.stringMetadata().isMarkedForDeletion()).isFalse();
 		assertThat(zeSchema.booleanMetadata().isMarkedForDeletion()).isTrue();
+	}
+
+	@Test
+	public void whenAddUpdateSchemasThenSaveMarkedForTypeOrMultivalueMigrationFlag() throws Exception {
+		defineSchemasManager().using(schemas.withALargeTextMetadata(whichIsMarkedForTypeMigrationToString, whichIsMarkedMultivalueMigrationToTrue)
+				.withAStringMetadata());
+
+		assertThat(zeSchema.largeTextMetadata().getMarkedForMigrationToType()).isEqualTo(MetadataValueType.STRING);
+		assertThat(zeSchema.largeTextMetadata().isMarkedForMigrationToMultivalue()).isEqualTo(Boolean.TRUE);
+		assertThat(zeSchema.stringMetadata().getMarkedForMigrationToType()).isNull();
+		assertThat(zeSchema.stringMetadata().isMarkedForMigrationToMultivalue()).isNull();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.largeTextMetadata().getLocalCode())
+						.setMarkedForMigrationToMultivalue(null).setMarkedForMigrationToType(null);
+				types.getSchema(zeSchema.code()).get(zeSchema.stringMetadata().getLocalCode())
+						.setMarkedForMigrationToMultivalue(Boolean.TRUE);
+			}
+		});
+
+		assertThat(zeSchema.largeTextMetadata().getMarkedForMigrationToType()).isNull();
+		assertThat(zeSchema.largeTextMetadata().isMarkedForMigrationToMultivalue()).isNull();
+		assertThat(zeSchema.stringMetadata().getMarkedForMigrationToType()).isNull();
+		assertThat(zeSchema.stringMetadata().isMarkedForMigrationToMultivalue()).isEqualTo(Boolean.TRUE);
 	}
 
 	@Test

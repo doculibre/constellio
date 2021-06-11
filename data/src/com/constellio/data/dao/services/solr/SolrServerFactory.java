@@ -2,6 +2,7 @@ package com.constellio.data.dao.services.solr;
 
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.io.SolrClientCache;
 import org.apache.solr.client.solrj.io.stream.TupleStream;
 
 import java.util.Map;
@@ -19,4 +20,6 @@ public interface SolrServerFactory {
 	AtomicFileSystem getConfigFileSystem();
 
 	void clear();
+
+	SolrClientCache getSolrClientCache();
 }

@@ -1,5 +1,8 @@
 package com.constellio.app.modules.rm.extensions.api;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.api.extensions.DocumentFolderBreadCrumbExtention;
 import com.constellio.app.api.extensions.NavigateToFromAPageImportExtension;
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
@@ -13,6 +16,7 @@ import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtens
 import com.constellio.app.modules.rm.extensions.api.RMExternalLinkVOExtension.RMExternalLinkVOExtensionParams;
 import com.constellio.app.modules.rm.extensions.api.StorageSpaceExtension.StorageSpaceExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
+import com.constellio.app.modules.rm.extensions.ui.RMAddEditDocumentPageExtension;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -32,9 +36,6 @@ import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class RMModuleExtensions implements ModuleExtensions {
 
@@ -56,6 +57,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<CartExtensions> cartExtensions;
 	private VaultBehaviorsList<FilteredActionsExtension> filteredActionsExtension;
 	private VaultBehaviorsList<RMExternalLinkVOExtension> externalLinkVOExtensions;
+	private VaultBehaviorsList<RMAddEditDocumentPageExtension> addEditDocumentPageExtensions;
 	private AgentExtension agentExtensions;
 
 	private ModelLayerExtensions modelLayerExtensions;
@@ -80,6 +82,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		filteredActionsExtension = new VaultBehaviorsList<>();
 		agentExtensions = new AgentExtension();
 		externalLinkVOExtensions = new VaultBehaviorsList<>();
+		addEditDocumentPageExtensions = new VaultBehaviorsList<>();
 	}
 
 	public List<String> getFilteredActionsForContainers() {
@@ -174,10 +177,19 @@ public class RMModuleExtensions implements ModuleExtensions {
 	public AgentExtension getAgentExtensions() {
 		return agentExtensions;
 	}
+	
+	public VaultBehaviorsList<RMAddEditDocumentPageExtension> getAddEditDocumentPageExtensions() {
+		return addEditDocumentPageExtensions;
+	}
 
 	public boolean isCopyActionPossibleOnFolder(final Folder folder, final User user) {
 		return folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isCopyActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	public boolean isBatchDuplicateActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isBatchDuplicateActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isDownloadActionPossibleOnFolder(final Folder folder, final User user) {
@@ -311,6 +323,11 @@ public class RMModuleExtensions implements ModuleExtensions {
 	public boolean isEditActionPossibleOnFolder(final Folder folder, final User user) {
 		return user.hasWriteAccess().on(folder) && folderExtensions.getBooleanValue(true,
 				(behavior) -> behavior.isEditActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
+	}
+
+	public boolean isDuplicateActionPossibleOnFolder(final Folder folder, final User user) {
+		return folderExtensions.getBooleanValue(true,
+				(behavior) -> behavior.isDuplicateActionPossible(new FolderExtensionActionPossibleParams(folder, user)));
 	}
 
 	public boolean isDeleteActionPossibleOnFolder(final Folder folder, final User user) {
@@ -747,4 +764,11 @@ public class RMModuleExtensions implements ModuleExtensions {
 		}
 		return result;
 	}
+	
+	public void afterSaveDocument(RMAddEditDocumentPageExtension.AfterSaveDocumentParams params) {
+		for (RMAddEditDocumentPageExtension extension : addEditDocumentPageExtensions) {
+			extension.afterSaveDocument(params);
+		}
+	}
+	
 }

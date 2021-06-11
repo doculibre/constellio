@@ -306,7 +306,7 @@ public class RecordHierarchyServices {
 	public List<String> getAllPrincipalConceptIdsAvailableTo(Taxonomy taxonomy, User user, StatusFilter statusFilter) {
 		return searchServices.searchRecordIds(new LogicalSearchQuery(fromConceptsOf(taxonomy).returnAll())
 				.sortAsc(CODE).sortAsc(TITLE)
-				.filteredWithUser(user)
+				.filteredWithUserRead(user)
 				.filteredByStatus(statusFilter));
 	}
 
@@ -317,7 +317,7 @@ public class RecordHierarchyServices {
 	public List<Record> getAllPrincipalConceptsAvailableTo(Taxonomy taxonomy, User user) {
 		return searchServices.search(new LogicalSearchQuery(fromConceptsOf(taxonomy).returnAll())
 				.sortAsc(CODE).sortAsc(TITLE)
-				.filteredWithUser(user));
+				.filteredWithUserRead(user));
 	}
 
 	public List<Record> getAllRecordsInHierarchy(Record record) {
@@ -371,7 +371,7 @@ public class RecordHierarchyServices {
 				MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypeOf(currentRecord);
 				MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(currentRecord.getCollection());
 
-				for (MetadataSchemaType childSchemaType : schemaTypes.getClassifiedSchemaTypesIn(schemaType.getCode())) {
+				for (MetadataSchemaType childSchemaType : schemaTypes.getClassifiedSchemaTypesIncludingSelfIn(schemaType.getCode())) {
 					List<Metadata> parentMetadatas = new ArrayList<>(childSchemaType.getAllParentReferencesTo(schemaType.getCode()));
 
 					for (Metadata parentMetadata : parentMetadatas) {

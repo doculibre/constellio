@@ -7,6 +7,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.data.utils.Builder;
+import com.vaadin.ui.VerticalLayout;
 
 import java.util.List;
 
@@ -17,9 +18,9 @@ public interface ListUserDocumentsView extends BaseView, PersonnalSpaceViewGroup
 	void setClassifyButtonFactory(Builder<ContainerButton> classifyButtonFactory);
 
 	void refresh();
-	
-	void showUploadMessage(String message);
-	
+
+	void showUploadMessage(VerticalLayout verticalLayout);
+
 	void showUploadErrorMessage(String message);
 
 	boolean isInAWindow();

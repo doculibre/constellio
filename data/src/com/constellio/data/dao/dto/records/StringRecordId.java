@@ -59,7 +59,16 @@ public class StringRecordId implements RecordId {
 	@Override
 	public int intValue() {
 		if (intValue == 0) {
-			intValue = mapping.get().getIntId(id);
+			if (id.length() == 13 && id.endsWith("ZZ")) {
+				String firstPart = id.substring(0, id.length() - 2);
+				try {
+					intValue = Integer.valueOf(firstPart);
+				} catch (NumberFormatException ignored) {
+					intValue = mapping.get().getIntId(id);
+				}
+			} else {
+				intValue = mapping.get().getIntId(id);
+			}
 		}
 		return intValue;
 	}

@@ -177,7 +177,7 @@ public class RemoveGroupsFromCollectionsWindowButton extends WindowButton {
 		getWindow().close();
 	}
 
-	// TODO::JOLA --> Get a response to detect if group is used or not, if used, show warning message.
+	// TODO --> Get a response to detect if group is used or not, if used, show warning message.
 	private void executeAction() {
 		deleteGroupsFromCollections(collectionsField.getSelectedValues());
 

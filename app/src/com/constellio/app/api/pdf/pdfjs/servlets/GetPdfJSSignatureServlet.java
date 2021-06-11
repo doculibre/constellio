@@ -26,6 +26,7 @@ public class GetPdfJSSignatureServlet extends BasePdfJSServlet {
 		if (StringUtils.isBlank(signatureBase64Url)) {
 			signatureBase64Url = "";
 		}
+		preventCache(request, response);
 		writeResponse(signatureBase64Url, request, response);
 	}
 

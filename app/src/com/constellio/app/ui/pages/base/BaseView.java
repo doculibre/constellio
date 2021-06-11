@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.base;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.dialogs.ConfirmDialogShower;
+import com.vaadin.ui.VerticalLayout;
 
 import java.io.Serializable;
 import java.util.List;
@@ -17,6 +18,8 @@ public interface BaseView extends ViewComponent, ConfirmDialogShower {
 	void showMessage(String message);
 
 	void showClickableMessage(String message);
+
+	void showClickableMessage(VerticalLayout verticalLayout);
 
 	@Override
 	void showErrorMessage(String errorMessage);
@@ -47,7 +50,7 @@ public interface BaseView extends ViewComponent, ConfirmDialogShower {
 	void runAsync(Runnable runnable);
 
 	void runAsync(Runnable runnable, int pollIntervall);
-	
+
 	void doWhileRunningAsync(Runnable runnable);
 
 	void openURL(String url);

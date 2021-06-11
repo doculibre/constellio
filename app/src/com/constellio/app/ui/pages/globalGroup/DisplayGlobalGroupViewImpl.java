@@ -1,5 +1,10 @@
 package com.constellio.app.ui.pages.globalGroup;
 
+import com.constellio.app.modules.restapi.core.util.ListUtils;
+import com.constellio.app.services.menu.MenuItemAction;
+import com.constellio.app.services.menu.MenuItemActionState;
+import com.constellio.app.services.menu.MenuItemActionState.MenuItemActionStateStatus;
+import com.constellio.app.services.menu.MenuItemFactory.MenuItemRecordProvider;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -11,6 +16,7 @@ import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.TableStringFilter;
 import com.constellio.app.ui.framework.components.buttons.RecordVOActionButtonFactory;
+import com.constellio.app.ui.framework.components.menuBar.ActionMenuDisplay;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -39,9 +45,10 @@ import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_CONSULT;
 import static com.constellio.app.services.menu.GroupCollectionMenuItemServices.GroupRecordMenuItemActionType.GROUP_EDIT;
@@ -160,8 +167,11 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		availableUserTable = buildAvailableUserTable();
 
 		tableFilterSubGroups = new TableStringFilter(subGroupTable);
+		tableFilterSubGroups.setWidth("50%");
 		tableFilterGlobalGroupsUser = new TableStringFilter(userTable);
+		tableFilterGlobalGroupsUser.setWidth("50%");
 		tableFilterAvailableAvailableUsers = new TableStringFilter(availableUserTable);
+		tableFilterAvailableAvailableUsers.setWidth("50%");
 
 		viewLayout.addComponents(globalGroupDisplay, filterAndSearchButtonLayoutSubGroups, subGroupTable,
 				filterAndSearchButtonLayoutGlobalGroupsUser, userTable,
@@ -237,12 +247,18 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 	}
 
 	private Table buildTable(Container container, String title) {
-		Table table = new BaseTable(getClass().getName(), $(title), container);
-		int tableSize = batchSize;
-		if (tableSize > table.getItemIds().size()) {
-			tableSize = table.getItemIds().size();
+		int size = container.size();
+		Table table = new BaseTable(getClass().getName(), $(title, size), container);
+//		int tableSize = batchSize;
+//		if (tableSize > table.getItemIds().size()) {
+//			tableSize = table.getItemIds().size();
+//		}
+//		table.setPageLength(tableSize);
+		if (size < 10) {
+			table.setPageLength(size);
+		} else {
+			table.setPageLength(10);
 		}
-		table.setPageLength(tableSize);
 		table.setWidth("100%");
 		table.setSelectable(true);
 		table.setImmediate(true);
@@ -384,39 +400,60 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 	}
 
 	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-		return new RecordVOActionButtonFactory(presenter.getPageGroup(), this,
-				Arrays.asList(GROUP_CONSULT.name(), GROUP_EDIT.name())).build();
+	protected List<MenuItemAction> buildMenuItemActions(ViewChangeEvent event) {
+
+		List<String> excludedActionTypes = asList(GROUP_CONSULT.name(), GROUP_EDIT.name());
+
+		List<MenuItemAction> menuItemActions = buildRecordVOActionButtonFactory(excludedActionTypes).buildMenuItemActions();
+		menuItemActions.add(MenuItemAction.builder()
+				.type("AddSubGroup")
+				.caption($("DisplayGlobalGroupView.addSubGroup"))
+				.icon(FontAwesome.GROUP)
+				.command(recordIds -> presenter.addSubGroupClicked(globalGroupVO))
+				.state(new MenuItemActionState(MenuItemActionStateStatus.VISIBLE))
+				.priority(10)
+				.build());
+
+		menuItemActions.add(MenuItemAction.builder()
+				.type("EditSubGroup")
+				.caption($("edit"))
+				.icon(FontAwesome.EDIT)
+				.command(recordIds -> presenter.editGroupButtonClicked())
+				.state(new MenuItemActionState(MenuItemActionStateStatus.VISIBLE))
+				.priority(11)
+				.build());
+
+		return ListUtils.flatMapFilteringNull(
+				super.buildMenuItemActions(event),
+				menuItemActions
+		);
 	}
 
 	@Override
-	protected List<Button> getQuickActionMenuButtons() {
-		BaseButton addSubgroupButton = new AddButton($("DisplayGlobalGroupView.addSubGroup")) {
+	protected ActionMenuDisplay buildActionMenuDisplay(ActionMenuDisplay defaultActionMenuDisplay) {
+		return new ActionMenuDisplay(defaultActionMenuDisplay) {
 			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.addSubGroupClicked(globalGroupVO);
+			public Supplier<String> getSchemaTypeCodeSupplier() {
+				return presenter.getPageGroup().getSchema()::getTypeCode;
+			}
+
+			@Override
+			public Supplier<MenuItemRecordProvider> getMenuItemRecordProviderSupplier() {
+				return buildRecordVOActionButtonFactory()::buildMenuItemRecordProvider;
 			}
 		};
-		addSubgroupButton.setIcon(FontAwesome.GROUP);
-		addSubgroupButton.setCaptionVisibleOnMobile(false);
+	}
 
-		Button editGroupButton = new EditButton($("edit")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				presenter.editGroupButtonClicked();
-			}
-		};
+	private RecordVOActionButtonFactory buildRecordVOActionButtonFactory() {
+		return buildRecordVOActionButtonFactory(Collections.emptyList());
+	}
 
-		return asList(addSubgroupButton, editGroupButton);
+	private RecordVOActionButtonFactory buildRecordVOActionButtonFactory(List<String> excludedActionTypes) {
+		return new RecordVOActionButtonFactory(presenter.getPageGroup(), this, excludedActionTypes);
 	}
 
 	@Override
 	protected boolean alwaysUseLayoutForActionMenu() {
-		return true;
-	}
-
-	@Override
-	protected boolean isActionMenuBar() {
 		return true;
 	}
 
@@ -438,8 +475,11 @@ public class DisplayGlobalGroupViewImpl extends BaseViewImpl implements DisplayG
 		availableUserTable = newAvailableUserCredentialsTable;
 
 		TableStringFilter newTableFilterSubGroups = new TableStringFilter(subGroupTable);
+		newTableFilterSubGroups.setWidth("50%");
 		TableStringFilter newTableFilterGlobalGroupsUser = new TableStringFilter(userTable);
+		newTableFilterGlobalGroupsUser.setWidth("50%");
 		TableStringFilter newTableFilterAvailableAvailableUsers = new TableStringFilter(availableUserTable);
+		newTableFilterAvailableAvailableUsers.setWidth("50%");
 		filterAndSearchButtonLayoutSubGroups.replaceComponent(tableFilterSubGroups, newTableFilterSubGroups);
 		filterAndSearchButtonLayoutGlobalGroupsUser.replaceComponent(tableFilterGlobalGroupsUser, newTableFilterGlobalGroupsUser);
 		filterAndSearchButtonLayoutAvailableUsers

@@ -55,6 +55,8 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 	protected transient ModelLayerFactory modelLayerFactory;
 	protected transient AppLayerFactory appLayerFactory;
 
+	private final SessionContext sessionContext;
+
 	private BasePresenterUtils presenterUtils;
 
 	protected transient AppLayerCollectionExtensions appCollectionExtentions;
@@ -67,6 +69,7 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 
 	public BasePresenter(final T view, ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		this.view = view;
+		this.sessionContext = sessionContext;
 		view.addViewEnterListener(new ViewEnterListener() {
 			private String viewEnteredParams;
 
@@ -130,7 +133,7 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 		constellioFactories.onRequestStarted();
 	}
 
-	private boolean isViewVisibleToCurrentUser(String params) {
+	public boolean isViewVisibleToCurrentUser(String params) {
 		User user = getCurrentUser();
 
 		List<String> restrictedRecordIds = getRestrictedRecordIds(params);
@@ -320,7 +323,13 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 		return presenterUtils.getConceptsWithPermissionsForCurrentUser(permissions);
 	}
 
+	public AppLayerFactory getAppLayerFactory() {
+		return appLayerFactory;
+	}
 
+	public SessionContext getSessionContext() {
+		return sessionContext;
+	}
 
 	/*public String getGuideUrl() {
 		GuideManager manager = new GuideManager(appLayerFactory.getModelLayerFactory().getDataLayerFactory());

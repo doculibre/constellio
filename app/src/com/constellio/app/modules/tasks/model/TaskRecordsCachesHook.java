@@ -2,6 +2,7 @@ package com.constellio.app.modules.tasks.model;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDTOMode;
 import com.constellio.data.dao.dto.records.RecordId;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
@@ -21,6 +22,9 @@ import static com.constellio.model.services.records.cache.hooks.RemoteCacheActio
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+/**
+ * Keep model tasks in a map
+ */
 public class TaskRecordsCachesHook implements RecordsCachesHook {
 
 	private Map<String, Record> modelTasks = new HashMap<>();
@@ -42,8 +46,13 @@ public class TaskRecordsCachesHook implements RecordsCachesHook {
 
 	@Override
 	public HookCacheInsertionResponse insert(Record record, MetadataSchemaTypes schemaTypes, InsertionReason reason) {
-		modelTasks.put(record.getId(), record);
-		return new HookCacheInsertionResponse(ACCEPTED, reason == WAS_MODIFIED ? INSERT : DO_NOTHING);
+		if (record.getRecordDTOMode() == RecordDTOMode.FULLY_LOADED) {
+			modelTasks.put(record.getId(), record);
+			return new HookCacheInsertionResponse(ACCEPTED, reason == WAS_MODIFIED ? INSERT : DO_NOTHING);
+		} else {
+			modelTasks.remove(record.getId());
+			return new HookCacheInsertionResponse(ACCEPTED, reason == WAS_MODIFIED ? INSERT : DO_NOTHING);
+		}
 	}
 
 	@Override

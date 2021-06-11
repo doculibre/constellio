@@ -257,7 +257,7 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		for (Authorization authDetails : schemas
-				.searchSolrAuthorizationDetailss(where(schemas.authorizationDetails.target()).isEqualTo(objectId))) {
+				.searchAuthorizations(where(schemas.authorizationDetails.target()).isEqualTo(objectId))) {
 
 			if (authDetails != null && hasSameElementsNoMatterTheOrder(authDetails.getRoles(), permissions)) {
 				detailses.add(authDetails);

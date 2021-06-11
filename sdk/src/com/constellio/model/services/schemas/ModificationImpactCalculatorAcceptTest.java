@@ -1,16 +1,19 @@
 package com.constellio.model.services.schemas;
 
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.ImpactHandlingMode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.ModificationImpact;
+import com.constellio.model.entities.schemas.QueryBasedReindexingBatchProcessModificationImpact;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.taxonomies.CacheBasedTaxonomyVisitingServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import org.joda.time.LocalDateTime;
@@ -66,7 +69,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 	private ModificationImpactCalculator newImpactCalculator() {
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		List<Taxonomy> taxonomies = getModelLayerFactory().getTaxonomiesManager().getEnabledTaxonomies(zeCollection);
-		return new ModificationImpactCalculator(types, taxonomies, searchServices, recordServices);
+		return new ModificationImpactCalculator(types, taxonomies, searchServices, recordServices, new CacheBasedTaxonomyVisitingServices(getModelLayerFactory()));
 	}
 
 	@Test
@@ -76,7 +79,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		Record newRecord = newRecordWithAStringAndADate();
 
 		ModificationImpactCalculatorResponse response = newImpactCalculator()
-				.findTransactionImpact(new Transaction(newRecord), false);
+				.findTransactionImpact(new Transaction(newRecord));
 
 		assertThat(response.getImpacts()).isEmpty();
 	}
@@ -90,7 +93,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		record.set(zeSchema.booleanMetadata(), true);
 
 		ModificationImpactCalculatorResponse response = newImpactCalculator()
-				.findTransactionImpact(new Transaction(record), false);
+				.findTransactionImpact(new Transaction(record));
 
 		assertThat(response.getImpacts()).isEmpty();
 	}
@@ -108,7 +111,7 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		record.set(zeSchema.dateTimeMetadata(), aNewDate);
 
 		ModificationImpactCalculatorResponse response = newImpactCalculator()
-				.findTransactionImpact(new Transaction(record), false);
+				.findTransactionImpact(new Transaction(record));
 
 		assertThat(response.getImpacts()).hasSize(2);
 
@@ -128,8 +131,8 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 				.isIn(asList(record)).andWhere(Schemas.IDENTIFIER)
 				.isNotIn(asList(record.getId()));
 		assertThat(anotherSchemaImpact).isEqualTo(
-				new ModificationImpact(anotherSchemaType.type(), anotherSchemaType.metadataUsingZeSchemaDateAndString(),
-						anotherSchemaCondition, 1, null));
+				new QueryBasedReindexingBatchProcessModificationImpact(anotherSchemaType.type(), anotherSchemaType.metadataUsingZeSchemaDateAndString(),
+						anotherSchemaCondition, 1, null, true));
 
 		LogicalSearchCondition thirdSchemaCondition = from(thirdSchemaType.type())
 				.whereAny(asList(thirdSchemaType.referenceToZeSchema())).isIn(asList(record))
@@ -137,8 +140,8 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 				.isNotIn(asList(record.getId()));
 
 		assertThat(thirdSchemaImpact).isEqualTo(
-				new ModificationImpact(thirdSchemaType.type(), thirdSchemaType.metadataUsingZeSchemaDateAndString(),
-						thirdSchemaCondition, 1, null));
+				new QueryBasedReindexingBatchProcessModificationImpact(thirdSchemaType.type(), thirdSchemaType.metadataUsingZeSchemaDateAndString(),
+						thirdSchemaCondition, 1, null, true));
 
 	}
 
@@ -154,8 +157,10 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 		record.set(zeSchema.stringMetadata(), aNewString);
 		record.set(zeSchema.dateTimeMetadata(), aNewDate);
 
+		Transaction tx = new Transaction(record);
+		tx.getRecordUpdateOptions().setImpactHandlingMode(ImpactHandlingMode.DELEGATED);
 		ModificationImpactCalculatorResponse response = newImpactCalculator()
-				.findTransactionImpact(new Transaction(record), true);
+				.findTransactionImpact(tx);
 
 		assertThat(response.getImpacts()).hasSize(2);
 
@@ -174,15 +179,15 @@ public class ModificationImpactCalculatorAcceptTest extends ConstellioTest {
 				.whereAny(asList(anotherSchemaType.reference1ToZeSchema(), anotherSchemaType.reference2ToZeSchema()))
 				.isIn(asList(record));
 		assertThat(anotherSchemaImpact).isEqualTo(
-				new ModificationImpact(anotherSchemaType.type(), anotherSchemaType.metadataUsingZeSchemaDateAndString(),
-						anotherSchemaCondition, 1, null));
+				new QueryBasedReindexingBatchProcessModificationImpact(anotherSchemaType.type(), anotherSchemaType.metadataUsingZeSchemaDateAndString(),
+						anotherSchemaCondition, 1, null, false));
 
 		LogicalSearchCondition thirdSchemaCondition = from(thirdSchemaType.type())
 				.whereAny(asList(thirdSchemaType.referenceToZeSchema())).isIn(asList(record));
 
 		assertThat(thirdSchemaImpact).isEqualTo(
-				new ModificationImpact(thirdSchemaType.type(), thirdSchemaType.metadataUsingZeSchemaDateAndString(),
-						thirdSchemaCondition, 1, null));
+				new QueryBasedReindexingBatchProcessModificationImpact(thirdSchemaType.type(), thirdSchemaType.metadataUsingZeSchemaDateAndString(),
+						thirdSchemaCondition, 1, null, false));
 
 	}
 

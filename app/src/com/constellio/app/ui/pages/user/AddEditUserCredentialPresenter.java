@@ -5,10 +5,12 @@ import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.UserSyncMode;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -281,7 +283,8 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 	}
 
 	public boolean userNotLDAPSynced(String username) {
-		return User.ADMIN.equals(username) || !modelLayerFactory.getLdapConfigurationManager().idUsersSynchActivated();
+		LDAPConfigurationManager ldapConfigurationManager = modelLayerFactory.getLdapConfigurationManager();
+		return User.ADMIN.equals(username) || !(ldapConfigurationManager.isLDAPAuthentication() && ldapConfigurationManager.isUsersSynchActivated());
 	}
 
 	@Override
@@ -341,5 +344,12 @@ public class AddEditUserCredentialPresenter extends BasePresenter<AddEditUserCre
 
 		view.showMessage($("CollectionSecurityManagement.addedUserToCollections"));
 		view.navigate().to().previousView();
+	}
+ 
+	public boolean isSetStatusPossible(UserCredentialVO userCredentialVO) {
+		return userNotLDAPSynced(userCredentialVO.getUsername()) 
+				&& !User.ADMIN.equals(userCredentialVO.getUsername()) 
+				&& canAndOrModify(userCredentialVO.getUsername()) 
+				&& userCredentialVO.getSyncMode() != UserSyncMode.SYNCED;
 	}
 }

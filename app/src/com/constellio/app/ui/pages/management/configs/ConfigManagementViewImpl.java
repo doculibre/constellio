@@ -154,7 +154,11 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 		saveButton.addStyleName(BaseForm.SAVE_BUTTON);
 		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-		ConstellioUI.getCurrent().setStaticFooterContent(saveButton);
+		if (!ConstellioUI.getCurrent().isNested()) {
+			ConstellioUI.getCurrent().setStaticFooterContent(saveButton);
+		} else {
+			addComponent(saveButton);
+		}
 
 		return layout;
 	}

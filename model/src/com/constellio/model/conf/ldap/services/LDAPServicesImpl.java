@@ -1,6 +1,30 @@
 package com.constellio.model.conf.ldap.services;
 
-import com.constellio.data.utils.dev.Toggle;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+import javax.naming.ldap.Control;
+import javax.naming.ldap.LdapContext;
+import javax.naming.ldap.PagedResultsControl;
+import javax.naming.ldap.PagedResultsResponseControl;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
+import org.apache.commons.collections.Transformer;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.model.conf.ldap.Filter;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
@@ -14,29 +38,6 @@ import com.constellio.model.conf.ldap.user.LDAPUserBuilder;
 import com.constellio.model.services.users.sync.LDAPFastBind;
 import com.constellio.model.services.users.sync.model.LDAPUsersAndGroups;
 import com.google.common.base.Joiner;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.collections.Transformer;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.Control;
-import javax.naming.ldap.LdapContext;
-import javax.naming.ldap.PagedResultsControl;
-import javax.naming.ldap.PagedResultsResponseControl;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class LDAPServicesImpl implements LDAPServices {
 	Logger LOGGER = LoggerFactory.getLogger(LDAPServicesImpl.class);
@@ -67,7 +68,7 @@ public class LDAPServicesImpl implements LDAPServices {
 		return rootContexts;
 	}
 
-	public Set<LDAPGroup> getAllGroups(LdapContext ctx, List<String> baseContextList) {
+	public Set<LDAPGroup> getAllGroups(LdapContext ctx, List<String> baseContextList, boolean fetchSubGroups) {
 		Set<LDAPGroup> returnList = new HashSet<>();
 		if (baseContextList == null || baseContextList.isEmpty()) {
 			return returnList;
@@ -76,7 +77,7 @@ public class LDAPServicesImpl implements LDAPServices {
 			for (String baseContext : baseContextList) {
 				Collection<? extends LDAPGroup> currentfetchedGroups;
 				try {
-					currentfetchedGroups = searchGroupsFromContext(ctx, baseContext);
+					currentfetchedGroups = searchGroupsFromContext(ctx, baseContext, fetchSubGroups);
 				} catch (NamingException e) {
 					throw new RuntimeException(e);
 				}
@@ -86,19 +87,49 @@ public class LDAPServicesImpl implements LDAPServices {
 		return returnList;
 	}
 
-	public Set<LDAPGroup> getGroupsUsingFilter(LdapContext ctx, List<String> baseContextList, final Filter filter) {
-		Set<LDAPGroup> groups = getAllGroups(ctx, baseContextList);
-		CollectionUtils.filter(groups, new Predicate() {
+	public Set<LDAPGroup> getGroupsUsingFilter(LdapContext ctx, List<String> baseContextList, final Filter filter, boolean fetchSubGroups, final boolean ignoreRegexForSubGroups) {
+		final Set<LDAPGroup> allGroups = getAllGroups(ctx, baseContextList, fetchSubGroups);
+		CollectionUtils.filter(allGroups, new Predicate() {
 			@Override
 			public boolean evaluate(Object object) {
+				boolean accepted;
 				LDAPGroup ldapGroup = (LDAPGroup) object;
-				return filter.isAccepted(ldapGroup.getSimpleName());
+				if (filter.isAccepted(ldapGroup.getSimpleName())) {
+					accepted = true;
+				} else if (ignoreRegexForSubGroups) {
+					Set<LDAPGroup> parentGroups = findAllParents(ldapGroup, allGroups); 
+					// If one parent matches the filter, accept the group
+					accepted = 
+							parentGroups.stream()
+							.anyMatch(group -> filter.isAccepted(group.getSimpleName()));
+				} else {
+					accepted = false;
+				}
+				return accepted;
 			}
 		});
-		return groups;
+		return allGroups;
+	}
+	
+	private Set<LDAPGroup> findAllParents(LDAPGroup ldapGroup, Set<LDAPGroup> allGroups) {
+		Set<LDAPGroup> allParents = new HashSet<>();
+		for (String parentDistinguishedName : ldapGroup.getMemberOf()) {
+			LDAPGroup parent = 
+					allGroups.stream()
+					.filter(group -> group.getDistinguishedName().equals(parentDistinguishedName))
+					.findFirst().get();
+			LDAPGroup currentParent = parent;
+			if (currentParent != null) {
+				allParents.add(currentParent);
+				// Recursive call
+				Set<LDAPGroup> currentParentParents = findAllParents(currentParent, allGroups);
+				allParents.addAll(currentParentParents);
+			}
+		}
+		return allParents;
 	}
 
-	private List<LDAPGroup> searchGroupsFromContext(LdapContext ctx, String groupsContainer)
+	private List<LDAPGroup> searchGroupsFromContext(LdapContext ctx, String groupsContainer, boolean fetchSubGroups)
 			throws NamingException {
 		List<LDAPGroup> groups = new ArrayList<>();
 		NamingEnumeration results = null;
@@ -125,8 +156,8 @@ public class LDAPServicesImpl implements LDAPServices {
 							for (String child :
 									group.getMembers()) {
 								if (groups.stream().noneMatch(x -> x.getDistinguishedName().equals(child))
-									&& Toggle.ALLOW_LDAP_FETCH_SUB_GROUPS.isEnabled()) {
-									groups.addAll(searchGroupsFromContext(ctx, child));
+									&& fetchSubGroups) {
+									groups.addAll(searchGroupsFromContext(ctx, child, fetchSubGroups));
 								}
 							}
 						}
@@ -143,7 +174,7 @@ public class LDAPServicesImpl implements LDAPServices {
 						}
 					}
 				} else {
-					LOGGER.info("No controls were sent from the server");
+					LOGGER.warn("No controls were sent from the server");
 				}
 				// Re-activate paged results
 				ctx.setRequestControls(new Control[]{new PagedResultsControl(pageSize, cookie, Control.CRITICAL)});
@@ -544,6 +575,8 @@ public class LDAPServicesImpl implements LDAPServices {
 													 LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		Set<String> returnGroups = new HashSet<>();
 
+		boolean fetchSubGroups = ldapUserSyncConfiguration.isFetchSubGroups(); 
+		boolean ignoreRegexForSubGroups = ldapUserSyncConfiguration.isIgnoreRegexForSubGroups();
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		List<String> urls = ldapServerConfiguration.getUrls();
 		for (String url : urls) {
@@ -554,7 +587,7 @@ public class LDAPServicesImpl implements LDAPServices {
 						ldapServerConfiguration.getFollowReferences(), activeDirectory);
 				if (ctx != null) {
 					Set<LDAPGroup> groups = getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
-							ldapUserSyncConfiguration.getGroupFilter());
+							ldapUserSyncConfiguration.getGroupFilter(), fetchSubGroups, ignoreRegexForSubGroups);
 					for (LDAPGroup group : groups) {
 						returnGroups.add(group.getSimpleName());
 					}
@@ -575,8 +608,11 @@ public class LDAPServicesImpl implements LDAPServices {
 
 	@Override
 	public LDAPUsersAndGroups importUsersAndGroups(LDAPServerConfiguration serverConfiguration,
-												   LDAPUserSyncConfiguration userSyncConfiguration, String url) {
+												   LDAPUserSyncConfiguration userSyncConfiguration, 
+												   String url) {
 
+		boolean fetchSubGroups = userSyncConfiguration.isFetchSubGroups(); 
+		boolean ignoreRegexForSubGroups = userSyncConfiguration.isIgnoreRegexForSubGroups();
 		boolean activeDirectory = serverConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		LdapContext ldapContext = null;
 		try {
@@ -588,7 +624,7 @@ public class LDAPServicesImpl implements LDAPServices {
 			final Set<LDAPGroup> ldapGroups = new HashSet<>();
 
 			//			// Get accepted groups list using groups search base and groups regex search filter
-			final Set<LDAPGroup> acceptedGroups = getGroupsUsingFilter(ldapContext, userSyncConfiguration.getGroupBaseContextList(), userSyncConfiguration.getGroupFilter());
+			final Set<LDAPGroup> acceptedGroups = getGroupsUsingFilter(ldapContext, userSyncConfiguration.getGroupBaseContextList(), userSyncConfiguration.getGroupFilter(), fetchSubGroups, ignoreRegexForSubGroups);
 			ldapGroups.addAll(acceptedGroups);
 
 			// Get accepted users list using users search base, user groups filter and users regex search filter

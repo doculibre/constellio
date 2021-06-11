@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.globalGroup;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.components.BaseForm;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -74,7 +75,7 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
-		codeField = new TextField();
+		codeField = new BaseTextField();
 		codeField.setCaption($("GlobalGroup.Code"));
 		codeField.setRequired(true);
 		codeField.setNullRepresentation("");
@@ -83,7 +84,7 @@ public class AddEditGlobalGroupViewImpl extends BaseViewImpl implements AddEditG
 		codeField.addStyleName("code-" + globalGroupVO.getCode());
 		codeField.setEnabled(addActionMode && globalGroupVO.isLocallyCreated());
 
-		nameField = new TextField();
+		nameField = new BaseTextField();
 		nameField.setCaption($("GlobalGroup.Name"));
 		nameField.setRequired(true);
 		nameField.setNullRepresentation("");

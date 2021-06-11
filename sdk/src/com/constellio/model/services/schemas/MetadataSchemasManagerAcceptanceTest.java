@@ -23,6 +23,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
+import com.constellio.model.entities.schemas.entries.AdvancedSequenceDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
@@ -91,6 +92,7 @@ import static com.constellio.model.entities.schemas.RecordCacheType.NOT_CACHED;
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITHOUT_VOLATILE;
 import static com.constellio.model.entities.schemas.RecordCacheType.SUMMARY_CACHED_WITH_VOLATILE;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.ADVANCED_SEQUENCE;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED;
@@ -180,6 +182,23 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		batchProcessesManager = getModelLayerFactory().getBatchProcessesManager();
 	}
 
+	@Test
+	public void whenMigratingTypeOrMultivalueOfMetadataThenReadingSchemaSettingOnDiskThenFlagsSet() {
+		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
+			types.getSchemaType(TemporaryRecord.SCHEMA_TYPE)
+					.getDefaultSchema()
+					.create("Hummingbird")
+					.setType(TEXT)
+					.setMarkedForMigrationToType(STRING)
+					.setMarkedForMigrationToMultivalue(Boolean.TRUE);
+		});
+
+		Metadata hummingbird = schemasManager.getSchemaTypes(zeCollection).getSchemaType(TemporaryRecord.SCHEMA_TYPE)
+				.getDefaultSchema().getMetadata("Hummingbird");
+
+		assertThat(hummingbird.getMarkedForMigrationToType()).isEqualTo(STRING);
+		assertThat(hummingbird.isMarkedForMigrationToMultivalue()).isEqualTo(Boolean.TRUE);
+	}
 
 	@Test
 	public void whenCreatingSchemaAndThenReadingSchemaSettingOnDiskThenIdAreWritten() {
@@ -200,7 +219,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	public void whenCreatingSchemaTypeAndThenReadingSchemaTypeSettingOnDiskThenIdAreWritten() {
 
 		schemasManager.modify(zeCollection, (MetadataSchemaTypesAlteration) types -> {
-			MetadataSchemaTypeBuilder newSchemaTypeToTest = types.createNewSchemaType("newSchemaTypeToTest");
+			MetadataSchemaTypeBuilder newSchemaTypeToTest = types.createNewSchemaTypeWithSecurity("newSchemaTypeToTest");
 		});
 
 		int idOfSchemaTypeCreated1 = schemasManager.getSchemaTypes(zeCollection).getSchemaType("newSchemaTypeToTest").getId();
@@ -236,8 +255,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		int sizeCollection2 = schemasManager.getSchemaTypes("collection2").getSchemaTypes().size();
 		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify("collection1");
 		MetadataSchemaTypesBuilder collection2Builder = schemasManager.modify("collection2");
-		collection1Builder.createNewSchemaType("a");
-		collection2Builder.createNewSchemaType("b");
+		collection1Builder.createNewSchemaTypeWithSecurity("a");
+		collection2Builder.createNewSchemaTypeWithSecurity("b");
 
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
 		schemasManager.saveUpdateSchemaTypes(collection2Builder);
@@ -268,7 +287,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify(zeCollection);
 
 		//setId should never be used, this test use it to proove that values are saved
-		MetadataSchemaTypeBuilder type = collection1Builder.createNewSchemaType("t").setId((short) 405);
+		MetadataSchemaTypeBuilder type = collection1Builder.createNewSchemaTypeWithSecurity("t").setId((short) 405);
 		MetadataSchemaBuilder defaultSchema = type.getDefaultSchema().setId((short) 406);
 		MetadataSchemaBuilder customSchema = type.createCustomSchema("custom").setId((short) 330);
 		MetadataBuilder defaultSchemaMetadata = defaultSchema.create("m1").setType(STRING).setId((short) 230);
@@ -308,10 +327,10 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify(zeCollection);
-		collection1Builder.createNewSchemaType("a").setRecordCacheType(FULLY_CACHED);
-		collection1Builder.createNewSchemaType("b").setRecordCacheType(NOT_CACHED);
-		collection1Builder.createNewSchemaType("c").setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
-		collection1Builder.createNewSchemaType("d").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE);
+		collection1Builder.createNewSchemaTypeWithSecurity("a").setRecordCacheType(FULLY_CACHED);
+		collection1Builder.createNewSchemaTypeWithSecurity("b").setRecordCacheType(NOT_CACHED);
+		collection1Builder.createNewSchemaTypeWithSecurity("c").setRecordCacheType(SUMMARY_CACHED_WITH_VOLATILE);
+		collection1Builder.createNewSchemaTypeWithSecurity("d").setRecordCacheType(SUMMARY_CACHED_WITHOUT_VOLATILE);
 
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
 
@@ -328,9 +347,9 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 			throws Exception {
 
 		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify(zeCollection);
-		collection1Builder.createNewSchemaType("a");
-		collection1Builder.createNewSchemaType("b").setInTransactionLog(true);
-		collection1Builder.createNewSchemaType("c").setInTransactionLog(false);
+		collection1Builder.createNewSchemaTypeWithSecurity("a");
+		collection1Builder.createNewSchemaTypeWithSecurity("b").setInTransactionLog(true);
+		collection1Builder.createNewSchemaTypeWithSecurity("c").setInTransactionLog(false);
 
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
 
@@ -351,8 +370,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		int sizeCollection2 = schemasManager.getSchemaTypes("collection2").getSchemaTypes().size();
 		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify("collection1");
 		MetadataSchemaTypesBuilder collection2Builder = schemasManager.modify("collection2");
-		collection1Builder.createNewSchemaType("a");
-		collection2Builder.createNewSchemaType("b");
+		collection1Builder.createNewSchemaTypeWithSecurity("a");
+		collection2Builder.createNewSchemaTypeWithSecurity("b");
 
 		MetadataSchemasManager otherManager = new MetadataSchemasManager(getModelLayerFactory(),
 				new Delayed<>(getAppLayerFactory().getModulesManager()));
@@ -385,8 +404,8 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		int sizeCollection2 = schemasManager.getSchemaTypes("collection2").getSchemaTypes().size();
 		MetadataSchemaTypesBuilder collection1Builder = schemasManager.modify("collection1");
 		MetadataSchemaTypesBuilder collection2Builder = schemasManager.modify("collection2");
-		collection1Builder.createNewSchemaType("a");
-		collection2Builder.createNewSchemaType("b");
+		collection1Builder.createNewSchemaTypeWithSecurity("a");
+		collection2Builder.createNewSchemaTypeWithSecurity("b");
 
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
 		schemasManager.saveUpdateSchemaTypes(collection2Builder);
@@ -421,7 +440,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		MetadataSchemaTypesBuilder collection1Builder = (new MetadataSchemaTypesBuilder(schemasManager.getSchemaTypes("collection1").getCollectionInfo()))
 				.modify(schemasManager.getSchemaTypes("collection1"), getModelLayerFactory(), new DefaultClassProvider());
-		collection1Builder.createNewSchemaType("a");
+		collection1Builder.createNewSchemaTypeWithSecurity("a");
 		schemasManager.saveUpdateSchemaTypes(collection1Builder);
 
 		verify(schemasManagerFirstCollection1Listener).onCollectionSchemasModified("collection1");
@@ -718,7 +737,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				MetadataSchemaTypeBuilder testschemaSchemaType = types.createNewSchemaType("testschema");
+				MetadataSchemaTypeBuilder testschemaSchemaType = types.createNewSchemaTypeWithSecurity("testschema");
 				testschemaSchemaType.createMetadata("string").setType(STRING).setCacheIndex(true);
 
 			}
@@ -747,7 +766,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				MetadataSchemaTypeBuilder testschemaSchemaType = types.createNewSchemaType("testschema");
+				MetadataSchemaTypeBuilder testschemaSchemaType = types.createNewSchemaTypeWithSecurity("testschema");
 				testschemaSchemaType.createMetadata("string").setType(STRING).setCacheIndex(true);
 				testschemaSchemaType.createCustomSchema("test2");
 
@@ -1184,6 +1203,16 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		assertThat(dynamicSeqDataEntry.getType()).isEqualTo(SEQUENCE);
 		assertThat(dynamicSeqDataEntry.getFixedSequenceCode()).isNull();
 		assertThat(dynamicSeqDataEntry.getMetadataProvidingSequenceCode()).isEqualTo("metadataDefiningSequenceNumber");
+	}
+
+	@Test
+	public void whenSavingAdvancedSequenceThenDataTypeConserved() throws Exception {
+		defineSchemasManager().using(defaultSchema.withAnAdvancedSequence(ReferencedMetadataBasedTestSequenceCalculator.class));
+
+		AdvancedSequenceDataEntry advancedSequenceDataEntry = (AdvancedSequenceDataEntry) zeSchema.advancedSequenceMetadata().getDataEntry();
+
+		assertThat(advancedSequenceDataEntry.getType()).isEqualTo(ADVANCED_SEQUENCE);
+		assertThat(advancedSequenceDataEntry.getCalculator().getClass()).isEqualTo(ReferencedMetadataBasedTestSequenceCalculator.class);
 	}
 
 	@Test
@@ -2120,7 +2149,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	private MetadataSchemaTypeBuilder addFolderSchemaTypeBuilderWithoutRuleMetadatas(MetadataSchemaTypesBuilder types)
 			throws Exception {
 
-		MetadataSchemaTypeBuilder folderBuilder = types.createNewSchemaType("folder").addLabel(Language.French, "Folder")
+		MetadataSchemaTypeBuilder folderBuilder = types.createNewSchemaTypeWithSecurity("folder").addLabel(Language.French, "Folder")
 				.setSecurity(true);
 		folderBuilder.getDefaultSchema().create("zetitle").setType(STRING).addLabel(Language.French, "Title").setUndeletable(true)
 				.setUnmodifiable(true);
@@ -2133,7 +2162,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 	private MetadataSchemaTypeBuilder addRuleSchemaTypeBuilder(MetadataSchemaTypesBuilder types) {
 
-		MetadataSchemaTypeBuilder ruleBuilder = types.createNewSchemaType("rule").addLabel(Language.French, "Rule")
+		MetadataSchemaTypeBuilder ruleBuilder = types.createNewSchemaTypeWithSecurity("rule").addLabel(Language.French, "Rule")
 				.setSecurity(false);
 		ruleBuilder.getDefaultSchema().create("zetitle").setType(STRING).addLabel(Language.French, "Title").setUndeletable(true);
 		ruleBuilder.getDefaultSchema().create("code").setType(STRING).addLabel(Language.French, "Code").setUndeletable(true);

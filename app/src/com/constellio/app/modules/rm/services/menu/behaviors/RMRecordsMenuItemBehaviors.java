@@ -1,30 +1,5 @@
 package com.constellio.app.modules.rm.services.menu.behaviors;
 
-import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
-import org.apache.commons.io.IOUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -77,12 +52,14 @@ import com.constellio.app.ui.framework.buttons.ContainersButton;
 import com.constellio.app.ui.framework.buttons.ContainersButton.ContainersAssigner;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.DuplicateFoldersButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.ReportTabButton;
+import com.constellio.app.ui.framework.components.SelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
+import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl.ValidateFileName;
 import com.constellio.app.ui.framework.stream.DownloadStreamResource;
 import com.constellio.app.ui.framework.window.ConsultLinkWindow.ConsultLinkParams;
 import com.constellio.app.ui.i18n.i18n;
@@ -131,8 +108,32 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.constellio.app.modules.rm.services.menu.behaviors.util.DocumentUtil.getEmailDocumentFileNameValidator;
+import static com.constellio.app.ui.framework.clipboard.CopyToClipBoard.copyConsultationLinkToClipBoard;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.util.UrlUtil.getConstellioUrl;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 @Slf4j
 public class RMRecordsMenuItemBehaviors {
@@ -250,6 +251,12 @@ public class RMRecordsMenuItemBehaviors {
 			}
 		};
 		duplicateButton.click();
+	}
+
+	public void batchDuplicate(List<String> recordIds, MenuItemActionBehaviorParams params) {
+		List<Folder> folders = recordIds.stream().map(f -> rm.getFolder(f)).collect(Collectors.toList());
+		DuplicateFoldersButton duplicateFolderButton = new DuplicateFoldersButton(folders, folderRecordActionsServices, params, decommissioningService);
+		duplicateFolderButton.click();
 	}
 
 
@@ -599,12 +606,19 @@ public class RMRecordsMenuItemBehaviors {
 	private UpdateContentVersionWindowImpl createUpdateContentVersionWindow(List<Document> documents,
 																			MenuItemActionBehaviorParams params) {
 		final Map<RecordVO, MetadataVO> recordMap = new HashMap<>();
+
+		ValidateFileName validateFileName = null;
+
 		for (Document document : documents) {
 			RecordVO recordVO = getDocumentVO(params, document);
 			recordMap.put(recordVO, recordVO.getMetadata(Document.CONTENT));
+
+			if (validateFileName == null) {
+				validateFileName = getEmailDocumentFileNameValidator(document.getSchemaCode());
+			}
 		}
 
-		return new UpdateContentVersionWindowImpl(recordMap) {
+		return new UpdateContentVersionWindowImpl(recordMap, false, validateFileName) {
 			@Override
 			public void close() {
 				super.close();
@@ -630,7 +644,7 @@ public class RMRecordsMenuItemBehaviors {
 
 		String schemaType = recordServices.getDocumentById(recordIds.get(0)).getSchemaCode().split("_")[0];
 
-		RMSelectionPanelReportPresenter rmSelectionPanelReportPresenter = new RMSelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
+		SelectionPanelReportPresenter selectionPanelReportPresenter = new SelectionPanelReportPresenter(appLayerFactory, collection, params.getUser()) {
 			@Override
 			public String getSelectedSchemaType() {
 				return schemaType;
@@ -640,15 +654,11 @@ public class RMRecordsMenuItemBehaviors {
 			public List<String> getSelectedRecordIds() {
 				return recordIds;
 			}
-
-
 		};
 
 		ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"),
-				$("SearchView.metadataReportTitle"),
-				appLayerFactory, collection, false, false,
-				rmSelectionPanelReportPresenter, params.getView().getSessionContext()) {
-
+				$("SearchView.metadataReportTitle"), appLayerFactory, collection, selectionPanelReportPresenter,
+				params.getView().getSessionContext()) {
 		};
 		List<RecordVO> recordVOList = getRecordVOList(recordIds, params.getView());
 		reportGeneratorButton.setRecordVoList(recordVOList.toArray(new RecordVO[0]));
@@ -732,12 +742,20 @@ public class RMRecordsMenuItemBehaviors {
 		BaseView view = params.getView();
 
 		StreamSource streamSource = () -> {
-			File folder = ioServices.newTemporaryFolder(ZIP_CONTENT_RESOURCE);
-			File file = new File(folder, $("SearchView.contentZip"));
+			File tempFolder = ioServices.newTemporaryFolder(ZIP_CONTENT_RESOURCE);
+			tempFolder.deleteOnExit();
+			File file = new File(tempFolder, $("SearchView.contentZip"));
 			try {
 				new ZipContentsService(modelLayerFactory, collection)
 						.zipContentsOfRecords(recordIds, file);
-				return new FileInputStream(file);
+				FileInputStream in = new FileInputStream(file) {
+					@Override
+					public void close() throws IOException {
+						super.close();
+						ioServices.deleteQuietly(tempFolder);
+					}
+				};
+				return in;
 			} catch (NoContentToZipRuntimeException e) {
 				log.error("Error while zipping", e);
 				view.showErrorMessage($("SearchView.noContentInSelectedRecords"));
@@ -754,8 +772,15 @@ public class RMRecordsMenuItemBehaviors {
 		zipButton.click();
 	}
 
-	public boolean isNeedingAReasonToDeleteRecords() {
-		return rmConfigs.isNeedingAReasonBeforeDeletingFolders();
+	public boolean isNeedingAReasonToDeleteRecords(List<String> recordIds) {
+		List<String> recordTypes = recordServices.getRecordsById(collection, recordIds)
+				.stream()
+				.map(r -> r.getTypeCode())
+				.distinct()
+				.collect(Collectors.toList());
+		boolean needsFolderJustification = recordTypes.contains(Folder.SCHEMA_TYPE) && rmConfigs.isNeedingAReasonBeforeDeletingFolders();
+		boolean needsDocumentsJustification = recordTypes.contains(Document.SCHEMA_TYPE) && rmConfigs.isNeedingAReasonBeforeDeletingDocuments();
+		return needsFolderJustification || needsDocumentsJustification;
 	}
 
 	private int countPerShemaType(String schemaType, List<String> recordIds) {
@@ -805,7 +830,7 @@ public class RMRecordsMenuItemBehaviors {
 
 	public void batchDelete(List<String> recordIds, MenuItemActionBehaviorParams params) {
 		Button button;
-		if (!isNeedingAReasonToDeleteRecords()) {
+		if (!isNeedingAReasonToDeleteRecords(recordIds)) {
 			button = new DeleteButton(false) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
@@ -1117,6 +1142,7 @@ public class RMRecordsMenuItemBehaviors {
 			String signature = user.getSignature() != null ? user.getSignature() : user.getTitle();
 			String subject = "";
 			String from = user.getEmail();
+			String userFullName = user.getFirstName() +" "+ user.getLastName();
 			//FIXME current version get only cart documents attachments
 			List<EmailServices.MessageAttachment> attachments = getDocumentsAttachments(recordIds);
 			if (attachments == null || attachments.isEmpty()) {
@@ -1127,12 +1153,12 @@ public class RMRecordsMenuItemBehaviors {
 			}
 
 			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-			EmailMessageParams params = new EmailMessageParams("selection", signature, subject, from, attachments);
+			EmailMessageParams params = new EmailMessageParams("selection", signature, subject, from, attachments, userFullName);
 			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage(params);
 			if (emailMessage == null) {
 				EmailServices emailServices = new EmailServices();
 				ConstellioEIMConfigs configs = new ConstellioEIMConfigs(modelLayerFactory);
-				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments, configs);
+				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments, configs, userFullName);
 				message.writeTo(outputStream);
 				String filename = "cart.eml";
 				InputStream inputStream = ioServices.newFileInputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.in");
@@ -1201,6 +1227,13 @@ public class RMRecordsMenuItemBehaviors {
 
 	private List<Record> getSelectedRecords(List<String> selectedRecordIds) {
 		return recordServices.getRecordsById(collection, selectedRecordIds);
+	}
+
+	public void deleteContainersContent(List<String> ids, MenuItemActionBehaviorParams params) {
+		List<ContainerRecord> containerRecords = rm.getContainerRecords(ids);
+
+		ContainerRecordMenuItemActionBehaviors containerRecordMenuItemActionBehaviors = new ContainerRecordMenuItemActionBehaviors(collection, appLayerFactory);
+		containerRecordMenuItemActionBehaviors.deleteContent(containerRecords, params);
 	}
 
 	public void putInContainer(List<String> ids, MenuItemActionBehaviorParams params) {

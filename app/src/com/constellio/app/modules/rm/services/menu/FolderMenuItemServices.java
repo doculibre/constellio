@@ -28,6 +28,7 @@ import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DELETE;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_DISPLAY;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_EDIT;
+import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_GENERATE_EXTERNAL_UPLOAD_LINK;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_GENERATE_REPORT;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_LIST_EXTERNAL_LINKS;
 import static com.constellio.app.modules.rm.services.menu.FolderMenuItemServices.FolderMenuItemActionType.FOLDER_MOVE;
@@ -66,7 +67,7 @@ public class FolderMenuItemServices {
 		if (!filteredActionTypes.contains(FOLDER_DISPLAY.name())) {
 			menuItemActions.add(buildMenuItemAction(FOLDER_DISPLAY.name(),
 					isMenuItemActionPossible(FOLDER_DISPLAY.name(), folder, user, params),
-					$("DisplayFolderView.displayFolder"), FontAwesome.FILE_O, -1, 1,
+					$("DisplayFolderView.displayFolder"), FontAwesome.SEARCH, -1, 1,
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).display(folder, params)));
 		}
 
@@ -225,6 +226,13 @@ public class FolderMenuItemServices {
 					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).delete(folder, params)));
 		}
 
+		if (!filteredActionTypes.contains(FOLDER_GENERATE_EXTERNAL_UPLOAD_LINK.name())) {
+			menuItemActions.add(buildMenuItemAction(FOLDER_GENERATE_EXTERNAL_UPLOAD_LINK.name(),
+					isMenuItemActionPossible(FOLDER_GENERATE_EXTERNAL_UPLOAD_LINK.name(), folder, user, params),
+					$("ExternalUploadViewImpl.generateExternalUploadLink"), FontAwesome.CLOUD_UPLOAD, -1, Integer.MAX_VALUE,
+					(ids) -> new FolderMenuItemActionBehaviors(collection, appLayerFactory).generateExternalUploadLink(folder, params)));
+		}
+
 		return menuItemActions;
 	}
 
@@ -285,6 +293,8 @@ public class FolderMenuItemServices {
 				return folderRecordActionsServices.isListExternalLinksActionPossible(record, user);
 			case FOLDER_CREATE_TASK:
 				return folderRecordActionsServices.isCreateTaskActionPossible(record, user);
+			case FOLDER_GENERATE_EXTERNAL_UPLOAD_LINK:
+				return folderRecordActionsServices.isGenerateExternalUploadLinkActionPossible(record, user);
 			default:
 				throw new RuntimeException("Unknown MenuItemActionType : " + menuItemActionType);
 		}
@@ -327,7 +337,8 @@ public class FolderMenuItemServices {
 		FOLDER_REMOVE_FROM_SELECTION,
 		FOLDER_TRIGGER_MANAGEMENT,
 		FOLDER_LIST_EXTERNAL_LINKS,
-		FOLDER_CREATE_TASK;
+		FOLDER_CREATE_TASK,
+		FOLDER_GENERATE_EXTERNAL_UPLOAD_LINK;
 	}
 
 }

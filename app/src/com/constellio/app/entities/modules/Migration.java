@@ -30,12 +30,12 @@ public class Migration {
 		return collection;
 	}
 
-	public String getMigrationId() {
+	public String getLegacyMigrationId() {
 		return collection + "_" + (moduleId == null ? "core" : moduleId) + "_" + script.getVersion();
 	}
 
 	@Override
 	public String toString() {
-		return "Migration{" + getMigrationId() + "}";
+		return "Migration{" + script.getClass().getSimpleName() + "}";
 	}
 }

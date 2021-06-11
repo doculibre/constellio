@@ -1,39 +1,35 @@
 package com.constellio.app.modules.rm.servlet;
 
+import com.constellio.app.modules.restapi.apis.v1.validation.exception.ExpiredSignedUrlException;
+import com.constellio.app.modules.restapi.apis.v1.validation.exception.UnauthorizedAccessException;
+import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
+import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
+import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.menu.behaviors.DocumentMenuItemActionBehaviors;
 import com.constellio.app.modules.rm.wrappers.SignatureExternalAccessUrl;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.wrappers.structure.ExternalAccessUrlStatus;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IntermittentFailureTest;
 import com.constellio.sdk.tests.setups.Users;
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.HttpMethod;
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.ScriptException;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebRequest;
-import com.gargoylesoftware.htmlunit.WebResponse;
-import com.gargoylesoftware.htmlunit.util.NameValuePair;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.servlet.http.HttpServletResponse;
-import java.net.URL;
-import java.util.Arrays;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.util.UUID;
 
-import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessDao.UNAUTHORIZED;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_ID;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_LANGUAGE;
 import static com.constellio.app.modules.rm.servlet.SignatureExternalAccessWebServlet.PARAM_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 public class SignatureExternalAccessWebServletGETAcceptanceTest extends ConstellioTest {
 
@@ -41,215 +37,217 @@ public class SignatureExternalAccessWebServletGETAcceptanceTest extends Constell
 	private String validAccessId = "validAccessId";
 	private SignatureExternalAccessUrl validAccess;
 
-	private String validUrl;
-	private String expiredUrl;
+	protected WebTarget webTarget;
 
 	private RMTestRecords records = new RMTestRecords(zeCollection);
 	private Users users = new Users();
 
 	private RecordServices recordServices;
 	private RMSchemasRecordsServices rm;
-	private DocumentMenuItemActionBehaviors documentMenuItemActionBehaviors;
 
 	@Before
 	public void setUp() throws Exception {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users)
 				.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
-		startApplication();
 
 		givenConfig(ConstellioEIMConfigs.CONSTELLIO_URL, "http://localhost:7070/constellio/");
 
+		webTarget = newWebTarget("signatureExternalAccess", new ObjectMapper(), false);
+
 		recordServices = getModelLayerFactory().newRecordServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		documentMenuItemActionBehaviors = new DocumentMenuItemActionBehaviors(zeCollection, getAppLayerFactory());
 
-		validUrl = documentMenuItemActionBehaviors.createExternalSignatureUrl(records.document_A19,
-				"Constellio Test", "noreply.doculibre2@gmail.com", getTomorrow(),
-				validLanguage, users.adminIn(zeCollection));
-		expiredUrl = documentMenuItemActionBehaviors.createExternalSignatureUrl(records.document_A19,
-				"Constellio Test", "noreply.doculibre2@gmail.com", getYesterday(),
-				validLanguage, users.adminIn(zeCollection));
 		validAccess = createAccess();
 	}
 
-	@After
-	public void tearDown() throws Exception {
-		stopApplication();
+	@Test
+	public void validateService() {
+		Response response = webTarget.queryParam(PARAM_ID, validAccessId)
+				.queryParam(PARAM_TOKEN, validAccess.getToken())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
 	}
 
 	@Test
-	public void validateWebService()
-			throws Exception {
-		try {
-			WebResponse response = callWebservice(validUrl);
-		} catch (ScriptException ignored) {
-			// TODO --> Better handle redirection exception
-		}
-	}
-
-	@Test
-	public void whenCallingServiceWithValidAccess()
-			throws Exception {
-		try {
-			WebResponse response = callWebservice(validAccessId, validAccess.getToken(), validLanguage);
-		} catch (ScriptException ignored) {
-			// TODO --> Better handle redirection exception
-		}
-	}
-
-	@Test
-	public void whenCallingServiceWithToClosedAccessStatus()
+	@IntermittentFailureTest
+	public void validateServiceWithToCloseAccessStatus()
 			throws Exception {
 		validAccess.setStatus(ExternalAccessUrlStatus.TO_CLOSE);
 		recordServices.update(validAccess);
 
-		try {
-			WebResponse response = callWebservice(validAccessId, validAccess.getToken(), validLanguage);
-		} catch (ScriptException ignored) {
-			// TODO --> Better handle redirection exception
-		}
-	}
+		Response response = webTarget.queryParam(PARAM_ID, validAccessId)
+				.queryParam(PARAM_TOKEN, validAccess.getToken())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
 
-	@Test
-	public void whenCallingServiceWithMissingId()
-			throws Exception {
-		try {
-			callWebservice("", validAccess.getToken(), validLanguage);
-			fail("whenCallingServiceWithMissingId should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
-	}
-
-	@Test
-	public void whenCallingServiceWitNonExistingId()
-			throws Exception {
-		try {
-			callWebservice("fakeId", validAccess.getToken(), validLanguage);
-			fail("whenCallingServiceWitNonExistingId should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
-	}
-
-	@Test
-	public void whenCallingServiceWithInvalidId()
-			throws Exception {
-		try {
-			callWebservice(records.document_A19, validAccess.getToken(), validLanguage);
-			fail("whenCallingServiceWithInvalidId should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
-	}
-
-	@Test
-	public void whenCallingServiceWithMissingToken()
-			throws Exception {
-		try {
-			callWebservice(validAccessId, "", validLanguage);
-			fail("whenCallingServiceWithMissingToken should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
-	}
-
-	@Test
-	public void whenCallingServiceWithInvalidToken()
-			throws Exception {
-		try {
-			callWebservice(validAccessId, "fakeToken", validLanguage);
-			fail("whenCallingServiceWithInvalidToken should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
+		assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
 	}
 
 	@Test
 	public void whenCallingServiceWithClosedAccessStatus()
 			throws Exception {
-		try {
-			validAccess.setStatus(ExternalAccessUrlStatus.CLOSED);
-			recordServices.update(validAccess);
+		validAccess.setStatus(ExternalAccessUrlStatus.CLOSED);
+		recordServices.update(validAccess);
 
-			callWebservice(validAccessId, validAccess.getToken(), validLanguage);
-			fail("whenCallingServiceWithClosedAccessStatus should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
+		Response response = webTarget.queryParam(PARAM_ID, validAccessId)
+				.queryParam(PARAM_TOKEN, validAccess.getToken())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new ExpiredSignedUrlException().getValidationError()));
 	}
 
 	@Test
 	public void whenCallingServiceWithExpiredAccessStatus()
 			throws Exception {
-		try {
-			validAccess.setStatus(ExternalAccessUrlStatus.EXPIRED);
-			recordServices.update(validAccess);
+		validAccess.setStatus(ExternalAccessUrlStatus.EXPIRED);
+		recordServices.update(validAccess);
 
-			callWebservice(validAccessId, validAccess.getToken(), validLanguage);
-			fail("whenCallingServiceWithExpiredAccessStatus should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
-	}
+		Response response = webTarget.queryParam(PARAM_ID, validAccessId)
+				.queryParam(PARAM_TOKEN, validAccess.getToken())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
 
-	@Test
-	public void whenCallingServiceWithMissingLanguage()
-			throws Exception {
-		try {
-			callWebservice(validAccessId, validAccess.getToken(), "");
-			fail("whenCallingServiceWithMissingLanguage should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
+		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new ExpiredSignedUrlException().getValidationError()));
 	}
 
 	@Test
 	public void whenCallingServiceWithExpiredAccess()
 			throws Exception {
-		try {
-			callWebservice(expiredUrl);
-			fail("whenCallingServiceWithExpiredAccess should throw an exception.");
-		} catch (FailingHttpStatusCodeException e) {
-			assertThat(e.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-			assertThat(e.getStatusMessage()).isEqualTo(UNAUTHORIZED);
-		}
+		validAccess.setExpirationDate(getYesterday());
+		recordServices.update(validAccess);
+
+		Response response = webTarget.queryParam(PARAM_ID, validAccessId)
+				.queryParam(PARAM_TOKEN, validAccess.getToken())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new ExpiredSignedUrlException().getValidationError()));
 	}
 
-	private WebResponse callWebservice(String url)
-			throws Exception {
-		WebClient webClient = new WebClient();
-		WebRequest webRequest;
+	@Test
+	public void whenCallingServiceWithMissingId() {
+		Response response = webTarget.queryParam(PARAM_TOKEN, validAccess.getToken())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
 
-		webRequest = new WebRequest(new URL(url));
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
-		Page page = webClient.getPage(webRequest);
-		return page.getWebResponse();
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_ID).getValidationError()));
 	}
 
-	private WebResponse callWebservice(String id, String token, String language)
-			throws Exception {
-		WebClient webClient = new WebClient();
-		WebRequest webRequest;
+	@Test
+	public void whenCallingServiceWithEmptyId() {
+		Response response = webTarget.queryParam(PARAM_ID, "")
+				.queryParam(PARAM_TOKEN, validAccess.getToken())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
 
-		String url = "http://localhost:7070/constellio/signatureExternalAccess";
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 
-		webRequest = new WebRequest(new URL(url));
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_ID).getValidationError()));
+	}
 
-		webRequest.setHttpMethod(HttpMethod.GET);
-		webRequest.setRequestParameters(Arrays.asList(new NameValuePair(PARAM_ID, id),
-				new NameValuePair(PARAM_TOKEN, token), new NameValuePair(PARAM_LANGUAGE, language)));
+	@Test
+	public void whenCallingServiceWithNonExistingId() {
+		Response response = webTarget.queryParam(PARAM_ID, "fakeId")
+				.queryParam(PARAM_TOKEN, validAccess.getToken())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
 
-		Page page = webClient.getPage(webRequest);
-		return page.getWebResponse();
+		assertThat(response.getStatus()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RecordNotFoundException("fakeId").getValidationError()));
+	}
+
+	@Test
+	public void whenCallingServiceWithInvalidId() {
+		Response response = webTarget.queryParam(PARAM_ID, records.document_A19)
+				.queryParam(PARAM_TOKEN, validAccess.getToken())
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new InvalidParameterException(PARAM_ID, records.document_A19).getValidationError()));
+	}
+
+	@Test
+	public void whenCallingServiceWithMissingToken() {
+		Response response = webTarget.queryParam(PARAM_ID, validAccessId)
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_TOKEN).getValidationError()));
+	}
+
+	@Test
+	public void whenCallingServiceWithEmptyToken() {
+		Response response = webTarget.queryParam(PARAM_ID, validAccessId)
+				.queryParam(PARAM_TOKEN, "")
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_TOKEN).getValidationError()));
+	}
+
+	@Test
+	public void whenCallingServiceWithInvalidToken() {
+		Response response = webTarget.queryParam(PARAM_ID, validAccessId)
+				.queryParam(PARAM_TOKEN, "fakeToken")
+				.queryParam(PARAM_LANGUAGE, validLanguage).request()
+				.get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.FORBIDDEN.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new UnauthorizedAccessException().getValidationError()));
+	}
+
+	@Test
+	public void whenCallingServiceWithMissingLang() {
+		Response response = webTarget.queryParam(PARAM_ID, validAccessId)
+				.queryParam(PARAM_TOKEN, validAccess.getToken()).request()
+				.get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_LANGUAGE).getValidationError()));
+	}
+
+	@Test
+	public void whenCallingServiceWithEmptyLang() {
+		Response response = webTarget.queryParam(PARAM_ID, validAccessId)
+				.queryParam(PARAM_TOKEN, validAccess.getToken())
+				.queryParam(PARAM_LANGUAGE, "").request()
+				.get();
+
+		assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+		String error = response.readEntity(String.class);
+		assertThat(error).isEqualTo(i18n.$(new RequiredParameterException(PARAM_LANGUAGE).getValidationError()));
 	}
 
 	private SignatureExternalAccessUrl createAccess() throws Exception {

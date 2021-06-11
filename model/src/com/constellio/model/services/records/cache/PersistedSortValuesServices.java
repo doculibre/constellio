@@ -46,6 +46,7 @@ import java.util.function.Supplier;
 
 import static com.constellio.model.services.search.VisibilityStatusFilter.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.apache.ignite.internal.util.lang.GridFunc.asList;
 
 public class PersistedSortValuesServices {
 
@@ -55,6 +56,8 @@ public class PersistedSortValuesServices {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersistedSortValuesServices.class);
 	private static final String TEMP_SORT_VALUES_FILE_RESOURCE_NAME = "PersistedSortValuesServices-TempSortValuesFile";
 	private static final String READ_SORT_FILE_INPUTSTREAM_RESOURCE_NAME = "PersistedSortValuesServices-ReadSortFileInputStream";
+
+	private static boolean running;
 
 	ModelLayerFactory modelLayerFactory;
 	ContentDao contentDao;
@@ -68,6 +71,10 @@ public class PersistedSortValuesServices {
 		this.fileService = modelLayerFactory.getIOServicesFactory().newFileService();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+	}
+
+	public static boolean isRunning() {
+		return running;
 	}
 
 	public LocalDateTime getLastVersionTimeStamp() {
@@ -153,6 +160,10 @@ public class PersistedSortValuesServices {
 			return null;
 		}
 
+	}
+
+	public void clear() {
+		contentDao.delete(asList(PATH));
 	}
 
 	@AllArgsConstructor
@@ -271,41 +282,46 @@ public class PersistedSortValuesServices {
 		//Trier par code s'il n'y a pas ddv dans le type de schéma
 		//Sinon par titre
 
-		List<SortValue> returnedIds = new ArrayList<>();
+		running = true;
+		try {
+			List<SortValue> returnedIds = new ArrayList<>();
 
-		for (String collection : collectionsListManager.getCollections()) {
-			for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypesInDisplayOrder()) {
+			for (String collection : collectionsListManager.getCollections()) {
+				for (MetadataSchemaType schemaType : metadataSchemasManager.getSchemaTypes(collection).getSchemaTypesInDisplayOrder()) {
 
-				if (schemaType.getMainSortMetadata() != null) {
+					if (schemaType.getMainSortMetadata() != null) {
 
-					boolean useTupleStream = modelLayerFactory.getSystemConfigs().isRunningWithSolr6()
-											 && modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration()
-													 .useSolrTupleStreamsIfSupported();
+						boolean useTupleStream = (modelLayerFactory.getSystemConfigs().isRunningWithSolr6() || modelLayerFactory.getDataLayerFactory().isDistributed())
+												 && modelLayerFactory.getDataLayerFactory().getDataLayerConfiguration().useSolrTupleStreamsIfSupported()
+												 /*&& schemaType.getCacheType().isSummaryCache()*/;
 
-					String stepName = "Loading sort values of '" + schemaType.getCode() + "' of collection '" + schemaType.getCollection() + "'"
-									  + (useTupleStream ? " (using tuple streams)" : " (using iterator)");
+						String stepName = "Loading sort values of '" + schemaType.getCode() + "' of collection '" + schemaType.getCollection() + "'"
+										  + (useTupleStream ? " (using tuple streams)" : " (using iterator)");
 
-					final long total = modelLayerFactory.newSearchServices().getResultsCount(from(schemaType).returnAll());
-					Consumer<Integer> progressionConsumer = (current) -> {
+						final long total = modelLayerFactory.newSearchServices().getResultsCount(from(schemaType).returnAll());
+						Consumer<Integer> progressionConsumer = (current) -> {
 
-						if (current % 50000 == 0 || current == total) {
-							LOGGER.info(stepName + " - " + current + "/" + total);
+							if (current % 50000 == 0 || current == total) {
+								LOGGER.info(stepName + " - " + current + "/" + total);
+							}
+						};
+
+
+						if (useTupleStream) {
+							returnedIds.addAll(recordsIdSortedByTitleUsingTupleStream(schemaType, schemaType.getMainSortMetadata(), progressionConsumer));
+
+
+						} else {
+							returnedIds.addAll(recordsIdSortedByTitleUsingIterator(schemaType, schemaType.getMainSortMetadata(), progressionConsumer));
 						}
-					};
-
-
-					if (useTupleStream) {
-						returnedIds.addAll(recordsIdSortedByTitleUsingTupleStream(schemaType, schemaType.getMainSortMetadata(), progressionConsumer));
-
-
-					} else {
-						returnedIds.addAll(recordsIdSortedByTitleUsingIterator(schemaType, schemaType.getMainSortMetadata(), progressionConsumer));
 					}
-				}
 
+				}
 			}
+			return returnedIds;
+		} finally {
+			running = false;
 		}
-		return returnedIds;
 	}
 
 

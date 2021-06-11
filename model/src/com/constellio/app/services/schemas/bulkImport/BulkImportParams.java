@@ -10,6 +10,8 @@ public class BulkImportParams {
 
 	boolean isAllowingReferencesToNonExistingUsers = false;
 
+	boolean mergeExistingRecordWithSameLegacyId = true;
+
 	boolean simulate = false;
 
 	ImportErrorsBehavior importErrorsBehavior = ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
@@ -71,6 +73,15 @@ public class BulkImportParams {
 
 	public BulkImportParams setAllowingReferencesToNonExistingUsers(boolean allowingReferencesToNonExistingUsers) {
 		isAllowingReferencesToNonExistingUsers = allowingReferencesToNonExistingUsers;
+		return this;
+	}
+
+	public boolean isMergeExistingRecordWithSameLegacyId() {
+		return mergeExistingRecordWithSameLegacyId;
+	}
+
+	public BulkImportParams setMergeExistingRecordWithSameLegacyId(boolean mergeExistingRecordWithSameLegacyId) {
+		this.mergeExistingRecordWithSameLegacyId = mergeExistingRecordWithSameLegacyId;
 		return this;
 	}
 

@@ -6,8 +6,10 @@ import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
-import com.constellio.app.modules.rm.services.reports.label.LabelXmlGenerator;
+import com.constellio.app.modules.rm.services.reports.JasperReportServices;
+import com.constellio.app.modules.rm.services.reports.printable.PrintableGeneratorParams;
+import com.constellio.app.modules.rm.services.reports.xml.XMLDataSourceType;
+import com.constellio.app.modules.rm.services.reports.xml.legacy.LabelXmlGenerator;
 import com.constellio.app.modules.rm.ui.components.Dimensionnable;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -20,19 +22,17 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Factory;
-import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -46,10 +46,8 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.collections.ListUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -134,7 +132,10 @@ public class LabelButtonV2 extends WindowButton {
 	public LabelButtonV2 setElementsWithIds(List<String> ids, String schemaType, SessionContext sessionContext) {
 		List<RecordVO> recordVOS = new ArrayList<>();
 		for (String id : ids) {
-			recordVOS.add(getRecordVoFromId(id, schemaType, sessionContext));
+			RecordVO recordVO = getRecordVoFromId(id, schemaType, sessionContext);
+			if (recordVO != null) {
+				recordVOS.add(recordVO);
+			}
 		}
 		this.elements = recordVOS.toArray(new RecordVO[0]);
 		return this;
@@ -194,7 +195,7 @@ public class LabelButtonV2 extends WindowButton {
 
 	private void setupCopieFields() {
 
-		copiesField = new TextField($("LabelsButton.numberOfCopies"));
+		copiesField = new BaseTextField($("LabelsButton.numberOfCopies"));
 		copiesField.setRequired(true);
 		copiesField.setConverter(Integer.class);
 
@@ -251,10 +252,8 @@ public class LabelButtonV2 extends WindowButton {
 	}
 
 	private RecordVO getRecordVoFromId(String id, String schemaType, SessionContext sessionContext) {
-		MetadataSchemasManager metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
-		LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType)).where(Schemas.IDENTIFIER).isEqualTo(id);
-		return this.recordToVOBuilder.build(searchServices.searchSingleResult(condition), RecordVO.VIEW_MODE.DISPLAY, sessionContext);
-
+		Record record = recordServices.get(id);
+		return record != null ? this.recordToVOBuilder.build(record, RecordVO.VIEW_MODE.DISPLAY, sessionContext) : null;
 	}
 
 	private void sortListOfAllTemplates() {
@@ -326,32 +325,31 @@ public class LabelButtonV2 extends WindowButton {
 		private VerticalLayout generateLabelFromPrintableLabel(Dimensionnable selectedTemplate) throws Exception {
 			VerticalLayout layout = null;
 			if (validateInputs(selectedTemplate)) {
-				LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory, getLocale(), userVO).setStartingPosition((Integer) startPositionField.getValue())
-						.setNumberOfCopies(Integer.parseInt(copiesField.getValue().trim())).setElements(getRecordFromElements(elements));
 				PrintableLabel selectedTemplateAsPrintableLabel = ((PrintableLabel) selectedTemplate);
-				JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(labelXmlGenerator);
-				Content content = selectedTemplateAsPrintableLabel.get(PrintableLabel.JASPERFILE);
-				InputStream inputStream = contentManager.getContentInputStream(content.getCurrentVersion().getHash(), content.getId());
-				File jasperFile = ioServicesFactory.newIOServices().newTemporaryFile("jasper.jasper");
-				try {
-					FileUtils.copyInputStreamToFile(inputStream, jasperFile);
+				JasperReportServices jasperReportServices = new JasperReportServices(collection, factory);
+				PrintableGeneratorParams params = PrintableGeneratorParams.builder()
+						.XMLDataSourceType(XMLDataSourceType.LABEL)
+						.numberOfCopies(Integer.parseInt(copiesField.getValue().trim()))
+						.startingPosition((Integer) startPositionField.getValue())
+						.printableId(selectedTemplateAsPrintableLabel.getId())
+						.recordIds(getRecordIdsFromElements(elements))
+						.locale(getLocale())
+						.username(userVO.getUsername())
+						.build();
+				try (InputStream inputStream = jasperReportServices.generatePrintable(params)) {
 					String titleOfthePdfFile = LabelXmlGenerator.escapeForXmlTag(selectedTemplateAsPrintableLabel.getTitle()) + ".pdf";
-					File generatedPdfFile = jasperPdfGenerator.createPDFFromXmlAndJasperFile(jasperFile);
-					layout = new LabelViewer(generatedPdfFile, titleOfthePdfFile, factory.getModelLayerFactory().getIOServicesFactory().newIOServices());
-				} finally {
-					ioServicesFactory.newIOServices().deleteQuietly(jasperFile);
-					ioServicesFactory.newIOServices().closeQuietly(inputStream);
+					layout = new LabelViewer(inputStream, titleOfthePdfFile, factory.getModelLayerFactory().getIOServicesFactory().newIOServices());
 				}
 			}
 			return layout;
 		}
 
-		private Record[] getRecordFromElements(RecordVO... recordVOS) {
-			List<Record> recordList = new ArrayList<>();
+		private List<String> getRecordIdsFromElements(RecordVO... recordVOS) {
+			List<String> recordIds = new ArrayList<>();
 			for (RecordVO recordVO : recordVOS) {
-				recordList.add(recordServices.getDocumentById(recordVO.getId()));
+				recordIds.add(recordVO.getId());
 			}
-			return recordList.toArray(new Record[0]);
+			return recordIds;
 		}
 
 		private VerticalLayout generateLabelFromLabelTemplate(T parametersVO) {
