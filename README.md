@@ -24,3 +24,8 @@ Useful links:
 ### How to contribute
 
 You are invited to take a clone of the latest version of the project to obtain a local copy that you can use to develop your contributions.. Once the development is complete, you can submit your contribution by doing a pull request. The proposed contributions will be analyzed by members of our development team to ensure that Constellio’s high standards of quality are respected. Readability, maintainability and coverage of automated tests (which must be higher than 95%) have a particular importance for our team. Once the code is approved, your pull demand will be accepted and your contribution will be added to the project. Otherwise we will contact you. We can then discuss adjustments in order to make your development consistent with our standards of quality.
+
+### Nonofficial Docker image
+
+- https://hub.docker.com/r/lracicot/constellio
+- https://hub.docker.com/r/lracicot/constellio-solr
